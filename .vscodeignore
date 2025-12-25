@@ -2,7 +2,6 @@
 .vscode/**
 .vscode-test/**
 node_modules/**
-src/**
 scripts/**
 .codebuddy/**
 

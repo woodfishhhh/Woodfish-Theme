@@ -4,7 +4,7 @@
 
 > 一个具有发光效果、渐变色彩和动画的VSCode彩虹主题扩展
 
-[![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
+[![Version](https://img.shields.io/badge/version-3.5.1-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/zhongjun.woodfish-theme)](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme)
@@ -20,6 +20,8 @@
 - 🎯 **模块化设计**: 可按需自定义的模块化CSS架构
 - 🚀 **性能优化**: 轻量级设计，不影响编辑器性能
 - 🎛️ **独立控制**: 发光效果、毛玻璃效果、彩色光标可独立开关 🆕
+- 🏗️ **模块化架构**: 完全重构的src模块化设计，提升可维护性 🆕
+- ⚙️ **智能配置**: 自动配置和验证机制，确保主题功能正常运行 🆕
 
 ## 🖼️ 预览
 
@@ -124,11 +126,13 @@ code --install-extension woodfish-theme-3.0.0.vsix
 ## 🎨 主题特色
 
 ### 彩虹光标动画
+
 - 6秒循环的彩虹渐变动画
 - 发光效果增强视觉冲击
 - 流畅的颜色过渡
 
 ### 语法高亮渐变
+
 - HTML标签: 蓝色渐变
 - 字符串: 绿色渐变  
 - 关键字: 紫色渐变
@@ -136,12 +140,14 @@ code --install-extension woodfish-theme-3.0.0.vsix
 - 注释: 半透明效果
 
 ### 发光效果分级
+
 - 高强度: 关键字、函数 (30px)
 - 中等强度: 变量、字符串 (25px)
 - 低强度: 注释、符号 (20px)
 - 最小强度: 其他元素 (15px)
 
 ### 透明UI设计
+
 - 悬停提示半透明背景
 - 快速输入小部件透明效果
 - 毛玻璃模糊效果
@@ -170,7 +176,9 @@ npm run package
 
 ### 模块化架构
 
-主题采用模块化设计，包含以下模块：
+主题采用完全模块化设计，包含以下模块：
+
+**CSS样式模块：**
 
 - `variables.css` - 主题变量定义
 - `activity-bar.css` - 活动栏样式
@@ -179,6 +187,15 @@ npm run package
 - `glow-effects.css` - 发光效果
 - `cursor-animation.css` - 光标动画
 - `transparent-ui.css` - 透明UI
+
+**JavaScript功能模块：**
+
+- `src/constants.js` - 常量定义
+- `src/utils.js` - 工具函数
+- `src/themes.js` - 主题配置和CSS管理
+- `src/config.js` - 配置管理
+- `src/commands.js` - 命令处理
+- `src/config-validator.js` - 配置验证和监听
 
 ## 🤝 贡献
 
@@ -194,17 +211,45 @@ npm run package
 
 ## 📝 更新日志
 
-### [3.4.0] - 2025-09-18 ✨ 最新版本
+### [3.5.1] - 2025-12-25 🛠️ 最新版本
+
+#### 🆕 主要修复
+
+- **模块化架构优化** - 完善src模块化设计，将功能拆分为独立模块
+- **配置管理优化** - 重构配置管理逻辑，提升代码可维护性
+- **打包配置修复** - 修复打包时src文件夹被忽略的问题，确保所有模块正确打包
+- **命令注册修复** - 修复命令导入路径问题，确保所有命令正确注册
+
+#### 🏗️ 架构改进
+
+- `src/constants.js` - 常量定义模块
+- `src/utils.js` - 工具函数模块  
+- `src/themes.js` - 主题配置模块
+- `src/config.js` - 配置管理模块
+- `src/commands.js` - 命令处理模块
+- `src/config-validator.js` - 配置验证和监听模块
+
+#### 🐛 优化改进
+
+- 完善模块化架构，提升代码可维护性
+- 修复打包配置问题，确保所有文件正确包含
+- 优化错误处理和模块加载机制
+- 改进代码结构，提升性能和稳定性
+
+### [3.4.0] - 2025-09-18
 
 #### 🆕 主要新增功能
+
 - **彻底停用功能** - 新增"彻底停用 Woodfish 主题"命令，可强制去除新版和旧版的发光特效以及彩色光标等
 - **完全清理机制** - 彻底清理所有主题相关的CSS配置和Custom CSS设置
 - **兼容性增强** - 确保与各种版本的主题配置完全兼容
 
 #### 🎛️ 新增命令
+
 - `Woodfish Theme: 彻底停用 Woodfish 主题` - 强制去除所有主题效果，包括新版和旧版配置
 
 #### 🐛 优化改进
+
 - 完善主题卸载机制，确保彻底清理
 - 优化用户体验，提供完整的停用选项
 - 改进错误处理和状态反馈
@@ -212,20 +257,24 @@ npm run package
 ### [3.1.0] - 2025-08-27
 
 #### 🆕 主要新增功能
+
 - **独立效果控制** - 新增"开启/关闭毛玻璃效果"命令，可独立控制透明UI效果
 - **彩色光标开关** - 新增"开启/关闭彩色光标"命令，一键切换彩色光标效果
 - **智能配置管理** - 彩色光标开关自动管理Custom CSS配置，无需手动操作
 - **模块化架构优化** - 完善模块化设计，各效果完全独立可控
 
 #### 🎛️ 新增命令
+
 - `Woodfish Theme: 开启/关闭毛玻璃效果` - 切换透明UI和毛玻璃效果
 - `Woodfish Theme: 开启/关闭彩色光标` - 切换彩色光标效果
 
 #### ⚙️ 新增配置项
+
 - `woodfishTheme.enableGlassEffect`: 控制毛玻璃效果开关
 - `woodfishTheme.enableRainbowCursor`: 控制彩色光标效果开关
 
 #### 🐛 优化改进
+
 - 完善配置监听机制，实时响应效果开关
 - 优化用户体验，提供清晰的状态反馈
 - 改进错误处理和降级方案
@@ -234,6 +283,7 @@ npm run package
 ### [3.0.0] - 2025-01-22
 
 #### 🌈 主要新增功能
+
 - **彩色光标自动配置** - 新增"启动彩色光标自动配置"命令，一键启用炫酷的彩色光标效果
 - **智能依赖管理** - 自动检测并安装 Custom CSS and JS Loader 扩展
 - **多种安装方式** - 支持脚本自动安装和手动安装两种方式
@@ -241,12 +291,14 @@ npm run package
 - **跨平台支持** - 完美兼容 Windows、macOS 和 Linux 系统
 
 #### 🐛 修复和优化
+
 - 修复了彩色光标配置中的依赖扩展安装问题
 - 完善了错误处理和用户提示机制
 - 优化了扩展安装流程的用户体验
 - 改进了文档结构和说明
 
 #### 📦 发布信息
+
 - ✅ **VSCode 扩展市场**: [立即安装](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme)
 - ✅ **GitHub Release**: [v3.0.0](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v3.0.0)
 - ✅ **VSIX 下载**: [woodfish-theme-3.0.0.vsix](https://github.com/woodfishhhh/Woodfish-Theme/releases/download/v3.0.0/woodfish-theme-3.0.0.vsix)
@@ -254,6 +306,7 @@ npm run package
 ### [2.3.0] - 2024-12-19
 
 #### 新增
+
 - 🚀 版本更新到2.3.0
 - 📝 更新项目文档
 - 🎯 分散功能，可以各自打开
@@ -262,6 +315,7 @@ npm run package
 ### [2.2.0] - 2024-12-XX
 
 #### 新增
+
 - 🌈 彩虹光标动画效果
 - ✨ 代码发光效果系统
 - 🎨 渐变语法高亮优化
@@ -270,11 +324,13 @@ npm run package
 - 🎯 模块化CSS架构
 
 #### 优化
+
 - 性能优化，减少资源占用
 - 动画流畅度提升
 - 颜色对比度调整
 
 ### [2.1.1] - 2024-12-19
+
 - 💫 为悬浮提示添加了毛玻璃背景效果
 - 🐛 修复了悬浮菜单位置偏移问题
 - 🎯 优化了悬浮提示的视觉效果
