@@ -1,16 +1,11 @@
-/* ===== 透明UI模块 ===== */
-
 /* 设置粘性小部件的背景为透明 */
 div.sticky-widget {
   --vscode-editorStickyScroll-background: transparent !important;
   backdrop-filter: blur(20px) brightness(110%) !important;
 }
 
-/* 悬停提示透明背景 */
 div.monaco-hover {
-  --vscode-editorHoverWidget-background: rgba(37, 48, 67, 0.85) !important;
-  backdrop-filter: blur(15px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+  --vscode-editorHoverWidget-background: #ffffff !important;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important; /* 添加柔和的阴影 */
   border-radius: 4px !important; /* 圆角效果 */
 }

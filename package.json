@@ -2,7 +2,7 @@
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
   "description": "🌈 Woodfish 彩虹主题 - 回档到稳定版本，具有发光效果、渐变色彩和动画的VSCode主题扩展",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"
@@ -32,15 +32,22 @@
     "cyberpunk"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onCommand:woodfish-theme.enable",
+    "onCommand:woodfish-theme.disable",
+    "onCommand:woodfish-theme.toggleGlow",
+    "onCommand:woodfish-theme.autoConfigureRainbowCursor",
+    "onCommand:woodfish-theme.toggleGlassEffect",
+    "onCommand:woodfish-theme.toggleRainbowCursor",
+    "onCommand:woodfish-theme.completeUninstall"
   ],
-  "main": "./extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "themes": [
       {
         "label": "Woodfish Dark",
         "uiTheme": "vs-dark",
-        "path": "./themes/woodfish-dark-color-theme.json"
+        "path": "./themes/Bearded Theme/Bearded Theme.json"
       }
     ],
     "commands": [
@@ -121,8 +128,11 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "echo 'Preparing for publish...'",
-    "lint": "eslint .",
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "vscode:prepublish": "npm run compile",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "echo 'No tests specified'",
     "pre-publish": "node scripts/pre-publish-check.js",
     "publish": "node scripts/publish.js",
@@ -130,12 +140,13 @@
     "clean": "rimraf *.vsix"
   },
   "devDependencies": {
-    "@types/node": "16.x",
+    "@types/node": "^16.18.126",
     "@types/vscode": "^1.74.0",
     "@vscode/test-electron": "^2.2.0",
     "@vscode/vsce": "^3.7.1",
-    "eslint": "^9.39.2",
     "globals": "^16.5.0",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
     "vsce": "^2.15.0"
   },
   "repository": {

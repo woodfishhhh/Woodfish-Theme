@@ -1,0 +1,10 @@
+/* 
+ * Woodfish Theme Main CSS
+ */
+
+@import url('./activity-bar.css');
+@import url('./tab-bar.css');
+@import url('./syntax-highlighting.css');
+@import url('./glow-effects.css');
+@import url('./transparent-ui.css');
+@import url('./cursor-animation.css');

@@ -7,7 +7,6 @@ scripts/**
 .codebuddy/**
 
 # 构建输出
-out/**
 dist/**
 
 # 测试文件
@@ -20,6 +19,12 @@ test/**
 tsconfig*.json
 **/.eslintrc.json
 vsc-extension-quickstart.md
+
+# 旧版入口备份（不参与打包）
+extension.legacy.js
+
+# 根目录 shim（实际入口在 out/extension.js）
+extension.js
 
 # 源码文件
 **/*.ts

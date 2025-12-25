@@ -1,6 +1,4 @@
-/* ===== 标签栏模块 ===== */
-
-/* 选中标签栏上边框动画 */
+/* 选中标签栏上边框 */
 @keyframes tabBorderTopMoveGradient {
   from {
     background-position: 0% !important;
@@ -9,14 +7,12 @@
     background-position: 100% !important;
   }
 }
-
 .tab.tab-actions-right.sizing-fit.has-icon.tab-border-bottom.tab-border-top.active {
   --tab-border-top-color: transparent !important;
   position: relative !important;
 }
-
 .tab.tab-actions-right.sizing-fit.has-icon.tab-border-bottom.tab-border-top.active:after {
-  content: "" !important;
+  content: '' !important;
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;

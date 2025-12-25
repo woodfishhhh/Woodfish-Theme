@@ -1,5 +1,3 @@
-/* ===== 发光效果模块 ===== */
-
 /* 为代码编辑器中的特定文本添加发光效果，统一使用 currentColor 确保发光颜色与字体颜色一致 */
 span.mtk1,
 span.token.keyword,

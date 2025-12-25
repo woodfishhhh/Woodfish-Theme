@@ -5,7 +5,7 @@
 Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow style, and optional rainbow cursor / glass UI effects.
 
 [![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](../LICENSE)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 
 ## Features
@@ -14,12 +14,12 @@ Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow st
 - Glow effects
 - Optional glass/transparent UI
 - Optional rainbow cursor (via CSS injection)
-- Modular CSS structure
+- Modular CSS structure (easy to maintain)
 
 ## Preview
 
-![Preview 1](images/img1.png)
-![Preview 2](images/img2.png)
+![Preview 1](../images/img1.png)
+![Preview 2](../images/img2.png)
 
 ## Installation
 
@@ -52,7 +52,7 @@ Woodfish Theme will detect and guide you when you run related commands.
 - `Woodfish Theme: 开启 Woodfish 主题` (enable)
 - `Woodfish Theme: 关闭 Woodfish 主题` (disable)
 
-Reload the VS Code window when prompted.
+After changing injection settings, reload the VS Code window when prompted.
 
 ### Select Theme
 
@@ -98,8 +98,8 @@ npm run package
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md).
+See [CHANGELOG.md](../CHANGELOG.md).
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT License. See [LICENSE](../LICENSE).

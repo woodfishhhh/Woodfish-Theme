@@ -5,7 +5,7 @@
 }
 
 .monaco-editor .cursors-layer .cursor::before {
-  content: "" !important;
+  content: '' !important;
   position: absolute !important;
   inset: 0 !important;
   background: linear-gradient(
@@ -22,7 +22,7 @@
   ) !important;
   background-size: 100% 800% !important;
   border-radius: 2px !important;
-  animation: bp-animation 8s linear infinite  cursor-hue 8s linear infinite !important;
+  animation: bp-animation 8s linear infinite cursor-hue 8s linear infinite !important;
   animation-play-state: running !important;
 }
 

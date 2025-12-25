@@ -1,0 +1,55 @@
+div.cursor {
+  animation: 30s linear infinite alternate bp-animation !important;
+  background: linear-gradient(
+    to bottom,
+    /* 明确渐变方向 */ #ff2d95,
+    /* 亮粉色 */ #ff4500,
+    /* 橙红色 */ #ffd700,
+    /* 金色 */ #7cfc00,
+    /* 草坪绿 */ #00ffff,
+    /* 青色 */ #1e90ff,
+    /* 道奇蓝 */ #9370db,
+    /* 中紫色 */ #ff00ff,
+    /* 洋红色 */ #ff1493 /* 深粉色 */
+  ) !important;
+  background-size: 100% 1200% !important; /* 增加背景尺寸增强流动效果 */
+  border-radius: 2px !important;
+  overflow: visible !important;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.7) !important; /* 添加发光效果增强视觉 */
+}
+
+div.cursor::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: inherit !important;
+  background-size: 100% 1000% !important;
+  border-radius: 3px !important;
+  transform: scale(140%, 120%) !important;
+  filter: blur(4px) brightness(200%) !important;
+  z-index: -1 !important;
+}
+
+@keyframes bp-animation {
+  0% {
+    background-position: 0 0 !important;
+  }
+  20% {
+    background-position: 0 166.6% !important;
+  }
+  40% {
+    background-position: 0 333.3% !important;
+  }
+  60% {
+    background-position: 0 500% !important;
+  }
+  80% {
+    background-position: 0 666.6% !important;
+  }
+  100% {
+    background-position: 0 833.3% !important;
+  }
+}

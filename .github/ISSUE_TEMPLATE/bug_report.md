@@ -30,6 +30,7 @@ assignees: ''
 ## 🖥️ 环境信息
 
 **桌面环境（请填写以下信息）：**
+
 - 操作系统: [例如 Windows 11, macOS 13.0, Ubuntu 22.04]
 - VSCode 版本: [例如 1.85.0]
 - Woodfish Theme 版本: [例如 1.0.0]
