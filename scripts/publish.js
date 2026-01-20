@@ -90,7 +90,12 @@ function packageExtension() {
 // 发布到市场
 function publishToMarketplace() {
   console.log('🌐 准备发布到VSCode市场...');
-  console.log('⚠️  请确保已设置发布令牌 (vsce login)');
+  console.log(
+    'ℹ️  注意：将使用您本地环境配置的 VSCode 发布令牌 (通过 vsce login 设置)',
+  );
+  console.log(
+    '    如果您未在本地登录，发布可能会失败。脚本不会保存或读取任何令牌文件。',
+  );
 
   const readline = require('readline').createInterface({
     input: process.stdin,
