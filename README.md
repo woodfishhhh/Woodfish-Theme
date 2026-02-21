@@ -2,9 +2,9 @@
 
 > 中文 | [English](README.en.md)
 
-一个具有发光效果、渐变色彩与动画风格的 VS Code 主题扩展。
+一个具有发光效果、渐变色彩与彩虹光标效果的 VS Code 主题扩展。
 
-[![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
+[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/zhongjun.woodfish-theme)](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme)
@@ -14,8 +14,14 @@
 - 🌈 彩色光标：注入彩虹光标样式（可开关）
 - ✨ 发光效果：关键字/行号发光视觉
 - 🎨 渐变语法高亮：提升辨识度与舒适度
-- 🔍 透明/毛玻璃 UI：现代化半透明与模糊效果（可开关）
 - 🧩 模块化 CSS：主题样式按模块组织，便于维护
+
+## 🆕 新增功能说明
+
+- **状态栏指示器**：状态栏会实时显示当前启用的功能（✨发光 🌈彩虹光标）。
+- **进度提示**：在执行开启/关闭操作时，会通过通知显示实时进度，让你了解后台处理状态。
+- **快速功能菜单**：点击状态栏中的 “✨ Woodfish” 即可打开功能菜单，快速切换各项特效。
+
 
 ## 🖼️ 预览
 
@@ -34,7 +40,7 @@
 ### 手动安装（VSIX）
 
 ```bash
-code --install-extension woodfish-theme-3.5.0.vsix
+code --install-extension woodfish-theme-4.0.0.vsix
 ```
 
 ## 🔌 前置依赖（重要）
@@ -75,12 +81,40 @@ code --install-extension woodfish-theme-3.5.0.vsix
 - `Woodfish Theme: 开启 Woodfish 主题`
 - `Woodfish Theme: 关闭 Woodfish 主题`
 - `Woodfish Theme: 开启/关闭 Woodfish 发光`
-- `Woodfish Theme: 开启/关闭毛玻璃效果`
 - `Woodfish Theme: 启动彩色光标自动配置`
 - `Woodfish Theme: 开启/关闭彩色光标`
 - `Woodfish Theme: 彻底停用 Woodfish 主题`（清理旧残留，属于破坏性操作，执行前会二次确认）
 
-## ⚙️ 自定义配置
+## ❓ 故障排查 (Troubleshooting)
+
+如果遇到问题，请先尝试以下步骤。更多详细内容请查看 [完整故障排查指南](docs/TROUBLESHOOTING.md)。
+
+- **问题：发光效果没有生效**
+  - 原因：Custom CSS 扩展需要重新加载才能生效。
+  - 解决：运行开启命令后，务必点击弹窗右下角的 **“重新加载窗口”**。
+- **问题：关闭功能后效果仍然存在**
+  - 原因：可能是由于 Custom CSS 扩展的缓存或旧版本 CSS 残留。
+  - 解决：运行 `Woodfish Theme: 彻底停用 Woodfish 主题` 命令清理残留。
+- **问题：状态栏没有显示**
+  - 原因：扩展尚未激活。
+  - 解决：运行任意 `Woodfish Theme:` 命令（如“开启 Woodfish 主题”）即可激活扩展。
+- **问题：彩色光标不工作**
+  - 原因：彩色光标需要注入额外的 CSS，且必须在启用主题的基础上配置。
+  - 解决：先开启主题，再运行 `Woodfish Theme: 启动彩色光标自动配置`。
+
+## 💬 常见问题 (FAQ)
+
+- **Q: 为什么每次切换功能都需要重新加载？**
+  - A: 因为 CSS 注入涉及到 VS Code 的底层渲染，需要通过重新加载窗口来使新的样式表生效。
+- **Q: 可以同时使用多个主题吗？**
+  - A: 不建议。Woodfish Theme 涉及到 CSS 注入，与其他同样具有注入功能的主题同时使用可能会导致样式冲突或显示异常。
+- **Q: 如何完全移除所有效果？**
+  - A: 使用 `Woodfish Theme: 彻底停用 Woodfish 主题` 命令，它会尝试清理所有注入的配置和临时文件。
+- **Q: 状态栏的图标代表什么？**
+  - A: ✨ = 发光效果；🌈 = 彩虹光标。
+
+## ⚙️ 配置说明
+
 
 ```json
 {
@@ -91,7 +125,6 @@ code --install-extension woodfish-theme-3.5.0.vsix
     }
   ],
   "woodfishTheme.enableGlowEffects": true,
-  "woodfishTheme.enableGlassEffect": true,
   "woodfishTheme.enableRainbowCursor": false
 }
 ```

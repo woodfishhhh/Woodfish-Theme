@@ -2,7 +2,7 @@
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
   "description": "🌈 Woodfish 彩虹主题 - 回档到稳定版本，具有发光效果、渐变色彩和动画的VSCode主题扩展",
-  "version": "3.5.0",
+  "version": "4.0.0",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"
@@ -24,7 +24,6 @@
     "glow",
     "animation",
     "cursor",
-    "transparent",
     "ui",
     "custom",
     "colorful",
@@ -37,7 +36,6 @@
     "onCommand:woodfish-theme.disable",
     "onCommand:woodfish-theme.toggleGlow",
     "onCommand:woodfish-theme.autoConfigureRainbowCursor",
-    "onCommand:woodfish-theme.toggleGlassEffect",
     "onCommand:woodfish-theme.toggleRainbowCursor",
     "onCommand:woodfish-theme.completeUninstall"
   ],
@@ -69,11 +67,6 @@
       {
         "command": "woodfish-theme.autoConfigureRainbowCursor",
         "title": "启动彩色光标自动配置",
-        "category": "Woodfish Theme"
-      },
-      {
-        "command": "woodfish-theme.toggleGlassEffect",
-        "title": "开启/关闭毛玻璃效果",
         "category": "Woodfish Theme"
       },
       {
@@ -114,11 +107,6 @@
           "default": true,
           "description": "启用字体发光效果"
         },
-        "woodfishTheme.enableGlassEffect": {
-          "type": "boolean",
-          "default": true,
-          "description": "启用毛玻璃效果"
-        },
         "woodfishTheme.enableRainbowCursor": {
           "type": "boolean",
           "default": false,
@@ -131,9 +119,13 @@
     "compile": "tsc -p .",
     "watch": "tsc -watch -p .",
     "vscode:prepublish": "npm run compile",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "test": "echo 'No tests specified'",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "pre-publish": "node scripts/pre-publish-check.js",
     "publish": "node scripts/publish.js",
     "package": "vsce package",
@@ -143,11 +135,18 @@
     "@types/node": "^16.18.126",
     "@types/vscode": "^1.74.0",
     "@vscode/test-electron": "^2.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@types/jest": "^29.5.0",
     "@vscode/vsce": "^3.7.1",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "globals": "^16.5.0",
+    "jest": "^29.7.0",
     "prettier": "^3.7.4",
-    "typescript": "^5.9.3",
-    "vsce": "^2.15.0"
+    "ts-jest": "^29.2.0",
+    "typescript": "^5.9.3"
   },
   "repository": {
     "type": "git",

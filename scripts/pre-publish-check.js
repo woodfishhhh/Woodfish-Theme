@@ -105,7 +105,6 @@ function checkThemeFiles() {
     'themes/Bearded Theme/syntax-highlighting.css',
     'themes/Bearded Theme/glow-effects.css',
     'themes/Bearded Theme/cursor-animation.css',
-    'themes/Bearded Theme/transparent-ui.css',
     'themes/Bearded Theme/rainbow-cursor.css',
     'themes/Bearded Theme/cursor-loader.css',
   ];
@@ -135,7 +134,7 @@ function checkDocumentation() {
     '## ✨ 特色功能',
     '## 📦 安装',
     '## 🚀 使用方法',
-    '## ⚙️ 自定义配置',
+    '## ⚙️ 配置说明',
     '## 📝 更新日志',
   ];
 

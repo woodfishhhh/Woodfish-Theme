@@ -1,17 +1,26 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "lib": ["ES6"],
+    "target": "ES2022",
+    "module": "NodeNext",
+    "lib": ["ES2022"],
     "rootDir": "src",
     "outDir": "out",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "types": ["node", "vscode"]
+    "types": ["node", "vscode", "jest"],
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", ".vscode-test"]

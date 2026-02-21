@@ -2,9 +2,9 @@
 
 > English | [中文](README.md)
 
-Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow style, and optional rainbow cursor / glass UI effects.
+Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow style, and optional rainbow cursor effects.
 
-[![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
+[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 
@@ -12,9 +12,15 @@ Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow st
 
 - Gradient syntax highlighting
 - Glow effects
-- Optional glass/transparent UI
 - Optional rainbow cursor (via CSS injection)
 - Modular CSS structure
+
+## 🆕 New Features
+
+- **Status Bar Indicator**: Real-time display of enabled features (✨ Glow, 🌈 Rainbow Cursor).
+- **Progress Notifications**: Visual feedback during activation/deactivation processes.
+- **Quick Menu**: Click on “✨ Woodfish” in the status bar to access a quick menu for toggling features.
+
 
 ## Preview
 
@@ -33,7 +39,7 @@ Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow st
 ### Install from VSIX
 
 ```bash
-code --install-extension woodfish-theme-3.5.0.vsix
+code --install-extension woodfish-theme-4.0.0.vsix
 ```
 
 ## Prerequisite (Important)
@@ -67,10 +73,38 @@ Reload the VS Code window when prompted.
 ### Other Commands
 
 - `Woodfish Theme: 开启/关闭 Woodfish 发光`
-- `Woodfish Theme: 开启/关闭毛玻璃效果`
 - `Woodfish Theme: 彻底停用 Woodfish 主题` (best-effort cleanup, will ask for confirmation)
 
+## ❓ Troubleshooting
+
+If you encounter issues, please try the following steps. For more details, see the [Full Troubleshooting Guide](docs/TROUBLESHOOTING.md).
+
+- **Issue: Glow effects are not showing**
+  - Reason: Custom CSS extension requires a window reload to apply changes.
+  - Solution: After running the enable command, make sure to click **"Reload Window"** in the notification.
+- **Issue: Effects persist after deactivation**
+  - Reason: Cached CSS or leftovers from previous versions.
+  - Solution: Run the `Woodfish Theme: 彻底停用 Woodfish 主题` command to clean up residues.
+- **Issue: Status bar is not visible**
+  - Reason: The extension is not yet activated.
+  - Solution: Run any `Woodfish Theme:` command (e.g., "开启 Woodfish 主题") to activate the extension.
+- **Issue: Rainbow cursor not working**
+  - Reason: It requires CSS injection and must be configured while the theme is active.
+  - Solution: Enable the theme first, then run `Woodfish Theme: 启动彩色光标自动配置`.
+
+## 💬 FAQ
+
+- **Q: Why is a reload required every time I toggle a feature?**
+  - A: CSS injection modifies the VS Code UI layer, which requires a window reload to process the updated stylesheets.
+- **Q: Can I use multiple themes at once?**
+  - A: Not recommended. Woodfish Theme uses CSS injection, which may conflict with other injection-based themes.
+- **Q: How do I completely remove all effects?**
+  - A: Use the `Woodfish Theme: 彻底停用 Woodfish 主题` command to clean up all injected configurations.
+- **Q: What do the status bar icons mean?**
+  - A: ✨ = Glow effect; 🌈 = Rainbow cursor.
+
 ## Configuration
+
 
 ```json
 {
@@ -81,7 +115,6 @@ Reload the VS Code window when prompted.
     }
   ],
   "woodfishTheme.enableGlowEffects": true,
-  "woodfishTheme.enableGlassEffect": true,
   "woodfishTheme.enableRainbowCursor": false
 }
 ```
