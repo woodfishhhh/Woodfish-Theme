@@ -231,6 +231,7 @@
     "test:coverage": "jest --coverage",
     "pre-publish": "node scripts/pre-publish-check.js",
     "publish": "node scripts/publish.js",
+    "publish:pre-release": "node scripts/publish.js --pre-release",
     "package": "vsce package",
     "clean": "rimraf *.vsix"
   },
