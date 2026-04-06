@@ -6,8 +6,8 @@ This guide provides solutions for common issues encountered when using the Woodf
 
 ### Issue: Effects not showing after toggle
 If you've enabled the theme or a specific effect (like Glow or Rainbow Cursor) but don't see any changes:
-1. **Check Prerequisite**: Ensure you have a CSS injection extension installed (e.g., `Custom CSS and JS Loader`).
-2. **Verify Reload**: Did you click "Reload Window" after running the command? CSS injection requires a full UI reload.
+1. **Verify Theme**: Make sure the active color theme is `Woodfish Dark`.
+2. **Verify Reload**: Did you click "Reload Window" after running the command? Workbench injection requires a full UI reload.
 3. **Check Output Channel**: Open the VS Code Output panel and select `Woodfish Theme` from the dropdown to check for any error logs.
 
 ### Issue: Status bar not visible
@@ -16,9 +16,9 @@ The status bar entry (`✨ Woodfish`) appears only when the extension is active.
 - **Theme Check**: Ensure the theme is actually enabled in your settings.
 
 ### Issue: Rainbow cursor not working
-The rainbow cursor requires specific CSS injection and depends on the theme being active.
+The rainbow cursor depends on the integrated runtime payload and the theme being active.
 - **Enable Theme First**: You must enable the main Woodfish Theme before the cursor styles can be properly applied.
-- **Run Auto-Config**: Run the command `Woodfish Theme: 启动彩色光标自动配置` to ensure the correct CSS paths are added to your configuration.
+- **Enable Cursor Layer**: Run `Woodfish Theme: 开启 Woodfish 彩色光标` or `Woodfish Theme: 开启/关闭彩色光标`, then reload the window.
 
 ### Issue: Glow effects too strong or too weak
 Glow intensity can vary depending on your monitor and personal preference.
@@ -30,29 +30,29 @@ Glow intensity can vary depending on your monitor and personal preference.
 
 If the basic checks don't solve your problem:
 
-1. **Check Custom CSS Extension Settings**:
+1. **Check Woodfish Settings**:
    - Open your `settings.json`.
-   - Look for `"vscode_custom_css.imports"`.
-   - Verify that the paths listed there exist on your disk and point to the `xiangmu/themes/...` directory.
+   - Verify `woodfishTheme.runtime.enabled` is `true`.
+   - Verify `woodfishTheme.cursor.enabled` is `true` if you are debugging the rainbow cursor.
 
 2. **View Output Channel Logs**:
    - Go to `View` -> `Output`.
    - Select `Woodfish Theme` from the list.
-   - Look for messages related to "Applying CSS" or "File not found".
+   - Look for messages related to `Applied integrated runtime`, `Removed integrated runtime`, or workbench path errors.
 
-3. **Verify CSS Injection**:
+3. **Verify Workbench Injection**:
    - Use `Developer: Toggle Developer Tools` in VS Code.
-   - Look for `<link>` tags in the `<head>` that point to `woodfish` related CSS files.
+   - Look for `data-woodfish-theme="runtime"` in the injected workbench payload.
 
 ---
 
 ## Advanced Troubleshooting
 
-### Manual CSS Cleanup
+### Manual Runtime Cleanup
 If you've uninstalled the extension but effects still persist:
 1. Run `Woodfish Theme: 彻底停用 Woodfish 主题` before uninstalling.
-2. If already uninstalled, manually check your `settings.json` and remove any entries in `"vscode_custom_css.imports"` related to Woodfish.
-3. Run the command `Custom CSS and JS: Disable Custom CSS` from the command palette.
+2. If effects still remain, inspect your VS Code installation for other injection-based extensions that may still patch the same `workbench.html`.
+3. Restore a clean `workbench.html` backup and reload VS Code.
 
 ### Resetting VS Code Settings
 If settings are corrupted:
@@ -68,5 +68,5 @@ If you're still stuck:
 - **Information to include**:
   - VS Code version
   - OS version
-  - List of installed extensions (especially CSS loaders)
+  - List of installed injection-related extensions
   - Logs from the `Woodfish Theme` output channel.

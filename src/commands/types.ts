@@ -1,12 +1,9 @@
 import * as vscode from 'vscode';
 import { FeatureStateController } from '../config/featureState';
-import { CustomCssService } from '../services/customCss/service';
-import { ThemePaths } from '../services/themePaths';
+import { IntegratedThemeService } from '../services/runtime/service';
 
 export type CommandDeps = {
   featureState: FeatureStateController;
-  customCssService: CustomCssService;
-  themePaths: ThemePaths;
+  runtimeService: IntegratedThemeService;
   extensionContext: vscode.ExtensionContext;
 };
-

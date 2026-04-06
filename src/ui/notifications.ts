@@ -24,4 +24,3 @@ export async function showReloadPrompt(message: string): Promise<void> {
     await vscode.commands.executeCommand('workbench.action.reloadWindow');
   }
 }
-

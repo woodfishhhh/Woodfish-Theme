@@ -8,24 +8,31 @@ export class ThemeStatusBar {
   constructor(context: vscode.ExtensionContext) {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     this.item.command = COMMANDS.showFeatureMenu;
-    this.item.tooltip = 'Woodfish Theme - Click to toggle features';
+    this.item.tooltip = 'Woodfish Theme - Click to configure integrated effects';
     this.item.show();
     context.subscriptions.push(this.item);
   }
 
   public update(features: FeatureFlags): void {
-    let text = '✨ Woodfish';
+    const segments = ['Woodfish'];
+
+    if (!features.runtimeEnabled) {
+      segments.push('off');
+    }
+    if (features.syntaxGradient) {
+      segments.push('A');
+    }
     if (features.glow) {
-      text += ' ✨';
+      segments.push('G');
     }
-    if (features.rainbow) {
-      text += ' 🌈';
+    if (features.cursor) {
+      segments.push('C');
     }
-    this.item.text = text;
+
+    this.item.text = segments.join(' ');
   }
 
   public dispose(): void {
     this.item.dispose();
   }
 }
-

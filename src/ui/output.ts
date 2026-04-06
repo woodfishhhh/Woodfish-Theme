@@ -8,4 +8,3 @@ export function getOutputChannel(): vscode.OutputChannel {
   }
   return outputChannel;
 }
-

@@ -1,18 +1,22 @@
 import * as vscode from 'vscode';
-import { FeatureFlags } from '../types/features';
 import {
   FeatureKey,
-  onFeatureFlagsChanged,
+  onThemeSettingsChanged,
   readFeatureFlags,
+  readRuntimeSettings,
   setFeatureFlag,
+  setRuntimeEnabled,
   toggleFeatureFlag,
 } from './featureFlags';
 import { ThemeStatusBar } from '../ui/statusBar';
+import { FeatureFlags, ThemeRuntimeSettings } from '../types/features';
 
 export class FeatureStateController {
   private features: FeatureFlags;
+  private settings: ThemeRuntimeSettings;
 
   constructor(private readonly statusBar: ThemeStatusBar) {
+    this.settings = readRuntimeSettings();
     this.features = readFeatureFlags();
     this.statusBar.update(this.features);
   }
@@ -21,7 +25,27 @@ export class FeatureStateController {
     return { ...this.features };
   }
 
+  public currentSettings(): ThemeRuntimeSettings {
+    return {
+      runtime: { ...this.settings.runtime },
+      syntaxGradient: {
+        ...this.settings.syntaxGradient,
+        customRules: [...this.settings.syntaxGradient.customRules],
+      },
+      glow: {
+        ...this.settings.glow,
+        customRules: [...this.settings.glow.customRules],
+      },
+      cursor: {
+        ...this.settings.cursor,
+        gradientStops: [...this.settings.cursor.gradientStops],
+        customRules: [...this.settings.cursor.customRules],
+      },
+    };
+  }
+
   public refreshFromConfig(): FeatureFlags {
+    this.settings = readRuntimeSettings();
     this.features = readFeatureFlags();
     this.statusBar.update(this.features);
     return this.current();
@@ -37,12 +61,16 @@ export class FeatureStateController {
     return this.refreshFromConfig();
   }
 
+  public async setRuntimeEnabled(enabled: boolean): Promise<FeatureFlags> {
+    await setRuntimeEnabled(enabled);
+    return this.refreshFromConfig();
+  }
+
   public registerConfigListener(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
-      onFeatureFlagsChanged(() => {
+      onThemeSettingsChanged(() => {
         this.refreshFromConfig();
       })
     );
   }
 }
-

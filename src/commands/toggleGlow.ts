@@ -6,9 +6,8 @@ import { CommandDeps } from './types';
 export function registerToggleGlowCommand(deps: CommandDeps): vscode.Disposable {
   return vscode.commands.registerCommand(COMMANDS.toggleGlow, async () => {
     await runSafely('切换发光效果', async () => {
-      const features = await deps.featureState.toggle('glow');
-      await deps.customCssService.applyFeatures(deps.themePaths, features);
+      await deps.featureState.toggle('glow');
+      await deps.runtimeService.syncWithCurrentSettings({ showPrompt: true });
     });
   });
 }
-

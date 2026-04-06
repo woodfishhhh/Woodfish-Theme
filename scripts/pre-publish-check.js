@@ -2,9 +2,24 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
+
+const VSCE_ENTRY = path.join(
+  'node_modules',
+  '@vscode',
+  'vsce',
+  'vsce',
+);
+const VSCE_ENTRY_ABSOLUTE = path.resolve(VSCE_ENTRY);
 
 console.log('🔍 Woodfish Theme 发布前检查');
 console.log('================================');
+
+function isValidExtensionVersion(version) {
+  return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(
+    version,
+  );
+}
 
 // 检查项目结构
 function checkProjectStructure() {
@@ -66,8 +81,7 @@ function checkPackageJson() {
   }
 
   // 检查版本号格式
-  const versionRegex = /^\d+\.\d+\.\d+$/;
-  if (!versionRegex.test(packageJson.version)) {
+  if (!isValidExtensionVersion(packageJson.version)) {
     console.log(`❌ 版本号格式不正确: ${packageJson.version}`);
     allGood = false;
   }
@@ -163,6 +177,33 @@ function checkDocumentation() {
   return allGood;
 }
 
+// 检查打包清单是否干净
+function checkPackageHygiene() {
+  console.log('\n📦 检查 VSIX 打包清单...');
+
+  try {
+    const tree = execFileSync(process.execPath, [VSCE_ENTRY_ABSOLUTE, 'ls', '--tree'], {
+      encoding: 'utf8',
+    });
+    const forbiddenEntries = ['plan.md', 'eslint.config.mjs', 'jest.config.js'];
+    let allGood = true;
+
+    forbiddenEntries.forEach((entry) => {
+      if (tree.includes(entry)) {
+        console.log(`❌ 打包内容不应包含: ${entry}`);
+        allGood = false;
+      } else {
+        console.log(`✅ 已排除: ${entry}`);
+      }
+    });
+
+    return allGood;
+  } catch (error) {
+    console.log(`❌ 无法检查 VSIX 打包清单: ${error.message}`);
+    return false;
+  }
+}
+
 // 生成发布清单
 function generateReleaseChecklist() {
   console.log('\n📋 发布清单:');
@@ -175,7 +216,7 @@ function generateReleaseChecklist() {
   console.log('□ 截图已更新');
   console.log('□ 发布令牌已配置');
   console.log('□ Git仓库状态干净');
-  console.log('□ 准备发布说明');
+  console.log('□ 准备发布说明（强调 integrated runtime，不依赖第三方 CSS Loader）');
 }
 
 // 主函数
@@ -185,6 +226,7 @@ function main() {
     checkPackageJson(),
     checkThemeFiles(),
     checkDocumentation(),
+    checkPackageHygiene(),
   ];
 
   const allPassed = checks.every((check) => check);
@@ -207,4 +249,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { main };
+module.exports = { isValidExtensionVersion, main };

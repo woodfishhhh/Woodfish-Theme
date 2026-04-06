@@ -2,7 +2,15 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
+
+const VSCE_ENTRY = path.join(
+  'node_modules',
+  '@vscode',
+  'vsce',
+  'vsce',
+);
+const VSCE_ENTRY_ABSOLUTE = path.resolve(VSCE_ENTRY);
 
 console.log('🚀 Woodfish Theme 发布脚本');
 console.log('================================');
@@ -56,30 +64,41 @@ function updateVersion() {
   return packageJson.version;
 }
 
-// 运行测试
-function runTests() {
-  console.log('🧪 运行测试...');
-  try {
-    execSync('npm run lint', { stdio: 'inherit' });
-    console.log('✅ 代码检查通过');
-  } catch (error) {
-    console.log('⚠️  代码检查有警告，但继续发布');
+const isPreReleasePublish = process.argv.includes('--pre-release');
+
+function buildVsceArgs(command) {
+  const args = [command];
+
+  if (isPreReleasePublish) {
+    args.push('--pre-release');
   }
+
+  return args;
+}
+
+// 运行测试
+function runCommand(command, description) {
+  console.log(`${description}...`);
+  execSync(command, { stdio: 'inherit' });
+}
+
+function runVerification() {
+  console.log('🧪 运行发布前验证...');
+  runCommand('npm run compile', '🔨 TypeScript 编译');
+  runCommand('npm run lint', '🧹 ESLint 检查');
+  runCommand('npm test', '✅ Jest 测试');
+  runCommand('node scripts/pre-publish-check.js', '🔍 发布前检查');
 }
 
 // 打包扩展
-function packageExtension() {
+function packageExtension(version) {
   console.log('📦 打包扩展...');
   try {
-    // 确保安装了vsce
-    execSync('npm list -g @vscode/vsce', { stdio: 'pipe' });
-  } catch (error) {
-    console.log('📥 安装vsce...');
-    execSync('npm install -g @vscode/vsce', { stdio: 'inherit' });
-  }
-
-  try {
-    execSync('vsce package', { stdio: 'inherit' });
+    execFileSync(
+      process.execPath,
+      [VSCE_ENTRY_ABSOLUTE, ...buildVsceArgs('package')],
+      { stdio: 'inherit' },
+    );
     console.log('✅ 扩展打包完成');
   } catch (error) {
     console.error('❌ 打包失败:', error.message);
@@ -88,8 +107,11 @@ function packageExtension() {
 }
 
 // 发布到市场
-function publishToMarketplace() {
+function publishToMarketplace(version) {
   console.log('🌐 准备发布到VSCode市场...');
+  if (isPreReleasePublish) {
+    console.log('ℹ️  本次将按 VS Code Marketplace 预发布版本渠道发布');
+  }
   console.log(
     'ℹ️  注意：将使用您本地环境配置的 VSCode 发布令牌 (通过 vsce login 设置)',
   );
@@ -105,7 +127,11 @@ function publishToMarketplace() {
   readline.question('是否继续发布到市场？(y/N): ', (answer) => {
     if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
       try {
-        execSync('vsce publish', { stdio: 'inherit' });
+        execFileSync(
+          process.execPath,
+          [VSCE_ENTRY_ABSOLUTE, ...buildVsceArgs('publish')],
+          { stdio: 'inherit' },
+        );
         console.log('🎉 发布到VSCode市场成功！');
       } catch (error) {
         console.error('❌ 发布失败:', error.message);
@@ -119,10 +145,11 @@ function publishToMarketplace() {
     // 提示GitHub发布
     console.log('\n📋 GitHub发布清单:');
     console.log('1. git add .');
-    console.log('2. git commit -m "Release v' + updateVersion() + '"');
-    console.log('3. git tag v' + updateVersion());
+    console.log('2. git commit -m "Release v' + version + '"');
+    console.log('3. git tag v' + version);
     console.log('4. git push origin main --tags');
     console.log('5. 在GitHub上创建Release并上传.vsix文件');
+    console.log('6. Release notes 中注明 integrated runtime 已取代第三方 CSS Loader 依赖');
   });
 }
 
@@ -131,10 +158,10 @@ function main() {
   try {
     checkRequiredFiles();
     cleanTempFiles();
-    updateVersion();
-    runTests();
-    packageExtension();
-    publishToMarketplace();
+    const version = updateVersion();
+    runVerification();
+    packageExtension(version);
+    publishToMarketplace(version);
   } catch (error) {
     console.error('❌ 发布过程中出现错误:', error.message);
     process.exit(1);

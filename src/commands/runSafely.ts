@@ -8,4 +8,3 @@ export async function runSafely(actionLabel: string, task: () => Promise<void>):
     showErrorMessage(`${actionLabel}失败: ${message}`);
   }
 }
-

@@ -26,15 +26,6 @@
   animation-play-state: running !important;
 }
 
-@keyframes bp-animation {
-  0% {
-    background-position: 0% 0%;
-  }
-  100% {
-    background-position: 0% 100%;
-  }
-}
-
 @keyframes cursor-hue {
   0% {
     filter: hue-rotate(0deg);

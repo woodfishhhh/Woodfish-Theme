@@ -6,8 +6,8 @@ import { CommandDeps } from './types';
 export function registerDisableThemeCommand(deps: CommandDeps): vscode.Disposable {
   return vscode.commands.registerCommand(COMMANDS.disable, async () => {
     await runSafely('禁用主题', async () => {
-      await deps.customCssService.removeAllImports();
+      await deps.featureState.setRuntimeEnabled(false);
+      await deps.runtimeService.disableTheme();
     });
   });
 }
-

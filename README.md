@@ -4,7 +4,7 @@
 
 一个具有发光效果、渐变色彩与彩虹光标效果的 VS Code 主题扩展。
 
-[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
+[![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/zhongjun.woodfish-theme)](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme)
@@ -40,27 +40,28 @@
 ### 手动安装（VSIX）
 
 ```bash
-code --install-extension woodfish-theme-4.0.0.vsix
+code --install-extension woodfish-theme-5.0.0.vsix
 ```
 
-## 🔌 前置依赖（重要）
+## 🔌 运行方式
 
-本扩展通过第三方扩展注入 CSS 来实现更多效果，你需要安装以下其一：
+Woodfish Theme 现在使用内置 runtime 直接注入 VS Code workbench，不再依赖第三方 CSS Loader 扩展。
 
-- Custom CSS and JS Loader（推荐）
-- Custom CSS Hot Reload
+首次启用时只需要：
 
-当你首次执行相关命令时，本扩展会自动检测并引导你安装。
+- 选择 `Woodfish Dark`
+- 运行 `Woodfish Theme: 开启 Woodfish 主题`
+- 按提示重新加载窗口
 
 ## 🚀 使用方法
 
-### 启用主题（写入 CSS 注入配置）
+### 启用主题（一体化 runtime 注入）
 
 1. `Ctrl+Shift+P` 打开命令面板
 2. 运行 `Woodfish Theme: 开启 Woodfish 主题`
 3. 按提示重新加载窗口（Reload Window）
 
-### 关闭主题（移除主题注入）
+### 关闭主题（移除 runtime 注入）
 
 1. `Ctrl+Shift+P`
 2. 运行 `Woodfish Theme: 关闭 Woodfish 主题`
@@ -73,7 +74,7 @@ code --install-extension woodfish-theme-4.0.0.vsix
 
 ### 🌈 彩色光标
 
-- 一键配置：运行 `Woodfish Theme: 启动彩色光标自动配置`
+- 一键开启：运行 `Woodfish Theme: 开启 Woodfish 彩色光标`
 - 一键开关：运行 `Woodfish Theme: 开启/关闭彩色光标`
 
 ### 🎛️ 主题命令
@@ -81,7 +82,7 @@ code --install-extension woodfish-theme-4.0.0.vsix
 - `Woodfish Theme: 开启 Woodfish 主题`
 - `Woodfish Theme: 关闭 Woodfish 主题`
 - `Woodfish Theme: 开启/关闭 Woodfish 发光`
-- `Woodfish Theme: 启动彩色光标自动配置`
+- `Woodfish Theme: 开启 Woodfish 彩色光标`
 - `Woodfish Theme: 开启/关闭彩色光标`
 - `Woodfish Theme: 彻底停用 Woodfish 主题`（清理旧残留，属于破坏性操作，执行前会二次确认）
 
@@ -90,17 +91,17 @@ code --install-extension woodfish-theme-4.0.0.vsix
 如果遇到问题，请先尝试以下步骤。更多详细内容请查看 [完整故障排查指南](docs/TROUBLESHOOTING.md)。
 
 - **问题：发光效果没有生效**
-  - 原因：Custom CSS 扩展需要重新加载才能生效。
+  - 原因：workbench 注入已经写入，但窗口还没有重新加载。
   - 解决：运行开启命令后，务必点击弹窗右下角的 **“重新加载窗口”**。
 - **问题：关闭功能后效果仍然存在**
-  - 原因：可能是由于 Custom CSS 扩展的缓存或旧版本 CSS 残留。
+  - 原因：可能是旧版本注入残留或其他注入类扩展仍在修改同一份 workbench 文件。
   - 解决：运行 `Woodfish Theme: 彻底停用 Woodfish 主题` 命令清理残留。
 - **问题：状态栏没有显示**
   - 原因：扩展尚未激活。
   - 解决：运行任意 `Woodfish Theme:` 命令（如“开启 Woodfish 主题”）即可激活扩展。
 - **问题：彩色光标不工作**
-  - 原因：彩色光标需要注入额外的 CSS，且必须在启用主题的基础上配置。
-  - 解决：先开启主题，再运行 `Woodfish Theme: 启动彩色光标自动配置`。
+  - 原因：当前窗口还没重新加载，或者当前不是 `Woodfish Dark`。
+  - 解决：先切到 `Woodfish Dark`，再运行 `Woodfish Theme: 开启 Woodfish 主题` 或 `Woodfish Theme: 开启 Woodfish 彩色光标`，然后重新加载窗口。
 
 ## 💬 常见问题 (FAQ)
 

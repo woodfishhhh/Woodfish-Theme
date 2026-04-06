@@ -2,7 +2,7 @@
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
   "description": "🌈 Woodfish 彩虹主题 - 回档到稳定版本，具有发光效果、渐变色彩和动画的VSCode主题扩展",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"
@@ -34,9 +34,11 @@
     "onStartupFinished",
     "onCommand:woodfish-theme.enable",
     "onCommand:woodfish-theme.disable",
+    "onCommand:woodfish-theme.toggleSyntaxGradient",
     "onCommand:woodfish-theme.toggleGlow",
     "onCommand:woodfish-theme.autoConfigureRainbowCursor",
     "onCommand:woodfish-theme.toggleRainbowCursor",
+    "onCommand:woodfish-theme.repairWorkbench",
     "onCommand:woodfish-theme.completeUninstall"
   ],
   "main": "./out/extension.js",
@@ -60,18 +62,28 @@
         "category": "Woodfish Theme"
       },
       {
+        "command": "woodfish-theme.toggleSyntaxGradient",
+        "title": "开启/关闭 Woodfish 彩色字体",
+        "category": "Woodfish Theme"
+      },
+      {
         "command": "woodfish-theme.toggleGlow",
-        "title": "开启/关闭 Woodfish 发光",
+        "title": "开启/关闭 Woodfish 发光字体",
         "category": "Woodfish Theme"
       },
       {
         "command": "woodfish-theme.autoConfigureRainbowCursor",
-        "title": "启动彩色光标自动配置",
+        "title": "开启 Woodfish 彩色光标",
         "category": "Woodfish Theme"
       },
       {
         "command": "woodfish-theme.toggleRainbowCursor",
         "title": "开启/关闭彩色光标",
+        "category": "Woodfish Theme"
+      },
+      {
+        "command": "woodfish-theme.repairWorkbench",
+        "title": "修复 Woodfish 注入",
         "category": "Woodfish Theme"
       },
       {
@@ -83,34 +95,125 @@
     "configuration": {
       "title": "Woodfish Theme",
       "properties": {
-        "woodfishTheme.customStyles": {
-          "type": "array",
-          "default": [],
-          "description": "自定义样式配置",
-          "items": {
-            "type": "object",
-            "properties": {
-              "enabled": {
-                "type": "boolean",
-                "default": true,
-                "description": "是否启用此样式"
-              },
-              "css": {
-                "type": "string",
-                "description": "CSS 样式代码"
-              }
-            }
-          }
-        },
-        "woodfishTheme.enableGlowEffects": {
+        "woodfishTheme.runtime.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "启用字体发光效果"
+          "description": "启用 Woodfish 一体化运行时注入。"
         },
-        "woodfishTheme.enableRainbowCursor": {
+        "woodfishTheme.runtime.autoSwitchTheme": {
           "type": "boolean",
-          "default": false,
-          "description": "启用彩色光标效果"
+          "default": true,
+          "description": "启用 Woodfish 时自动切换到 Woodfish Dark。"
+        },
+        "woodfishTheme.runtime.reapplyOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "启动 VS Code 时自动检查并重应用 Woodfish 注入。"
+        },
+        "woodfishTheme.syntaxGradient.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "启用彩色字体层。"
+        },
+        "woodfishTheme.syntaxGradient.preset": {
+          "type": "string",
+          "default": "woodfish",
+          "enum": [
+            "woodfish"
+          ],
+          "description": "彩色字体预设。"
+        },
+        "woodfishTheme.syntaxGradient.customRules": {
+          "type": "array",
+          "default": [],
+          "description": "追加到彩色字体层后的自定义 CSS 规则。",
+          "items": {
+            "type": "string"
+          }
+        },
+        "woodfishTheme.glow.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "启用发光字体层。"
+        },
+        "woodfishTheme.glow.intensity": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0.1,
+          "maximum": 3,
+          "description": "发光强度倍率。1 为默认强度。"
+        },
+        "woodfishTheme.glow.customRules": {
+          "type": "array",
+          "default": [],
+          "description": "追加到发光层后的自定义 CSS 规则。",
+          "items": {
+            "type": "string"
+          }
+        },
+        "woodfishTheme.cursor.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "启用彩色光标层。"
+        },
+        "woodfishTheme.cursor.animationDuration": {
+          "type": "number",
+          "default": 8,
+          "minimum": 1,
+          "maximum": 60,
+          "description": "彩色光标动画时长，单位为秒。"
+        },
+        "woodfishTheme.cursor.gradientStops": {
+          "type": "array",
+          "default": [
+            "#ff2d95",
+            "#ff4500",
+            "#ffd700",
+            "#7cfc00",
+            "#00ffff",
+            "#1e90ff",
+            "#9370db",
+            "#ff00ff",
+            "#ff1493"
+          ],
+          "description": "彩色光标渐变颜色列表。",
+          "items": {
+            "type": "string"
+          }
+        },
+        "woodfishTheme.cursor.borderRadius": {
+          "type": "number",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 24,
+          "description": "彩色光标圆角半径。"
+        },
+        "woodfishTheme.cursor.glow": {
+          "type": "boolean",
+          "default": true,
+          "description": "启用光标尾迹发光。"
+        },
+        "woodfishTheme.cursor.glowBlur": {
+          "type": "number",
+          "default": 4,
+          "minimum": 0,
+          "maximum": 24,
+          "description": "彩色光标发光模糊半径。"
+        },
+        "woodfishTheme.cursor.glowOpacity": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "彩色光标发光透明度。"
+        },
+        "woodfishTheme.cursor.customRules": {
+          "type": "array",
+          "default": [],
+          "description": "追加到彩色光标层后的自定义 CSS 规则。",
+          "items": {
+            "type": "string"
+          }
         }
       }
     }

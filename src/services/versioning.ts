@@ -16,4 +16,3 @@ export function initializeVersionCheck(context: vscode.ExtensionContext): void {
     // ignore
   }
 }
-

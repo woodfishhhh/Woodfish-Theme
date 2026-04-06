@@ -6,9 +6,8 @@ import { CommandDeps } from './types';
 export function registerEnableThemeCommand(deps: CommandDeps): vscode.Disposable {
   return vscode.commands.registerCommand(COMMANDS.enable, async () => {
     await runSafely('启用主题', async () => {
-      const features = deps.featureState.refreshFromConfig();
-      await deps.customCssService.applyFeatures(deps.themePaths, features);
+      await deps.featureState.setRuntimeEnabled(true);
+      await deps.runtimeService.enableTheme();
     });
   });
 }
-

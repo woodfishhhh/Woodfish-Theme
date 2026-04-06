@@ -2,10 +2,7 @@ import * as vscode from 'vscode';
 import { FeatureStateController } from './config/featureState';
 import { registerCommands } from './commands/register';
 import type { CommandDeps } from './commands/types';
-import { CustomCssService } from './services/customCss/service';
-import { checkDependencyExtension } from './services/dependency';
-import { getThemePaths } from './services/themePaths';
-import { initializeVersionCheck } from './services/versioning';
+import { IntegratedThemeService } from './services/runtime/service';
 import { showErrorMessage, showInfoMessage } from './ui/notifications';
 import { getOutputChannel } from './ui/output';
 import { ThemeStatusBar } from './ui/statusBar';
@@ -21,21 +18,17 @@ export function activate(context: vscode.ExtensionContext): void {
     const featureState = new FeatureStateController(statusBar);
     featureState.registerConfigListener(context);
 
+    const runtimeService = new IntegratedThemeService(context);
+    runtimeService.registerLifecycle(context);
+
     const commandDeps: CommandDeps = {
       featureState,
-      customCssService: new CustomCssService(),
-      themePaths: getThemePaths(context),
+      runtimeService,
       extensionContext: context,
     };
 
     registerCommands(context, commandDeps);
-
-    initializeVersionCheck(context);
-    void checkDependencyExtension(context);
-
-    setTimeout(() => {
-      void commandDeps.customCssService.cleanupStaleImports();
-    }, 5000);
+    void runtimeService.initializeOnStartup();
 
     if (context.extensionMode === vscode.ExtensionMode.Development) {
       showInfoMessage('扩展已在开发模式下激活');

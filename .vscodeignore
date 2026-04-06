@@ -19,6 +19,9 @@ test/**
 tsconfig*.json
 **/.eslintrc.json
 vsc-extension-quickstart.md
+eslint.config.mjs
+jest.config.js
+plan.md
 
 # 旧版入口备份（不参与打包）
 extension.legacy.js

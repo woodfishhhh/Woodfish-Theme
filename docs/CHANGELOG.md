@@ -5,9 +5,20 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 并且本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [未发布]
+> 说明：
+> 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
+> 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
-（暂无）
+## [5.0.0] - 2026-04-06
+
+### 更改
+
+- 🚀 **一体化 runtime 默认启用** - 首次切换到 `Woodfish Dark` 后即可走内置注入主路径，不再要求额外开启第三方 CSS Loader。
+- 🌈 **彩色光标首开体验收口** - 保持旧命令 id 兼容，但对外文案统一为一体化 runtime 语义。
+- ✨ **首装 glow 默认链路修复** - 配置读取改为完整键路径，fresh 安装时彩色字体 / 发光字体 / 彩色光标可一起按默认值生效。
+- 🧹 **遗留兼容链瘦身** - 删除旧 `customCss` 服务链、依赖提示和相关调试脚本，仓库主线只保留 integrated runtime。
+- 📝 **发布文案同步** - README、排障文档与发布检查说明统一改为 runtime 主线表述。
+- 📦 **发布包收口** - VSIX 过滤掉 `plan.md` 和开发配置文件，发布脚本改为强制执行 compile/lint/test/预检后再打包。
 
 ## [4.0.0] - 2026-02-21
 
@@ -16,6 +27,7 @@
 - 🧱 **架构完全重构** - 扩展入口改为编排层，命令、配置、服务、UI 全部模块化拆分（`commands/`、`config/`、`services/`、`ui/`）。
 - 🧩 **CSS 注入服务化** - 注入、清理、路径选择逻辑拆分为独立服务模块，降低耦合并提升可维护性。
 - 🎛️ **状态同步重构** - 新增集中式 feature state 控制器，统一管理配置读取、状态栏更新和命令执行状态。
+- 🧪 **迁移准备阶段** - 为后续 integrated runtime 主线铺设运行时注入、配置同步和 workbench 修复能力。
 
 ### 移除
 
