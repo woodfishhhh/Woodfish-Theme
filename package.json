@@ -2,7 +2,7 @@
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
   "description": "Woodfish 彩虹主题，具有发光效果、渐变色彩和动画效果的 VS Code 主题扩展",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"

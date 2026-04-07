@@ -9,6 +9,14 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [5.1.2] - 2026-04-07
+
+### 更改
+
+- 🧹 **仓库遗物清理** - 删除已确认无引用的旧入口 shim、旧 Bash 发布脚本、无用版本检查代码和两份过时图片说明，仓库主线进一步收口到当前 TypeScript + integrated runtime 结构。
+- 🧪 **清理回归测试补强** - 将占位测试替换为仓库清理保护测试，并补充对旧架构说明回潮的断言，避免旧入口、旧发布流或旧文案再次混回主线。
+- 📝 **开发文档对齐** - `docs/CONTRIBUTING.md` 与 `.github/copilot-instructions.md` 改写为当前 5.x integrated runtime 架构，不再指向旧的 Loader / `src/lib/*` / 已删除资源链路。
+
 ## [5.1.1] - 2026-04-07
 
 ### 修复
