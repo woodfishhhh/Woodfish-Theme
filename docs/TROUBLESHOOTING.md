@@ -11,9 +11,9 @@ If you've enabled the theme or a specific effect (like Glow or Rainbow Cursor) b
 3. **Check Output Channel**: Open the VS Code Output panel and select `Woodfish Theme` from the dropdown to check for any error logs.
 
 ### Issue: Status bar not visible
-The status bar entry (`✨ Woodfish`) appears only when the extension is active.
+The status bar entry (`Woodfish ...`) appears only when the extension is active.
 - **Activation**: The extension activates when you run any of its commands. Try running `Woodfish Theme: 开启 Woodfish 主题`.
-- **Theme Check**: Ensure the theme is actually enabled in your settings.
+- **Theme Check**: If the status says `paused`, switch back to `Woodfish Dark` and reload the window.
 
 ### Issue: Rainbow cursor not working
 The rainbow cursor depends on the integrated runtime payload and the theme being active.
@@ -22,7 +22,8 @@ The rainbow cursor depends on the integrated runtime payload and the theme being
 
 ### Issue: Glow effects too strong or too weak
 Glow intensity can vary depending on your monitor and personal preference.
-- **Manual Adjustment**: Advanced users can find the `glow-effects.css` file in the extension's theme directory and adjust values like `text-shadow` or `filter: drop-shadow()`.
+- **Use the setting directly**: Adjust `woodfishTheme.glow.intensity` in Settings or `settings.json`.
+- **Advanced override**: Use `woodfishTheme.glow.customRules` if you want to target only specific tokens.
 
 ---
 
@@ -32,7 +33,7 @@ If the basic checks don't solve your problem:
 
 1. **Check Woodfish Settings**:
    - Open your `settings.json`.
-   - Verify `woodfishTheme.runtime.enabled` is `true`.
+   - Verify `woodfishTheme.syntaxGradient.enabled`, `woodfishTheme.glow.enabled`, or `woodfishTheme.cursor.enabled` are enabled as needed.
    - Verify `woodfishTheme.cursor.enabled` is `true` if you are debugging the rainbow cursor.
 
 2. **View Output Channel Logs**:
@@ -52,7 +53,7 @@ If the basic checks don't solve your problem:
 If you've uninstalled the extension but effects still persist:
 1. Run `Woodfish Theme: 彻底停用 Woodfish 主题` before uninstalling.
 2. If effects still remain, inspect your VS Code installation for other injection-based extensions that may still patch the same `workbench.html`.
-3. Restore a clean `workbench.html` backup and reload VS Code.
+3. Remember that Woodfish only auto-takes over known legacy Woodfish payloads; unknown third-party payloads must be cleaned by their own source extension.
 
 ### Resetting VS Code Settings
 If settings are corrupted:

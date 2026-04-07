@@ -1,8 +1,8 @@
 {
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
-  "description": "🌈 Woodfish 彩虹主题 - 回档到稳定版本，具有发光效果、渐变色彩和动画的VSCode主题扩展",
-  "version": "5.0.2",
+  "description": "Woodfish 彩虹主题，具有发光效果、渐变色彩和动画效果的 VS Code 主题扩展",
+  "version": "5.1.0",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"
@@ -95,38 +95,15 @@
     "configuration": {
       "title": "Woodfish Theme",
       "properties": {
-        "woodfishTheme.runtime.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "启用 Woodfish 一体化运行时注入。"
-        },
-        "woodfishTheme.runtime.autoSwitchTheme": {
-          "type": "boolean",
-          "default": true,
-          "description": "启用 Woodfish 时自动切换到 Woodfish Dark。"
-        },
-        "woodfishTheme.runtime.reapplyOnStartup": {
-          "type": "boolean",
-          "default": true,
-          "description": "启动 VS Code 时自动检查并重应用 Woodfish 注入。"
-        },
         "woodfishTheme.syntaxGradient.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "启用彩色字体层。"
-        },
-        "woodfishTheme.syntaxGradient.preset": {
-          "type": "string",
-          "default": "woodfish",
-          "enum": [
-            "woodfish"
-          ],
-          "description": "彩色字体预设。"
+          "markdownDescription": "效果：控制 Woodfish 的彩色语法层是否参与注入。单位：布尔开关。原理：关闭后会跳过默认 token 渐变 CSS，只保留主题基底。例子：设为 `false` 可保留 Woodfish Dark 的界面风格，但让代码颜色回到更克制的状态。为什么要有这个项：有些人喜欢主题氛围，但不想让代码颜色过于跳跃。"
         },
         "woodfishTheme.syntaxGradient.customRules": {
           "type": "array",
           "default": [],
-          "description": "追加到彩色字体层后的自定义 CSS 规则。",
+          "markdownDescription": "效果：在默认彩色字体层之后追加你自己的 CSS 覆盖。单位：数组，每一项都是一段 CSS 字符串。原理：这些规则会拼接到 syntax gradient 层的最后，因此可以覆盖默认 token 配色。例子：`[\".mtk5 { color: #7ee787 !important; }\"]`。为什么要有这个项：给高级用户留一个精细调色出口，而不是继续往设置面板塞更多离散开关。",
           "items": {
             "type": "string"
           }
@@ -134,19 +111,19 @@
         "woodfishTheme.glow.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "启用发光字体层。"
+          "markdownDescription": "效果：控制文字发光层是否参与最终注入。单位：布尔开关。原理：关闭后会跳过 glow 的 `text-shadow` 样式。例子：设为 `false` 时可保留彩色字体但去掉霓虹糊边。为什么要有这个项：有人喜欢颜色层次，但不喜欢发光带来的眩光和模糊感。"
         },
         "woodfishTheme.glow.intensity": {
           "type": "number",
           "default": 1,
           "minimum": 0.1,
           "maximum": 3,
-          "description": "发光强度倍率。1 为默认强度。"
+          "markdownDescription": "效果：调节发光的整体强弱。单位：倍率，范围 `0.1 - 3`，`1` 为默认。原理：运行时会按这个倍率缩放默认 `text-shadow` 的模糊半径。例子：`0.6` 更克制，`1.5` 更亮，`2` 以上会明显更霓虹。为什么要有这个项：不同显示器、缩放比例和字体粗细下，固定强度并不总是合适。"
         },
         "woodfishTheme.glow.customRules": {
           "type": "array",
           "default": [],
-          "description": "追加到发光层后的自定义 CSS 规则。",
+          "markdownDescription": "效果：在默认发光层后面追加自定义 CSS。单位：数组，每一项是一段 CSS。原理：这些规则会在 glow 层最后拼接，可精确覆盖某些 token 或元素的发光策略。例子：`[\".monaco-editor .mtk10 { text-shadow: none !important; }\"]`。为什么要有这个项：可以只关掉局部发光，或者给个别语法元素单独加重，而不必改扩展源码。",
           "items": {
             "type": "string"
           }
@@ -154,14 +131,14 @@
         "woodfishTheme.cursor.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "启用彩色光标层。"
+          "markdownDescription": "效果：控制彩色光标主体和尾迹是否一起参与注入。单位：布尔开关。原理：关闭后会跳过 cursor core 和 trail 两层 CSS。例子：设为 `false` 时可保留彩色字体与发光字体，但恢复普通光标。为什么要有这个项：不是所有人都希望光标成为视觉焦点。"
         },
         "woodfishTheme.cursor.animationDuration": {
           "type": "number",
           "default": 8,
           "minimum": 1,
           "maximum": 60,
-          "description": "彩色光标动画时长，单位为秒。"
+          "markdownDescription": "效果：调节彩色光标颜色循环的速度。单位：秒，范围 `1 - 60`。原理：运行时会替换光标动画的持续时间，值越小切换越快。例子：`4` 比较活跃，`8` 是默认，`12` 更平缓。为什么要有这个项：有人喜欢更强的呼吸感，也有人更在意专注度。"
         },
         "woodfishTheme.cursor.gradientStops": {
           "type": "array",
@@ -176,7 +153,7 @@
             "#ff00ff",
             "#ff1493"
           ],
-          "description": "彩色光标渐变颜色列表。",
+          "markdownDescription": "效果：定义彩色光标从上到下的渐变色带。单位：数组，每一项都是 CSS 颜色值。原理：运行时会把这些颜色拼成 `linear-gradient(180deg, ...)`，同时用于主体和尾迹。例子：`[\"#ff2d95\", \"#ffd700\", \"#00ffff\"]`。为什么要有这个项：这是决定彩色光标个性的核心参数，值得开放给用户。",
           "items": {
             "type": "string"
           }
@@ -186,31 +163,31 @@
           "default": 2,
           "minimum": 0,
           "maximum": 24,
-          "description": "彩色光标圆角半径。"
+          "markdownDescription": "效果：调节彩色光标主体和尾迹的圆角。单位：像素 `px`，范围 `0 - 24`。原理：运行时会替换默认光标 CSS 中的 `border-radius`。例子：`0` 更利落，`2` 默认，`8` 更柔和。为什么要有这个项：不同字体粗细和编辑器缩放下，圆角观感差异很明显。"
         },
         "woodfishTheme.cursor.glow": {
           "type": "boolean",
           "default": true,
-          "description": "启用光标尾迹发光。"
+          "markdownDescription": "效果：控制彩色光标的尾迹发光是否启用。单位：布尔开关。原理：关闭后只保留彩色光标主体，不再注入尾迹 pseudo-element。例子：设为 `false` 可保留彩色光标，但去掉拖尾。为什么要有这个项：有人想保留色彩辨识度，但不希望尾迹分散注意力。"
         },
         "woodfishTheme.cursor.glowBlur": {
           "type": "number",
           "default": 4,
           "minimum": 0,
           "maximum": 24,
-          "description": "彩色光标发光模糊半径。"
+          "markdownDescription": "效果：调节光标尾迹的柔和程度。单位：像素 `px`，范围 `0 - 24`。原理：运行时会替换尾迹样式中的 `blur(...)` 半径。例子：`2` 更清晰，`4` 默认，`8` 更梦幻。为什么要有这个项：相同颜色在不同 DPI 和显示器上，模糊半径的体感差异很大。"
         },
         "woodfishTheme.cursor.glowOpacity": {
           "type": "number",
           "default": 0.7,
           "minimum": 0,
           "maximum": 1,
-          "description": "彩色光标发光透明度。"
+          "markdownDescription": "效果：调节光标尾迹发光的存在感。单位：透明度，范围 `0 - 1`。原理：运行时会替换尾迹的 RGBA alpha 值。例子：`0.35` 更克制，`0.7` 默认，`1` 最亮。为什么要有这个项：这样用户可以控制“看得见多少”，而不是只能全开或全关。"
         },
         "woodfishTheme.cursor.customRules": {
           "type": "array",
           "default": [],
-          "description": "追加到彩色光标层后的自定义 CSS 规则。",
+          "markdownDescription": "效果：在默认彩色光标层后追加自定义 CSS。单位：数组，每一项是一段 CSS。原理：这些规则会拼在 cursor 样式最后，可直接覆盖主体或尾迹细节。例子：`[\"div.cursor { width: 3px !important; }\"]`。为什么要有这个项：给高级用户留一个最终覆盖出口，避免为了少量个性化需求继续扩展设置项。",
           "items": {
             "type": "string"
           }

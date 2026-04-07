@@ -1,19 +1,20 @@
 export type FeatureFlags = {
-  runtimeEnabled: boolean;
   syntaxGradient: boolean;
   glow: boolean;
   cursor: boolean;
 };
 
-export type RuntimeSettings = {
-  enabled: boolean;
-  autoSwitchTheme: boolean;
-  reapplyOnStartup: boolean;
+export type RuntimeStatus = 'on' | 'paused' | 'off';
+
+export type RuntimeStatusSnapshot = {
+  state: RuntimeStatus;
+  activeTheme: string;
+  isWoodfishTheme: boolean;
+  hasPayload: boolean;
 };
 
 export type SyntaxGradientSettings = {
   enabled: boolean;
-  preset: string;
   customRules: string[];
 };
 
@@ -35,21 +36,14 @@ export type CursorSettings = {
 };
 
 export type ThemeRuntimeSettings = {
-  runtime: RuntimeSettings;
   syntaxGradient: SyntaxGradientSettings;
   glow: GlowSettings;
   cursor: CursorSettings;
 };
 
 export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
-  runtime: {
-    enabled: true,
-    autoSwitchTheme: true,
-    reapplyOnStartup: true,
-  },
   syntaxGradient: {
     enabled: true,
-    preset: 'woodfish',
     customRules: [],
   },
   glow: {
@@ -81,7 +75,6 @@ export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
 
 export function featureFlagsFromSettings(settings: ThemeRuntimeSettings): FeatureFlags {
   return {
-    runtimeEnabled: settings.runtime.enabled,
     syntaxGradient: settings.syntaxGradient.enabled,
     glow: settings.glow.enabled,
     cursor: settings.cursor.enabled,

@@ -15,7 +15,6 @@ import * as vscode from 'vscode';
 import {
   readRuntimeSettings,
   setFeatureFlag,
-  setRuntimeEnabled,
 } from '../config/featureFlags';
 import { CONFIG_SECTION } from '../constants/config';
 
@@ -46,10 +45,11 @@ describe('featureFlags config access', () => {
 
     const settings = readRuntimeSettings();
 
-    expect(settings.runtime.enabled).toBe(true);
     expect(settings.syntaxGradient.enabled).toBe(true);
+    expect((settings.syntaxGradient as Record<string, unknown>).preset).toBeUndefined();
     expect(settings.glow.enabled).toBe(true);
     expect(settings.cursor.enabled).toBe(true);
+    expect((settings as Record<string, unknown>).runtime).toBeUndefined();
     expect(getConfigurationMock).toHaveBeenCalledWith();
     expect(configuration.get).toHaveBeenCalledWith('woodfishTheme.glow.enabled', true);
     expect(configuration.get).not.toHaveBeenCalledWith('glow.enabled', true);
@@ -68,30 +68,23 @@ describe('featureFlags config access', () => {
     expect(settings.cursor.enabled).toBe(false);
   });
 
-  it('updates feature flags through the woodfishTheme section keys', async () => {
+  it('updates only retained feature flags through the woodfishTheme section keys', async () => {
     const configuration = createConfiguration();
     getConfigurationMock.mockImplementation((section?: string) =>
       section === CONFIG_SECTION ? configuration : createConfiguration()
     );
 
     await setFeatureFlag('glow', false);
-    await setRuntimeEnabled(false);
 
-    expect(configuration.update).toHaveBeenNthCalledWith(
-      1,
+    expect(configuration.update).toHaveBeenCalledTimes(1);
+    expect(configuration.update).toHaveBeenCalledWith(
       'glow.enabled',
-      false,
-      vscode.ConfigurationTarget.Global
-    );
-    expect(configuration.update).toHaveBeenNthCalledWith(
-      2,
-      'runtime.enabled',
       false,
       vscode.ConfigurationTarget.Global
     );
   });
 
-  it('writes setting updates through the woodfishTheme section', async () => {
+  it('writes retained setting updates through the woodfishTheme section', async () => {
     const rootConfiguration = createConfiguration();
     const themeConfiguration = createConfiguration();
 
@@ -100,18 +93,11 @@ describe('featureFlags config access', () => {
     );
 
     await setFeatureFlag('glow', false);
-    await setRuntimeEnabled(false);
 
     expect(getConfigurationMock).toHaveBeenCalledWith(CONFIG_SECTION);
-    expect(themeConfiguration.update).toHaveBeenNthCalledWith(
-      1,
+    expect(themeConfiguration.update).toHaveBeenCalledTimes(1);
+    expect(themeConfiguration.update).toHaveBeenCalledWith(
       'glow.enabled',
-      false,
-      vscode.ConfigurationTarget.Global
-    );
-    expect(themeConfiguration.update).toHaveBeenNthCalledWith(
-      2,
-      'runtime.enabled',
       false,
       vscode.ConfigurationTarget.Global
     );

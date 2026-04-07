@@ -16,9 +16,9 @@ export function activate(context: vscode.ExtensionContext): void {
     statusBar = new ThemeStatusBar(context);
 
     const featureState = new FeatureStateController(statusBar);
-    featureState.registerConfigListener(context);
-
     const runtimeService = new IntegratedThemeService(context);
+    featureState.setRuntimeStatusResolver((features) => runtimeService.getRuntimeStatus(features));
+    featureState.registerConfigListener(context);
     runtimeService.registerLifecycle(context);
 
     const commandDeps: CommandDeps = {
@@ -28,7 +28,9 @@ export function activate(context: vscode.ExtensionContext): void {
     };
 
     registerCommands(context, commandDeps);
-    void runtimeService.initializeOnStartup();
+    void runtimeService.initializeOnStartup().finally(() => {
+      featureState.refreshFromConfig();
+    });
 
     if (context.extensionMode === vscode.ExtensionMode.Development) {
       showInfoMessage('扩展已在开发模式下激活');

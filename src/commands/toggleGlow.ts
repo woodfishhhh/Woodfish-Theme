@@ -8,6 +8,7 @@ export function registerToggleGlowCommand(deps: CommandDeps): vscode.Disposable 
     await runSafely('切换发光效果', async () => {
       await deps.featureState.toggle('glow');
       await deps.runtimeService.syncWithCurrentSettings({ showPrompt: true });
+      deps.featureState.refreshFromConfig();
     });
   });
 }

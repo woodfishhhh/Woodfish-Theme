@@ -4,7 +4,6 @@ import {
   CURSOR_SETTING_KEYS,
   FEATURE_SETTING_KEYS,
   GLOW_SETTING_KEYS,
-  RUNTIME_SETTING_KEYS,
   SYNTAX_SETTING_KEYS,
   WORKBENCH_SECTION,
 } from '../constants/config';
@@ -35,25 +34,10 @@ function readSetting<T>(key: string, fallback: T): T {
 
 export function readRuntimeSettings(): ThemeRuntimeSettings {
   return {
-    runtime: {
-      enabled: readSetting(RUNTIME_SETTING_KEYS.enabled, DEFAULT_RUNTIME_SETTINGS.runtime.enabled),
-      autoSwitchTheme: readSetting(
-        RUNTIME_SETTING_KEYS.autoSwitchTheme,
-        DEFAULT_RUNTIME_SETTINGS.runtime.autoSwitchTheme
-      ),
-      reapplyOnStartup: readSetting(
-        RUNTIME_SETTING_KEYS.reapplyOnStartup,
-        DEFAULT_RUNTIME_SETTINGS.runtime.reapplyOnStartup
-      ),
-    },
     syntaxGradient: {
       enabled: readSetting(
         FEATURE_SETTING_KEYS.syntaxGradient,
         DEFAULT_RUNTIME_SETTINGS.syntaxGradient.enabled
-      ),
-      preset: readSetting(
-        SYNTAX_SETTING_KEYS.preset,
-        DEFAULT_RUNTIME_SETTINGS.syntaxGradient.preset
       ),
       customRules: readSetting(
         SYNTAX_SETTING_KEYS.customRules,
@@ -112,14 +96,6 @@ export async function toggleFeatureFlag(feature: FeatureKey): Promise<boolean> {
   return next;
 }
 
-export async function setRuntimeEnabled(enabled: boolean): Promise<void> {
-  await getThemeConfig().update(
-    RUNTIME_SETTING_KEYS.enabled,
-    enabled,
-    vscode.ConfigurationTarget.Global
-  );
-}
-
 export function readCurrentColorTheme(): string {
   return vscode.workspace.getConfiguration(WORKBENCH_SECTION).get<string>('colorTheme', '');
 }
@@ -132,13 +108,9 @@ export async function setColorTheme(themeName: string): Promise<void> {
 
 export function onThemeSettingsChanged(handler: () => void): vscode.Disposable {
   const watchedPaths = [
-    `${CONFIG_SECTION}.${RUNTIME_SETTING_KEYS.enabled}`,
-    `${CONFIG_SECTION}.${RUNTIME_SETTING_KEYS.autoSwitchTheme}`,
-    `${CONFIG_SECTION}.${RUNTIME_SETTING_KEYS.reapplyOnStartup}`,
     `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.syntaxGradient}`,
     `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.glow}`,
     `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.cursor}`,
-    `${CONFIG_SECTION}.${SYNTAX_SETTING_KEYS.preset}`,
     `${CONFIG_SECTION}.${SYNTAX_SETTING_KEYS.customRules}`,
     `${CONFIG_SECTION}.${GLOW_SETTING_KEYS.intensity}`,
     `${CONFIG_SECTION}.${GLOW_SETTING_KEYS.customRules}`,

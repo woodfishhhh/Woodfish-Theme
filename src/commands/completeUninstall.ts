@@ -16,7 +16,6 @@ export function registerCompleteUninstallCommand(deps: CommandDeps): vscode.Disp
         return;
       }
 
-      await deps.featureState.setRuntimeEnabled(false);
       await deps.runtimeService.completeUninstall();
       deps.featureState.refreshFromConfig();
     });

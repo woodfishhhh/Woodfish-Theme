@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { COMMANDS } from '../constants/commands';
-import { FeatureFlags } from '../types/features';
+import { FeatureFlags, RuntimeStatusSnapshot } from '../types/features';
 
 export class ThemeStatusBar {
   private readonly item: vscode.StatusBarItem;
@@ -13,12 +13,8 @@ export class ThemeStatusBar {
     context.subscriptions.push(this.item);
   }
 
-  public update(features: FeatureFlags): void {
-    const segments = ['Woodfish'];
-
-    if (!features.runtimeEnabled) {
-      segments.push('off');
-    }
+  public update(features: FeatureFlags, runtime: RuntimeStatusSnapshot): void {
+    const segments = ['Woodfish', runtime.state];
     if (features.syntaxGradient) {
       segments.push('A');
     }
@@ -30,6 +26,13 @@ export class ThemeStatusBar {
     }
 
     this.item.text = segments.join(' ');
+    this.item.tooltip = [
+      'Woodfish Theme - 点击打开功能菜单',
+      `状态: ${runtime.state}`,
+      `当前主题: ${runtime.activeTheme || '未检测到'}`,
+      `payload: ${runtime.hasPayload ? 'present' : 'absent'}`,
+      `特效: ${segments.slice(2).join(' ') || 'none'}`,
+    ].join('\n');
   }
 
   public dispose(): void {

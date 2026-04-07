@@ -42,6 +42,7 @@ extension.js
 **/README.md
 !README.md
 VSCode*.md
+docs/superpowers/**
 
 # 测试CSS文件
 themes/woodfish-theme-test.css

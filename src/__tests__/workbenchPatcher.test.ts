@@ -1,8 +1,10 @@
 import {
   WOODFISH_MARKER_END,
   WOODFISH_MARKER_START,
+  findKnownLegacyWoodfishPayloads,
   hasWoodfishPayload,
   injectWorkbenchPayload,
+  removeKnownLegacyWoodfishPayloads,
   removeWorkbenchPayload,
 } from '../services/runtime/workbenchPatcher';
 
@@ -34,5 +36,22 @@ describe('workbench patcher', () => {
 
     expect(restored).toBe(html);
     expect(hasWoodfishPayload(restored)).toBe(false);
+  });
+
+  it('recognizes and removes only known legacy Woodfish payload fragments', () => {
+    const legacyFragment =
+      '<style id="legacy-woodfish">@import url("file:///C:/Users/woodfish/.vscode/extensions/zhongjun.woodfish-theme/themes/Bearded Theme/glow-effects.css");</style>';
+    const thirdPartyFragment =
+      '<style id="third-party">@import url("file:///C:/Users/woodfish/.vscode/extensions/someone.else/theme.css");</style>';
+    const mixedHtml = `<html><head>${legacyFragment}${thirdPartyFragment}</head><body></body></html>`;
+
+    const matches = findKnownLegacyWoodfishPayloads(mixedHtml);
+    const result = removeKnownLegacyWoodfishPayloads(mixedHtml);
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.fragment).toContain('glow-effects.css');
+    expect(result.removed).toHaveLength(1);
+    expect(result.html).not.toContain('legacy-woodfish');
+    expect(result.html).toContain('third-party');
   });
 });

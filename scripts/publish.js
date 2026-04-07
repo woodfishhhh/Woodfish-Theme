@@ -22,7 +22,6 @@ function checkRequiredFiles() {
     'README.md',
     'LICENSE',
     'themes/Bearded Theme/Bearded Theme.json',
-    'themes/Bearded Theme/index.css',
     'out/extension.js',
   ];
 

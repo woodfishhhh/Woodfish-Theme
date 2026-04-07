@@ -16,6 +16,12 @@ describe('legacy Custom CSS cleanup', () => {
       'src/services/uninstall.ts',
       'scripts/debug-css-config.js',
       'scripts/install-custom-css.sh',
+      'themes/Bearded Theme/index.css',
+      'themes/Bearded Theme/index-all.css',
+      'themes/Bearded Theme/index-base.css',
+      'themes/Bearded Theme/index-with-glow.css',
+      'themes/Bearded Theme/index-with-rainbow.css',
+      'themes/Bearded Theme/rainbow-cursor.css',
     ];
 
     for (const retiredPath of retiredPaths) {
@@ -42,12 +48,54 @@ describe('legacy Custom CSS cleanup', () => {
     expect(troubleshooting).not.toMatch(/Custom CSS|自动配置/);
   });
 
+  it('documents only the retained settings model and removes misleading runtime keys', () => {
+    const packageJson = JSON.parse(read('package.json')) as {
+      contributes: {
+        configuration: {
+          properties: Record<string, unknown>;
+        };
+      };
+    };
+    const readmeZh = read('README.md');
+    const readmeEn = read('README.en.md');
+    const troubleshooting = read('docs/TROUBLESHOOTING.md');
+
+    expect(packageJson.contributes.configuration.properties['woodfishTheme.runtime.enabled']).toBe(
+      undefined
+    );
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.runtime.autoSwitchTheme']
+    ).toBeUndefined();
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.runtime.reapplyOnStartup']
+    ).toBeUndefined();
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.syntaxGradient.preset']
+    ).toBeUndefined();
+
+    expect(readmeZh).not.toContain('woodfishTheme.runtime.enabled');
+    expect(readmeZh).not.toContain('woodfishTheme.customStyles');
+    expect(readmeZh).toContain('woodfishTheme.glow.intensity');
+    expect(readmeZh).toContain('woodfishTheme.cursor.gradientStops');
+
+    expect(readmeEn).not.toContain('woodfishTheme.runtime.enabled');
+    expect(readmeEn).not.toContain('woodfishTheme.customStyles');
+    expect(readmeEn).toContain('woodfishTheme.glow.intensity');
+    expect(readmeEn).toContain('woodfishTheme.cursor.gradientStops');
+
+    expect(troubleshooting).not.toContain('woodfishTheme.runtime.enabled');
+    expect(troubleshooting).toContain('woodfishTheme.cursor.enabled');
+  });
+
   it('updates changelog and release guidance for the integrated runtime era', () => {
     const changelog = read('docs/CHANGELOG.md');
     const prePublishScript = read('scripts/pre-publish-check.js');
+    const publishScript = read('scripts/publish.js');
 
     expect(changelog).toMatch(/4\.x runtime 时代|integrated runtime/i);
     expect(changelog).toMatch(/旧版本 \(3\.x 及更早\)|legacy Custom CSS/i);
     expect(prePublishScript).toMatch(/integrated runtime|第三方 CSS Loader/i);
+    expect(prePublishScript).not.toMatch(/themes\/Bearded Theme\/index\.css|rainbow-cursor\.css/);
+    expect(publishScript).not.toMatch(/themes\/Bearded Theme\/index\.css/);
   });
 });

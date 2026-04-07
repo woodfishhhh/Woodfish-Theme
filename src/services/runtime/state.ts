@@ -5,6 +5,7 @@ export type RuntimeInstallState = {
   backupPath?: string;
   payloadHash?: string;
   vscodeVersion?: string;
+  legacyPayloads?: string[];
 };
 
 const STATE_KEY = 'woodfish.runtime.install-state';

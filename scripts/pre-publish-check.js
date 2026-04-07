@@ -33,7 +33,6 @@ function checkProjectStructure() {
     'out/extension.js': '扩展主文件(编译产物)',
     'themes/': '主题文件夹',
     'themes/Bearded Theme/Bearded Theme.json': '主题配置',
-    'themes/Bearded Theme/index.css': '主题CSS入口',
     'images/': '图片资源文件夹',
   };
 
@@ -113,13 +112,11 @@ function checkThemeFiles() {
 
   // 检查主题 CSS 文件
   const moduleFiles = [
-    'themes/Bearded Theme/index.css',
     'themes/Bearded Theme/activity-bar.css',
     'themes/Bearded Theme/tab-bar.css',
     'themes/Bearded Theme/syntax-highlighting.css',
     'themes/Bearded Theme/glow-effects.css',
     'themes/Bearded Theme/cursor-animation.css',
-    'themes/Bearded Theme/rainbow-cursor.css',
     'themes/Bearded Theme/cursor-loader.css',
   ];
 

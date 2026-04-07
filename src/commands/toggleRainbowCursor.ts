@@ -8,6 +8,7 @@ export function registerToggleRainbowCursorCommand(deps: CommandDeps): vscode.Di
     await runSafely('切换彩色光标', async () => {
       await deps.featureState.toggle('cursor');
       await deps.runtimeService.syncWithCurrentSettings({ showPrompt: true });
+      deps.featureState.refreshFromConfig();
     });
   });
 }

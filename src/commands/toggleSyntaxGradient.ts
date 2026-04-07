@@ -8,6 +8,7 @@ export function registerToggleSyntaxGradientCommand(deps: CommandDeps): vscode.D
     await runSafely('切换彩色字体', async () => {
       await deps.featureState.toggle('syntaxGradient');
       await deps.runtimeService.syncWithCurrentSettings({ showPrompt: true });
+      deps.featureState.refreshFromConfig();
     });
   });
 }

@@ -8,14 +8,7 @@ export const FEATURE_SETTING_KEYS = {
   cursor: 'cursor.enabled',
 } as const;
 
-export const RUNTIME_SETTING_KEYS = {
-  enabled: 'runtime.enabled',
-  autoSwitchTheme: 'runtime.autoSwitchTheme',
-  reapplyOnStartup: 'runtime.reapplyOnStartup',
-} as const;
-
 export const SYNTAX_SETTING_KEYS = {
-  preset: 'syntaxGradient.preset',
   customRules: 'syntaxGradient.customRules',
 } as const;
 

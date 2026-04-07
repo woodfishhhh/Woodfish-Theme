@@ -22,6 +22,7 @@ import * as vscode from 'vscode';
 import { registerShowFeatureMenuCommand } from '../commands/showFeatureMenu';
 import { COMMANDS } from '../constants/commands';
 import type { CommandDeps } from '../commands/types';
+import type { RuntimeStatusSnapshot } from '../types/features';
 
 type MenuItem = {
   label: string;
@@ -36,11 +37,19 @@ describe('showFeatureMenu command', () => {
   const deps = {
     featureState: {
       current: () => ({
-        runtimeEnabled: true,
         syntaxGradient: true,
         glow: false,
         cursor: true,
       }),
+    },
+    runtimeService: {
+      getRuntimeStatus: () =>
+        ({
+          state: 'on',
+          activeTheme: 'Woodfish Dark',
+          isWoodfishTheme: true,
+          hasPayload: true,
+        }) satisfies RuntimeStatusSnapshot,
     },
   } as unknown as CommandDeps;
 
@@ -78,6 +87,8 @@ describe('showFeatureMenu command', () => {
       expect.stringContaining('彻底停用 Woodfish 主题'),
       expect.stringContaining('Reload Window'),
     ]);
+    expect(items[0]?.description).toContain('Woodfish Dark');
+    expect(items[1]?.description).toContain('移除当前 Woodfish 注入');
   });
 
   it('executes the selected command from the menu', async () => {

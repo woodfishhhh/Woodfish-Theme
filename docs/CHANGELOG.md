@@ -9,6 +9,16 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [5.1.0] - 2026-04-07
+
+### 更改
+
+- 🧹 **设置面板瘦身** - 删除 `woodfishTheme.runtime.enabled`、`woodfishTheme.runtime.autoSwitchTheme`、`woodfishTheme.runtime.reapplyOnStartup` 与 `woodfishTheme.syntaxGradient.preset`，只保留真正会产生视觉变化的设置项。
+- 🧠 **运行态真值化** - 状态栏、菜单与命令流程不再依赖伪开关，而是按当前主题与 `workbench.html` 里的真实 payload 检测结果显示 `on / paused / off`。
+- 📝 **设置说明增强** - 保留项说明补充了单位、效果、原理、例子和为什么要提供该设置。
+- ♻️ **旧版 Woodfish payload 接管** - 启用或修复时会识别并接管已知旧版 Woodfish 注入，再写入新的一体化 payload；未知第三方注入不会被自动改写。
+- 📚 **文档同步** - README、排障文档和示例配置统一切换到新的设置模型。
+
 ## [5.0.2] - 2026-04-07
 
 ### 更改

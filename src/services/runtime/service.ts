@@ -3,16 +3,19 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import {
   readCurrentColorTheme,
+  readFeatureFlags,
   readRuntimeSettings,
   setColorTheme,
 } from '../../config/featureFlags';
 import { WOODFISH_THEME_NAME } from '../../constants/config';
+import { FeatureFlags, RuntimeStatusSnapshot } from '../../types/features';
+import { showInfoMessage, showReloadPrompt } from '../../ui/notifications';
 import { getOutputChannel } from '../../ui/output';
 import { withProgressNotification } from '../../ui/progress';
-import { showInfoMessage, showReloadPrompt } from '../../ui/notifications';
 import { readRuntimeAssets } from './assets';
 import { getWorkbenchHtmlPath } from './locator';
 import { buildRuntimeCss } from './payloadBuilder';
+import { deriveRuntimeStatus } from './status';
 import {
   clearRuntimeInstallState,
   readRuntimeInstallState,
@@ -21,6 +24,7 @@ import {
 import {
   hasWoodfishPayload,
   injectWorkbenchPayload,
+  removeKnownLegacyWoodfishPayloads,
   removeWorkbenchPayload,
 } from './workbenchPatcher';
 
@@ -37,6 +41,39 @@ function buildPayloadDocument(css: string, payloadHash: string): string {
 
 function hashPayload(css: string): string {
   return crypto.createHash('sha256').update(css).digest('hex');
+}
+
+function mergeLegacyPayloads(
+  current: string[] | undefined,
+  incoming: string[]
+): string[] | undefined {
+  if (incoming.length === 0 && (!current || current.length === 0)) {
+    return undefined;
+  }
+
+  const merged = new Set<string>(current ?? []);
+  for (const fragment of incoming) {
+    merged.add(fragment);
+  }
+
+  return [...merged];
+}
+
+function restoreLegacyPayloads(html: string, legacyPayloads: string[]): string {
+  if (legacyPayloads.length === 0) {
+    return html;
+  }
+
+  const block = legacyPayloads.join('\n');
+  if (html.includes('</head>')) {
+    return html.replace('</head>', `${block}\n</head>`);
+  }
+
+  if (html.includes('</html>')) {
+    return html.replace('</html>', `${block}\n</html>`);
+  }
+
+  return `${html}\n${block}`;
 }
 
 type SyncOptions = {
@@ -63,24 +100,32 @@ export class IntegratedThemeService {
     );
   }
 
+  public getRuntimeStatus(features: FeatureFlags = readFeatureFlags()): RuntimeStatusSnapshot {
+    return deriveRuntimeStatus({
+      activeTheme: readCurrentColorTheme(),
+      hasPayload: this.hasCurrentPayload(),
+      features,
+    });
+  }
+
   public async initializeOnStartup(): Promise<void> {
-    const settings = readRuntimeSettings();
-    if (!settings.runtime.enabled) {
+    const status = this.getRuntimeStatus();
+
+    if (status.isWoodfishTheme) {
+      if (!this.hasExpectedPayload()) {
+        await this.syncWithCurrentSettings({ showPrompt: false });
+      }
+      return;
+    }
+
+    if (status.hasPayload) {
       await this.removePayload({ showPrompt: false });
-      return;
     }
-
-    if (!settings.runtime.reapplyOnStartup) {
-      return;
-    }
-
-    await this.syncWithCurrentSettings({ showPrompt: false });
   }
 
   public async enableTheme(): Promise<void> {
     await withProgressNotification('正在启用 Woodfish 一体化主题...', async () => {
-      const settings = readRuntimeSettings();
-      if (settings.runtime.autoSwitchTheme && !this.isWoodfishThemeActive()) {
+      if (!this.isWoodfishThemeActive()) {
         await setColorTheme(WOODFISH_THEME_NAME);
       }
       await this.syncWithCurrentSettings({ showPrompt: true });
@@ -115,15 +160,15 @@ export class IntegratedThemeService {
 
     this.syncInFlight = true;
     try {
-      const settings = readRuntimeSettings();
-      if (!settings.runtime.enabled) {
-        await this.removePayload(options);
-        return;
-      }
-
       if (!this.isWoodfishThemeActive()) {
-        await this.removePayload({ ...options, showPrompt: false });
-        showInfoMessage('当前未使用 Woodfish Dark，已暂停一体化特效注入');
+        const runtimeStatus = this.getRuntimeStatus();
+        if (runtimeStatus.hasPayload) {
+          await this.removePayload({ ...options, showPrompt: false });
+        }
+
+        if (runtimeStatus.state === 'paused') {
+          showInfoMessage('当前未使用 Woodfish Dark，已暂停一体化特效注入');
+        }
         return;
       }
 
@@ -141,6 +186,32 @@ export class IntegratedThemeService {
     return readCurrentColorTheme() === WOODFISH_THEME_NAME;
   }
 
+  private hasCurrentPayload(): boolean {
+    const currentHtml = this.readWorkbenchHtml();
+    return currentHtml ? hasWoodfishPayload(currentHtml) : false;
+  }
+
+  private hasExpectedPayload(): boolean {
+    const currentHtml = this.readWorkbenchHtml();
+    if (!currentHtml || !hasWoodfishPayload(currentHtml)) {
+      return false;
+    }
+
+    const settings = readRuntimeSettings();
+    const css = buildRuntimeCss(settings, readRuntimeAssets(this.context));
+    const payloadHash = hashPayload(css);
+    return currentHtml.includes(`data-woodfish-hash="${payloadHash}"`);
+  }
+
+  private readWorkbenchHtml(): string | null {
+    const workbenchPath = getWorkbenchHtmlPath();
+    if (!workbenchPath || !fs.existsSync(workbenchPath)) {
+      return null;
+    }
+
+    return fs.readFileSync(workbenchPath, 'utf-8');
+  }
+
   private async applyPayload(options: SyncOptions): Promise<void> {
     const workbenchPath = getWorkbenchHtmlPath();
     if (!workbenchPath || !fs.existsSync(workbenchPath)) {
@@ -154,14 +225,17 @@ export class IntegratedThemeService {
     const payloadHash = hashPayload(css);
     const state = readRuntimeInstallState(this.context);
     const backupPath = state.backupPath ?? `${workbenchPath}.woodfish-backup`;
+    const withoutCurrentPayload = removeWorkbenchPayload(currentHtml);
+    const legacyCleanup = removeKnownLegacyWoodfishPayloads(withoutCurrentPayload);
+    const nextHtml = injectWorkbenchPayload(
+      legacyCleanup.html,
+      buildPayloadDocument(css, payloadHash)
+    );
+    const changed = nextHtml !== currentHtml;
 
-    if (!fs.existsSync(backupPath) || options.restoreBackup) {
+    if (!fs.existsSync(backupPath)) {
       fs.writeFileSync(backupPath, currentHtml, 'utf-8');
     }
-
-    const payload = buildPayloadDocument(css, payloadHash);
-    const nextHtml = injectWorkbenchPayload(currentHtml, payload);
-    const changed = nextHtml !== currentHtml;
 
     if (changed) {
       fs.writeFileSync(workbenchPath, nextHtml, 'utf-8');
@@ -173,6 +247,10 @@ export class IntegratedThemeService {
       backupPath,
       payloadHash,
       vscodeVersion: vscode.version,
+      legacyPayloads: mergeLegacyPayloads(
+        state.legacyPayloads,
+        legacyCleanup.removed.map((match) => match.fragment)
+      ),
     });
 
     if (changed && options.showPrompt !== false) {
@@ -187,23 +265,27 @@ export class IntegratedThemeService {
     }
 
     const currentHtml = fs.readFileSync(workbenchPath, 'utf-8');
-    if (!hasWoodfishPayload(currentHtml)) {
+    const state = readRuntimeInstallState(this.context);
+    const cleanedHtml = removeWorkbenchPayload(currentHtml);
+    const nextHtml =
+      options.restoreBackup === true && state.legacyPayloads && state.legacyPayloads.length > 0
+        ? restoreLegacyPayloads(cleanedHtml, state.legacyPayloads)
+        : cleanedHtml;
+
+    if (nextHtml === currentHtml) {
       return;
     }
 
-    const state = readRuntimeInstallState(this.context);
-    const shouldRestore =
-      options.restoreBackup === true && state.backupPath && fs.existsSync(state.backupPath);
-    const nextHtml = shouldRestore
-      ? fs.readFileSync(state.backupPath!, 'utf-8')
-      : removeWorkbenchPayload(currentHtml);
+    fs.writeFileSync(workbenchPath, nextHtml, 'utf-8');
+    getOutputChannel().appendLine(`Removed integrated runtime from ${workbenchPath}`);
 
-    if (nextHtml !== currentHtml) {
-      fs.writeFileSync(workbenchPath, nextHtml, 'utf-8');
-      getOutputChannel().appendLine(`Removed integrated runtime from ${workbenchPath}`);
-      if (options.showPrompt !== false) {
-        await showReloadPrompt('Woodfish 主题样式已移除，请重新加载 VS Code。');
-      }
+    await writeRuntimeInstallState(this.context, {
+      ...state,
+      payloadHash: undefined,
+    });
+
+    if (options.showPrompt !== false) {
+      await showReloadPrompt('Woodfish 主题样式已移除，请重新加载 VS Code。');
     }
   }
 }

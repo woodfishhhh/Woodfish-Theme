@@ -92,14 +92,25 @@ describe('runtime payload builder', () => {
   });
 
   it('exposes the expected defaults for an enabled integrated theme', () => {
-    expect(DEFAULT_RUNTIME_SETTINGS.runtime.enabled).toBe(true);
-    expect(DEFAULT_RUNTIME_SETTINGS.runtime.autoSwitchTheme).toBe(true);
+    expect((DEFAULT_RUNTIME_SETTINGS as Record<string, unknown>).runtime).toBeUndefined();
     expect(DEFAULT_RUNTIME_SETTINGS.syntaxGradient.enabled).toBe(true);
+    expect(
+      (DEFAULT_RUNTIME_SETTINGS.syntaxGradient as Record<string, unknown>).preset
+    ).toBeUndefined();
     expect(DEFAULT_RUNTIME_SETTINGS.glow.enabled).toBe(true);
     expect(DEFAULT_RUNTIME_SETTINGS.cursor.enabled).toBe(true);
     expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.runtime.enabled'].default
-    ).toBe(true);
+      packageJson.contributes.configuration.properties['woodfishTheme.runtime.enabled']
+    ).toBeUndefined();
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.runtime.autoSwitchTheme']
+    ).toBeUndefined();
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.runtime.reapplyOnStartup']
+    ).toBeUndefined();
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.syntaxGradient.preset']
+    ).toBeUndefined();
     expect(
       packageJson.contributes.configuration.properties['woodfishTheme.cursor.enabled'].default
     ).toBe(true);

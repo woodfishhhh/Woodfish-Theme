@@ -29,16 +29,8 @@ export function normalizeRuntimeSettings(
   partial: PartialDeep<ThemeRuntimeSettings> = {}
 ): ThemeRuntimeSettings {
   return {
-    runtime: {
-      enabled: partial.runtime?.enabled ?? DEFAULT_RUNTIME_SETTINGS.runtime.enabled,
-      autoSwitchTheme:
-        partial.runtime?.autoSwitchTheme ?? DEFAULT_RUNTIME_SETTINGS.runtime.autoSwitchTheme,
-      reapplyOnStartup:
-        partial.runtime?.reapplyOnStartup ?? DEFAULT_RUNTIME_SETTINGS.runtime.reapplyOnStartup,
-    },
     syntaxGradient: {
       enabled: partial.syntaxGradient?.enabled ?? DEFAULT_RUNTIME_SETTINGS.syntaxGradient.enabled,
-      preset: partial.syntaxGradient?.preset ?? DEFAULT_RUNTIME_SETTINGS.syntaxGradient.preset,
       customRules: mergeStringArray(
         partial.syntaxGradient?.customRules,
         DEFAULT_RUNTIME_SETTINGS.syntaxGradient.customRules

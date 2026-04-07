@@ -7,6 +7,7 @@ export function registerRepairWorkbenchCommand(deps: CommandDeps): vscode.Dispos
   return vscode.commands.registerCommand(COMMANDS.repairWorkbench, async () => {
     await runSafely('修复注入', async () => {
       await deps.runtimeService.repairWorkbench();
+      deps.featureState.refreshFromConfig();
     });
   });
 }

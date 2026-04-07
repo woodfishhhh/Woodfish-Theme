@@ -7,8 +7,8 @@ export function registerAutoConfigureRainbowCursorCommand(deps: CommandDeps): vs
   return vscode.commands.registerCommand(COMMANDS.autoConfigureRainbowCursor, async () => {
     await runSafely('配置彩色光标', async () => {
       await deps.featureState.set('cursor', true);
-      await deps.featureState.setRuntimeEnabled(true);
       await deps.runtimeService.enableTheme();
+      deps.featureState.refreshFromConfig();
     });
   });
 }

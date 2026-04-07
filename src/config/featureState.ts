@@ -5,20 +5,29 @@ import {
   readFeatureFlags,
   readRuntimeSettings,
   setFeatureFlag,
-  setRuntimeEnabled,
   toggleFeatureFlag,
 } from './featureFlags';
 import { ThemeStatusBar } from '../ui/statusBar';
-import { FeatureFlags, ThemeRuntimeSettings } from '../types/features';
+import { FeatureFlags, RuntimeStatusSnapshot, ThemeRuntimeSettings } from '../types/features';
+
+type RuntimeStatusResolver = (features: FeatureFlags) => RuntimeStatusSnapshot;
+
+const DEFAULT_RUNTIME_STATUS: RuntimeStatusSnapshot = {
+  state: 'off',
+  activeTheme: '',
+  isWoodfishTheme: false,
+  hasPayload: false,
+};
 
 export class FeatureStateController {
   private features: FeatureFlags;
   private settings: ThemeRuntimeSettings;
+  private runtimeStatusResolver: RuntimeStatusResolver = () => DEFAULT_RUNTIME_STATUS;
 
   constructor(private readonly statusBar: ThemeStatusBar) {
     this.settings = readRuntimeSettings();
     this.features = readFeatureFlags();
-    this.statusBar.update(this.features);
+    this.refreshStatusBar();
   }
 
   public current(): FeatureFlags {
@@ -27,7 +36,6 @@ export class FeatureStateController {
 
   public currentSettings(): ThemeRuntimeSettings {
     return {
-      runtime: { ...this.settings.runtime },
       syntaxGradient: {
         ...this.settings.syntaxGradient,
         customRules: [...this.settings.syntaxGradient.customRules],
@@ -47,8 +55,17 @@ export class FeatureStateController {
   public refreshFromConfig(): FeatureFlags {
     this.settings = readRuntimeSettings();
     this.features = readFeatureFlags();
-    this.statusBar.update(this.features);
+    this.refreshStatusBar();
     return this.current();
+  }
+
+  public refreshStatusBar(): void {
+    this.statusBar.update(this.features, this.runtimeStatusResolver(this.features));
+  }
+
+  public setRuntimeStatusResolver(resolver: RuntimeStatusResolver): void {
+    this.runtimeStatusResolver = resolver;
+    this.refreshStatusBar();
   }
 
   public async toggle(feature: FeatureKey): Promise<FeatureFlags> {
@@ -58,11 +75,6 @@ export class FeatureStateController {
 
   public async set(feature: FeatureKey, enabled: boolean): Promise<FeatureFlags> {
     await setFeatureFlag(feature, enabled);
-    return this.refreshFromConfig();
-  }
-
-  public async setRuntimeEnabled(enabled: boolean): Promise<FeatureFlags> {
-    await setRuntimeEnabled(enabled);
     return this.refreshFromConfig();
   }
 
