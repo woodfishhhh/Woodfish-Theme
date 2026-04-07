@@ -8,4 +8,5 @@ export const COMMANDS = {
   showFeatureMenu: 'woodfish-theme.showFeatureMenu',
   completeUninstall: 'woodfish-theme.completeUninstall',
   repairWorkbench: 'woodfish-theme.repairWorkbench',
+  reloadWindow: 'workbench.action.reloadWindow',
 } as const;

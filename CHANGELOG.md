@@ -1,5 +1,10 @@
 # 更新日志
 
+## [5.0.2] - 2026-04-07
+
+- 右下角 `Woodfish` 状态栏菜单改为显示全部主要指令，包括开启/关闭主题、特效开关、修复注入、彻底停用和 `Reload Window`
+- 新的本地打包产物为 `woodfish-theme-5.0.2.vsix`
+
 ## [5.0.1] - 2026-04-07
 
 - 修复 `woodfishTheme.runtime.enabled` 与 `woodfishTheme.glow.enabled` 在部分会话里无法写入用户设置的问题
