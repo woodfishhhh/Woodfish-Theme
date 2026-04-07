@@ -70,10 +70,10 @@ code .
 
 如果您想改进主题设计：
 
-1. 修改 `themes/` 目录下的主题文件
-2. 更新 `themes/woodfish-theme.html` 中的样式
-3. 确保在深色和浅色主题中都测试过
-4. 提供前后对比截图
+1. 修改 `themes/Bearded Theme/` 下的主题 JSON 或 CSS 资源
+2. 如涉及运行时拼装逻辑，同时检查 `src/services/runtime/payloadBuilder.ts`
+3. 至少在 `Woodfish Dark` 下验证启用、停用、修复注入这几条主路径
+4. 提供前后对比截图，并说明是否影响彩色字体 / 发光 / 彩色光标
 
 ### 📝 文档改进
 

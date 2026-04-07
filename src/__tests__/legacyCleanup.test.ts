@@ -38,6 +38,8 @@ describe('legacy Custom CSS cleanup', () => {
     const readmeZh = read('README.md');
     const readmeEn = read('README.en.md');
     const troubleshooting = read('docs/TROUBLESHOOTING.md');
+    const contributing = read('docs/CONTRIBUTING.md');
+    const copilotInstructions = read('.github/copilot-instructions.md');
     const autoConfigureCommand = packageJson.contributes.commands.find(
       (command) => command.command === 'woodfish-theme.autoConfigureRainbowCursor'
     );
@@ -46,6 +48,10 @@ describe('legacy Custom CSS cleanup', () => {
     expect(readmeZh).not.toMatch(/Custom CSS|自动配置/);
     expect(readmeEn).not.toMatch(/Custom CSS|自动配置/);
     expect(troubleshooting).not.toMatch(/Custom CSS|自动配置/);
+    expect(contributing).not.toMatch(/themes\/woodfish-theme\.html|浅色主题/);
+    expect(copilotInstructions).not.toMatch(
+      /relies on a \*\*Loader Extension\*\*|be5invis\.vscode-custom-css|bartag\.custom-css-hot-reload|src\/lib\/customCss\.ts|vscode_custom_css\.imports|transparent ui/i
+    );
   });
 
   it('documents only the retained settings model and removes misleading runtime keys', () => {

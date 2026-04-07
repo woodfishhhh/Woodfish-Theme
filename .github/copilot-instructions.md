@@ -1,70 +1,71 @@
 # Woodfish Theme - AI Instructions
 
-This document provides context for AI agents working on the Woodfish Theme VS Code extension.
+This document provides current context for AI agents working on the Woodfish Theme VS Code extension.
 
-## 🏗 Project Architecture
+## Project Architecture
 
-This is a **VS Code Extension** that provides advanced theming capabilities (Glow, Transparent UI, Animations) by **injecting CSS** into the VS Code workbench.
+Woodfish Theme is a VS Code extension centered on an integrated runtime injector.
 
-### Core Mechanism
+- The extension entry is `src/extension.ts`, compiled to `out/extension.js`.
+- Runtime orchestration lives under `src/services/runtime/`.
+- Theme assets live in `themes/Bearded Theme/`.
+- Commands live in `src/commands/`.
+- User-facing state and settings live in `src/config/`, `src/types/`, and `src/ui/`.
 
-Unlike standard themes, this extension relies on a **Loader Extension** to inject CSS.
+## Runtime Model
 
-1.  **Dependency**: Requires `be5invis.vscode-custom-css` or `bartag.custom-css-hot-reload` installed.
-2.  **Logic**: `src/lib/customCss.ts` detects the loader and modifies its configuration (`vscode_custom_css.imports`) to include this extension's CSS files.
-3.  **Assets**: CSS files are located in `themes/Bearded Theme/`.
-    - `index.css`: The main entry point that imports other modules.
-    - modules: `glow-effects.css`, `transparent-ui.css`, `activity-bar.css`, etc.
+This project no longer depends on third-party CSS loader extensions.
 
-### Key Directories
+The current flow is:
 
-- `src/`: TypeScript extension source code.
-  - `extension.ts`: Entry point, command registration.
-  - `lib/`: Core logic (CSS injection, path handling, version checks).
-- `themes/`: CSS assets and the base `color-theme.json`.
-- `scripts/`: Build and release automation.
+1. Read Woodfish settings from the `woodfishTheme` section.
+2. Build runtime CSS from the maintained asset files in `themes/Bearded Theme/`.
+3. Patch the local VS Code `workbench.html` with a Woodfish payload block.
+4. Detect runtime truth from the active theme plus the current payload state.
 
-## 🛠 Development Workflows
+Important runtime modules:
 
-### Build & Run
+- `src/services/runtime/service.ts`: enable, disable, repair, uninstall, startup sync
+- `src/services/runtime/payloadBuilder.ts`: assembles the final runtime CSS
+- `src/services/runtime/workbenchPatcher.ts`: injects/removes payload blocks and known legacy fragments
+- `src/services/runtime/status.ts`: derives `on / paused / off`
+- `src/services/runtime/assets.ts`: loads maintained CSS assets
 
-- **Compile**: `npm run compile` (uses `tsc`).
-- **Debugging**: Press F5 to launch the Extension Development Host.
-- **Verification**: Run `node scripts/debug-css-config.js` to verify file paths and configuration structure without launching VS Code.
+## Maintained Theme Assets
 
-### CSS Injection Workflow
+The current runtime reads these files directly:
 
-When implementing features that require new CSS:
+- `activity-bar.css`
+- `tab-bar.css`
+- `syntax-highlighting.css`
+- `glow-effects.css`
+- `cursor-animation.css`
+- `cursor-loader.css`
 
-1.  Add CSS rule to appropriate file in `themes/Bearded Theme/`.
-2.  If adding a new file, `@import` it in `themes/Bearded Theme/index.css`.
-3.  **Important**: The extension logic in `src/lib/customCss.ts` typically points the loader to `index.css`. If specific features need independent toggling (like Rainbow Cursor), they may be added/removed from the import list dynamically.
+Do not reintroduce old aggregate files such as `index.css`, `index-all.css`, or loader-era import chains.
 
-## 🧩 Code Patterns & Conventions
+## Development Workflow
 
-### Path Handling
+- Compile: `npm run compile`
+- Lint: `npm run lint`
+- Test: `npm test -- --runInBand`
+- Package: `npm run package`
+- Pre-publish verification: `node scripts/pre-publish-check.js`
 
-**NEVER** use `__dirname` or relative paths for resources injected into VS Code.
+For manual debugging:
 
-- Use `src/lib/paths.ts` helper `getExtensionPaths(context)`.
-- Use `context.asAbsolutePath()` to ensure paths work in production (`out/` vs `src/` differences).
-- CSS paths injected into the loader must be converted to `file://` URIs (see `toFileUriString` in `src/lib/paths.ts`).
+- Press `F5` to launch the Extension Development Host.
+- Focus verification on `Woodfish Dark`, payload injection/removal, and status bar truth rendering.
 
-### Configuration Management
+## Editing Guidance
 
-- Extension configuration is under the section `woodfishTheme`.
-- When settings change (e.g., toggling Glow), the code must:
-  1. Update `woodfishTheme` config.
-  2. Re-calculate the list of imports.
-  3. Write the new list to `vscode_custom_css.imports`.
-  4. Prompt the user to reload.
+- Keep user-facing wording aligned with the integrated runtime model.
+- Preserve historical facts only in changelog-style files.
+- Prefer editing the maintained runtime modules instead of adding compatibility shims.
+- When changing theme assets, confirm the runtime builder and related tests still match the asset set.
 
-### UI Interaction
+## Critical Constraints
 
-- Use wrappers in `src/lib/vscodeUi.ts` (`showInfoMessage`, `showErrorMessage`) for consistent user feedback.
-- Use `showReloadPrompt` when a change requires a window reload to take effect.
-
-## ⚠️ Critical Constraints
-
-- **Security**: The CSS injection mechanism requires the user to have specific extensions installed and usually requires VS Code to be run with elevated permissions or acknowledged warning messages.
-- **Compatibility**: Logic in `detectSupportedCssExtension` handles fallbacks between the two supported loaders. Maintain support for both.
+- Workbench patching is a real installation-level side effect, so enable/disable/repair flows must stay conservative.
+- Unknown third-party payloads should not be auto-rewritten.
+- Status bar and quick menu text must reflect actual runtime state, not assumed state.

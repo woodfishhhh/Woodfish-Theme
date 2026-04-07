@@ -1,4 +1,4 @@
-/* Cursor rainbow animation for local loader test */
+/* Cursor trail layer used by the integrated runtime payload. */
 .monaco-editor .cursors-layer .cursor,
 .monaco-editor .cursors-layer .cursor::before {
   animation: bp-animation 8s linear infinite !important;
