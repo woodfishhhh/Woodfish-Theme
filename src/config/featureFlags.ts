@@ -21,6 +21,10 @@ function getRootConfig(): vscode.WorkspaceConfiguration {
   return vscode.workspace.getConfiguration();
 }
 
+function getThemeConfig(): vscode.WorkspaceConfiguration {
+  return vscode.workspace.getConfiguration(CONFIG_SECTION);
+}
+
 function getThemeSettingKey(key: string): string {
   return `${CONFIG_SECTION}.${key}`;
 }
@@ -98,11 +102,7 @@ export function readFeatureFlags(): FeatureFlags {
 
 export async function setFeatureFlag(feature: FeatureKey, enabled: boolean): Promise<void> {
   const settingKey = FEATURE_SETTING_KEYS[feature];
-  await getRootConfig().update(
-    getThemeSettingKey(settingKey),
-    enabled,
-    vscode.ConfigurationTarget.Global
-  );
+  await getThemeConfig().update(settingKey, enabled, vscode.ConfigurationTarget.Global);
 }
 
 export async function toggleFeatureFlag(feature: FeatureKey): Promise<boolean> {
@@ -113,8 +113,8 @@ export async function toggleFeatureFlag(feature: FeatureKey): Promise<boolean> {
 }
 
 export async function setRuntimeEnabled(enabled: boolean): Promise<void> {
-  await getRootConfig().update(
-    getThemeSettingKey(RUNTIME_SETTING_KEYS.enabled),
+  await getThemeConfig().update(
+    RUNTIME_SETTING_KEYS.enabled,
     enabled,
     vscode.ConfigurationTarget.Global
   );

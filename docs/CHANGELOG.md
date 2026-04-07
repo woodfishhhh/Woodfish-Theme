@@ -9,6 +9,12 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [5.0.1] - 2026-04-07
+
+### 修复
+
+- 🛠️ **配置写入路径修正** - 将 `runtime.enabled` 与 `glow.enabled` 的更新切换为 `woodfishTheme` section 写入，修复“没有注册配置，无法写入用户设置”的报错。
+
 ## [5.0.0] - 2026-04-06
 
 ### 更改

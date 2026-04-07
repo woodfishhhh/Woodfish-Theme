@@ -17,6 +17,7 @@ import {
   setFeatureFlag,
   setRuntimeEnabled,
 } from '../config/featureFlags';
+import { CONFIG_SECTION } from '../constants/config';
 
 type MockConfiguration = {
   get: jest.Mock;
@@ -67,24 +68,53 @@ describe('featureFlags config access', () => {
     expect(settings.cursor.enabled).toBe(false);
   });
 
-  it('updates feature flags through fully qualified Woodfish setting keys', async () => {
+  it('updates feature flags through the woodfishTheme section keys', async () => {
     const configuration = createConfiguration();
-    getConfigurationMock.mockReturnValue(configuration);
+    getConfigurationMock.mockImplementation((section?: string) =>
+      section === CONFIG_SECTION ? configuration : createConfiguration()
+    );
 
     await setFeatureFlag('glow', false);
     await setRuntimeEnabled(false);
 
     expect(configuration.update).toHaveBeenNthCalledWith(
       1,
-      'woodfishTheme.glow.enabled',
+      'glow.enabled',
       false,
       vscode.ConfigurationTarget.Global
     );
     expect(configuration.update).toHaveBeenNthCalledWith(
       2,
-      'woodfishTheme.runtime.enabled',
+      'runtime.enabled',
       false,
       vscode.ConfigurationTarget.Global
     );
+  });
+
+  it('writes setting updates through the woodfishTheme section', async () => {
+    const rootConfiguration = createConfiguration();
+    const themeConfiguration = createConfiguration();
+
+    getConfigurationMock.mockImplementation((section?: string) =>
+      section === CONFIG_SECTION ? themeConfiguration : rootConfiguration
+    );
+
+    await setFeatureFlag('glow', false);
+    await setRuntimeEnabled(false);
+
+    expect(getConfigurationMock).toHaveBeenCalledWith(CONFIG_SECTION);
+    expect(themeConfiguration.update).toHaveBeenNthCalledWith(
+      1,
+      'glow.enabled',
+      false,
+      vscode.ConfigurationTarget.Global
+    );
+    expect(themeConfiguration.update).toHaveBeenNthCalledWith(
+      2,
+      'runtime.enabled',
+      false,
+      vscode.ConfigurationTarget.Global
+    );
+    expect(rootConfiguration.update).not.toHaveBeenCalled();
   });
 });

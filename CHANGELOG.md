@@ -1,5 +1,10 @@
 # 更新日志
 
+## [5.0.1] - 2026-04-07
+
+- 修复 `woodfishTheme.runtime.enabled` 与 `woodfishTheme.glow.enabled` 在部分会话里无法写入用户设置的问题
+- 预发布渠道对应新的修复版打包产物 `woodfish-theme-5.0.1.vsix`
+
 ## [5.0.0] - 2026-04-06
 
 - 一体化 runtime 默认启用，首次切换到 `Woodfish Dark` 后即可走内置注入主路径

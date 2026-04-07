@@ -4,7 +4,7 @@
 
 Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow style, and optional rainbow cursor effects.
 
-[![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
+[![Version](https://img.shields.io/badge/version-5.0.1-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 
@@ -39,7 +39,7 @@ Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow st
 ### Install from VSIX
 
 ```bash
-code --install-extension woodfish-theme-5.0.0.vsix
+code --install-extension woodfish-theme-5.0.1.vsix
 ```
 
 ## Runtime Model
