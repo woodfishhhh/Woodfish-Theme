@@ -9,6 +9,13 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [5.1.3] - 2026-04-08
+
+### 修复
+
+- 🛠️ **升级后备份路径回退** - 当持久化状态里仍保留旧 VS Code 版本目录下的 `workbench.html.woodfish-backup` 时，运行时现在会自动回退到当前 `workbench.html` 所在目录的新备份路径，避免启用或修复注入时触发 `ENOENT`。
+- 🧪 **备份路径回归测试** - 新增针对“旧 `backupPath` 已失效”场景的服务级测试，确保未来升级 VS Code 后不会再次把备份写到不存在的旧版本目录。
+
 ## [5.1.2] - 2026-04-07
 
 ### 更改
