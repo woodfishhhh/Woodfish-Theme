@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   readCurrentColorTheme,
@@ -19,6 +20,7 @@ import { deriveRuntimeStatus } from './status';
 import {
   clearRuntimeInstallState,
   readRuntimeInstallState,
+  RuntimeInstallState,
   writeRuntimeInstallState,
 } from './state';
 import {
@@ -74,6 +76,28 @@ function restoreLegacyPayloads(html: string, legacyPayloads: string[]): string {
   }
 
   return `${html}\n${block}`;
+}
+
+function resolveBackupPath(workbenchPath: string, state: RuntimeInstallState): string {
+  const defaultBackupPath = `${workbenchPath}.woodfish-backup`;
+  const storedBackupPath = state.backupPath;
+
+  if (!storedBackupPath) {
+    return defaultBackupPath;
+  }
+
+  if (state.workbenchPath && state.workbenchPath !== workbenchPath) {
+    return defaultBackupPath;
+  }
+
+  if (
+    path.dirname(path.normalize(storedBackupPath)) !==
+    path.dirname(path.normalize(defaultBackupPath))
+  ) {
+    return defaultBackupPath;
+  }
+
+  return storedBackupPath;
 }
 
 type SyncOptions = {
@@ -224,7 +248,7 @@ export class IntegratedThemeService {
     const css = buildRuntimeCss(settings, assets);
     const payloadHash = hashPayload(css);
     const state = readRuntimeInstallState(this.context);
-    const backupPath = state.backupPath ?? `${workbenchPath}.woodfish-backup`;
+    const backupPath = resolveBackupPath(workbenchPath, state);
     const withoutCurrentPayload = removeWorkbenchPayload(currentHtml);
     const legacyCleanup = removeKnownLegacyWoodfishPayloads(withoutCurrentPayload);
     const nextHtml = injectWorkbenchPayload(
