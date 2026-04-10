@@ -16,7 +16,7 @@ export function readRuntimeAssets(context: vscode.ExtensionContext): RuntimeCssA
     tabBar: readFile(resolveThemePath('tab-bar.css')),
     syntaxGradient: readFile(resolveThemePath('syntax-highlighting.css')),
     glow: readFile(resolveThemePath('glow-effects.css')),
-    cursorCore: readFile(resolveThemePath('cursor-animation.css')),
-    cursorTrail: readFile(resolveThemePath('cursor-loader.css')),
+    cursorCore: readFile(resolveThemePath('cursor-core.css')),
+    cursorGlow: readFile(resolveThemePath('cursor-glow.css')),
   };
 }

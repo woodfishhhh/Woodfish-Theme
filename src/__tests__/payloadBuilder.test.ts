@@ -14,7 +14,7 @@ describe('runtime payload builder', () => {
     glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
     cursorCore:
       'div.cursor { animation: 30s linear infinite alternate bp-animation !important; border-radius: 2px !important; }',
-    cursorTrail: 'div.cursor::after { box-shadow: 0 0 15px rgba(255, 255, 255, 0.7) !important; }',
+    cursorGlow: 'div.cursor::after { box-shadow: 0 0 15px rgba(255, 255, 255, 0.7) !important; }',
   };
   const packageJson = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf-8')
@@ -31,11 +31,11 @@ describe('runtime payload builder', () => {
     syntaxGradient: '.mtk1 { color: pink !important; }',
     glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
     cursorCore: fs.readFileSync(
-      path.resolve(__dirname, '../../themes/Bearded Theme/cursor-animation.css'),
+      path.resolve(__dirname, '../../themes/Bearded Theme/cursor-core.css'),
       'utf-8'
     ),
-    cursorTrail: fs.readFileSync(
-      path.resolve(__dirname, '../../themes/Bearded Theme/cursor-loader.css'),
+    cursorGlow: fs.readFileSync(
+      path.resolve(__dirname, '../../themes/Bearded Theme/cursor-glow.css'),
       'utf-8'
     ),
   };
@@ -126,10 +126,11 @@ describe('runtime payload builder', () => {
 
     expect(css.match(/@keyframes bp-animation\b/g)).toHaveLength(1);
     expect(css.match(/div\.cursor\s*\{/g)).toHaveLength(1);
+    expect(css.match(/div\.cursor::before\s*\{/g)).toHaveLength(1);
     expect(css.match(/div\.cursor::after\s*\{/g)).toHaveLength(1);
   });
 
-  it('keeps cursor keyframe background positions animatable', () => {
+  it('uses transform-driven cursor flow in the runtime payload', () => {
     const css = buildRuntimeCss(
       normalizeRuntimeSettings({
         cursor: { enabled: true },
@@ -137,10 +138,11 @@ describe('runtime payload builder', () => {
       realCursorAssets
     );
 
-    const keyframeBlock = css.match(/@keyframes bp-animation\s*\{[\s\S]*?\}/)?.[0] ?? '';
-
-    expect(keyframeBlock).toContain('background-position: 0 0;');
-    expect(keyframeBlock).not.toContain('background-position: 0 0 !important;');
-    expect(keyframeBlock).not.toContain('!important');
+    expect(css).toMatch(
+      /@keyframes bp-animation\s*\{[\s\S]*?from\s*\{\s*transform: translateY\(0\);\s*\}[\s\S]*?to\s*\{\s*transform: translateY\(-88\.8889%\);\s*\}/
+    );
+    expect(css).not.toMatch(/@keyframes bp-animation[\s\S]*background-position/);
+    expect(css).toContain('will-change: transform !important;');
+    expect(css).not.toContain('cursor-hue');
   });
 });

@@ -1,0 +1,28 @@
+/* Cursor glow layer used by the integrated runtime payload. */
+div.cursor::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -1px !important;
+  width: calc(100% + 2px) !important;
+  height: 900% !important;
+  background: linear-gradient(
+    180deg,
+    #ff2d95,
+    #ff4500,
+    #ffd700,
+    #7cfc00,
+    #00ffff,
+    #1e90ff,
+    #9370db,
+    #ff00ff,
+    #ff1493
+  ) !important;
+  border-radius: inherit !important;
+  animation: 8s linear infinite bp-animation !important;
+  transform: translateY(0);
+  will-change: transform !important;
+  filter: blur(4px) brightness(180%) !important;
+  opacity: 0.7 !important;
+  z-index: 0 !important;
+}

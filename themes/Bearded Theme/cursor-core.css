@@ -1,0 +1,41 @@
+div.cursor {
+  background: transparent !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+div.cursor::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 900% !important;
+  background: linear-gradient(
+    180deg,
+    #ff2d95,
+    #ff4500,
+    #ffd700,
+    #7cfc00,
+    #00ffff,
+    #1e90ff,
+    #9370db,
+    #ff00ff,
+    #ff1493
+  ) !important;
+  border-radius: inherit !important;
+  animation: 8s linear infinite bp-animation !important;
+  transform: translateY(0);
+  will-change: transform !important;
+  z-index: 1 !important;
+}
+
+@keyframes bp-animation {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-88.8889%);
+  }
+}

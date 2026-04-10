@@ -60,7 +60,7 @@ jest.mock('../services/runtime/assets', () => ({
     syntaxGradient: '.syntax {}',
     glow: '.glow {}',
     cursorCore: '.cursor {}',
-    cursorTrail: '.trail {}',
+    cursorGlow: '.glow-cursor {}',
   })),
 }));
 

@@ -9,6 +9,16 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [5.1.5] - 2026-04-10
+
+### 修复
+
+- 🌈 **彩色光标流光实现改道** - 将彩色光标从 `background-position` 动画切换为 `transform` 驱动的流光层，规避 Chromium/Monaco 场景下“动画显示为 running 但色带实际不移动”的问题。
+
+### 更改
+
+- 🧭 **光标样式文件语义化** - 将 `cursor-animation.css` / `cursor-loader.css` 重命名为 `cursor-core.css` / `cursor-glow.css`，并同步运行时资源命名，明确主体层与尾迹层职责。
+
 ## [5.1.4] - 2026-04-10
 
 ### 修复

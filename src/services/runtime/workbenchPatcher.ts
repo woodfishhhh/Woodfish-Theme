@@ -12,6 +12,8 @@ const LEGACY_WOODFISH_CONTEXT_TOKENS = ['bearded theme', 'bearded%20theme', 'woo
 const LEGACY_WOODFISH_ASSET_TOKENS = [
   'glow-effects.css',
   'syntax-highlighting.css',
+  'cursor-core.css',
+  'cursor-glow.css',
   'cursor-loader.css',
   'cursor-animation.css',
   'activity-bar.css',

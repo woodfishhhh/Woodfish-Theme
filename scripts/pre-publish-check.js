@@ -116,8 +116,8 @@ function checkThemeFiles() {
     'themes/Bearded Theme/tab-bar.css',
     'themes/Bearded Theme/syntax-highlighting.css',
     'themes/Bearded Theme/glow-effects.css',
-    'themes/Bearded Theme/cursor-animation.css',
-    'themes/Bearded Theme/cursor-loader.css',
+    'themes/Bearded Theme/cursor-core.css',
+    'themes/Bearded Theme/cursor-glow.css',
   ];
 
   moduleFiles.forEach((file) => {

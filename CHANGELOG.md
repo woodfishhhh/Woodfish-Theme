@@ -1,5 +1,11 @@
 # 更新日志
 
+## [5.1.5] - 2026-04-10
+
+- 改用 `transform` 驱动彩色光标流光层，修复 Chromium 场景下 `background-position` 看起来挂着动画却不实际流动的问题
+- 将光标样式文件重命名为 `cursor-core.css` 与 `cursor-glow.css`，让主体层与尾迹层职责更清晰
+- 预发布本地打包产物更新为 `woodfish-theme-5.1.5.vsix`
+
 ## [5.1.4] - 2026-04-10
 
 - 修复彩色光标 `bp-animation` 关键帧里的 `background-position` 无法动画的问题，恢复完整的赤橙黄绿青蓝紫流光效果

@@ -10,7 +10,7 @@ export type RuntimeCssAssets = {
   syntaxGradient: string;
   glow: string;
   cursorCore: string;
-  cursorTrail: string;
+  cursorGlow: string;
 };
 
 type PartialDeep<T> = {
@@ -103,12 +103,12 @@ function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): str
 
   if (settings.glow) {
     const glowStrength = Math.max(0, Math.min(1, settings.glowOpacity));
-    const trail = applyCursorSettings(assets.cursorTrail, settings)
+    const glowLayer = applyCursorSettings(assets.cursorGlow, settings)
       .replace(/blur\(4px\)/gi, `blur(${settings.glowBlur}px)`)
       .replace(/rgba\(255,\s*255,\s*255,\s*0\.7\)/gi, `rgba(255, 255, 255, ${glowStrength})`);
-    parts.push(trail);
+    parts.push(glowLayer);
 
-    if (!hasGradientDeclaration(trail)) {
+    if (!hasGradientDeclaration(glowLayer)) {
       parts.push(
         [
           '.monaco-editor .cursors-layer .cursor::before,',
