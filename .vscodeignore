@@ -5,6 +5,7 @@ node_modules/**
 src/**
 scripts/**
 .codebuddy/**
+.omx/**
 
 # 构建输出
 dist/**

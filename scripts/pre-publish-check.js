@@ -182,7 +182,7 @@ function checkPackageHygiene() {
     const tree = execFileSync(process.execPath, [VSCE_ENTRY_ABSOLUTE, 'ls', '--tree'], {
       encoding: 'utf8',
     });
-    const forbiddenEntries = ['plan.md', 'eslint.config.mjs', 'jest.config.js'];
+    const forbiddenEntries = ['plan.md', 'eslint.config.mjs', 'jest.config.js', '.omx/'];
     let allGood = true;
 
     forbiddenEntries.forEach((entry) => {

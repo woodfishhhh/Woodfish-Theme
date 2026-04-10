@@ -46,3 +46,4 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+.omx/
