@@ -128,4 +128,19 @@ describe('runtime payload builder', () => {
     expect(css.match(/div\.cursor\s*\{/g)).toHaveLength(1);
     expect(css.match(/div\.cursor::after\s*\{/g)).toHaveLength(1);
   });
+
+  it('keeps cursor keyframe background positions animatable', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: { enabled: true },
+      }),
+      realCursorAssets
+    );
+
+    const keyframeBlock = css.match(/@keyframes bp-animation\s*\{[\s\S]*?\}/)?.[0] ?? '';
+
+    expect(keyframeBlock).toContain('background-position: 0 0;');
+    expect(keyframeBlock).not.toContain('background-position: 0 0 !important;');
+    expect(keyframeBlock).not.toContain('!important');
+  });
 });

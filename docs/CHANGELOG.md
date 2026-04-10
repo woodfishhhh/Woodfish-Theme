@@ -9,6 +9,13 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [5.1.4-beta] - 2026-04-10
+
+### 修复
+
+- 🌈 **彩色光标流光恢复** - 去掉 `bp-animation` 关键帧中 `background-position` 的无效 `!important`，让彩色光标重新完整流过赤橙黄绿青蓝紫，而不是只停在开头的红橙段。
+- 🧪 **光标动画回归保护** - 新增运行时 payload 测试，断言 `bp-animation` 关键帧里的 `background-position` 保持可动画，避免未来再次打包出“有渐变但不流动”的光标。
+
 ## [5.1.3] - 2026-04-08
 
 ### 修复

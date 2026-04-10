@@ -1,5 +1,11 @@
 # 更新日志
 
+## [5.1.4-beta] - 2026-04-10
+
+- 修复彩色光标 `bp-animation` 关键帧里的 `background-position` 无法动画的问题，恢复完整的赤橙黄绿青蓝紫流光效果
+- 新增回归测试，确保运行时 payload 里的光标关键帧保持可动画，不会再退化成只停在红橙段
+- 预发布本地打包产物为 `woodfish-theme-5.1.4-beta.vsix`
+
 ## [5.1.3] - 2026-04-08
 
 - 修复 VS Code 升级后仍沿用旧 `workbench.html.woodfish-backup` 路径，导致启用或修复注入时报 `ENOENT` 的问题

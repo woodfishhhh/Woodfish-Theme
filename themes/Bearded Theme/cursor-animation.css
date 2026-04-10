@@ -35,21 +35,21 @@ div.cursor::after {
 
 @keyframes bp-animation {
   0% {
-    background-position: 0 0 !important;
+    background-position: 0 0;
   }
   20% {
-    background-position: 0 166.6% !important;
+    background-position: 0 166.6%;
   }
   40% {
-    background-position: 0 333.3% !important;
+    background-position: 0 333.3%;
   }
   60% {
-    background-position: 0 500% !important;
+    background-position: 0 500%;
   }
   80% {
-    background-position: 0 666.6% !important;
+    background-position: 0 666.6%;
   }
   100% {
-    background-position: 0 833.3% !important;
+    background-position: 0 833.3%;
   }
 }
