@@ -4,7 +4,7 @@
 
 一个具有发光效果、渐变色彩与彩虹光标效果的 VS Code 主题扩展。
 
-[![Version](https://img.shields.io/badge/version-5.1.5-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
+[![Version](https://img.shields.io/badge/version-5.1.6-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/zhongjun.woodfish-theme)](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme)
@@ -40,7 +40,7 @@
 ### 手动安装（VSIX）
 
 ```bash
-code --install-extension woodfish-theme-5.1.5.vsix
+code --install-extension woodfish-theme-5.1.6.vsix
 ```
 
 ## 🔌 运行方式

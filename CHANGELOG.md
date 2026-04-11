@@ -1,5 +1,11 @@
 # 更新日志
 
+## [5.1.6] - 2026-04-11
+
+- 修复扩展市场简介图片无法显示的问题，统一 README 相对图片所依赖的 GitHub 仓库元数据
+- 新增 Marketplace 元数据回归测试，防止 `repository / bugs / homepage` 再次指向错误仓库
+- 正式版本地打包产物更新为 `woodfish-theme-5.1.6.vsix`
+
 ## [5.1.5] - 2026-04-10
 
 - 改用 `transform` 驱动彩色光标流光层，修复 Chromium 场景下 `background-position` 看起来挂着动画却不实际流动的问题

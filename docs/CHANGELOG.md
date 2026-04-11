@@ -9,6 +9,16 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [5.1.6] - 2026-04-11
+
+### 修复
+
+- 🖼️ **Marketplace 预览图恢复** - 修正 `package.json` 中 `repository`、`bugs` 与 `homepage` 的 GitHub 仓库地址，让 README 里的相对图片在 VS Code Marketplace 中能被正确重写到真实公开仓库。
+
+### 测试
+
+- 🧪 **发布元数据回归保护** - 新增 Marketplace 元数据测试，断言 README 预览图实际存在，且发布所依赖的 GitHub 仓库元数据与 README 中使用的仓库保持一致。
+
 ## [5.1.5] - 2026-04-10
 
 ### 修复
