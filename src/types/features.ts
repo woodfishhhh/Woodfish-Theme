@@ -35,16 +35,27 @@ export type CursorSettings = {
   customRules: string[];
 };
 
+export type CursorThemeDefaultKey = keyof Pick<
+  CursorSettings,
+  'animationDuration' | 'gradientStops' | 'borderRadius' | 'glowBlur' | 'glowOpacity'
+>;
+
+export type ThemeRuntimeExplicitSettings = {
+  cursor: Partial<Record<CursorThemeDefaultKey, boolean>>;
+};
+
 export type ThemeRuntimeSettings = {
   syntaxGradient: SyntaxGradientSettings;
   glow: GlowSettings;
   cursor: CursorSettings;
+  explicitSettings?: ThemeRuntimeExplicitSettings;
 };
 
 export type PartialRuntimeSettings = {
   syntaxGradient?: Partial<SyntaxGradientSettings>;
   glow?: Partial<GlowSettings>;
   cursor?: Partial<CursorSettings>;
+  explicitSettings?: Partial<ThemeRuntimeExplicitSettings>;
 };
 
 export const RUNTIME_SETTING_LIMITS = {
@@ -356,6 +367,12 @@ function sanitizeGradientStops(value: unknown, fallback: string[]): string[] {
 export function normalizeRuntimeSettings(
   partial: PartialRuntimeSettings = {}
 ): ThemeRuntimeSettings {
+  const explicitSettings = partial.explicitSettings?.cursor
+    ? {
+        cursor: { ...partial.explicitSettings.cursor },
+      }
+    : undefined;
+
   return {
     syntaxGradient: {
       enabled: sanitizeBoolean(
@@ -407,6 +424,7 @@ export function normalizeRuntimeSettings(
       ),
       customRules: sanitizeCustomRules(partial.cursor?.customRules),
     },
+    ...(explicitSettings ? { explicitSettings } : {}),
   };
 }
 

@@ -54,6 +54,7 @@ function checkProjectStructure() {
     'themes/shared/': '共享注入资源',
     'themes/bearded/Woodfish Dark.json': 'Woodfish Dark 主题配置',
     'themes/dracula/Woodfish Dracula.json': 'Woodfish Dracula 主题配置',
+    'assets/readme/dracula-preview.png': 'Woodfish Dracula 效果预览',
     'images/': '图片资源文件夹',
   };
 

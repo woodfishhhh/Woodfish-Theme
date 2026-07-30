@@ -1,5 +1,6 @@
 import {
   CursorSettings,
+  CursorThemeDefaultKey,
   DEFAULT_RUNTIME_SETTINGS,
   ThemeRuntimeSettings,
   normalizeRuntimeSettings,
@@ -49,7 +50,8 @@ function stringArraysEqual(left: string[], right: string[]): boolean {
 
 function applyThemeCursorDefaults(
   cursor: CursorSettings,
-  defaults: CursorThemeDefaults | undefined
+  defaults: CursorThemeDefaults | undefined,
+  explicitSettings: Partial<Record<CursorThemeDefaultKey, boolean>> | undefined
 ): CursorSettings {
   if (!defaults) {
     return cursor;
@@ -57,7 +59,9 @@ function applyThemeCursorDefaults(
 
   const runtimeDefaults = DEFAULT_RUNTIME_SETTINGS.cursor;
   const gradientStops =
-    defaults.gradientStops && stringArraysEqual(cursor.gradientStops, runtimeDefaults.gradientStops)
+    defaults.gradientStops &&
+    explicitSettings?.gradientStops !== true &&
+    stringArraysEqual(cursor.gradientStops, runtimeDefaults.gradientStops)
       ? [...defaults.gradientStops]
       : [...cursor.gradientStops];
 
@@ -65,20 +69,27 @@ function applyThemeCursorDefaults(
     ...cursor,
     animationDuration:
       defaults.animationDuration !== undefined &&
+      explicitSettings?.animationDuration !== true &&
       cursor.animationDuration === runtimeDefaults.animationDuration
         ? defaults.animationDuration
         : cursor.animationDuration,
     gradientStops,
     borderRadius:
-      defaults.borderRadius !== undefined && cursor.borderRadius === runtimeDefaults.borderRadius
+      defaults.borderRadius !== undefined &&
+      explicitSettings?.borderRadius !== true &&
+      cursor.borderRadius === runtimeDefaults.borderRadius
         ? defaults.borderRadius
         : cursor.borderRadius,
     glowBlur:
-      defaults.glowBlur !== undefined && cursor.glowBlur === runtimeDefaults.glowBlur
+      defaults.glowBlur !== undefined &&
+      explicitSettings?.glowBlur !== true &&
+      cursor.glowBlur === runtimeDefaults.glowBlur
         ? defaults.glowBlur
         : cursor.glowBlur,
     glowOpacity:
-      defaults.glowOpacity !== undefined && cursor.glowOpacity === runtimeDefaults.glowOpacity
+      defaults.glowOpacity !== undefined &&
+      explicitSettings?.glowOpacity !== true &&
+      cursor.glowOpacity === runtimeDefaults.glowOpacity
         ? defaults.glowOpacity
         : cursor.glowOpacity,
   };
@@ -182,7 +193,14 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
 
   if (safeSettings.cursor.enabled) {
     parts.push(
-      buildCursorCss(applyThemeCursorDefaults(safeSettings.cursor, assets.cursorDefaults), assets)
+      buildCursorCss(
+        applyThemeCursorDefaults(
+          safeSettings.cursor,
+          assets.cursorDefaults,
+          safeSettings.explicitSettings?.cursor
+        ),
+        assets
+      )
     );
   }
 

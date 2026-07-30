@@ -38,11 +38,16 @@ describe('runtime theme assets', () => {
       '--woodfish-activity-badge-gradient: linear-gradient(45deg, #ff79c6, #bd93f9)'
     );
     expect(assets.activityBar).toContain('--woodfish-activity-badge-gradient');
+    expect(assets.tabBar).toContain('.tabs-container > .tab.active::after');
+    expect(assets.tabBar).toContain('@media (prefers-reduced-motion: reduce)');
     expect(assets.syntaxGradient).toContain('#bd93f9');
+    expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:6|12|13|14|15|16)\b/);
     expect(assets.glow).toContain('Woodfish Dracula glow profile');
     expect(assets.cursorGlow).toContain(
       'filter: var(--woodfish-cursor-glow-filter, none) !important;'
     );
+    expect(assets.cursorCore).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(assets.cursorGlow).toContain('@media (prefers-reduced-motion: reduce)');
     expect(assets.cursorDefaults).toEqual({
       animationDuration: 12,
       gradientStops: ['#ff79c6', '#bd93f9', '#8be9fd', '#50fa7b', '#8be9fd', '#bd93f9', '#ff79c6'],
@@ -59,7 +64,7 @@ describe('runtime theme assets', () => {
     expect(css).toContain('--woodfish-cursor-glow-filter: none;');
     expect(css).toContain('--woodfish-cursor-glow-opacity: 0.45;');
     expect(css).toContain('opacity: var(--woodfish-cursor-glow-opacity');
-    expect(css).toContain('text-shadow: 0 0 8px currentColor !important;');
+    expect(css).toContain('text-shadow: 0 0 6px currentColor !important;');
     expect(css).not.toContain('brightness(180%)');
   });
 

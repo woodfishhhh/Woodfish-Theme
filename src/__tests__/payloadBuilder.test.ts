@@ -228,6 +228,41 @@ describe('runtime payload builder', () => {
     expect(css).toContain('--woodfish-cursor-glow-opacity: 0.8;');
   });
 
+  it('preserves explicit cursor settings that equal extension defaults', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: {
+          animationDuration: DEFAULT_RUNTIME_SETTINGS.cursor.animationDuration,
+          gradientStops: DEFAULT_RUNTIME_SETTINGS.cursor.gradientStops,
+          borderRadius: DEFAULT_RUNTIME_SETTINGS.cursor.borderRadius,
+          glowBlur: DEFAULT_RUNTIME_SETTINGS.cursor.glowBlur,
+          glowOpacity: DEFAULT_RUNTIME_SETTINGS.cursor.glowOpacity,
+        },
+        explicitSettings: {
+          cursor: {
+            animationDuration: true,
+            gradientStops: true,
+            borderRadius: true,
+            glowBlur: true,
+            glowOpacity: true,
+          },
+        },
+      }),
+      {
+        ...realCursorAssets,
+        cursorDefaults: draculaCursorDefaults,
+      }
+    );
+
+    expect(css).toContain('--woodfish-cursor-animation-duration: 8s;');
+    expect(css).toContain(
+      'linear-gradient(180deg, #ff2d95, #ff4500, #ffd700, #7cfc00, #00ffff, #1e90ff, #9370db, #ff00ff, #ff1493)'
+    );
+    expect(css).toContain('--woodfish-cursor-border-radius: 2px;');
+    expect(css).toContain('--woodfish-cursor-glow-filter: none;');
+    expect(css).toContain('--woodfish-cursor-glow-opacity: 0.7;');
+  });
+
   it('uses transform-driven cursor flow in the runtime payload', () => {
     const css = buildRuntimeCss(
       normalizeRuntimeSettings({

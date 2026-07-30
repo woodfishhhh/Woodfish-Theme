@@ -10,24 +10,24 @@
 .monaco-editor .view-lines span.token.keyword,
 .monaco-editor .view-lines span.token.operator,
 .monaco-editor .view-lines span.token.function {
-  text-shadow: 0 0 8px currentColor !important;
+  text-shadow: 0 0 6px currentColor !important;
 }
 
 /* Types, classes, and strings. */
 .monaco-editor .view-lines span.mtk9,
 .monaco-editor .view-lines span.mtk8,
 .monaco-editor .view-lines span.token.string {
-  text-shadow: 0 0 5px currentColor !important;
+  text-shadow: 0 0 4px currentColor !important;
 }
 
 /* Variables, parameters, and numeric constants. */
 .monaco-editor .view-lines span.mtk3,
 .monaco-editor .view-lines span.mtk7,
 .monaco-editor .view-lines span.token.variable {
-  text-shadow: 0 0 3px currentColor !important;
+  text-shadow: 0 0 2px currentColor !important;
 }
 
 .monaco-editor .margin .active-line-number {
   --vscode-editorLineNumber-activeForeground: #f8f8f2 !important;
-  text-shadow: 0 0 6px currentColor !important;
+  text-shadow: 0 0 4px currentColor !important;
 }

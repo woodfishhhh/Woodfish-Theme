@@ -1,7 +1,5 @@
 /* 关键字 / 运算符 / control */
-:not(.cursor).mtk10,
-:not(.cursor).mtk15,
-:not(.cursor).mtk16 {
+:not(.cursor).mtk10 {
   background-image: linear-gradient(90deg, #ff79c6, #bd93f9) !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
@@ -10,9 +8,7 @@
 }
 
 /* 函数 / 方法 */
-:not(.cursor).mtk5,
-:not(.cursor).mtk12,
-:not(.cursor).mtk14 {
+:not(.cursor).mtk5 {
   background-image: linear-gradient(90deg, #8be9fd, #50fa7b) !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
@@ -21,9 +17,7 @@
 }
 
 /* 字符串 / 文本常量 */
-:not(.cursor).mtk8,
-:not(.cursor).mtk13,
-:not(.cursor).mtk6 {
+:not(.cursor).mtk8 {
   background-image: linear-gradient(90deg, #ffb86c, #f1fa8c) !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
