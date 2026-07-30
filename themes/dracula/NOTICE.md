@@ -12,3 +12,4 @@ Woodfish-specific additions in this directory:
 - renamed the built-in theme display name to `Woodfish Dracula`
 - added `theme.meta.json` for shared injected accent variables
 - added `syntax-highlighting.css` for restrained Woodfish gradient overlays
+- added `glow-effects.css` for the Dracula-specific low-radius glow hierarchy

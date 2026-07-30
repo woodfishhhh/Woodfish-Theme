@@ -25,6 +25,7 @@ vsc-extension-quickstart.md
 eslint.config.mjs
 jest.config.js
 plan.md
+AGENTS.md
 
 # 旧版入口备份（不参与打包）
 extension.legacy.js

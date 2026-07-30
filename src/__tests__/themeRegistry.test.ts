@@ -18,6 +18,7 @@ describe('theme registry resolution', () => {
       slug: 'dracula',
       directory: 'dracula',
       themeFile: 'Woodfish Dracula.json',
+      glowFile: 'glow-effects.css',
     });
     expect(resolveWoodfishTheme('One Dark Pro')).toBeUndefined();
   });

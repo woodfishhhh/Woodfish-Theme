@@ -1,41 +1,35 @@
-/* 关键字 / storage / control */
-:not(.cursor).mtk9,
-:not(.cursor).mtk15,
-:not(.cursor).mtk16 {
-  background-image: linear-gradient(45deg, #bd93f9, #ff79c6) !important;
+/* 关键字 / 运算符 / control */
+:not(.cursor).mtk10 {
+  background-image: linear-gradient(90deg, #ff79c6, #bd93f9) !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 /* 函数 / 方法 */
-:not(.cursor).mtk12,
-:not(.cursor).mtk14 {
-  background-image: linear-gradient(45deg, #8be9fd, #50fa7b) !important;
+:not(.cursor).mtk5 {
+  background-image: linear-gradient(90deg, #8be9fd, #50fa7b) !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 /* 字符串 / 文本常量 */
-:not(.cursor).mtk13,
-:not(.cursor).mtk6 {
-  background-image: linear-gradient(45deg, #ffb86c, #f1fa8c) !important;
+:not(.cursor).mtk8 {
+  background-image: linear-gradient(90deg, #ffb86c, #f1fa8c) !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 /* 类型 / 内建 / class-like */
-:not(.cursor).mtk10,
-:not(.cursor).mtk11 {
-  background-image: linear-gradient(45deg, #8be9fd, #bd93f9) !important;
+:not(.cursor).mtk9 {
+  background-image: linear-gradient(90deg, #8be9fd, #bd93f9) !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
-  font-style: italic !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }

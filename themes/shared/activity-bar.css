@@ -11,4 +11,5 @@
   ) !important;
   border-width: 0 !important;
   color: var(--woodfish-activity-badge-text-color, rgb(70 70 70)) !important;
+  box-shadow: var(--woodfish-activity-badge-shadow, none) !important;
 }

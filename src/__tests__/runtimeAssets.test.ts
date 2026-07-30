@@ -9,6 +9,13 @@ const { readRuntimeAssets } = require('../services/runtime/assets') as {
     themeLabel?: string
   ) => {
     themeVariables?: string;
+    cursorDefaults?: {
+      animationDuration?: number;
+      gradientStops?: string[];
+      borderRadius?: number;
+      glowBlur?: number;
+      glowOpacity?: number;
+    };
     activityBar: string;
     tabBar: string;
     syntaxGradient: string;
@@ -31,14 +38,39 @@ describe('runtime theme assets', () => {
       '--woodfish-activity-badge-gradient: linear-gradient(45deg, #ff79c6, #bd93f9)'
     );
     expect(assets.activityBar).toContain('--woodfish-activity-badge-gradient');
+    expect(assets.tabBar).toContain('.tabs-container > .tab.active::after');
+    expect(assets.tabBar).toContain('@media (prefers-reduced-motion: reduce)');
     expect(assets.syntaxGradient).toContain('#bd93f9');
+    expect(assets.glow).toContain('Woodfish Dracula glow profile');
     expect(assets.cursorGlow).toContain('filter: none !important;');
+    expect(assets.cursorCore).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(assets.cursorGlow).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(assets.cursorDefaults).toEqual({
+      animationDuration: 12,
+      gradientStops: ['#ff79c6', '#bd93f9', '#8be9fd', '#50fa7b', '#8be9fd', '#bd93f9', '#ff79c6'],
+      borderRadius: 1,
+      glowBlur: 0,
+      glowOpacity: 0.45,
+    });
 
     const css = buildRuntimeCss(DEFAULT_RUNTIME_SETTINGS, assets);
 
     expect(css).toContain('--woodfish-tab-border-gradient');
+    expect(css).toContain('--woodfish-tab-border-animation-duration: 7s');
     expect(css).toContain('filter: none !important;');
-    expect(css).toContain('opacity: 0.7 !important;');
+    expect(css).toContain('opacity: 0.45 !important;');
+    expect(css).toContain('text-shadow: 0 0 6px currentColor !important;');
     expect(css).not.toContain('brightness(180%)');
+  });
+
+  it('keeps the Dracula base theme readable without runtime injection', () => {
+    const theme = require('../../themes/dracula/Woodfish Dracula.json') as {
+      colors: Record<string, string>;
+    };
+
+    expect(theme.colors['activityBarBadge.foreground']).toBe('#282A36');
+    expect(theme.colors['editorCursor.foreground']).toBe('#FF79C6');
+    expect(theme.colors['editorLineNumber.activeForeground']).toBe('#F8F8F2');
+    expect(theme.colors['tab.inactiveForeground']).toBe('#8391C2');
   });
 });

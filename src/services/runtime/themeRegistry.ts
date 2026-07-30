@@ -7,6 +7,7 @@ export type WoodfishThemeDefinition = {
   themeFile: string;
   syntaxFile: string;
   metaFile: string;
+  glowFile?: string;
 };
 
 export const DEFAULT_WOODFISH_THEME_LABEL = 'Woodfish Dark';
@@ -27,6 +28,7 @@ const BUILT_IN_WOODFISH_THEMES: WoodfishThemeDefinition[] = [
     themeFile: 'Woodfish Dracula.json',
     syntaxFile: 'syntax-highlighting.css',
     metaFile: 'theme.meta.json',
+    glowFile: 'glow-effects.css',
   },
 ];
 

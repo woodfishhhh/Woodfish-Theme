@@ -25,8 +25,17 @@ Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow st
 
 ## Preview
 
-![Preview 1](images/img1.png)
-![Preview 2](images/img2.png)
+![Woodfish Dracula preview](assets/readme/dracula-preview.png)
+
+Woodfish Dracula uses palette-matched syntax gradients, shorter layered glow, a calmer theme cursor, and a slower active-tab sweep. Comments and default text stay flat to preserve hierarchy.
+
+<details>
+<summary><strong>View Woodfish Dark previews</strong></summary>
+
+![Woodfish Dark preview 1](images/img1.png)
+![Woodfish Dark preview 2](images/img2.png)
+
+</details>
 
 ## Installation
 
@@ -68,6 +77,8 @@ Reload the VS Code window when prompted.
 1. Press `Ctrl+K Ctrl+T`
 2. Select “Woodfish Dark” or “Woodfish Dracula”
 3. The next time you run `Woodfish Theme: 开启 Woodfish 主题`, the extension restores that last built-in Woodfish theme
+
+When cursor settings are untouched, Woodfish Dracula uses a 12-second pink-purple-cyan-green loop, a `1px` radius, and `0.45` trail opacity. Explicit `woodfishTheme.cursor.*` values always win.
 
 ### Rainbow Cursor
 

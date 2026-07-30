@@ -26,3 +26,11 @@ div.cursor::after {
   opacity: 0.7 !important;
   z-index: 0 !important;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .monaco-editor .cursor::after {
+    animation: none !important;
+    transform: translateY(0) !important;
+    will-change: auto !important;
+  }
+}

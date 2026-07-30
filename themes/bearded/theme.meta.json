@@ -3,5 +3,10 @@
   "slug": "bearded",
   "activityBadgeGradient": "linear-gradient(45deg, #eacd61, #ea618e)",
   "activityBadgeTextColor": "rgb(70 70 70)",
-  "tabBorderGradient": "linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea)"
+  "tabBorderGradient": "linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea)",
+  "runtime": {
+    "activityBadgeShadow": "none",
+    "tabBorderShadow": "none",
+    "tabBorderAnimationDuration": "3s"
+  }
 }

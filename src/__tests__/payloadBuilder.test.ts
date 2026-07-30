@@ -42,6 +42,13 @@ describe('runtime payload builder', () => {
       'utf-8'
     ),
   };
+  const draculaCursorDefaults = {
+    animationDuration: 12,
+    gradientStops: ['#ff79c6', '#bd93f9', '#8be9fd', '#50fa7b', '#8be9fd', '#bd93f9', '#ff79c6'],
+    borderRadius: 1,
+    glowBlur: 0,
+    glowOpacity: 0.45,
+  };
 
   it('builds combined css and applies runtime overrides', () => {
     const css = buildRuntimeCss(
@@ -171,6 +178,82 @@ describe('runtime payload builder', () => {
     const glowLayer = css.match(/div\.cursor::after\s*\{[\s\S]*?\}/)?.[0];
 
     expect(glowLayer).toContain('filter: blur(6px) !important;');
+  });
+
+  it('uses theme cursor defaults while global cursor settings are untouched', () => {
+    const css = buildRuntimeCss(DEFAULT_RUNTIME_SETTINGS, {
+      ...realCursorAssets,
+      cursorDefaults: draculaCursorDefaults,
+    });
+    const cursorCore = css.match(/div\.cursor\s*\{[\s\S]*?\}/)?.[0];
+    const glowLayer = css.match(/div\.cursor::after\s*\{[\s\S]*?\}/)?.[0];
+
+    expect(cursorCore).toContain('border-radius: 1px !important;');
+    expect(css).toContain('animation: 12s linear infinite bp-animation !important;');
+    expect(css).toContain(
+      'linear-gradient(180deg, #ff79c6, #bd93f9, #8be9fd, #50fa7b, #8be9fd, #bd93f9, #ff79c6)'
+    );
+    expect(glowLayer).toContain('filter: none !important;');
+    expect(glowLayer).toContain('opacity: 0.45 !important;');
+  });
+
+  it('preserves explicit cursor settings over theme defaults', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: {
+          animationDuration: 5,
+          gradientStops: ['#111111', '#222222'],
+          borderRadius: 4,
+          glowBlur: 3,
+          glowOpacity: 0.8,
+        },
+      }),
+      {
+        ...realCursorAssets,
+        cursorDefaults: draculaCursorDefaults,
+      }
+    );
+
+    expect(css).toContain('animation: 5s linear infinite bp-animation !important;');
+    expect(css).toContain('linear-gradient(180deg, #111111, #222222)');
+    expect(css).toContain('border-radius: 4px !important;');
+    expect(css).toContain('filter: blur(3px) !important;');
+    expect(css).toContain('opacity: 0.8 !important;');
+  });
+
+  it('preserves explicit cursor settings that equal extension defaults', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: {
+          animationDuration: DEFAULT_RUNTIME_SETTINGS.cursor.animationDuration,
+          gradientStops: DEFAULT_RUNTIME_SETTINGS.cursor.gradientStops,
+          borderRadius: DEFAULT_RUNTIME_SETTINGS.cursor.borderRadius,
+          glowBlur: DEFAULT_RUNTIME_SETTINGS.cursor.glowBlur,
+          glowOpacity: DEFAULT_RUNTIME_SETTINGS.cursor.glowOpacity,
+        },
+        explicitSettings: {
+          cursor: {
+            animationDuration: true,
+            gradientStops: true,
+            borderRadius: true,
+            glowBlur: true,
+            glowOpacity: true,
+          },
+        },
+      }),
+      {
+        ...realCursorAssets,
+        cursorDefaults: draculaCursorDefaults,
+      }
+    );
+
+    expect(css).toContain('animation: 8s linear infinite bp-animation !important;');
+    expect(css).toContain(
+      'linear-gradient(180deg, #ff2d95, #ff4500, #ffd700, #7cfc00, #00ffff, #1e90ff, #9370db, #ff00ff, #ff1493)'
+    );
+    expect(css).toContain('border-radius: 2px !important;');
+    expect(css).toContain('filter: none !important;');
+    expect(css).toContain('opacity: 0.7 !important;');
   });
 
   it('uses transform-driven cursor flow in the runtime payload', () => {

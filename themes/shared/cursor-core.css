@@ -39,3 +39,11 @@ div.cursor::before {
     transform: translateY(-88.8889%);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .monaco-editor .cursor::before {
+    animation: none !important;
+    transform: translateY(0) !important;
+    will-change: auto !important;
+  }
+}
