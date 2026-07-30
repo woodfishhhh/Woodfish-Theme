@@ -58,7 +58,7 @@ Woodfish Theme 是一套面向 VS Code 的深色主题与运行时视觉效果�
 下载对应版本的 `.vsix` 后运行：
 
 ```bash
-code --install-extension woodfish-theme-5.1.6.vsix
+code --install-extension woodfish-theme-5.1.7.vsix
 ```
 
 </details>

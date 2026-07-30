@@ -11,6 +11,8 @@
 
 ## [Unreleased]
 
+## [5.1.7] - 2026-07-30
+
 ### 更改
 
 - 🌙 **新增内置 Dracula 主题** - 添加 `Woodfish Dracula`，以官方 Dracula 调色为底座，并补上克制型渐变语法层。
