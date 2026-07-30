@@ -34,10 +34,15 @@ describe('marketplace metadata guardrails', () => {
     const packageJson = JSON.parse(read('package.json')) as PackageJson;
     const readmeZh = read('README.md');
     const readmeEn = read('README.en.md');
-    const relativeImagePaths = [...findRelativeImagePaths(readmeZh), ...findRelativeImagePaths(readmeEn)];
+    const relativeImagePaths = [
+      ...findRelativeImagePaths(readmeZh),
+      ...findRelativeImagePaths(readmeEn),
+    ];
     const readmeRepos = new Set([...findGithubRepos(readmeZh), ...findGithubRepos(readmeEn)]);
 
-    expect(relativeImagePaths).toEqual(expect.arrayContaining(['images/img1.png', 'images/img2.png']));
+    expect(relativeImagePaths).toEqual(
+      expect.arrayContaining(['images/img1.png', 'images/img2.png'])
+    );
 
     for (const relativeImagePath of relativeImagePaths) {
       expect(fs.existsSync(path.join(projectRoot, relativeImagePath))).toBe(true);

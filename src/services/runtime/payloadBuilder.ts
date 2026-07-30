@@ -5,6 +5,7 @@ import {
 } from '../../types/features';
 
 export type RuntimeCssAssets = {
+  themeVariables?: string;
   activityBar: string;
   tabBar: string;
   syntaxGradient: string;
@@ -12,6 +13,14 @@ export type RuntimeCssAssets = {
   cursorCore: string;
   cursorGlow: string;
 };
+
+export const DEFAULT_BEARDED_THEME_VARIABLES = `
+:root {
+  --woodfish-activity-badge-gradient: linear-gradient(45deg, #eacd61, #ea618e);
+  --woodfish-activity-badge-text-color: rgb(70 70 70);
+  --woodfish-tab-border-gradient: linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea);
+}
+`.trim();
 
 type PartialDeep<T> = {
   [K in keyof T]?: T[K] extends string[]
@@ -134,11 +143,12 @@ function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): str
 }
 
 export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeCssAssets): string {
-  const parts: string[] = [
-    '/* Woodfish runtime payload */',
-    assets.activityBar.trim(),
-    assets.tabBar.trim(),
-  ];
+  const parts: string[] = ['/* Woodfish runtime payload */'];
+  const themeVariables = assets.themeVariables?.trim();
+  if (themeVariables && themeVariables.length > 0) {
+    parts.push(themeVariables);
+  }
+  parts.push(assets.activityBar.trim(), assets.tabBar.trim());
 
   if (settings.syntaxGradient.enabled) {
     parts.push(assets.syntaxGradient.trim());

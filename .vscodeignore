@@ -6,6 +6,8 @@ src/**
 scripts/**
 .codebuddy/**
 .omx/**
+.superpowers/**
+.worktrees/**
 
 # 构建输出
 dist/**

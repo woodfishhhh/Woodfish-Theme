@@ -44,12 +44,15 @@ jest.mock('../config/featureFlags', () => ({
 }));
 
 const mockWriteRuntimeInstallState = jest.fn().mockResolvedValue(undefined);
+const mockReadLastSelectedThemeLabel = jest.fn<string | undefined, []>(() => undefined);
 
 jest.mock('../services/runtime/state', () => ({
   clearRuntimeInstallState: jest.fn(),
+  readLastSelectedThemeLabel: () => mockReadLastSelectedThemeLabel(),
   readRuntimeInstallState: jest.fn(() => ({
     backupPath: 'C:/old-version/workbench.html.woodfish-backup',
   })),
+  writeLastSelectedThemeLabel: jest.fn(),
   writeRuntimeInstallState: (...args: unknown[]) => mockWriteRuntimeInstallState(...args),
 }));
 
@@ -103,6 +106,7 @@ jest.mock('../ui/progress', () => ({
   withProgressNotification: jest.fn(async (_title: string, task: () => Promise<void>) => task()),
 }));
 
+import { readCurrentColorTheme } from '../config/featureFlags';
 import { IntegratedThemeService } from '../services/runtime/service';
 
 describe('IntegratedThemeService', () => {
@@ -120,6 +124,7 @@ describe('IntegratedThemeService', () => {
     jest.clearAllMocks();
     mockExistsSync.mockImplementation((targetPath: string) => targetPath === currentWorkbenchPath);
     mockReadFileSync.mockReturnValue('<html><body>workbench</body></html>');
+    mockReadLastSelectedThemeLabel.mockReturnValue(undefined);
   });
 
   it('falls back to the current workbench backup path when stored backupPath is stale', async () => {
@@ -137,5 +142,23 @@ describe('IntegratedThemeService', () => {
       '<html><body>workbench</body></html>',
       'utf-8'
     );
+  });
+
+  it('returns the remembered built-in theme when enable needs to restore it', () => {
+    (readCurrentColorTheme as jest.Mock).mockReturnValueOnce('One Dark Pro');
+    mockReadLastSelectedThemeLabel.mockReturnValueOnce('Woodfish Dracula');
+
+    const service = new IntegratedThemeService(context);
+
+    expect(service.getThemeLabelForEnable()).toBe('Woodfish Dracula');
+  });
+
+  it('falls back to Woodfish Dark when the remembered theme is invalid', () => {
+    (readCurrentColorTheme as jest.Mock).mockReturnValueOnce('One Dark Pro');
+    mockReadLastSelectedThemeLabel.mockReturnValueOnce('One Dark Pro');
+
+    const service = new IntegratedThemeService(context);
+
+    expect(service.getThemeLabelForEnable()).toBe('Woodfish Dark');
   });
 });

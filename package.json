@@ -47,7 +47,12 @@
       {
         "label": "Woodfish Dark",
         "uiTheme": "vs-dark",
-        "path": "./themes/Bearded Theme/Bearded Theme.json"
+        "path": "./themes/bearded/Woodfish Dark.json"
+      },
+      {
+        "label": "Woodfish Dracula",
+        "uiTheme": "vs-dark",
+        "path": "./themes/dracula/Woodfish Dracula.json"
       }
     ],
     "commands": [

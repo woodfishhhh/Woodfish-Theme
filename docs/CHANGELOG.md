@@ -9,6 +9,14 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [Unreleased]
+
+### 更改
+
+- 🌙 **新增内置 Dracula 主题** - 添加 `Woodfish Dracula`，以官方 Dracula 调色为底座，并补上克制型渐变语法层。
+- ♻️ **共享注入层抽离** - 将活动栏、标签栏、彩色光标主体、光标尾迹与 glow 结构层抽到 `themes/shared/`，不同主题只保留各自的元数据与语法渐变层。
+- 🧠 **记住上次内置主题** - 运行 `Woodfish Theme: 开启 Woodfish 主题` 时，不再固定切回 `Woodfish Dark`，而是恢复用户最近一次选择的内置 Woodfish 主题。
+
 ## [5.1.6] - 2026-04-11
 
 ### 修复

@@ -6,6 +6,7 @@ export type RuntimeInstallState = {
   payloadHash?: string;
   vscodeVersion?: string;
   legacyPayloads?: string[];
+  lastSelectedThemeLabel?: string;
 };
 
 const STATE_KEY = 'woodfish.runtime.install-state';
@@ -23,4 +24,19 @@ export async function writeRuntimeInstallState(
 
 export async function clearRuntimeInstallState(context: vscode.ExtensionContext): Promise<void> {
   await context.globalState.update(STATE_KEY, undefined);
+}
+
+export function readLastSelectedThemeLabel(context: vscode.ExtensionContext): string | undefined {
+  return readRuntimeInstallState(context).lastSelectedThemeLabel;
+}
+
+export async function writeLastSelectedThemeLabel(
+  context: vscode.ExtensionContext,
+  themeLabel: string
+): Promise<void> {
+  const state = readRuntimeInstallState(context);
+  await writeRuntimeInstallState(context, {
+    ...state,
+    lastSelectedThemeLabel: themeLabel,
+  });
 }

@@ -32,7 +32,9 @@ function checkProjectStructure() {
     'CHANGELOG.md': '更新日志',
     'out/extension.js': '扩展主文件(编译产物)',
     'themes/': '主题文件夹',
-    'themes/Bearded Theme/Bearded Theme.json': '主题配置',
+    'themes/shared/': '共享注入资源',
+    'themes/bearded/Woodfish Dark.json': 'Woodfish Dark 主题配置',
+    'themes/dracula/Woodfish Dracula.json': 'Woodfish Dracula 主题配置',
     'images/': '图片资源文件夹',
   };
 
@@ -94,30 +96,38 @@ function checkThemeFiles() {
 
   let allGood = true;
 
-  // 检查主题配置文件
-  try {
-    const themeConfig = JSON.parse(
-      fs.readFileSync('themes/Bearded Theme/Bearded Theme.json', 'utf8'),
-    );
-    if (themeConfig.name && themeConfig.colors && themeConfig.tokenColors) {
-      console.log('✅ 主题配置文件格式正确');
-    } else {
-      console.log('❌ 主题配置文件格式不完整');
+  const themeConfigs = [
+    'themes/bearded/Woodfish Dark.json',
+    'themes/dracula/Woodfish Dracula.json',
+  ];
+
+  themeConfigs.forEach((file) => {
+    try {
+      const themeConfig = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (themeConfig.name && themeConfig.colors && themeConfig.tokenColors) {
+        console.log(`✅ ${file} 格式正确`);
+      } else {
+        console.log(`❌ ${file} 格式不完整`);
+        allGood = false;
+      }
+    } catch (error) {
+      console.log(`❌ ${file} 解析失败:`, error.message);
       allGood = false;
     }
-  } catch (error) {
-    console.log('❌ 主题配置文件解析失败:', error.message);
-    allGood = false;
-  }
+  });
 
   // 检查主题 CSS 文件
   const moduleFiles = [
-    'themes/Bearded Theme/activity-bar.css',
-    'themes/Bearded Theme/tab-bar.css',
-    'themes/Bearded Theme/syntax-highlighting.css',
-    'themes/Bearded Theme/glow-effects.css',
-    'themes/Bearded Theme/cursor-core.css',
-    'themes/Bearded Theme/cursor-glow.css',
+    'themes/shared/activity-bar.css',
+    'themes/shared/tab-bar.css',
+    'themes/shared/glow-effects.css',
+    'themes/shared/cursor-core.css',
+    'themes/shared/cursor-glow.css',
+    'themes/bearded/syntax-highlighting.css',
+    'themes/bearded/theme.meta.json',
+    'themes/dracula/syntax-highlighting.css',
+    'themes/dracula/theme.meta.json',
+    'themes/dracula/NOTICE.md',
   ];
 
   moduleFiles.forEach((file) => {
@@ -182,7 +192,14 @@ function checkPackageHygiene() {
     const tree = execFileSync(process.execPath, [VSCE_ENTRY_ABSOLUTE, 'ls', '--tree'], {
       encoding: 'utf8',
     });
-    const forbiddenEntries = ['plan.md', 'eslint.config.mjs', 'jest.config.js', '.omx/'];
+    const forbiddenEntries = [
+      'plan.md',
+      'eslint.config.mjs',
+      'jest.config.js',
+      '.omx/',
+      '.superpowers/',
+      '.worktrees/',
+    ];
     let allGood = true;
 
     forbiddenEntries.forEach((entry) => {

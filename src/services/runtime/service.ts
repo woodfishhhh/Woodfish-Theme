@@ -8,7 +8,6 @@ import {
   readRuntimeSettings,
   setColorTheme,
 } from '../../config/featureFlags';
-import { WOODFISH_THEME_NAME } from '../../constants/config';
 import { FeatureFlags, RuntimeStatusSnapshot } from '../../types/features';
 import { showInfoMessage, showReloadPrompt } from '../../ui/notifications';
 import { getOutputChannel } from '../../ui/output';
@@ -19,10 +18,17 @@ import { buildRuntimeCss } from './payloadBuilder';
 import { deriveRuntimeStatus } from './status';
 import {
   clearRuntimeInstallState,
+  readLastSelectedThemeLabel,
   readRuntimeInstallState,
   RuntimeInstallState,
+  writeLastSelectedThemeLabel,
   writeRuntimeInstallState,
 } from './state';
+import {
+  DEFAULT_WOODFISH_THEME_LABEL,
+  isWoodfishTheme,
+  resolveWoodfishTheme,
+} from './themeRegistry';
 import {
   hasWoodfishPayload,
   injectWorkbenchPayload,
@@ -147,11 +153,31 @@ export class IntegratedThemeService {
     }
   }
 
+  public getThemeLabelForEnable(): string {
+    const activeTheme = readCurrentColorTheme();
+    if (isWoodfishTheme(activeTheme)) {
+      return activeTheme;
+    }
+
+    const rememberedTheme = readLastSelectedThemeLabel(this.context);
+    if (rememberedTheme && isWoodfishTheme(rememberedTheme)) {
+      return rememberedTheme;
+    }
+
+    return DEFAULT_WOODFISH_THEME_LABEL;
+  }
+
   public async enableTheme(): Promise<void> {
     await withProgressNotification('正在启用 Woodfish 一体化主题...', async () => {
-      if (!this.isWoodfishThemeActive()) {
-        await setColorTheme(WOODFISH_THEME_NAME);
+      const nextTheme = this.getThemeLabelForEnable();
+      if (readCurrentColorTheme() !== nextTheme) {
+        await setColorTheme(nextTheme);
       }
+
+      if (readLastSelectedThemeLabel(this.context) !== nextTheme) {
+        await writeLastSelectedThemeLabel(this.context, nextTheme);
+      }
+
       await this.syncWithCurrentSettings({ showPrompt: true });
     });
   }
@@ -191,9 +217,17 @@ export class IntegratedThemeService {
         }
 
         if (runtimeStatus.state === 'paused') {
-          showInfoMessage('当前未使用 Woodfish Dark，已暂停一体化特效注入');
+          showInfoMessage('当前未使用 Woodfish 主题，已暂停一体化特效注入');
         }
         return;
+      }
+
+      const activeTheme = readCurrentColorTheme();
+      if (
+        isWoodfishTheme(activeTheme) &&
+        readLastSelectedThemeLabel(this.context) !== activeTheme
+      ) {
+        await writeLastSelectedThemeLabel(this.context, activeTheme);
       }
 
       await this.applyPayload(options);
@@ -207,7 +241,7 @@ export class IntegratedThemeService {
   }
 
   private isWoodfishThemeActive(): boolean {
-    return readCurrentColorTheme() === WOODFISH_THEME_NAME;
+    return resolveWoodfishTheme(readCurrentColorTheme()) !== undefined;
   }
 
   private hasCurrentPayload(): boolean {
@@ -221,8 +255,13 @@ export class IntegratedThemeService {
       return false;
     }
 
+    const activeTheme = readCurrentColorTheme();
+    if (!isWoodfishTheme(activeTheme)) {
+      return false;
+    }
+
     const settings = readRuntimeSettings();
-    const css = buildRuntimeCss(settings, readRuntimeAssets(this.context));
+    const css = buildRuntimeCss(settings, readRuntimeAssets(this.context, activeTheme));
     const payloadHash = hashPayload(css);
     return currentHtml.includes(`data-woodfish-hash="${payloadHash}"`);
   }
@@ -243,7 +282,13 @@ export class IntegratedThemeService {
     }
 
     const currentHtml = fs.readFileSync(workbenchPath, 'utf-8');
-    const assets = readRuntimeAssets(this.context);
+    const activeTheme = readCurrentColorTheme();
+    const resolvedTheme = resolveWoodfishTheme(activeTheme);
+    if (!resolvedTheme) {
+      throw new Error('当前未选择内置 Woodfish 主题，无法写入运行时注入。');
+    }
+
+    const assets = readRuntimeAssets(this.context, resolvedTheme.label);
     const settings = readRuntimeSettings();
     const css = buildRuntimeCss(settings, assets);
     const payloadHash = hashPayload(css);
@@ -267,6 +312,7 @@ export class IntegratedThemeService {
     }
 
     await writeRuntimeInstallState(this.context, {
+      ...state,
       workbenchPath,
       backupPath,
       payloadHash,

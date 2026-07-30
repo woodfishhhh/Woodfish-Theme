@@ -1,5 +1,5 @@
-import { WOODFISH_THEME_NAME } from '../../constants/config';
 import { FeatureFlags, RuntimeStatusSnapshot } from '../../types/features';
+import { isWoodfishTheme } from './themeRegistry';
 
 type DeriveRuntimeStatusInput = {
   activeTheme: string;
@@ -16,22 +16,22 @@ export function deriveRuntimeStatus({
   hasPayload,
   features,
 }: DeriveRuntimeStatusInput): RuntimeStatusSnapshot {
-  const isWoodfishTheme = activeTheme === WOODFISH_THEME_NAME;
+  const isWoodfishThemeActive = isWoodfishTheme(activeTheme);
 
-  if (isWoodfishTheme && hasPayload) {
+  if (isWoodfishThemeActive && hasPayload) {
     return {
       state: 'on',
       activeTheme,
-      isWoodfishTheme,
+      isWoodfishTheme: isWoodfishThemeActive,
       hasPayload,
     };
   }
 
-  if (!isWoodfishTheme && hasAnyVisibleEffect(features)) {
+  if (!isWoodfishThemeActive && hasAnyVisibleEffect(features)) {
     return {
       state: 'paused',
       activeTheme,
-      isWoodfishTheme,
+      isWoodfishTheme: isWoodfishThemeActive,
       hasPayload,
     };
   }
@@ -39,7 +39,7 @@ export function deriveRuntimeStatus({
   return {
     state: 'off',
     activeTheme,
-    isWoodfishTheme,
+    isWoodfishTheme: isWoodfishThemeActive,
     hasPayload,
   };
 }

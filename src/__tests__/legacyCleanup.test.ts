@@ -48,6 +48,8 @@ describe('legacy Custom CSS cleanup', () => {
     expect(readmeZh).not.toMatch(/Custom CSS|自动配置/);
     expect(readmeEn).not.toMatch(/Custom CSS|自动配置/);
     expect(troubleshooting).not.toMatch(/Custom CSS|自动配置/);
+    expect(readmeZh).toContain('Woodfish Dracula');
+    expect(readmeEn).toContain('Woodfish Dracula');
     expect(contributing).not.toMatch(/themes\/woodfish-theme\.html|浅色主题/);
     expect(copilotInstructions).not.toMatch(
       /relies on a \*\*Loader Extension\*\*|be5invis\.vscode-custom-css|bartag\.custom-css-hot-reload|src\/lib\/customCss\.ts|vscode_custom_css\.imports|transparent ui/i

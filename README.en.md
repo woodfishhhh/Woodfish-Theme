@@ -20,6 +20,7 @@ Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow st
 - **Truthful status bar**: The status bar now shows `Woodfish on/off/paused` plus `A / G / C` effect badges.
 - **Progress notifications**: Activation, disable, repair, and cleanup flows show progress feedback.
 - **Quick menu**: Click the `Woodfish ...` status bar entry to open the full command menu.
+- **Two built-in themes**: Woodfish now ships with both `Woodfish Dark` and `Woodfish Dracula`.
 
 
 ## Preview
@@ -48,7 +49,7 @@ Woodfish Theme now ships with an integrated runtime injector and no longer depen
 
 Runtime behaviors are now handled internally:
 
-- enabling the theme switches to `Woodfish Dark` and writes the latest payload
+- enabling the theme restores the most recently selected built-in Woodfish theme and writes the latest payload
 - startup checks whether the theme and payload still match
 - known legacy Woodfish payloads are taken over before the new payload is injected
 - unknown third-party payloads are not modified automatically
@@ -65,7 +66,8 @@ Reload the VS Code window when prompted.
 ### Select Theme
 
 1. Press `Ctrl+K Ctrl+T`
-2. Select “Woodfish Dark”
+2. Select “Woodfish Dark” or “Woodfish Dracula”
+3. The next time you run `Woodfish Theme: 开启 Woodfish 主题`, the extension restores that last built-in Woodfish theme
 
 ### Rainbow Cursor
 
@@ -74,8 +76,8 @@ Reload the VS Code window when prompted.
 
 ### Status Bar Meanings
 
-- `on`: `Woodfish Dark` is active and the current Woodfish payload is present
-- `paused`: effect settings are enabled, but the active theme is not `Woodfish Dark`
+- `on`: a built-in Woodfish theme such as `Woodfish Dark` or `Woodfish Dracula` is active and the current payload is present
+- `paused`: effect settings are enabled, but the active theme is not a built-in Woodfish theme
 - `off`: no Woodfish payload is currently detected
 - `A`: syntax gradient
 - `G`: glow
@@ -100,11 +102,11 @@ If you encounter issues, please try the following steps. For more details, see t
   - Reason: The extension is not yet activated.
   - Solution: Run any `Woodfish Theme:` command (e.g., "开启 Woodfish 主题") to activate the extension.
 - **Issue: Rainbow cursor not working**
-  - Reason: The active theme is not `Woodfish Dark`, or the window has not been reloaded after injection.
-  - Solution: Switch to `Woodfish Dark`, then run `Woodfish Theme: 开启 Woodfish 主题` or `Woodfish Theme: 开启 Woodfish 彩色光标`, and reload the window.
+  - Reason: The active theme is not a built-in Woodfish theme, or the window has not been reloaded after injection.
+  - Solution: Switch to `Woodfish Dark` or `Woodfish Dracula`, or run `Woodfish Theme: 开启 Woodfish 主题` to restore the last built-in theme, then reload the window.
 - **Issue: The status bar says `paused`**
-  - Reason: Effect layers are enabled, but the active theme is not `Woodfish Dark`.
-  - Solution: Run `Woodfish Theme: 开启 Woodfish 主题`, or switch back to `Woodfish Dark` and reload the window.
+  - Reason: Effect layers are enabled, but the active theme is not a built-in Woodfish theme.
+  - Solution: Run `Woodfish Theme: 开启 Woodfish 主题`, or switch back to `Woodfish Dark` / `Woodfish Dracula` and reload the window.
 
 ## 💬 FAQ
 

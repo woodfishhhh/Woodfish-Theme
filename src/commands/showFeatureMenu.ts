@@ -12,13 +12,14 @@ export function registerShowFeatureMenuCommand(deps: CommandDeps): vscode.Dispos
     await runSafely('切换功能菜单', async () => {
       const current = deps.featureState.current();
       const runtime = deps.runtimeService.getRuntimeStatus(current);
+      const enableThemeLabel = deps.runtimeService.getThemeLabelForEnable();
       const items: FeatureMenuItem[] = [
         {
           label: '$(play) 开启 Woodfish 主题',
           description:
             runtime.state === 'on'
-              ? '重新写入当前注入并保持 Woodfish Dark'
-              : '切换到 Woodfish Dark 并写入一体化注入',
+              ? `重新写入当前主题注入并保持 ${runtime.activeTheme || enableThemeLabel}`
+              : `切换到 ${enableThemeLabel} 并写入一体化注入`,
           command: COMMANDS.enable,
         },
         {

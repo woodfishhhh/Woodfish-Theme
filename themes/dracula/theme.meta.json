@@ -1,0 +1,7 @@
+{
+  "label": "Woodfish Dracula",
+  "slug": "dracula",
+  "activityBadgeGradient": "linear-gradient(45deg, #ff79c6, #bd93f9)",
+  "activityBadgeTextColor": "#282A36",
+  "tabBorderGradient": "linear-gradient(to right, #ff79c6, #bd93f9, #8be9fd, #50fa7b)"
+}

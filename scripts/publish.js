@@ -21,7 +21,8 @@ function checkRequiredFiles() {
     'package.json',
     'README.md',
     'LICENSE',
-    'themes/Bearded Theme/Bearded Theme.json',
+    'themes/bearded/Woodfish Dark.json',
+    'themes/dracula/Woodfish Dracula.json',
     'out/extension.js',
   ];
 

@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  DEFAULT_BEARDED_THEME_VARIABLES,
   DEFAULT_RUNTIME_SETTINGS,
   buildRuntimeCss,
   normalizeRuntimeSettings,
@@ -8,6 +9,7 @@ import {
 
 describe('runtime payload builder', () => {
   const assets = {
+    themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
     tabBar: '.tab { color: blue; }',
     syntaxGradient: '.mtk1 { color: pink !important; }',
@@ -26,16 +28,17 @@ describe('runtime payload builder', () => {
     };
   };
   const realCursorAssets = {
+    themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
     tabBar: '.tab { color: blue; }',
     syntaxGradient: '.mtk1 { color: pink !important; }',
     glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
     cursorCore: fs.readFileSync(
-      path.resolve(__dirname, '../../themes/Bearded Theme/cursor-core.css'),
+      path.resolve(__dirname, '../../themes/shared/cursor-core.css'),
       'utf-8'
     ),
     cursorGlow: fs.readFileSync(
-      path.resolve(__dirname, '../../themes/Bearded Theme/cursor-glow.css'),
+      path.resolve(__dirname, '../../themes/shared/cursor-glow.css'),
       'utf-8'
     ),
   };
@@ -63,6 +66,8 @@ describe('runtime payload builder', () => {
       assets
     );
 
+    expect(css).toContain('--woodfish-activity-badge-gradient');
+    expect(css).toContain('--woodfish-tab-border-gradient');
     expect(css).toContain('.activity { color: red; }');
     expect(css).toContain('.mtk1 { color: pink !important; }');
     expect(css).toContain('text-shadow: 0 0 15px currentColor !important;');
@@ -84,6 +89,7 @@ describe('runtime payload builder', () => {
       assets
     );
 
+    expect(css).toContain('--woodfish-activity-badge-gradient');
     expect(css).toContain('.activity { color: red; }');
     expect(css).toContain('.tab { color: blue; }');
     expect(css).not.toContain('.mtk1 { color: pink !important; }');
@@ -181,5 +187,54 @@ describe('runtime payload builder', () => {
     expect(css).not.toMatch(/@keyframes bp-animation[\s\S]*background-position/);
     expect(css).toContain('will-change: transform !important;');
     expect(css).not.toContain('cursor-hue');
+  });
+
+  it('supports shared selectors with theme variable fallbacks', () => {
+    const sharedAssets = {
+      ...assets,
+      activityBar:
+        '.activitybar .badge .badge-content { background-image: var(--woodfish-activity-badge-gradient, linear-gradient(45deg, #eacd61, #ea618e)) !important; }',
+      tabBar:
+        '.tab.tab-actions-right.sizing-fit.has-icon.tab-border-bottom.tab-border-top.active:after { background-image: var(--woodfish-tab-border-gradient, linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea)) !important; }',
+    };
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        syntaxGradient: { enabled: false },
+        glow: { enabled: false },
+        cursor: { enabled: false },
+      }),
+      sharedAssets
+    );
+
+    expect(css).toContain('--woodfish-activity-badge-gradient');
+    expect(css).toContain('--woodfish-tab-border-gradient');
+    expect(css).toContain('.activitybar .badge .badge-content');
+    expect(css).toContain(
+      '.tab.tab-actions-right.sizing-fit.has-icon.tab-border-bottom.tab-border-top.active:after'
+    );
+    expect(css).toContain('var(--woodfish-activity-badge-gradient');
+    expect(css).toContain('var(--woodfish-tab-border-gradient');
+  });
+
+  it('omits theme variable block when assets do not provide it', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        syntaxGradient: { enabled: false },
+        glow: { enabled: false },
+        cursor: { enabled: false },
+      }),
+      {
+        activityBar: '.activitybar .badge .badge-content { color: red; }',
+        tabBar: '.tab { color: blue; }',
+        syntaxGradient: '.mtk1 { color: pink !important; }',
+        glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
+        cursorCore: 'div.cursor { border-radius: 2px !important; }',
+        cursorGlow: 'div.cursor::after { opacity: 0.7 !important; }',
+      }
+    );
+
+    expect(css).toContain('.activitybar .badge .badge-content');
+    expect(css).not.toContain('--woodfish-activity-badge-gradient');
+    expect(css).not.toContain('--woodfish-tab-border-gradient');
   });
 });

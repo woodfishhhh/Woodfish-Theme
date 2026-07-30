@@ -12,10 +12,7 @@ jest.mock(
 );
 
 import * as vscode from 'vscode';
-import {
-  readRuntimeSettings,
-  setFeatureFlag,
-} from '../config/featureFlags';
+import { readRuntimeSettings, setFeatureFlag } from '../config/featureFlags';
 import { CONFIG_SECTION } from '../constants/config';
 
 type MockConfiguration = {

@@ -29,7 +29,7 @@ Woodfish Theme 是一套面向 VS Code 的深色主题与运行时视觉效果�
 
 ## 它提供什么
 
-- **Woodfish Dark**：以 `#11161f` 深色基底组织编辑器、侧栏、标签栏与状态栏。
+- **双主题底座**：内置 `Woodfish Dark` 与 `Woodfish Dracula`，共享同一套运行时效果。
 - **渐变语法**：为不同 token 类型应用独立的渐变色带，可整体关闭或追加自定义规则。
 - **可调发光**：发光层可独立开关，并通过强度倍率适配不同字体和显示器。
 - **彩虹光标**：颜色、循环速度、圆角、模糊与透明度均可配置。
@@ -41,7 +41,7 @@ Woodfish Theme 是一套面向 VS Code 的深色主题与运行时视觉效果�
 2. 按 `Ctrl+Shift+P`，运行 `Woodfish Theme: 开启 Woodfish 主题`。
 3. 点击提示中的 **重新加载窗口**，让运行时样式生效。
 
-扩展会切换到 `Woodfish Dark` 并写入当前配置对应的 runtime payload。之后点击右下角的 `Woodfish ...` 状态栏入口，即可快速开关各效果。
+扩展会恢复最近一次选择的内置 Woodfish 主题；首次启用时使用 `Woodfish Dark`。之后点击右下角的 `Woodfish ...` 状态栏入口，即可快速开关各效果。
 
 <details>
 <summary><strong>手动安装 VSIX</strong></summary>
@@ -59,17 +59,19 @@ code --install-extension woodfish-theme-5.1.6.vsix
 Woodfish Theme 将基础颜色主题与三个效果层分开管理：
 
 ```text
-Woodfish Dark
+Woodfish Dark / Woodfish Dracula
     └── runtime payload
         ├── A  syntax gradient
         ├── G  text glow
         └── C  rainbow cursor
 ```
 
+启用主题时会恢复最近一次选择的内置主题，并写入与该主题匹配的最新 payload。
+
 | 状态 | 含义 |
 | --- | --- |
-| `on` | 当前使用 `Woodfish Dark`，并检测到 Woodfish runtime payload |
-| `paused` | 效果配置已开启，但当前颜色主题不是 `Woodfish Dark` |
+| `on` | 当前使用内置 Woodfish 主题，并检测到 Woodfish runtime payload |
+| `paused` | 效果配置已开启，但当前颜色主题不是内置 Woodfish 主题 |
 | `off` | 当前未检测到 Woodfish runtime payload |
 | `A / G / C` | 渐变语法 / 文字发光 / 彩虹光标已开启 |
 
@@ -82,7 +84,7 @@ Woodfish Dark
 
 | 命令 | 用途 |
 | --- | --- |
-| `开启 Woodfish 主题` | 切换到 `Woodfish Dark` 并写入 runtime payload |
+| `开启 Woodfish 主题` | 恢复最近选择的内置主题并写入 runtime payload |
 | `关闭 Woodfish 主题` | 移除当前 runtime payload |
 | `开启/关闭 Woodfish 彩色字体` | 切换渐变语法层 |
 | `开启/关闭 Woodfish 发光字体` | 切换文字发光层 |
@@ -92,6 +94,12 @@ Woodfish Dark
 | `彻底停用 Woodfish 主题` | 清理当前 payload 与可识别的旧 Woodfish 残留 |
 
 `彻底停用 Woodfish 主题` 会先要求二次确认。未知的第三方注入不会被 Woodfish 自动改写或清理。
+
+## 切换内置主题
+
+1. 按 `Ctrl+K Ctrl+T` 打开主题选择器。
+2. 选择 `Woodfish Dark` 或 `Woodfish Dracula`。
+3. 之后再次运行 `Woodfish Theme: 开启 Woodfish 主题` 时，扩展会优先恢复这次选择。
 
 ## 配置示例
 
@@ -109,7 +117,7 @@ Woodfish Dark
     "#ffd700",
     "#00ffff"
   ],
-  "woodfishTheme.cursor.glowBlur": 4,
+  "woodfishTheme.cursor.glowBlur": 0,
   "woodfishTheme.cursor.glowOpacity": 0.55
 }
 ```
@@ -124,7 +132,7 @@ Woodfish Dark
 - `cursor.gradientStops`（CSS 颜色数组）：定义彩虹光标色带。
 - `cursor.borderRadius`（`0 - 24` px）：调整光标圆角。
 - `cursor.glow`（`true / false`）：保留彩色光标主体时，单独开关尾迹发光。
-- `cursor.glowBlur`（`0 - 24` px）：调整尾迹模糊。
+- `cursor.glowBlur`（`0 - 24` px）：默认 `0` 关闭 GPU blur；大于 `0` 时按需启用。
 - `cursor.glowOpacity`（`0 - 1`）：调整尾迹可见度。
 - `cursor.customRules`（CSS 字符串数组）：追加最终光标 CSS 覆盖。
 
@@ -134,11 +142,11 @@ Woodfish Dark
 
 **效果没有出现**
 
-确认当前主题是 `Woodfish Dark`，并在运行命令后重新加载窗口。
+确认当前主题是 `Woodfish Dark` 或 `Woodfish Dracula`，并在运行命令后重新加载窗口。
 
 **状态栏显示 `paused`**
 
-效果设置仍然保留，但当前主题不是 `Woodfish Dark`。切回主题或再次运行开启命令。
+效果设置仍然保留，但当前主题不是内置 Woodfish 主题。切回任一内置主题或再次运行开启命令。
 
 **更新 VS Code 后效果消失**
 
@@ -161,7 +169,7 @@ npm run format:check
 npm run package
 ```
 
-扩展入口位于 `src/extension.ts`，主题与 runtime CSS 位于 `themes/Bearded Theme/`。
+扩展入口位于 `src/extension.ts`；主题资源位于 `themes/bearded/`、`themes/dracula/` 与 `themes/shared/`。
 
 ## 项目信息
 
