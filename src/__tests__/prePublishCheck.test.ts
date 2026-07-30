@@ -3,13 +3,18 @@ import * as path from 'path';
 type PrePublishCheck = {
   calculatePackageSourceBytes: (tree: string, getSize: (packagePath: string) => number) => number;
   findForbiddenPackagePaths: (tree: string) => string[];
+  findMissingReadmePreviewUrls: (readme: string) => string[];
   findMissingRequiredPackagePaths: (tree: string) => string[];
 };
 
-const { calculatePackageSourceBytes, findForbiddenPackagePaths, findMissingRequiredPackagePaths } =
-  require(
-    path.resolve(__dirname, '..', '..', 'scripts', 'pre-publish-check.js')
-  ) as PrePublishCheck;
+const {
+  calculatePackageSourceBytes,
+  findForbiddenPackagePaths,
+  findMissingReadmePreviewUrls,
+  findMissingRequiredPackagePaths,
+} = require(
+  path.resolve(__dirname, '..', '..', 'scripts', 'pre-publish-check.js')
+) as PrePublishCheck;
 
 describe('pre-publish package hygiene', () => {
   it('rejects internal policy and development documentation paths', () => {
@@ -69,6 +74,26 @@ describe('pre-publish package hygiene', () => {
       'images/img2.png',
       'images/icon.svg',
     ]);
+  });
+
+  it('requires every packaged README preview to use its canonical remote URL', () => {
+    const previewUrls = [
+      'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/hero.png',
+      'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/dracula-preview.png',
+      'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img1.png',
+      'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img2.png',
+    ];
+    const readme = [
+      `<img src="${previewUrls[0]}" alt="Hero">`,
+      `<img src="${previewUrls[1]}" alt="Dracula">`,
+      `![Woodfish Dark 彩虹光标效果](${previewUrls[2]})`,
+      `![Woodfish Dark 渐变语法与发光效果](${previewUrls[3]})`,
+    ].join('\n');
+
+    expect(findMissingReadmePreviewUrls(readme)).toEqual([]);
+    expect(
+      findMissingReadmePreviewUrls([previewUrls[0], ...readme.split('\n').slice(1)].join('\n'))
+    ).toEqual([previewUrls[0]]);
   });
 
   it('requires the runtime entry, icon, theme definitions, and injectable CSS', () => {
