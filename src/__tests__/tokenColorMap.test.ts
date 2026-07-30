@@ -1,15 +1,23 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  buildAutomaticTokenGradientCss,
   buildTokenColorIndex,
   compileTokenColorSelectors,
+  deriveTokenGradientStops,
   resolveEditorColorOverrides,
   TokenColorTheme,
+  TokenGradientProfile,
 } from '../services/runtime/tokenColorMap';
 
 describe('token color selector compilation', () => {
   const extensionRoot = path.resolve(__dirname, '../..');
   const draculaTheme = require('../../themes/dracula/Woodfish Dracula.json') as TokenColorTheme;
+  const draculaGradientProfile: TokenGradientProfile = {
+    lightnessDelta: 0.06,
+    hueDelta: 24,
+    angle: 90,
+  };
 
   it('derives the current Dracula mtk classes from theme colors', () => {
     const colorIndex = buildTokenColorIndex(draculaTheme);
@@ -22,6 +30,50 @@ describe('token color selector compilation', () => {
     expect(colorIndex.get('F1FA8C')).toBe(8);
     expect(colorIndex.get('8BE9FD')).toBe(9);
     expect(colorIndex.get('FF79C6')).toBe(10);
+  });
+
+  it('derives the approved OKLCH hue and lightness stops from the original token color', () => {
+    expect(deriveTokenGradientStops('#FF79C6', draculaGradientProfile)).toEqual({
+      light: '#F996FF',
+      base: '#FF79C6',
+      dark: '#F76381',
+    });
+    expect(deriveTokenGradientStops('#50FA7B80', draculaGradientProfile)).toEqual({
+      light: '#CAFF3180',
+      base: '#50FA7B80',
+      dark: '#00ECB180',
+    });
+  });
+
+  it('generates gradients for every effective token foreground but not the editor background', () => {
+    const css = buildAutomaticTokenGradientCss(draculaTheme, {}, draculaGradientProfile);
+
+    expect(css).toContain(
+      '.monaco-editor .view-lines span.mtk1:not(.cursor):not(.colorpicker-color-decoration)'
+    );
+    expect(css).toContain(
+      '.monaco-editor .view-lines span.mtk10:not(.cursor):not(.colorpicker-color-decoration)'
+    );
+    expect(css).not.toContain('span.mtk2:not(.cursor)');
+    expect(css).toContain('#F996FF 0%');
+    expect(css).toContain('#FF79C6 50%');
+    expect(css).toContain('#F76381 100%');
+    expect(css.match(/background-image: linear-gradient/g)).toHaveLength(11);
+  });
+
+  it('compiles the automatic gradient marker with the supplied theme profile', () => {
+    const compiled = compileTokenColorSelectors(
+      '/* __WOODFISH_AUTO_TOKEN_GRADIENTS__ */',
+      draculaTheme,
+      {},
+      draculaGradientProfile
+    );
+
+    expect(compiled).toContain('#50FA7B 50%');
+    expect(compiled).not.toContain('__WOODFISH_AUTO_TOKEN_GRADIENTS__');
+    expect(() =>
+      compileTokenColorSelectors('/* __WOODFISH_AUTO_TOKEN_GRADIENTS__ */', draculaTheme)
+    ).toThrow('requires a gradient profile');
   });
 
   it('recompiles selectors when token color order changes', () => {
@@ -169,17 +221,24 @@ describe('token color selector compilation', () => {
   });
 
   it('keeps source templates color-driven instead of number-driven', () => {
-    for (const directory of ['bearded', 'dracula']) {
-      for (const fileName of ['syntax-highlighting.css', 'glow-effects.css']) {
-        const template = fs.readFileSync(
-          path.join(extensionRoot, 'themes', directory, fileName),
-          'utf8'
-        );
+    for (const filePath of [
+      ['bearded', 'syntax-highlighting.css'],
+      ['bearded', 'glow-effects.css'],
+      ['dracula', 'glow-effects.css'],
+    ]) {
+      const template = fs.readFileSync(path.join(extensionRoot, 'themes', ...filePath), 'utf8');
 
-        expect(template).toContain('__WOODFISH_TOKEN_');
-        expect(template).not.toMatch(/\.mtk\d+\b/);
-      }
+      expect(template).toContain('__WOODFISH_TOKEN_');
+      expect(template).not.toMatch(/\.mtk\d+\b/);
     }
+
+    const draculaSyntaxTemplate = fs.readFileSync(
+      path.join(extensionRoot, 'themes', 'dracula', 'syntax-highlighting.css'),
+      'utf8'
+    );
+    expect(draculaSyntaxTemplate).toContain('__WOODFISH_AUTO_TOKEN_GRADIENTS__');
+    expect(draculaSyntaxTemplate).not.toContain('__WOODFISH_TOKEN_');
+    expect(draculaSyntaxTemplate).not.toMatch(/\.mtk\d+\b/);
 
     const sharedGlowTemplate = fs.readFileSync(
       path.join(extensionRoot, 'themes', 'shared', 'glow-effects.css'),

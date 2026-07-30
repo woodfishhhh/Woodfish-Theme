@@ -8,6 +8,7 @@ import {
   EditorColorOverrides,
   resolveEditorColorOverrides,
   TokenColorTheme,
+  TokenGradientProfile,
 } from './tokenColorMap';
 
 const runtimeAssetCache = new WeakMap<vscode.ExtensionContext, Map<string, RuntimeCssAssets>>();
@@ -27,6 +28,7 @@ type ThemeMeta = {
     tabBorderShadow?: string;
     tabBorderAnimationDuration?: string;
     cursorDefaults?: CursorThemeDefaults;
+    syntaxGradient?: TokenGradientProfile;
   };
 };
 
@@ -108,7 +110,8 @@ export function readRuntimeAssets(
     syntaxGradient: compileTokenColorSelectors(
       readFile(resolveThemePath(theme.syntaxFile)),
       themeSource,
-      editorColorOverrides
+      editorColorOverrides,
+      themeMeta.runtime?.syntaxGradient
     ),
     glow: glowParts.join('\n\n'),
     cursorCore: readFile(resolveSharedThemePath('cursor-core.css')),

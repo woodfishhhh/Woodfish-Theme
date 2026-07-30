@@ -8,6 +8,11 @@
     "activityBadgeShadow": "0 0 10px rgb(255 121 198 / 35%)",
     "tabBorderShadow": "0 0 8px rgb(189 147 249 / 32%)",
     "tabBorderAnimationDuration": "7s",
+    "syntaxGradient": {
+      "lightnessDelta": 0.06,
+      "hueDelta": 24,
+      "angle": 90
+    },
     "cursorDefaults": {
       "animationDuration": 12,
       "gradientStops": [

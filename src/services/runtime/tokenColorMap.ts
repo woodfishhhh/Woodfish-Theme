@@ -16,11 +16,24 @@ export type EditorColorOverrides = {
   background?: string;
 };
 
+export type TokenGradientProfile = {
+  lightnessDelta: number;
+  hueDelta: number;
+  angle?: number;
+};
+
+export type TokenGradientStops = {
+  light: string;
+  base: string;
+  dark: string;
+};
+
 type ColorCustomizations = Record<string, unknown>;
 
+const AUTO_TOKEN_GRADIENTS_MARKER = '/* __WOODFISH_AUTO_TOKEN_GRADIENTS__ */';
 const EDITOR_FOREGROUND_SELECTOR_PATTERN = /\.__WOODFISH_EDITOR_FOREGROUND__/g;
 const TOKEN_SELECTOR_PATTERN = /\.__WOODFISH_TOKEN_([A-Z0-9]+)__/gi;
-const UNRESOLVED_SELECTOR_PATTERN = /\.__WOODFISH_[A-Z0-9_]+__/i;
+const UNRESOLVED_TEMPLATE_PATTERN = /__WOODFISH_[A-Z0-9_]+__/i;
 const THEME_SCOPE_PATTERN = /\[([^\]]+)\]/g;
 // Both bundled Woodfish themes contribute `vs-dark`, so VS Code's `default` sentinel
 // resolves to these editor registry colors.
@@ -53,6 +66,157 @@ function normalizeHexColor(value: unknown): string | undefined {
   const normalized = expanded.toUpperCase();
 
   return normalized.length === 8 && normalized.endsWith('FF') ? normalized.slice(0, 6) : normalized;
+}
+
+type RgbColor = {
+  r: number;
+  g: number;
+  b: number;
+};
+
+type OklabColor = {
+  l: number;
+  a: number;
+  b: number;
+};
+
+type OklchColor = {
+  l: number;
+  c: number;
+  h: number;
+};
+
+function clamp(value: number, minimum = 0, maximum = 1): number {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function parseRgb(color: string): RgbColor {
+  return {
+    r: Number.parseInt(color.slice(0, 2), 16),
+    g: Number.parseInt(color.slice(2, 4), 16),
+    b: Number.parseInt(color.slice(4, 6), 16),
+  };
+}
+
+function formatHexChannel(value: number): string {
+  return Math.round(clamp(value, 0, 255))
+    .toString(16)
+    .padStart(2, '0')
+    .toUpperCase();
+}
+
+function formatRgb(color: RgbColor, alpha: string): string {
+  return `#${formatHexChannel(color.r)}${formatHexChannel(color.g)}${formatHexChannel(color.b)}${alpha}`;
+}
+
+function srgbToLinear(value: number): number {
+  const channel = value / 255;
+  return channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+}
+
+function linearToSrgb(value: number): number {
+  const channel = value <= 0.0031308 ? 12.92 * value : 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
+  return clamp(channel) * 255;
+}
+
+function rgbToOklab(color: RgbColor): OklabColor {
+  const red = srgbToLinear(color.r);
+  const green = srgbToLinear(color.g);
+  const blue = srgbToLinear(color.b);
+  const light = Math.cbrt(0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue);
+  const medium = Math.cbrt(0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue);
+  const short = Math.cbrt(0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue);
+
+  return {
+    l: 0.2104542553 * light + 0.793617785 * medium - 0.0040720468 * short,
+    a: 1.9779984951 * light - 2.428592205 * medium + 0.4505937099 * short,
+    b: 0.0259040371 * light + 0.7827717662 * medium - 0.808675766 * short,
+  };
+}
+
+function oklabToRgb(color: OklabColor): RgbColor {
+  const light = color.l + 0.3963377774 * color.a + 0.2158037573 * color.b;
+  const medium = color.l - 0.1055613458 * color.a - 0.0638541728 * color.b;
+  const short = color.l - 0.0894841775 * color.a - 1.291485548 * color.b;
+  const linearLight = light ** 3;
+  const linearMedium = medium ** 3;
+  const linearShort = short ** 3;
+
+  return {
+    r: linearToSrgb(
+      4.0767416621 * linearLight - 3.3077115913 * linearMedium + 0.2309699292 * linearShort
+    ),
+    g: linearToSrgb(
+      -1.2684380046 * linearLight + 2.6097574011 * linearMedium - 0.3413193965 * linearShort
+    ),
+    b: linearToSrgb(
+      -0.0041960863 * linearLight - 0.7034186147 * linearMedium + 1.707614701 * linearShort
+    ),
+  };
+}
+
+function oklabToOklch(color: OklabColor): OklchColor {
+  return {
+    l: color.l,
+    c: Math.sqrt(color.a * color.a + color.b * color.b),
+    h: Math.atan2(color.b, color.a),
+  };
+}
+
+function oklchToOklab(color: OklchColor): OklabColor {
+  return {
+    l: color.l,
+    a: color.c * Math.cos(color.h),
+    b: color.c * Math.sin(color.h),
+  };
+}
+
+function validateGradientProfile(profile: TokenGradientProfile): void {
+  if (
+    !Number.isFinite(profile.lightnessDelta) ||
+    profile.lightnessDelta < 0 ||
+    profile.lightnessDelta > 0.5
+  ) {
+    throw new Error('Token gradient lightnessDelta must be between 0 and 0.5.');
+  }
+  if (!Number.isFinite(profile.hueDelta) || profile.hueDelta < 0 || profile.hueDelta > 180) {
+    throw new Error('Token gradient hueDelta must be between 0 and 180 degrees.');
+  }
+  if (profile.angle !== undefined && !Number.isFinite(profile.angle)) {
+    throw new Error('Token gradient angle must be finite.');
+  }
+}
+
+export function deriveTokenGradientStops(
+  value: string,
+  profile: TokenGradientProfile
+): TokenGradientStops {
+  validateGradientProfile(profile);
+  const normalized = normalizeHexColor(value);
+  if (!normalized) {
+    throw new Error(`Invalid token gradient color: ${value}`);
+  }
+
+  const rgb = normalized.slice(0, 6);
+  const alpha = normalized.slice(6);
+  const base = oklabToOklch(rgbToOklab(parseRgb(rgb)));
+  const hueDelta = (profile.hueDelta * Math.PI) / 180;
+  const light = oklchToOklab({
+    ...base,
+    l: clamp(base.l + profile.lightnessDelta),
+    h: base.h - hueDelta,
+  });
+  const dark = oklchToOklab({
+    ...base,
+    l: clamp(base.l - profile.lightnessDelta),
+    h: base.h + hueDelta,
+  });
+
+  return {
+    light: formatRgb(oklabToRgb(light), alpha),
+    base: `#${normalized}`,
+    dark: formatRgb(oklabToRgb(dark), alpha),
+  };
 }
 
 function themeScopeMatches(scope: string, themeLabel: string): boolean {
@@ -154,14 +318,89 @@ export function buildTokenColorIndex(
   return colorToId;
 }
 
+function collectTokenForegroundColors(
+  theme: TokenColorTheme,
+  overrides: EditorColorOverrides
+): string[] {
+  const colors: string[] = [];
+  const seen = new Set<string>();
+  const addColor = (value: unknown): void => {
+    const color = normalizeHexColor(value);
+    if (!color || seen.has(color)) {
+      return;
+    }
+
+    seen.add(color);
+    colors.push(color);
+  };
+
+  addColor(overrides.foreground ?? theme.colors?.['editor.foreground']);
+  for (const rule of theme.tokenColors ?? []) {
+    if (!rule.scope || !rule.settings) {
+      continue;
+    }
+
+    addColor(rule.settings.foreground);
+  }
+
+  return colors;
+}
+
+export function buildAutomaticTokenGradientCss(
+  theme: TokenColorTheme,
+  overrides: EditorColorOverrides,
+  profile: TokenGradientProfile
+): string {
+  validateGradientProfile(profile);
+  const colorIndex = buildTokenColorIndex(theme, overrides);
+  const angle = profile.angle ?? 90;
+
+  return collectTokenForegroundColors(theme, overrides)
+    .map((color) => {
+      const colorId = colorIndex.get(color);
+      if (!colorId) {
+        throw new Error(`Runtime token color is missing from the active color index: #${color}`);
+      }
+
+      const stops = deriveTokenGradientStops(`#${color}`, profile);
+      return [
+        `.monaco-editor .view-lines span.mtk${colorId}:not(.cursor):not(.colorpicker-color-decoration) {`,
+        '  background-image: linear-gradient(',
+        `    ${angle}deg,`,
+        `    ${stops.light} 0%,`,
+        `    ${stops.base} 50%,`,
+        `    ${stops.dark} 100%`,
+        '  ) !important;',
+        '  -webkit-text-fill-color: transparent !important;',
+        '  background-clip: text !important;',
+        '  -webkit-background-clip: text !important;',
+        '  background-repeat: no-repeat !important;',
+        '}',
+      ].join('\n');
+    })
+    .join('\n\n');
+}
+
 export function compileTokenColorSelectors(
   template: string,
   theme: TokenColorTheme,
-  overrides: EditorColorOverrides = {}
+  overrides: EditorColorOverrides = {},
+  gradientProfile?: TokenGradientProfile
 ): string {
   const colorIndex = buildTokenColorIndex(theme, overrides);
   const missingColors = new Set<string>();
-  const compiled = template
+  let compiled = template;
+  if (compiled.includes(AUTO_TOKEN_GRADIENTS_MARKER)) {
+    if (!gradientProfile) {
+      throw new Error('Runtime token gradient template requires a gradient profile.');
+    }
+
+    compiled = compiled
+      .split(AUTO_TOKEN_GRADIENTS_MARKER)
+      .join(buildAutomaticTokenGradientCss(theme, overrides, gradientProfile));
+  }
+
+  compiled = compiled
     .replace(EDITOR_FOREGROUND_SELECTOR_PATTERN, '.mtk1')
     .replace(TOKEN_SELECTOR_PATTERN, (match, rawColor: string) => {
       const color = normalizeHexColor(`#${rawColor}`);
@@ -179,8 +418,8 @@ export function compileTokenColorSelectors(
       `Runtime token colors are missing from the active theme: ${Array.from(missingColors).join(', ')}`
     );
   }
-  if (UNRESOLVED_SELECTOR_PATTERN.test(compiled)) {
-    throw new Error('Runtime token selector template contains an unsupported placeholder.');
+  if (UNRESOLVED_TEMPLATE_PATTERN.test(compiled)) {
+    throw new Error('Runtime token template contains an unsupported placeholder.');
   }
 
   return compiled;

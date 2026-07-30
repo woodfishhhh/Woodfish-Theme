@@ -60,30 +60,22 @@ describe('runtime theme assets', () => {
     expect(assets.tabBar).toContain('background-position: 100% 50%;');
     expect(assets.tabBar).not.toMatch(/background-position\s*:\s*(?:0%|100%)\s+50%\s*!important\b/);
     expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #d6acff 0%,\n    #bd93f9 52%,\n    #a678e8 100%'
+      '.monaco-editor .view-lines span.mtk1:not(.cursor):not(.colorpicker-color-decoration)'
     );
     expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #69ff94 0%,\n    #50fa7b 52%,\n    #34db64 100%'
+      '.monaco-editor .view-lines span.mtk10:not(.cursor):not(.colorpicker-color-decoration)'
     );
     expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #ffd0a6 0%,\n    #ffb86c 52%,\n    #f5964f 100%'
-    );
-    expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #ffffa5 0%,\n    #f1fa8c 52%,\n    #d8e66f 100%'
-    );
-    expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #a4ffff 0%,\n    #8be9fd 52%,\n    #62d8f4 100%'
-    );
-    expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #ff92df 0%,\n    #ff79c6 52%,\n    #e95ab4 100%'
+      'linear-gradient(\n    90deg,\n    #F996FF 0%,\n    #FF79C6 50%,\n    #F76381 100%'
     );
     expect(assets.syntaxGradient).not.toContain('#ff79c6, #bd93f9');
     expect(assets.syntaxGradient).not.toContain('#8be9fd, #50fa7b');
     expect(assets.syntaxGradient).not.toContain('#ffb86c, #f1fa8c');
     expect(assets.syntaxGradient).not.toContain('#8be9fd, #bd93f9');
     expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
-    expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:1|2)\b/);
-    expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:6|12|13|14|15|16)\b/);
+    expect(assets.syntaxGradient).not.toContain('__WOODFISH_AUTO_TOKEN_GRADIENTS__');
+    expect(assets.syntaxGradient).not.toContain('span.mtk2:not(.cursor)');
+    expect(assets.syntaxGradient.match(/background-image: linear-gradient/g)).toHaveLength(11);
     expect(assets.glow).toContain('Woodfish Dracula glow profile');
     expect(assets.glow).toContain('.monaco-editor .view-lines span.mtk10');
     expect(assets.glow).not.toContain('__WOODFISH_TOKEN_');
@@ -109,12 +101,12 @@ describe('runtime theme assets', () => {
     expect(css).toContain('--woodfish-cursor-glow-opacity: 0.45;');
     expect(css).toContain('opacity: var(--woodfish-cursor-glow-opacity');
     expect(css).toContain('text-shadow: 0 0 6px currentColor !important;');
-    expect(css).toContain('#bd93f9 52%');
-    expect(css).toContain('#50fa7b 52%');
-    expect(css).toContain('#ffb86c 52%');
-    expect(css).toContain('#f1fa8c 52%');
-    expect(css).toContain('#8be9fd 52%');
-    expect(css).toContain('#ff79c6 52%');
+    expect(css).toContain('#BD93F9 50%');
+    expect(css).toContain('#50FA7B 50%');
+    expect(css).toContain('#FFB86C 50%');
+    expect(css).toContain('#F1FA8C 50%');
+    expect(css).toContain('#8BE9FD 50%');
+    expect(css).toContain('#FF79C6 50%');
     expect(css).not.toContain('brightness(180%)');
   });
 
@@ -142,10 +134,15 @@ describe('runtime theme assets', () => {
     const assets = readRuntimeAssets(isolatedContext, 'Woodfish Dracula');
 
     expect(assets.syntaxGradient).toContain(
-      '/* Keywords, storage, control flow, and operators: Dracula pink. */\n:not(.cursor).mtk11 {'
+      '.monaco-editor .view-lines span.mtk11:not(.cursor):not(.colorpicker-color-decoration)'
     );
+    expect(assets.syntaxGradient).toContain('#FF79C6 50%');
     expect(assets.syntaxGradient).not.toContain(
-      '/* Keywords, storage, control flow, and operators: Dracula pink. */\n:not(.cursor).mtk10 {'
+      '.monaco-editor .view-lines span.mtk10:not(.cursor):not(.colorpicker-color-decoration) {\n' +
+        '  background-image: linear-gradient(\n' +
+        '    90deg,\n' +
+        '    #F996FF 0%,\n' +
+        '    #FF79C6 50%'
     );
     expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
     expect(assets.glow).toContain(

@@ -23,7 +23,7 @@ Woodfish Theme 是一套面向 VS Code 的深色主题与运行时视觉效果�
   <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/dracula-preview.png" width="100%" alt="Woodfish Dracula 在 VS Code 中的克制渐变语法、分层发光、主题光标与完整工作台效果">
 </p>
 
-`Woodfish Dracula` 的关键字、函数、字符串、类型、常量和参数分别沿各自的 Dracula 基色做同色系渐变，不再跨语义混色；同时保留较短的分层光晕、低透明度主题光标和慢速标签色带。注释与普通正文保持平整，避免整行雾化。
+`Woodfish Dracula` 会从每个代码 token 的 Dracula 原色自动生成 OKLCH 渐变：原色固定在中点，两端使用 `ΔL ±0.060` 与色相 `±24°` 的组合变化，不再依赖手工挑选的跨语义色带；同时保留较短的分层光晕、低透明度主题光标和慢速标签色带。
 
 <details>
 <summary><strong>查看 Woodfish Dark 预览</strong></summary>
