@@ -29,7 +29,7 @@ Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow st
 
 ![Woodfish Dracula preview](assets/readme/dracula-preview.png)
 
-Woodfish Dracula automatically derives an OKLCH gradient from every code token's Dracula foreground. The original color stays at the midpoint, while the two ends combine `ΔL ±0.060` with a `±24°` hue shift instead of relying on hand-picked cross-semantic bands. Its shorter layered glow, calmer theme cursor, and slower active-tab sweep remain intact.
+Woodfish Dracula automatically derives an OKLCH gradient from each of its six primary syntax accents. The original color stays at the midpoint, while `ΔL ±0.060` and a `±24°` hue shift are sampled through gamut-mapped intermediate stops for a continuous transition. Default text, punctuation, comments, and error colors stay flat so the whole editor does not change color at once. Its shorter layered glow, calmer theme cursor, and slower active-tab sweep remain intact.
 
 <details>
 <summary><strong>View Woodfish Dark previews</strong></summary>

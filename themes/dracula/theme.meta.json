@@ -11,7 +11,16 @@
     "syntaxGradient": {
       "lightnessDelta": 0.06,
       "hueDelta": 24,
-      "angle": 90
+      "angle": 90,
+      "minimumWidthCh": 6,
+      "tokenColors": [
+        "#BD93F9",
+        "#50FA7B",
+        "#FFB86C",
+        "#F1FA8C",
+        "#8BE9FD",
+        "#FF79C6"
+      ]
     },
     "cursorDefaults": {
       "animationDuration": 12,

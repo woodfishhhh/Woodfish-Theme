@@ -4,6 +4,7 @@ import {
   buildAutomaticTokenGradientCss,
   buildTokenColorIndex,
   compileTokenColorSelectors,
+  deriveTokenGradientScale,
   deriveTokenGradientStops,
   resolveEditorColorOverrides,
   TokenColorTheme,
@@ -17,6 +18,8 @@ describe('token color selector compilation', () => {
     lightnessDelta: 0.06,
     hueDelta: 24,
     angle: 90,
+    minimumWidthCh: 6,
+    tokenColors: ['#BD93F9', '#50FA7B', '#FFB86C', '#F1FA8C', '#8BE9FD', '#FF79C6'],
   };
 
   it('derives the current Dracula mtk classes from theme colors', () => {
@@ -34,31 +37,45 @@ describe('token color selector compilation', () => {
 
   it('derives the approved OKLCH hue and lightness stops from the original token color', () => {
     expect(deriveTokenGradientStops('#FF79C6', draculaGradientProfile)).toEqual({
-      light: '#F996FF',
+      light: '#F49CFF',
       base: '#FF79C6',
       dark: '#F76381',
     });
     expect(deriveTokenGradientStops('#50FA7B80', draculaGradientProfile)).toEqual({
-      light: '#CAFF3180',
+      light: '#CAFF3680',
       base: '#50FA7B80',
-      dark: '#00ECB180',
+      dark: '#00E1B680',
     });
+    expect(deriveTokenGradientScale('#FF79C6', draculaGradientProfile)).toEqual([
+      { color: '#F49CFF', offset: 0 },
+      { color: '#FC8EF7', offset: 12.5 },
+      { color: '#FE87E7', offset: 25 },
+      { color: '#FF80D7', offset: 37.5 },
+      { color: '#FF79C6', offset: 50 },
+      { color: '#FE73B5', offset: 62.5 },
+      { color: '#FD6DA4', offset: 75 },
+      { color: '#FB6792', offset: 87.5 },
+      { color: '#F76381', offset: 100 },
+    ]);
   });
 
-  it('generates gradients for every effective token foreground but not the editor background', () => {
+  it('generates smooth gradients only for the configured Dracula accent colors', () => {
     const css = buildAutomaticTokenGradientCss(draculaTheme, {}, draculaGradientProfile);
 
     expect(css).toContain(
-      '.monaco-editor .view-lines span.mtk1:not(.cursor):not(.colorpicker-color-decoration)'
-    );
-    expect(css).toContain(
       '.monaco-editor .view-lines span.mtk10:not(.cursor):not(.colorpicker-color-decoration)'
     );
+    expect(css).not.toContain('span.mtk1:not(.cursor)');
     expect(css).not.toContain('span.mtk2:not(.cursor)');
-    expect(css).toContain('#F996FF 0%');
+    expect(css).not.toContain('span.mtk4:not(.cursor)');
+    expect(css).not.toContain('span.mtk6:not(.cursor)');
+    expect(css).toContain('#F49CFF 0%');
+    expect(css).toContain('#FC8EF7 12.5%');
     expect(css).toContain('#FF79C6 50%');
     expect(css).toContain('#F76381 100%');
-    expect(css.match(/background-image: linear-gradient/g)).toHaveLength(11);
+    expect(css).toContain('background-size: max(100%, 6ch) 100%');
+    expect(css).toContain('background-position: center');
+    expect(css.match(/background-image: linear-gradient/g)).toHaveLength(6);
   });
 
   it('compiles the automatic gradient marker with the supplied theme profile', () => {

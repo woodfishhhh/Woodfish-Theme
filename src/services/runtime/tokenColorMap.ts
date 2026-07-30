@@ -20,6 +20,8 @@ export type TokenGradientProfile = {
   lightnessDelta: number;
   hueDelta: number;
   angle?: number;
+  tokenColors?: string[];
+  minimumWidthCh?: number;
 };
 
 export type TokenGradientStops = {
@@ -28,9 +30,16 @@ export type TokenGradientStops = {
   dark: string;
 };
 
+export type TokenGradientScaleStop = {
+  color: string;
+  offset: number;
+};
+
 type ColorCustomizations = Record<string, unknown>;
 
 const AUTO_TOKEN_GRADIENTS_MARKER = '/* __WOODFISH_AUTO_TOKEN_GRADIENTS__ */';
+const TOKEN_GRADIENT_SAMPLE_COUNT = 9;
+const DEFAULT_TOKEN_GRADIENT_MINIMUM_WIDTH_CH = 6;
 const EDITOR_FOREGROUND_SELECTOR_PATTERN = /\.__WOODFISH_EDITOR_FOREGROUND__/g;
 const TOKEN_SELECTOR_PATTERN = /\.__WOODFISH_TOKEN_([A-Z0-9]+)__/gi;
 const UNRESOLVED_TEMPLATE_PATTERN = /__WOODFISH_[A-Z0-9_]+__/i;
@@ -116,7 +125,7 @@ function srgbToLinear(value: number): number {
 
 function linearToSrgb(value: number): number {
   const channel = value <= 0.0031308 ? 12.92 * value : 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
-  return clamp(channel) * 255;
+  return channel * 255;
 }
 
 function rgbToOklab(color: RgbColor): OklabColor {
@@ -171,6 +180,33 @@ function oklchToOklab(color: OklchColor): OklabColor {
   };
 }
 
+function isInSrgbGamut(color: RgbColor): boolean {
+  return [color.r, color.g, color.b].every(
+    (channel) => Number.isFinite(channel) && channel >= 0 && channel <= 255
+  );
+}
+
+function gamutMapOklchToRgb(color: OklchColor): RgbColor {
+  const rgb = oklabToRgb(oklchToOklab(color));
+  if (isInSrgbGamut(rgb)) {
+    return rgb;
+  }
+
+  let minimumChroma = 0;
+  let maximumChroma = color.c;
+  for (let iteration = 0; iteration < 24; iteration += 1) {
+    const candidateChroma = (minimumChroma + maximumChroma) / 2;
+    const candidate = oklabToRgb(oklchToOklab({ ...color, c: candidateChroma }));
+    if (isInSrgbGamut(candidate)) {
+      minimumChroma = candidateChroma;
+    } else {
+      maximumChroma = candidateChroma;
+    }
+  }
+
+  return oklabToRgb(oklchToOklab({ ...color, c: minimumChroma }));
+}
+
 function validateGradientProfile(profile: TokenGradientProfile): void {
   if (
     !Number.isFinite(profile.lightnessDelta) ||
@@ -185,12 +221,21 @@ function validateGradientProfile(profile: TokenGradientProfile): void {
   if (profile.angle !== undefined && !Number.isFinite(profile.angle)) {
     throw new Error('Token gradient angle must be finite.');
   }
+  if (
+    profile.minimumWidthCh !== undefined &&
+    (!Number.isFinite(profile.minimumWidthCh) || profile.minimumWidthCh <= 0)
+  ) {
+    throw new Error('Token gradient minimumWidthCh must be greater than zero.');
+  }
+  if (profile.tokenColors !== undefined && profile.tokenColors.length === 0) {
+    throw new Error('Token gradient tokenColors must not be empty.');
+  }
 }
 
-export function deriveTokenGradientStops(
+export function deriveTokenGradientScale(
   value: string,
   profile: TokenGradientProfile
-): TokenGradientStops {
+): TokenGradientScaleStop[] {
   validateGradientProfile(profile);
   const normalized = normalizeHexColor(value);
   if (!normalized) {
@@ -201,21 +246,39 @@ export function deriveTokenGradientStops(
   const alpha = normalized.slice(6);
   const base = oklabToOklch(rgbToOklab(parseRgb(rgb)));
   const hueDelta = (profile.hueDelta * Math.PI) / 180;
-  const light = oklchToOklab({
-    ...base,
-    l: clamp(base.l + profile.lightnessDelta),
-    h: base.h - hueDelta,
-  });
-  const dark = oklchToOklab({
-    ...base,
-    l: clamp(base.l - profile.lightnessDelta),
-    h: base.h + hueDelta,
-  });
 
+  return Array.from({ length: TOKEN_GRADIENT_SAMPLE_COUNT }, (_, index) => {
+    const offset = index / (TOKEN_GRADIENT_SAMPLE_COUNT - 1);
+    if (offset === 0.5) {
+      return {
+        color: `#${normalized}`,
+        offset: 50,
+      };
+    }
+
+    const signedDistance = (offset - 0.5) * 2;
+    const color = gamutMapOklchToRgb({
+      ...base,
+      l: clamp(base.l - signedDistance * profile.lightnessDelta),
+      h: base.h + signedDistance * hueDelta,
+    });
+
+    return {
+      color: formatRgb(color, alpha),
+      offset: offset * 100,
+    };
+  });
+}
+
+export function deriveTokenGradientStops(
+  value: string,
+  profile: TokenGradientProfile
+): TokenGradientStops {
+  const scale = deriveTokenGradientScale(value, profile);
   return {
-    light: formatRgb(oklabToRgb(light), alpha),
-    base: `#${normalized}`,
-    dark: formatRgb(oklabToRgb(dark), alpha),
+    light: scale[0].color,
+    base: scale[(scale.length - 1) / 2].color,
+    dark: scale[scale.length - 1].color,
   };
 }
 
@@ -320,7 +383,8 @@ export function buildTokenColorIndex(
 
 function collectTokenForegroundColors(
   theme: TokenColorTheme,
-  overrides: EditorColorOverrides
+  overrides: EditorColorOverrides,
+  profile: TokenGradientProfile
 ): string[] {
   const colors: string[] = [];
   const seen = new Set<string>();
@@ -333,6 +397,17 @@ function collectTokenForegroundColors(
     seen.add(color);
     colors.push(color);
   };
+
+  if (profile.tokenColors) {
+    for (const value of profile.tokenColors) {
+      const color = normalizeHexColor(value);
+      if (!color) {
+        throw new Error(`Invalid token gradient profile color: ${value}`);
+      }
+      addColor(value);
+    }
+    return colors;
+  }
 
   addColor(overrides.foreground ?? theme.colors?.['editor.foreground']);
   for (const rule of theme.tokenColors ?? []) {
@@ -354,27 +429,32 @@ export function buildAutomaticTokenGradientCss(
   validateGradientProfile(profile);
   const colorIndex = buildTokenColorIndex(theme, overrides);
   const angle = profile.angle ?? 90;
+  const minimumWidthCh = profile.minimumWidthCh ?? DEFAULT_TOKEN_GRADIENT_MINIMUM_WIDTH_CH;
 
-  return collectTokenForegroundColors(theme, overrides)
+  return collectTokenForegroundColors(theme, overrides, profile)
     .map((color) => {
       const colorId = colorIndex.get(color);
       if (!colorId) {
         throw new Error(`Runtime token color is missing from the active color index: #${color}`);
       }
 
-      const stops = deriveTokenGradientStops(`#${color}`, profile);
+      const stops = deriveTokenGradientScale(`#${color}`, profile);
+      const gradientStops = stops.map((stop, index) => {
+        const suffix = index === stops.length - 1 ? '' : ',';
+        return `    ${stop.color} ${stop.offset}%${suffix}`;
+      });
       return [
         `.monaco-editor .view-lines span.mtk${colorId}:not(.cursor):not(.colorpicker-color-decoration) {`,
         '  background-image: linear-gradient(',
         `    ${angle}deg,`,
-        `    ${stops.light} 0%,`,
-        `    ${stops.base} 50%,`,
-        `    ${stops.dark} 100%`,
+        ...gradientStops,
         '  ) !important;',
         '  -webkit-text-fill-color: transparent !important;',
         '  background-clip: text !important;',
         '  -webkit-background-clip: text !important;',
         '  background-repeat: no-repeat !important;',
+        `  background-size: max(100%, ${minimumWidthCh}ch) 100% !important;`,
+        '  background-position: center !important;',
         '}',
       ].join('\n');
     })

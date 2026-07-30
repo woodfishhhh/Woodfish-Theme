@@ -60,22 +60,25 @@ describe('runtime theme assets', () => {
     expect(assets.tabBar).toContain('background-position: 100% 50%;');
     expect(assets.tabBar).not.toMatch(/background-position\s*:\s*(?:0%|100%)\s+50%\s*!important\b/);
     expect(assets.syntaxGradient).toContain(
-      '.monaco-editor .view-lines span.mtk1:not(.cursor):not(.colorpicker-color-decoration)'
-    );
-    expect(assets.syntaxGradient).toContain(
       '.monaco-editor .view-lines span.mtk10:not(.cursor):not(.colorpicker-color-decoration)'
     );
     expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #F996FF 0%,\n    #FF79C6 50%,\n    #F76381 100%'
+      'linear-gradient(\n    90deg,\n    #F49CFF 0%,\n    #FC8EF7 12.5%,\n    #FE87E7 25%'
     );
+    expect(assets.syntaxGradient).toContain('#FF79C6 50%');
+    expect(assets.syntaxGradient).toContain('background-size: max(100%, 6ch) 100%');
+    expect(assets.syntaxGradient).toContain('background-position: center');
     expect(assets.syntaxGradient).not.toContain('#ff79c6, #bd93f9');
     expect(assets.syntaxGradient).not.toContain('#8be9fd, #50fa7b');
     expect(assets.syntaxGradient).not.toContain('#ffb86c, #f1fa8c');
     expect(assets.syntaxGradient).not.toContain('#8be9fd, #bd93f9');
     expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
     expect(assets.syntaxGradient).not.toContain('__WOODFISH_AUTO_TOKEN_GRADIENTS__');
+    expect(assets.syntaxGradient).not.toContain('span.mtk1:not(.cursor)');
     expect(assets.syntaxGradient).not.toContain('span.mtk2:not(.cursor)');
-    expect(assets.syntaxGradient.match(/background-image: linear-gradient/g)).toHaveLength(11);
+    expect(assets.syntaxGradient).not.toContain('span.mtk4:not(.cursor)');
+    expect(assets.syntaxGradient).not.toContain('span.mtk6:not(.cursor)');
+    expect(assets.syntaxGradient.match(/background-image: linear-gradient/g)).toHaveLength(6);
     expect(assets.glow).toContain('Woodfish Dracula glow profile');
     expect(assets.glow).toContain('.monaco-editor .view-lines span.mtk10');
     expect(assets.glow).not.toContain('__WOODFISH_TOKEN_');
@@ -141,8 +144,8 @@ describe('runtime theme assets', () => {
       '.monaco-editor .view-lines span.mtk10:not(.cursor):not(.colorpicker-color-decoration) {\n' +
         '  background-image: linear-gradient(\n' +
         '    90deg,\n' +
-        '    #F996FF 0%,\n' +
-        '    #FF79C6 50%'
+        '    #F49CFF 0%,\n' +
+        '    #FC8EF7 12.5%'
     );
     expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
     expect(assets.glow).toContain(
