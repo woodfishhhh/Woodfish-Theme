@@ -44,6 +44,28 @@ const REQUIRED_PACKAGE_PATHS = [
   'themes/shared/cursor-core.css',
   'themes/shared/cursor-glow.css',
 ];
+const REQUIRED_README_PREVIEWS = [
+  {
+    url: 'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/hero.png',
+    sourcePrefix: '<img src="',
+    sourceSuffix: '"',
+  },
+  {
+    url: 'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/dracula-preview.png',
+    sourcePrefix: '<img src="',
+    sourceSuffix: '"',
+  },
+  {
+    url: 'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img1.png',
+    sourcePrefix: '![Woodfish Dark 彩虹光标效果](',
+    sourceSuffix: ')',
+  },
+  {
+    url: 'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img2.png',
+    sourcePrefix: '![Woodfish Dark 渐变语法与发光效果](',
+    sourceSuffix: ')',
+  },
+];
 
 function isValidExtensionVersion(version) {
   return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(version);
@@ -62,6 +84,13 @@ function findForbiddenPackagePaths(tree) {
   return packagePaths.filter((packagePath) =>
     FORBIDDEN_PACKAGE_PATHS.some((pattern) => pattern.test(packagePath.replaceAll('\\', '/')))
   );
+}
+
+function findMissingReadmePreviewUrls(readme) {
+  return REQUIRED_README_PREVIEWS.filter(
+    ({ sourcePrefix, sourceSuffix, url }) =>
+      !readme.includes(`${sourcePrefix}${url}${sourceSuffix}`)
+  ).map(({ url }) => url);
 }
 
 function findMissingRequiredPackagePaths(tree) {
@@ -230,6 +259,12 @@ function checkDocumentation() {
     }
   });
 
+  const missingPreviewUrls = findMissingReadmePreviewUrls(readme);
+  for (const previewUrl of missingPreviewUrls) {
+    console.log(`❌ README 缺少规范远程预览链接: ${previewUrl}`);
+    allGood = false;
+  }
+
   const markdownImages = [...readme.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map((match) => match[1]);
   const htmlImages = [...readme.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map(
     (match) => match[1]
@@ -344,6 +379,7 @@ module.exports = {
   MAX_PACKAGE_SOURCE_BYTES,
   calculatePackageSourceBytes,
   findForbiddenPackagePaths,
+  findMissingReadmePreviewUrls,
   findMissingRequiredPackagePaths,
   isValidExtensionVersion,
   main,

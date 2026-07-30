@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/readme/hero.png" width="100%" alt="Woodfish Theme：带有渐变语法、可调发光和彩虹光标的 VS Code 深色主题">
+  <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/hero.png" width="100%" alt="Woodfish Theme：带有渐变语法、可调发光和彩虹光标的 VS Code 深色主题">
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@ Woodfish Theme 是一套面向 VS Code 的深色主题与运行时视觉效果�
 ## 效果预览
 
 <p align="center">
-  <img src="./assets/readme/dracula-preview.png" width="100%" alt="Woodfish Dracula 在 VS Code 中的克制渐变语法、分层发光、主题光标与完整工作台效果">
+  <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/dracula-preview.png" width="100%" alt="Woodfish Dracula 在 VS Code 中的克制渐变语法、分层发光、主题光标与完整工作台效果">
 </p>
 
 `Woodfish Dracula` 使用与 Dracula 调色一致的语法渐变、较短的分层光晕、低透明度主题光标和慢速标签色带；注释与普通正文保持平整，避免整行雾化。
@@ -28,9 +28,9 @@ Woodfish Theme 是一套面向 VS Code 的深色主题与运行时视觉效果�
 <details>
 <summary><strong>查看 Woodfish Dark 预览</strong></summary>
 
-![Woodfish Dark 渐变语法与发光效果](images/img2.png)
+![Woodfish Dark 渐变语法与发光效果](https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img2.png)
 
-![Woodfish Dark 彩虹光标效果](images/img1.png)
+![Woodfish Dark 彩虹光标效果](https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img1.png)
 
 </details>
 
