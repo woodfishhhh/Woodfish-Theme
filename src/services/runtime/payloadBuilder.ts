@@ -103,8 +103,14 @@ function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): str
 
   if (settings.glow) {
     const glowStrength = Math.max(0, Math.min(1, settings.glowOpacity));
+    const glowBlur = Math.max(0, settings.glowBlur);
+    const glowFilter = glowBlur > 0 ? `blur(${glowBlur}px)` : 'none';
     const glowLayer = applyCursorSettings(assets.cursorGlow, settings)
-      .replace(/blur\(4px\)/gi, `blur(${settings.glowBlur}px)`)
+      .replace(/filter:\s*none\s*!important;/gi, `filter: ${glowFilter} !important;`)
+      .replace(
+        /opacity:\s*(?:0(?:\.\d+)?|1(?:\.0+)?)\s*!important;/gi,
+        `opacity: ${glowStrength} !important;`
+      )
       .replace(/rgba\(255,\s*255,\s*255,\s*0\.7\)/gi, `rgba(255, 255, 255, ${glowStrength})`);
     parts.push(glowLayer);
 

@@ -67,7 +67,7 @@ export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
     ],
     borderRadius: 2,
     glow: true,
-    glowBlur: 4,
+    glowBlur: 0,
     glowOpacity: 0.7,
     customRules: [],
   },
