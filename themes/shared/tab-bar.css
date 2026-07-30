@@ -1,10 +1,10 @@
 /* 选中标签栏上边框（结构共享，颜色由主题变量提供） */
 @keyframes tabBorderTopMoveGradient {
   from {
-    background-position: 0% 50% !important;
+    background-position: 0% 50%;
   }
   to {
-    background-position: 100% 50% !important;
+    background-position: 100% 50%;
   }
 }
 

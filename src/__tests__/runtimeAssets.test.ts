@@ -40,6 +40,9 @@ describe('runtime theme assets', () => {
     expect(assets.activityBar).toContain('--woodfish-activity-badge-gradient');
     expect(assets.tabBar).toContain('.tabs-container > .tab.active::after');
     expect(assets.tabBar).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(assets.tabBar).toContain('background-position: 0% 50%;');
+    expect(assets.tabBar).toContain('background-position: 100% 50%;');
+    expect(assets.tabBar).not.toMatch(/background-position\s*:\s*(?:0%|100%)\s+50%\s*!important\b/);
     expect(assets.syntaxGradient).toContain('#bd93f9');
     expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:6|12|13|14|15|16)\b/);
     expect(assets.glow).toContain('Woodfish Dracula glow profile');
