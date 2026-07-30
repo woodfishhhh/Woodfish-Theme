@@ -20,6 +20,7 @@ const BUILT_IN_WOODFISH_THEMES: WoodfishThemeDefinition[] = [
     themeFile: 'Woodfish Dark.json',
     syntaxFile: 'syntax-highlighting.css',
     metaFile: 'theme.meta.json',
+    glowFile: 'glow-effects.css',
   },
   {
     label: 'Woodfish Dracula',

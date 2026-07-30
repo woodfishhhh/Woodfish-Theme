@@ -1,7 +1,19 @@
 import * as path from 'path';
 import { DEFAULT_RUNTIME_SETTINGS, buildRuntimeCss } from '../services/runtime/payloadBuilder';
 
-jest.mock('vscode', () => ({}), { virtual: true });
+let mockWorkbenchColorCustomizations: Record<string, unknown> | undefined;
+
+jest.mock(
+  'vscode',
+  () => ({
+    workspace: {
+      getConfiguration: jest.fn(() => ({
+        get: jest.fn(() => mockWorkbenchColorCustomizations),
+      })),
+    },
+  }),
+  { virtual: true }
+);
 
 const { readRuntimeAssets } = require('../services/runtime/assets') as {
   readRuntimeAssets: (
@@ -30,6 +42,10 @@ describe('runtime theme assets', () => {
   const context = {
     asAbsolutePath: jest.fn((value: string) => path.resolve(extensionRoot, value)),
   } as unknown as import('vscode').ExtensionContext;
+
+  beforeEach(() => {
+    mockWorkbenchColorCustomizations = undefined;
+  });
 
   it('loads Dracula metadata and syntax together with shared runtime CSS', () => {
     const assets = readRuntimeAssets(context, 'Woodfish Dracula');
@@ -65,9 +81,12 @@ describe('runtime theme assets', () => {
     expect(assets.syntaxGradient).not.toContain('#8be9fd, #50fa7b');
     expect(assets.syntaxGradient).not.toContain('#ffb86c, #f1fa8c');
     expect(assets.syntaxGradient).not.toContain('#8be9fd, #bd93f9');
+    expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
     expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:1|2)\b/);
     expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:6|12|13|14|15|16)\b/);
     expect(assets.glow).toContain('Woodfish Dracula glow profile');
+    expect(assets.glow).toContain('.monaco-editor .view-lines span.mtk10');
+    expect(assets.glow).not.toContain('__WOODFISH_TOKEN_');
     expect(assets.cursorGlow).toContain(
       'filter: var(--woodfish-cursor-glow-filter, none) !important;'
     );
@@ -97,6 +116,48 @@ describe('runtime theme assets', () => {
     expect(css).toContain('#8be9fd 52%');
     expect(css).toContain('#ff79c6 52%');
     expect(css).not.toContain('brightness(180%)');
+  });
+
+  it('compiles the Bearded syntax template from its theme color table', () => {
+    const assets = readRuntimeAssets(context, 'Woodfish Dark');
+
+    expect(assets.syntaxGradient).toContain(':not(.cursor).mtk9');
+    expect(assets.syntaxGradient).toContain(
+      '.mtk1:not(.cursor):not(.dyn-rule-2-34):not(.colorpicker-color-decoration)'
+    );
+    expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
+    expect(assets.glow).toContain('Woodfish Dark glow profile');
+    expect(assets.glow).toContain('span.mtk3');
+    expect(assets.glow).toContain('span.mtk12');
+    expect(assets.glow).not.toContain('__WOODFISH_TOKEN_');
+  });
+
+  it('recompiles selectors when editor color customization shifts the color table', () => {
+    mockWorkbenchColorCustomizations = {
+      'editor.foreground': '#123456',
+    };
+    const isolatedContext = {
+      asAbsolutePath: jest.fn((value: string) => path.resolve(extensionRoot, value)),
+    } as unknown as import('vscode').ExtensionContext;
+    const assets = readRuntimeAssets(isolatedContext, 'Woodfish Dracula');
+
+    expect(assets.syntaxGradient).toContain(
+      '/* Keywords, storage, control flow, and operators: Dracula pink. */\n:not(.cursor).mtk11 {'
+    );
+    expect(assets.syntaxGradient).not.toContain(
+      '/* Keywords, storage, control flow, and operators: Dracula pink. */\n:not(.cursor).mtk10 {'
+    );
+    expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
+    expect(assets.glow).toContain(
+      '.monaco-editor .view-lines span.mtk11,\n.monaco-editor .view-lines span.mtk5'
+    );
+    expect(assets.glow).not.toContain('__WOODFISH_TOKEN_');
+
+    const beardedAssets = readRuntimeAssets(isolatedContext, 'Woodfish Dark');
+    expect(beardedAssets.syntaxGradient).toContain(
+      '.mtk1:not(.cursor):not(.dyn-rule-2-34):not(.colorpicker-color-decoration)'
+    );
+    expect(beardedAssets.glow).toContain('span.mtk1 {');
   });
 
   it('keeps the Dracula base theme readable without runtime injection', () => {

@@ -3,6 +3,12 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { CursorThemeDefaults, RuntimeCssAssets } from './payloadBuilder';
 import { DEFAULT_WOODFISH_THEME_LABEL, resolveWoodfishTheme } from './themeRegistry';
+import {
+  compileTokenColorSelectors,
+  EditorColorOverrides,
+  resolveEditorColorOverrides,
+  TokenColorTheme,
+} from './tokenColorMap';
 
 const runtimeAssetCache = new WeakMap<vscode.ExtensionContext, Map<string, RuntimeCssAssets>>();
 
@@ -43,6 +49,18 @@ function buildThemeVariableBlock(meta: ThemeMeta): string {
   ].join('\n');
 }
 
+function readEditorColorOverrides(themeLabel: string): EditorColorOverrides {
+  const workspace = vscode.workspace as typeof vscode.workspace | undefined;
+  if (!workspace) {
+    return {};
+  }
+
+  const customizations = workspace
+    .getConfiguration('workbench')
+    .get<unknown>('colorCustomizations');
+  return resolveEditorColorOverrides(customizations, themeLabel);
+}
+
 export function readRuntimeAssets(
   context: vscode.ExtensionContext,
   themeLabel = DEFAULT_WOODFISH_THEME_LABEL
@@ -58,7 +76,9 @@ export function readRuntimeAssets(
     runtimeAssetCache.set(context, contextCache);
   }
 
-  const cachedAssets = contextCache.get(theme.label);
+  const editorColorOverrides = readEditorColorOverrides(theme.label);
+  const cacheKey = `${theme.label}:${JSON.stringify(editorColorOverrides)}`;
+  const cachedAssets = contextCache.get(cacheKey);
   if (cachedAssets) {
     return cachedAssets;
   }
@@ -68,9 +88,16 @@ export function readRuntimeAssets(
   const resolveThemePath = (...segments: string[]): string =>
     context.asAbsolutePath(path.join('themes', theme.directory, ...segments));
   const themeMeta = readJsonFile<ThemeMeta>(resolveThemePath(theme.metaFile));
+  const themeSource = readJsonFile<TokenColorTheme>(resolveThemePath(theme.themeFile));
   const glowParts = [readFile(resolveSharedThemePath('glow-effects.css'))];
   if (theme.glowFile) {
-    glowParts.push(readFile(resolveThemePath(theme.glowFile)));
+    glowParts.push(
+      compileTokenColorSelectors(
+        readFile(resolveThemePath(theme.glowFile)),
+        themeSource,
+        editorColorOverrides
+      )
+    );
   }
 
   const assets = {
@@ -78,11 +105,15 @@ export function readRuntimeAssets(
     cursorDefaults: themeMeta.runtime?.cursorDefaults,
     activityBar: readFile(resolveSharedThemePath('activity-bar.css')),
     tabBar: readFile(resolveSharedThemePath('tab-bar.css')),
-    syntaxGradient: readFile(resolveThemePath(theme.syntaxFile)),
+    syntaxGradient: compileTokenColorSelectors(
+      readFile(resolveThemePath(theme.syntaxFile)),
+      themeSource,
+      editorColorOverrides
+    ),
     glow: glowParts.join('\n\n'),
     cursorCore: readFile(resolveSharedThemePath('cursor-core.css')),
     cursorGlow: readFile(resolveSharedThemePath('cursor-glow.css')),
   };
-  contextCache.set(theme.label, assets);
+  contextCache.set(cacheKey, assets);
   return assets;
 }

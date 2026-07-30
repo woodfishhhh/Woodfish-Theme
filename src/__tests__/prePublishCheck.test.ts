@@ -103,6 +103,7 @@ describe('pre-publish package hygiene', () => {
       'themes/bearded/Woodfish Dark.json',
       'themes/bearded/theme.meta.json',
       'themes/bearded/syntax-highlighting.css',
+      'themes/bearded/glow-effects.css',
       'themes/dracula/Woodfish Dracula.json',
       'themes/dracula/theme.meta.json',
       'themes/dracula/syntax-highlighting.css',

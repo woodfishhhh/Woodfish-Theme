@@ -2,19 +2,19 @@
  * Keep every gradient inside the token's native Dracula color family.
  * Comments and default foreground text intentionally stay flat.
  */
-:not(.cursor).mtk3,
-:not(.cursor).mtk5,
-:not(.cursor).mtk7,
-:not(.cursor).mtk8,
-:not(.cursor).mtk9,
-:not(.cursor).mtk10 {
+:not(.cursor).__WOODFISH_TOKEN_BD93F9__,
+:not(.cursor).__WOODFISH_TOKEN_50FA7B__,
+:not(.cursor).__WOODFISH_TOKEN_FFB86C__,
+:not(.cursor).__WOODFISH_TOKEN_F1FA8C__,
+:not(.cursor).__WOODFISH_TOKEN_8BE9FD__,
+:not(.cursor).__WOODFISH_TOKEN_FF79C6__ {
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
 }
 
 /* Constants and numeric literals: Dracula purple. */
-:not(.cursor).mtk3 {
+:not(.cursor).__WOODFISH_TOKEN_BD93F9__ {
   background-image: linear-gradient(
     90deg,
     #d6acff 0%,
@@ -24,7 +24,7 @@
 }
 
 /* Functions and method calls: Dracula green. */
-:not(.cursor).mtk5 {
+:not(.cursor).__WOODFISH_TOKEN_50FA7B__ {
   background-image: linear-gradient(
     90deg,
     #69ff94 0%,
@@ -35,7 +35,7 @@
 }
 
 /* Parameters and declaration accents: Dracula orange. */
-:not(.cursor).mtk7 {
+:not(.cursor).__WOODFISH_TOKEN_FFB86C__ {
   background-image: linear-gradient(
     90deg,
     #ffd0a6 0%,
@@ -45,7 +45,7 @@
 }
 
 /* Strings and textual constants: Dracula yellow. */
-:not(.cursor).mtk8 {
+:not(.cursor).__WOODFISH_TOKEN_F1FA8C__ {
   background-image: linear-gradient(
     90deg,
     #ffffa5 0%,
@@ -56,7 +56,7 @@
 }
 
 /* Types, built-ins, and classes: Dracula cyan. */
-:not(.cursor).mtk9 {
+:not(.cursor).__WOODFISH_TOKEN_8BE9FD__ {
   background-image: linear-gradient(
     90deg,
     #a4ffff 0%,
@@ -67,7 +67,7 @@
 }
 
 /* Keywords, storage, control flow, and operators: Dracula pink. */
-:not(.cursor).mtk10 {
+:not(.cursor).__WOODFISH_TOKEN_FF79C6__ {
   background-image: linear-gradient(
     90deg,
     #ff92df 0%,
