@@ -5,8 +5,8 @@
 }
 
 /* Keywords, operators, functions, and methods. */
-.monaco-editor .view-lines span.mtk10,
-.monaco-editor .view-lines span.mtk5,
+.monaco-editor .view-lines span.__WOODFISH_TOKEN_FF79C6__,
+.monaco-editor .view-lines span.__WOODFISH_TOKEN_50FA7B__,
 .monaco-editor .view-lines span.token.keyword,
 .monaco-editor .view-lines span.token.operator,
 .monaco-editor .view-lines span.token.function {
@@ -14,15 +14,15 @@
 }
 
 /* Types, classes, and strings. */
-.monaco-editor .view-lines span.mtk9,
-.monaco-editor .view-lines span.mtk8,
+.monaco-editor .view-lines span.__WOODFISH_TOKEN_8BE9FD__,
+.monaco-editor .view-lines span.__WOODFISH_TOKEN_F1FA8C__,
 .monaco-editor .view-lines span.token.string {
   text-shadow: 0 0 4px currentColor !important;
 }
 
 /* Variables, parameters, and numeric constants. */
-.monaco-editor .view-lines span.mtk3,
-.monaco-editor .view-lines span.mtk7,
+.monaco-editor .view-lines span.__WOODFISH_TOKEN_BD93F9__,
+.monaco-editor .view-lines span.__WOODFISH_TOKEN_FFB86C__,
 .monaco-editor .view-lines span.token.variable {
   text-shadow: 0 0 2px currentColor !important;
 }

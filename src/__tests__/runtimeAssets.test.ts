@@ -1,7 +1,19 @@
 import * as path from 'path';
 import { DEFAULT_RUNTIME_SETTINGS, buildRuntimeCss } from '../services/runtime/payloadBuilder';
 
-jest.mock('vscode', () => ({}), { virtual: true });
+let mockWorkbenchColorCustomizations: Record<string, unknown> | undefined;
+
+jest.mock(
+  'vscode',
+  () => ({
+    workspace: {
+      getConfiguration: jest.fn(() => ({
+        get: jest.fn(() => mockWorkbenchColorCustomizations),
+      })),
+    },
+  }),
+  { virtual: true }
+);
 
 const { readRuntimeAssets } = require('../services/runtime/assets') as {
   readRuntimeAssets: (
@@ -31,6 +43,10 @@ describe('runtime theme assets', () => {
     asAbsolutePath: jest.fn((value: string) => path.resolve(extensionRoot, value)),
   } as unknown as import('vscode').ExtensionContext;
 
+  beforeEach(() => {
+    mockWorkbenchColorCustomizations = undefined;
+  });
+
   it('loads Dracula metadata and syntax together with shared runtime CSS', () => {
     const assets = readRuntimeAssets(context, 'Woodfish Dracula');
 
@@ -44,30 +60,28 @@ describe('runtime theme assets', () => {
     expect(assets.tabBar).toContain('background-position: 100% 50%;');
     expect(assets.tabBar).not.toMatch(/background-position\s*:\s*(?:0%|100%)\s+50%\s*!important\b/);
     expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #d6acff 0%,\n    #bd93f9 52%,\n    #a678e8 100%'
+      '.monaco-editor .view-lines span.mtk10:not(.cursor):not(.colorpicker-color-decoration)'
     );
     expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #69ff94 0%,\n    #50fa7b 52%,\n    #34db64 100%'
+      'linear-gradient(\n    90deg,\n    #F49CFF 0%,\n    #FC8EF7 12.5%,\n    #FE87E7 25%'
     );
-    expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #ffd0a6 0%,\n    #ffb86c 52%,\n    #f5964f 100%'
-    );
-    expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #ffffa5 0%,\n    #f1fa8c 52%,\n    #d8e66f 100%'
-    );
-    expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #a4ffff 0%,\n    #8be9fd 52%,\n    #62d8f4 100%'
-    );
-    expect(assets.syntaxGradient).toContain(
-      'linear-gradient(\n    90deg,\n    #ff92df 0%,\n    #ff79c6 52%,\n    #e95ab4 100%'
-    );
+    expect(assets.syntaxGradient).toContain('#FF79C6 50%');
+    expect(assets.syntaxGradient).toContain('background-size: max(100%, 6ch) 100%');
+    expect(assets.syntaxGradient).toContain('background-position: center');
     expect(assets.syntaxGradient).not.toContain('#ff79c6, #bd93f9');
     expect(assets.syntaxGradient).not.toContain('#8be9fd, #50fa7b');
     expect(assets.syntaxGradient).not.toContain('#ffb86c, #f1fa8c');
     expect(assets.syntaxGradient).not.toContain('#8be9fd, #bd93f9');
-    expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:1|2)\b/);
-    expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:6|12|13|14|15|16)\b/);
+    expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
+    expect(assets.syntaxGradient).not.toContain('__WOODFISH_AUTO_TOKEN_GRADIENTS__');
+    expect(assets.syntaxGradient).not.toContain('span.mtk1:not(.cursor)');
+    expect(assets.syntaxGradient).not.toContain('span.mtk2:not(.cursor)');
+    expect(assets.syntaxGradient).not.toContain('span.mtk4:not(.cursor)');
+    expect(assets.syntaxGradient).not.toContain('span.mtk6:not(.cursor)');
+    expect(assets.syntaxGradient.match(/background-image: linear-gradient/g)).toHaveLength(6);
     expect(assets.glow).toContain('Woodfish Dracula glow profile');
+    expect(assets.glow).toContain('.monaco-editor .view-lines span.mtk10');
+    expect(assets.glow).not.toContain('__WOODFISH_TOKEN_');
     expect(assets.cursorGlow).toContain(
       'filter: var(--woodfish-cursor-glow-filter, none) !important;'
     );
@@ -90,13 +104,60 @@ describe('runtime theme assets', () => {
     expect(css).toContain('--woodfish-cursor-glow-opacity: 0.45;');
     expect(css).toContain('opacity: var(--woodfish-cursor-glow-opacity');
     expect(css).toContain('text-shadow: 0 0 6px currentColor !important;');
-    expect(css).toContain('#bd93f9 52%');
-    expect(css).toContain('#50fa7b 52%');
-    expect(css).toContain('#ffb86c 52%');
-    expect(css).toContain('#f1fa8c 52%');
-    expect(css).toContain('#8be9fd 52%');
-    expect(css).toContain('#ff79c6 52%');
+    expect(css).toContain('#BD93F9 50%');
+    expect(css).toContain('#50FA7B 50%');
+    expect(css).toContain('#FFB86C 50%');
+    expect(css).toContain('#F1FA8C 50%');
+    expect(css).toContain('#8BE9FD 50%');
+    expect(css).toContain('#FF79C6 50%');
     expect(css).not.toContain('brightness(180%)');
+  });
+
+  it('compiles the Bearded syntax template from its theme color table', () => {
+    const assets = readRuntimeAssets(context, 'Woodfish Dark');
+
+    expect(assets.syntaxGradient).toContain(':not(.cursor).mtk9');
+    expect(assets.syntaxGradient).toContain(
+      '.mtk1:not(.cursor):not(.dyn-rule-2-34):not(.colorpicker-color-decoration)'
+    );
+    expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
+    expect(assets.glow).toContain('Woodfish Dark glow profile');
+    expect(assets.glow).toContain('span.mtk3');
+    expect(assets.glow).toContain('span.mtk12');
+    expect(assets.glow).not.toContain('__WOODFISH_TOKEN_');
+  });
+
+  it('recompiles selectors when editor color customization shifts the color table', () => {
+    mockWorkbenchColorCustomizations = {
+      'editor.foreground': '#123456',
+    };
+    const isolatedContext = {
+      asAbsolutePath: jest.fn((value: string) => path.resolve(extensionRoot, value)),
+    } as unknown as import('vscode').ExtensionContext;
+    const assets = readRuntimeAssets(isolatedContext, 'Woodfish Dracula');
+
+    expect(assets.syntaxGradient).toContain(
+      '.monaco-editor .view-lines span.mtk11:not(.cursor):not(.colorpicker-color-decoration)'
+    );
+    expect(assets.syntaxGradient).toContain('#FF79C6 50%');
+    expect(assets.syntaxGradient).not.toContain(
+      '.monaco-editor .view-lines span.mtk10:not(.cursor):not(.colorpicker-color-decoration) {\n' +
+        '  background-image: linear-gradient(\n' +
+        '    90deg,\n' +
+        '    #F49CFF 0%,\n' +
+        '    #FC8EF7 12.5%'
+    );
+    expect(assets.syntaxGradient).not.toContain('__WOODFISH_TOKEN_');
+    expect(assets.glow).toContain(
+      '.monaco-editor .view-lines span.mtk11,\n.monaco-editor .view-lines span.mtk5'
+    );
+    expect(assets.glow).not.toContain('__WOODFISH_TOKEN_');
+
+    const beardedAssets = readRuntimeAssets(isolatedContext, 'Woodfish Dark');
+    expect(beardedAssets.syntaxGradient).toContain(
+      '.mtk1:not(.cursor):not(.dyn-rule-2-34):not(.colorpicker-color-decoration)'
+    );
+    expect(beardedAssets.glow).toContain('span.mtk1 {');
   });
 
   it('keeps the Dracula base theme readable without runtime injection', () => {

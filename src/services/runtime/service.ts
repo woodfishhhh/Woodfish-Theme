@@ -115,7 +115,8 @@ export class IntegratedThemeService {
       vscode.workspace.onDidChangeConfiguration((event) => {
         if (
           event.affectsConfiguration('woodfishTheme') ||
-          event.affectsConfiguration('workbench.colorTheme')
+          event.affectsConfiguration('workbench.colorTheme') ||
+          event.affectsConfiguration('workbench.colorCustomizations')
         ) {
           this.runBackgroundSync({ showPrompt: true });
         }

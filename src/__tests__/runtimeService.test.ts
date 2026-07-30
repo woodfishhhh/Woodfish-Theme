@@ -7,6 +7,7 @@ const mockCopyFileSync = jest.fn();
 const mockRenameSync = jest.fn();
 const mockUnlinkSync = jest.fn();
 const mockFiles = new Map<string, string>();
+const mockOnDidChangeConfiguration = jest.fn();
 
 jest.mock('fs', () => ({
   existsSync: (...args: unknown[]) => mockExistsSync(...args),
@@ -21,6 +22,9 @@ jest.mock(
   'vscode',
   () => ({
     version: '1.100.0',
+    workspace: {
+      onDidChangeConfiguration: (...args: unknown[]) => mockOnDidChangeConfiguration(...args),
+    },
   }),
   { virtual: true }
 );
@@ -114,6 +118,7 @@ describe('IntegratedThemeService', () => {
   const currentBackupPath = `${currentWorkbenchPath}.woodfish-backup`;
   const context = {
     asAbsolutePath: jest.fn((value: string) => value),
+    subscriptions: [],
     globalState: {
       get: jest.fn(),
       update: jest.fn(),
@@ -160,6 +165,23 @@ describe('IntegratedThemeService', () => {
       mockRuntimeState = state;
     });
     mockReadLastSelectedThemeLabel.mockReturnValue(undefined);
+    context.subscriptions.length = 0;
+  });
+
+  it('resyncs when workbench token color ids may have changed', () => {
+    mockOnDidChangeConfiguration.mockReturnValue({ dispose: jest.fn() });
+    const service = new IntegratedThemeService(context);
+    const sync = jest.spyOn(service, 'syncWithCurrentSettings').mockResolvedValue();
+
+    service.registerLifecycle(context);
+    const listener = mockOnDidChangeConfiguration.mock.calls[0]?.[0] as (event: {
+      affectsConfiguration: (section: string) => boolean;
+    }) => void;
+    listener({
+      affectsConfiguration: (section: string) => section === 'workbench.colorCustomizations',
+    });
+
+    expect(sync).toHaveBeenCalledWith({ showPrompt: true });
   });
 
   it('falls back to the current workbench backup path when stored backupPath is stale', async () => {
