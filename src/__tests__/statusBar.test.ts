@@ -42,14 +42,14 @@ describe('status bar runtime snapshot rendering', () => {
       },
       {
         state: 'on',
-        activeTheme: 'Woodfish Dark',
+        activeTheme: 'Woodfish Dracula',
         isWoodfishTheme: true,
         hasPayload: true,
       }
     );
 
     expect(statusBarItem.text).toBe('Woodfish on A G C');
-    expect(String(statusBarItem.tooltip)).toContain('Woodfish Dark');
+    expect(String(statusBarItem.tooltip)).toContain('Woodfish Dracula');
     expect(String(statusBarItem.tooltip)).toContain('on');
     expect(String(statusBarItem.tooltip)).toContain('payload');
   });

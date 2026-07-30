@@ -49,6 +49,13 @@ export class FeatureStateController {
         gradientStops: [...this.settings.cursor.gradientStops],
         customRules: [...this.settings.cursor.customRules],
       },
+      ...(this.settings.explicitSettings
+        ? {
+            explicitSettings: {
+              cursor: { ...this.settings.explicitSettings.cursor },
+            },
+          }
+        : {}),
     };
   }
 

@@ -4,21 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const VSCE_ENTRY = path.join(
-  'node_modules',
-  '@vscode',
-  'vsce',
-  'vsce',
-);
+const VSCE_ENTRY = path.join('node_modules', '@vscode', 'vsce', 'vsce');
 const VSCE_ENTRY_ABSOLUTE = path.resolve(VSCE_ENTRY);
 
 console.log('🔍 Woodfish Theme 发布前检查');
 console.log('================================');
 
 function isValidExtensionVersion(version) {
-  return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(
-    version,
-  );
+  return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(version);
 }
 
 // 检查项目结构
@@ -32,7 +25,10 @@ function checkProjectStructure() {
     'CHANGELOG.md': '更新日志',
     'out/extension.js': '扩展主文件(编译产物)',
     'themes/': '主题文件夹',
-    'themes/Bearded Theme/Bearded Theme.json': '主题配置',
+    'themes/shared/': '共享注入资源',
+    'themes/bearded/Woodfish Dark.json': 'Woodfish Dark 主题配置',
+    'themes/dracula/Woodfish Dracula.json': 'Woodfish Dracula 主题配置',
+    'assets/readme/dracula-preview.png': 'Woodfish Dracula 效果预览',
     'images/': '图片资源文件夹',
   };
 
@@ -70,9 +66,7 @@ function checkPackageJson() {
   let allGood = true;
   for (const [field, value] of Object.entries(requiredFields)) {
     if (value) {
-      console.log(
-        `✅ ${field}: ${Array.isArray(value) ? value.join(', ') : value}`,
-      );
+      console.log(`✅ ${field}: ${Array.isArray(value) ? value.join(', ') : value}`);
     } else {
       console.log(`❌ ${field}: 未设置`);
       allGood = false;
@@ -94,30 +88,39 @@ function checkThemeFiles() {
 
   let allGood = true;
 
-  // 检查主题配置文件
-  try {
-    const themeConfig = JSON.parse(
-      fs.readFileSync('themes/Bearded Theme/Bearded Theme.json', 'utf8'),
-    );
-    if (themeConfig.name && themeConfig.colors && themeConfig.tokenColors) {
-      console.log('✅ 主题配置文件格式正确');
-    } else {
-      console.log('❌ 主题配置文件格式不完整');
+  const themeConfigs = [
+    'themes/bearded/Woodfish Dark.json',
+    'themes/dracula/Woodfish Dracula.json',
+  ];
+
+  themeConfigs.forEach((file) => {
+    try {
+      const themeConfig = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (themeConfig.name && themeConfig.colors && themeConfig.tokenColors) {
+        console.log(`✅ ${file} 格式正确`);
+      } else {
+        console.log(`❌ ${file} 格式不完整`);
+        allGood = false;
+      }
+    } catch (error) {
+      console.log(`❌ ${file} 解析失败:`, error.message);
       allGood = false;
     }
-  } catch (error) {
-    console.log('❌ 主题配置文件解析失败:', error.message);
-    allGood = false;
-  }
+  });
 
   // 检查主题 CSS 文件
   const moduleFiles = [
-    'themes/Bearded Theme/activity-bar.css',
-    'themes/Bearded Theme/tab-bar.css',
-    'themes/Bearded Theme/syntax-highlighting.css',
-    'themes/Bearded Theme/glow-effects.css',
-    'themes/Bearded Theme/cursor-core.css',
-    'themes/Bearded Theme/cursor-glow.css',
+    'themes/shared/activity-bar.css',
+    'themes/shared/tab-bar.css',
+    'themes/shared/glow-effects.css',
+    'themes/shared/cursor-core.css',
+    'themes/shared/cursor-glow.css',
+    'themes/bearded/syntax-highlighting.css',
+    'themes/bearded/theme.meta.json',
+    'themes/dracula/syntax-highlighting.css',
+    'themes/dracula/glow-effects.css',
+    'themes/dracula/theme.meta.json',
+    'themes/dracula/NOTICE.md',
   ];
 
   moduleFiles.forEach((file) => {
@@ -141,12 +144,11 @@ function checkDocumentation() {
   // 检查README.md
   const readme = fs.readFileSync('README.md', 'utf8');
   const requiredSections = [
-    '# 🌈 Woodfish Theme',
-    '## ✨ 特色功能',
-    '## 📦 安装',
-    '## 🚀 使用方法',
-    '## ⚙️ 配置说明',
-    '## 📝 更新日志',
+    '## 效果预览',
+    '## 它提供什么',
+    '## 三步开始',
+    '## 配置示例',
+    '## 本地开发',
   ];
 
   requiredSections.forEach((section) => {
@@ -182,7 +184,15 @@ function checkPackageHygiene() {
     const tree = execFileSync(process.execPath, [VSCE_ENTRY_ABSOLUTE, 'ls', '--tree'], {
       encoding: 'utf8',
     });
-    const forbiddenEntries = ['plan.md', 'eslint.config.mjs', 'jest.config.js', '.omx/'];
+    const forbiddenEntries = [
+      'plan.md',
+      'eslint.config.mjs',
+      'jest.config.js',
+      '.omx/',
+      '.superpowers/',
+      '.worktrees/',
+      'AGENTS.md',
+    ];
     let allGood = true;
 
     forbiddenEntries.forEach((entry) => {

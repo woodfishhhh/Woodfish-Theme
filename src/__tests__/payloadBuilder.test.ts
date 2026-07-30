@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  DEFAULT_BEARDED_THEME_VARIABLES,
   DEFAULT_RUNTIME_SETTINGS,
   buildRuntimeCss,
   normalizeRuntimeSettings,
@@ -8,6 +9,7 @@ import {
 
 describe('runtime payload builder', () => {
   const assets = {
+    themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
     tabBar: '.tab { color: blue; }',
     syntaxGradient: '.mtk1 { color: pink !important; }',
@@ -26,18 +28,26 @@ describe('runtime payload builder', () => {
     };
   };
   const realCursorAssets = {
+    themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
     tabBar: '.tab { color: blue; }',
     syntaxGradient: '.mtk1 { color: pink !important; }',
     glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
     cursorCore: fs.readFileSync(
-      path.resolve(__dirname, '../../themes/Bearded Theme/cursor-core.css'),
+      path.resolve(__dirname, '../../themes/shared/cursor-core.css'),
       'utf-8'
     ),
     cursorGlow: fs.readFileSync(
-      path.resolve(__dirname, '../../themes/Bearded Theme/cursor-glow.css'),
+      path.resolve(__dirname, '../../themes/shared/cursor-glow.css'),
       'utf-8'
     ),
+  };
+  const draculaCursorDefaults = {
+    animationDuration: 12,
+    gradientStops: ['#ff79c6', '#bd93f9', '#8be9fd', '#50fa7b', '#8be9fd', '#bd93f9', '#ff79c6'],
+    borderRadius: 1,
+    glowBlur: 0,
+    glowOpacity: 0.45,
   };
 
   it('builds combined css and applies runtime overrides', () => {
@@ -63,6 +73,8 @@ describe('runtime payload builder', () => {
       assets
     );
 
+    expect(css).toContain('--woodfish-activity-badge-gradient');
+    expect(css).toContain('--woodfish-tab-border-gradient');
     expect(css).toContain('.activity { color: red; }');
     expect(css).toContain('.mtk1 { color: pink !important; }');
     expect(css).toContain('text-shadow: 0 0 15px currentColor !important;');
@@ -84,6 +96,7 @@ describe('runtime payload builder', () => {
       assets
     );
 
+    expect(css).toContain('--woodfish-activity-badge-gradient');
     expect(css).toContain('.activity { color: red; }');
     expect(css).toContain('.tab { color: blue; }');
     expect(css).not.toContain('.mtk1 { color: pink !important; }');
@@ -167,6 +180,82 @@ describe('runtime payload builder', () => {
     expect(glowLayer).toContain('filter: blur(6px) !important;');
   });
 
+  it('uses theme cursor defaults while global cursor settings are untouched', () => {
+    const css = buildRuntimeCss(DEFAULT_RUNTIME_SETTINGS, {
+      ...realCursorAssets,
+      cursorDefaults: draculaCursorDefaults,
+    });
+    const cursorCore = css.match(/div\.cursor\s*\{[\s\S]*?\}/)?.[0];
+    const glowLayer = css.match(/div\.cursor::after\s*\{[\s\S]*?\}/)?.[0];
+
+    expect(cursorCore).toContain('border-radius: 1px !important;');
+    expect(css).toContain('animation: 12s linear infinite bp-animation !important;');
+    expect(css).toContain(
+      'linear-gradient(180deg, #ff79c6, #bd93f9, #8be9fd, #50fa7b, #8be9fd, #bd93f9, #ff79c6)'
+    );
+    expect(glowLayer).toContain('filter: none !important;');
+    expect(glowLayer).toContain('opacity: 0.45 !important;');
+  });
+
+  it('preserves explicit cursor settings over theme defaults', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: {
+          animationDuration: 5,
+          gradientStops: ['#111111', '#222222'],
+          borderRadius: 4,
+          glowBlur: 3,
+          glowOpacity: 0.8,
+        },
+      }),
+      {
+        ...realCursorAssets,
+        cursorDefaults: draculaCursorDefaults,
+      }
+    );
+
+    expect(css).toContain('animation: 5s linear infinite bp-animation !important;');
+    expect(css).toContain('linear-gradient(180deg, #111111, #222222)');
+    expect(css).toContain('border-radius: 4px !important;');
+    expect(css).toContain('filter: blur(3px) !important;');
+    expect(css).toContain('opacity: 0.8 !important;');
+  });
+
+  it('preserves explicit cursor settings that equal extension defaults', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: {
+          animationDuration: DEFAULT_RUNTIME_SETTINGS.cursor.animationDuration,
+          gradientStops: DEFAULT_RUNTIME_SETTINGS.cursor.gradientStops,
+          borderRadius: DEFAULT_RUNTIME_SETTINGS.cursor.borderRadius,
+          glowBlur: DEFAULT_RUNTIME_SETTINGS.cursor.glowBlur,
+          glowOpacity: DEFAULT_RUNTIME_SETTINGS.cursor.glowOpacity,
+        },
+        explicitSettings: {
+          cursor: {
+            animationDuration: true,
+            gradientStops: true,
+            borderRadius: true,
+            glowBlur: true,
+            glowOpacity: true,
+          },
+        },
+      }),
+      {
+        ...realCursorAssets,
+        cursorDefaults: draculaCursorDefaults,
+      }
+    );
+
+    expect(css).toContain('animation: 8s linear infinite bp-animation !important;');
+    expect(css).toContain(
+      'linear-gradient(180deg, #ff2d95, #ff4500, #ffd700, #7cfc00, #00ffff, #1e90ff, #9370db, #ff00ff, #ff1493)'
+    );
+    expect(css).toContain('border-radius: 2px !important;');
+    expect(css).toContain('filter: none !important;');
+    expect(css).toContain('opacity: 0.7 !important;');
+  });
+
   it('uses transform-driven cursor flow in the runtime payload', () => {
     const css = buildRuntimeCss(
       normalizeRuntimeSettings({
@@ -181,5 +270,54 @@ describe('runtime payload builder', () => {
     expect(css).not.toMatch(/@keyframes bp-animation[\s\S]*background-position/);
     expect(css).toContain('will-change: transform !important;');
     expect(css).not.toContain('cursor-hue');
+  });
+
+  it('supports shared selectors with theme variable fallbacks', () => {
+    const sharedAssets = {
+      ...assets,
+      activityBar:
+        '.activitybar .badge .badge-content { background-image: var(--woodfish-activity-badge-gradient, linear-gradient(45deg, #eacd61, #ea618e)) !important; }',
+      tabBar:
+        '.tab.tab-actions-right.sizing-fit.has-icon.tab-border-bottom.tab-border-top.active:after { background-image: var(--woodfish-tab-border-gradient, linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea)) !important; }',
+    };
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        syntaxGradient: { enabled: false },
+        glow: { enabled: false },
+        cursor: { enabled: false },
+      }),
+      sharedAssets
+    );
+
+    expect(css).toContain('--woodfish-activity-badge-gradient');
+    expect(css).toContain('--woodfish-tab-border-gradient');
+    expect(css).toContain('.activitybar .badge .badge-content');
+    expect(css).toContain(
+      '.tab.tab-actions-right.sizing-fit.has-icon.tab-border-bottom.tab-border-top.active:after'
+    );
+    expect(css).toContain('var(--woodfish-activity-badge-gradient');
+    expect(css).toContain('var(--woodfish-tab-border-gradient');
+  });
+
+  it('omits theme variable block when assets do not provide it', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        syntaxGradient: { enabled: false },
+        glow: { enabled: false },
+        cursor: { enabled: false },
+      }),
+      {
+        activityBar: '.activitybar .badge .badge-content { color: red; }',
+        tabBar: '.tab { color: blue; }',
+        syntaxGradient: '.mtk1 { color: pink !important; }',
+        glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
+        cursorCore: 'div.cursor { border-radius: 2px !important; }',
+        cursorGlow: 'div.cursor::after { opacity: 0.7 !important; }',
+      }
+    );
+
+    expect(css).toContain('.activitybar .badge .badge-content');
+    expect(css).not.toContain('--woodfish-activity-badge-gradient');
+    expect(css).not.toContain('--woodfish-tab-border-gradient');
   });
 });

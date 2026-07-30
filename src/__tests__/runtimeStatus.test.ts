@@ -17,6 +17,22 @@ describe('runtime status detection', () => {
     expect(snapshot.hasPayload).toBe(true);
   });
 
+  it('returns on when Woodfish Dracula is active and payload is present', () => {
+    const snapshot = deriveRuntimeStatus({
+      activeTheme: 'Woodfish Dracula',
+      hasPayload: true,
+      features: {
+        syntaxGradient: true,
+        glow: true,
+        cursor: true,
+      },
+    });
+
+    expect(snapshot.state).toBe('on');
+    expect(snapshot.isWoodfishTheme).toBe(true);
+    expect(snapshot.hasPayload).toBe(true);
+  });
+
   it('returns paused when effects are enabled but the active theme is not Woodfish Dark', () => {
     const snapshot = deriveRuntimeStatus({
       activeTheme: 'One Dark Pro',

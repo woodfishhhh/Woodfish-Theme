@@ -35,10 +35,20 @@ export type CursorSettings = {
   customRules: string[];
 };
 
+export type CursorThemeDefaultKey = keyof Pick<
+  CursorSettings,
+  'animationDuration' | 'gradientStops' | 'borderRadius' | 'glowBlur' | 'glowOpacity'
+>;
+
+export type ThemeRuntimeExplicitSettings = {
+  cursor: Partial<Record<CursorThemeDefaultKey, boolean>>;
+};
+
 export type ThemeRuntimeSettings = {
   syntaxGradient: SyntaxGradientSettings;
   glow: GlowSettings;
   cursor: CursorSettings;
+  explicitSettings?: ThemeRuntimeExplicitSettings;
 };
 
 export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {

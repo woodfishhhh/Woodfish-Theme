@@ -1,10 +1,13 @@
 import {
   CursorSettings,
+  CursorThemeDefaultKey,
   DEFAULT_RUNTIME_SETTINGS,
   ThemeRuntimeSettings,
 } from '../../types/features';
 
 export type RuntimeCssAssets = {
+  themeVariables?: string;
+  cursorDefaults?: CursorThemeDefaults;
   activityBar: string;
   tabBar: string;
   syntaxGradient: string;
@@ -12,6 +15,21 @@ export type RuntimeCssAssets = {
   cursorCore: string;
   cursorGlow: string;
 };
+
+export type CursorThemeDefaults = Partial<
+  Pick<
+    CursorSettings,
+    'animationDuration' | 'gradientStops' | 'borderRadius' | 'glowBlur' | 'glowOpacity'
+  >
+>;
+
+export const DEFAULT_BEARDED_THEME_VARIABLES = `
+:root {
+  --woodfish-activity-badge-gradient: linear-gradient(45deg, #eacd61, #ea618e);
+  --woodfish-activity-badge-text-color: rgb(70 70 70);
+  --woodfish-tab-border-gradient: linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea);
+}
+`.trim();
 
 type PartialDeep<T> = {
   [K in keyof T]?: T[K] extends string[]
@@ -61,6 +79,13 @@ export function normalizeRuntimeSettings(
         DEFAULT_RUNTIME_SETTINGS.cursor.customRules
       ),
     },
+    ...(partial.explicitSettings
+      ? {
+          explicitSettings: {
+            cursor: { ...partial.explicitSettings.cursor },
+          },
+        }
+      : {}),
   };
 }
 
@@ -74,6 +99,57 @@ function scaleGlowCss(glowCss: string, intensity: number): string {
 
 function buildCursorGradient(stops: string[]): string {
   return `linear-gradient(180deg, ${stops.join(', ')})`;
+}
+
+function stringArraysEqual(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function applyThemeCursorDefaults(
+  cursor: CursorSettings,
+  defaults: CursorThemeDefaults | undefined,
+  explicitSettings: Partial<Record<CursorThemeDefaultKey, boolean>> | undefined
+): CursorSettings {
+  if (!defaults) {
+    return cursor;
+  }
+
+  const runtimeDefaults = DEFAULT_RUNTIME_SETTINGS.cursor;
+  const gradientStops =
+    defaults.gradientStops &&
+    explicitSettings?.gradientStops !== true &&
+    stringArraysEqual(cursor.gradientStops, runtimeDefaults.gradientStops)
+      ? [...defaults.gradientStops]
+      : [...cursor.gradientStops];
+
+  return {
+    ...cursor,
+    animationDuration:
+      defaults.animationDuration !== undefined &&
+      explicitSettings?.animationDuration !== true &&
+      cursor.animationDuration === runtimeDefaults.animationDuration
+        ? defaults.animationDuration
+        : cursor.animationDuration,
+    gradientStops,
+    borderRadius:
+      defaults.borderRadius !== undefined &&
+      explicitSettings?.borderRadius !== true &&
+      cursor.borderRadius === runtimeDefaults.borderRadius
+        ? defaults.borderRadius
+        : cursor.borderRadius,
+    glowBlur:
+      defaults.glowBlur !== undefined &&
+      explicitSettings?.glowBlur !== true &&
+      cursor.glowBlur === runtimeDefaults.glowBlur
+        ? defaults.glowBlur
+        : cursor.glowBlur,
+    glowOpacity:
+      defaults.glowOpacity !== undefined &&
+      explicitSettings?.glowOpacity !== true &&
+      cursor.glowOpacity === runtimeDefaults.glowOpacity
+        ? defaults.glowOpacity
+        : cursor.glowOpacity,
+  };
 }
 
 function hasGradientDeclaration(css: string): boolean {
@@ -134,11 +210,12 @@ function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): str
 }
 
 export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeCssAssets): string {
-  const parts: string[] = [
-    '/* Woodfish runtime payload */',
-    assets.activityBar.trim(),
-    assets.tabBar.trim(),
-  ];
+  const parts: string[] = ['/* Woodfish runtime payload */'];
+  const themeVariables = assets.themeVariables?.trim();
+  if (themeVariables && themeVariables.length > 0) {
+    parts.push(themeVariables);
+  }
+  parts.push(assets.activityBar.trim(), assets.tabBar.trim());
 
   if (settings.syntaxGradient.enabled) {
     parts.push(assets.syntaxGradient.trim());
@@ -155,7 +232,16 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
   }
 
   if (settings.cursor.enabled) {
-    parts.push(buildCursorCss(settings.cursor, assets));
+    parts.push(
+      buildCursorCss(
+        applyThemeCursorDefaults(
+          settings.cursor,
+          assets.cursorDefaults,
+          settings.explicitSettings?.cursor
+        ),
+        assets
+      )
+    );
   }
 
   return `${parts.filter((part) => part.length > 0).join('\n\n')}\n`;

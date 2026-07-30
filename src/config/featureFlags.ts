@@ -32,6 +32,22 @@ function readSetting<T>(key: string, fallback: T): T {
   return getRootConfig().get<T>(getThemeSettingKey(key), fallback);
 }
 
+function isExplicitSetting(key: string): boolean {
+  const inspected = getRootConfig().inspect(getThemeSettingKey(key));
+  if (!inspected) {
+    return false;
+  }
+
+  return [
+    inspected.globalValue,
+    inspected.workspaceValue,
+    inspected.workspaceFolderValue,
+    inspected.globalLanguageValue,
+    inspected.workspaceLanguageValue,
+    inspected.workspaceFolderLanguageValue,
+  ].some((value) => value !== undefined);
+}
+
 export function readRuntimeSettings(): ThemeRuntimeSettings {
   return {
     syntaxGradient: {
@@ -76,6 +92,15 @@ export function readRuntimeSettings(): ThemeRuntimeSettings {
         CURSOR_SETTING_KEYS.customRules,
         DEFAULT_RUNTIME_SETTINGS.cursor.customRules
       ),
+    },
+    explicitSettings: {
+      cursor: {
+        animationDuration: isExplicitSetting(CURSOR_SETTING_KEYS.animationDuration),
+        gradientStops: isExplicitSetting(CURSOR_SETTING_KEYS.gradientStops),
+        borderRadius: isExplicitSetting(CURSOR_SETTING_KEYS.borderRadius),
+        glowBlur: isExplicitSetting(CURSOR_SETTING_KEYS.glowBlur),
+        glowOpacity: isExplicitSetting(CURSOR_SETTING_KEYS.glowOpacity),
+      },
     },
   };
 }

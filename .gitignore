@@ -47,3 +47,5 @@ coverage/
 *.tmp
 *.temp
 .omx/
+.worktrees/
+.superpowers/brainstorm/**/.server-*

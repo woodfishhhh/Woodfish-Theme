@@ -1,0 +1,35 @@
+/* 关键字 / 运算符 / control */
+:not(.cursor).mtk10 {
+  background-image: linear-gradient(90deg, #ff79c6, #bd93f9) !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  font-weight: 600 !important;
+}
+
+/* 函数 / 方法 */
+:not(.cursor).mtk5 {
+  background-image: linear-gradient(90deg, #8be9fd, #50fa7b) !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  font-weight: 600 !important;
+}
+
+/* 字符串 / 文本常量 */
+:not(.cursor).mtk8 {
+  background-image: linear-gradient(90deg, #ffb86c, #f1fa8c) !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  font-weight: 500 !important;
+}
+
+/* 类型 / 内建 / class-like */
+:not(.cursor).mtk9 {
+  background-image: linear-gradient(90deg, #8be9fd, #bd93f9) !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  font-weight: 500 !important;
+}

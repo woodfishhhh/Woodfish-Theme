@@ -1,16 +1,10 @@
-div.cursor {
-  background: transparent !important;
-  border-radius: 2px !important;
-  box-shadow: none !important;
-  overflow: hidden !important;
-}
-
-div.cursor::before {
+/* Cursor glow is filter-free by default; runtime settings can opt back into blur. */
+div.cursor::after {
   content: '' !important;
   position: absolute !important;
   top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
+  left: -1px !important;
+  width: calc(100% + 2px) !important;
   height: 900% !important;
   background: linear-gradient(
     180deg,
@@ -28,14 +22,15 @@ div.cursor::before {
   animation: 8s linear infinite bp-animation !important;
   transform: translateY(0);
   will-change: transform !important;
-  z-index: 1 !important;
+  filter: none !important;
+  opacity: 0.7 !important;
+  z-index: 0 !important;
 }
 
-@keyframes bp-animation {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-88.8889%);
+@media (prefers-reduced-motion: reduce) {
+  .monaco-editor .cursor::after {
+    animation: none !important;
+    transform: translateY(0) !important;
+    will-change: auto !important;
   }
 }

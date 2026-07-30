@@ -46,10 +46,11 @@ describe('showFeatureMenu command', () => {
       getRuntimeStatus: () =>
         ({
           state: 'on',
-          activeTheme: 'Woodfish Dark',
+          activeTheme: 'Woodfish Dracula',
           isWoodfishTheme: true,
           hasPayload: true,
         }) satisfies RuntimeStatusSnapshot,
+      getThemeLabelForEnable: () => 'Woodfish Dracula',
     },
   } as unknown as CommandDeps;
 
@@ -87,8 +88,29 @@ describe('showFeatureMenu command', () => {
       expect.stringContaining('彻底停用 Woodfish 主题'),
       expect.stringContaining('Reload Window'),
     ]);
-    expect(items[0]?.description).toContain('Woodfish Dark');
+    expect(items[0]?.description).toContain('Woodfish Dracula');
     expect(items[1]?.description).toContain('移除当前 Woodfish 注入');
+  });
+
+  it('uses the restored built-in theme label when runtime is currently off', async () => {
+    registerShowFeatureMenuCommand({
+      ...deps,
+      runtimeService: {
+        getRuntimeStatus: () =>
+          ({
+            state: 'off',
+            activeTheme: 'One Dark Pro',
+            isWoodfishTheme: false,
+            hasPayload: false,
+          }) satisfies RuntimeStatusSnapshot,
+        getThemeLabelForEnable: () => 'Woodfish Dracula',
+      },
+    } as unknown as CommandDeps);
+
+    await registeredHandler?.();
+
+    const items = showQuickPickMock.mock.calls[0]?.[0] as MenuItem[];
+    expect(items[0]?.description).toContain('切换到 Woodfish Dracula 并写入一体化注入');
   });
 
   it('executes the selected command from the menu', async () => {

@@ -1,0 +1,33 @@
+/* Woodfish Dracula glow profile: accents stay crisp instead of fogging the full line. */
+.monaco-editor .view-lines span[class*='mtk'],
+.monaco-editor .view-lines span.token {
+  text-shadow: none !important;
+}
+
+/* Keywords, operators, functions, and methods. */
+.monaco-editor .view-lines span.mtk10,
+.monaco-editor .view-lines span.mtk5,
+.monaco-editor .view-lines span.token.keyword,
+.monaco-editor .view-lines span.token.operator,
+.monaco-editor .view-lines span.token.function {
+  text-shadow: 0 0 6px currentColor !important;
+}
+
+/* Types, classes, and strings. */
+.monaco-editor .view-lines span.mtk9,
+.monaco-editor .view-lines span.mtk8,
+.monaco-editor .view-lines span.token.string {
+  text-shadow: 0 0 4px currentColor !important;
+}
+
+/* Variables, parameters, and numeric constants. */
+.monaco-editor .view-lines span.mtk3,
+.monaco-editor .view-lines span.mtk7,
+.monaco-editor .view-lines span.token.variable {
+  text-shadow: 0 0 2px currentColor !important;
+}
+
+.monaco-editor .margin .active-line-number {
+  --vscode-editorLineNumber-activeForeground: #f8f8f2 !important;
+  text-shadow: 0 0 4px currentColor !important;
+}

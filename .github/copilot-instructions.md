@@ -8,7 +8,7 @@ Woodfish Theme is a VS Code extension centered on an integrated runtime injector
 
 - The extension entry is `src/extension.ts`, compiled to `out/extension.js`.
 - Runtime orchestration lives under `src/services/runtime/`.
-- Theme assets live in `themes/Bearded Theme/`.
+- Theme-specific assets live in `themes/bearded/` and `themes/dracula/`; shared runtime CSS lives in `themes/shared/`.
 - Commands live in `src/commands/`.
 - User-facing state and settings live in `src/config/`, `src/types/`, and `src/ui/`.
 
@@ -19,7 +19,7 @@ This project no longer depends on third-party CSS loader extensions.
 The current flow is:
 
 1. Read Woodfish settings from the `woodfishTheme` section.
-2. Build runtime CSS from the maintained asset files in `themes/Bearded Theme/`.
+2. Resolve the active built-in theme through `themeRegistry.ts`, then combine its metadata and syntax layer with `themes/shared/`.
 3. Patch the local VS Code `workbench.html` with a Woodfish payload block.
 4. Detect runtime truth from the active theme plus the current payload state.
 
@@ -33,14 +33,11 @@ Important runtime modules:
 
 ## Maintained Theme Assets
 
-The current runtime reads these files directly:
+The current runtime reads:
 
-- `activity-bar.css`
-- `tab-bar.css`
-- `syntax-highlighting.css`
-- `glow-effects.css`
-- `cursor-animation.css`
-- `cursor-loader.css`
+- shared `activity-bar.css`, `tab-bar.css`, `glow-effects.css`, `cursor-core.css`, and `cursor-glow.css`
+- per-theme `theme.meta.json` and `syntax-highlighting.css`
+- `Woodfish Dark.json` and `Woodfish Dracula.json` as VS Code theme contributions
 
 Do not reintroduce old aggregate files such as `index.css`, `index-all.css`, or loader-era import chains.
 
@@ -55,7 +52,7 @@ Do not reintroduce old aggregate files such as `index.css`, `index-all.css`, or 
 For manual debugging:
 
 - Press `F5` to launch the Extension Development Host.
-- Focus verification on `Woodfish Dark`, payload injection/removal, and status bar truth rendering.
+- Focus verification on both built-in themes, payload injection/removal, remembered-theme restore, and status bar truth rendering.
 
 ## Editing Guidance
 

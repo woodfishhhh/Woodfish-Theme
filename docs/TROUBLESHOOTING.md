@@ -6,19 +6,25 @@ This guide provides solutions for common issues encountered when using the Woodf
 
 ### Issue: Effects not showing after toggle
 If you've enabled the theme or a specific effect (like Glow or Rainbow Cursor) but don't see any changes:
-1. **Verify Theme**: Make sure the active color theme is `Woodfish Dark`.
+1. **Verify Theme**: Make sure the active color theme is `Woodfish Dark` or `Woodfish Dracula`.
 2. **Verify Reload**: Did you click "Reload Window" after running the command? Workbench injection requires a full UI reload.
 3. **Check Output Channel**: Open the VS Code Output panel and select `Woodfish Theme` from the dropdown to check for any error logs.
 
 ### Issue: Status bar not visible
 The status bar entry (`Woodfish ...`) appears only when the extension is active.
 - **Activation**: The extension activates when you run any of its commands. Try running `Woodfish Theme: 开启 Woodfish 主题`.
-- **Theme Check**: If the status says `paused`, switch back to `Woodfish Dark` and reload the window.
+- **Theme Check**: If the status says `paused`, switch back to `Woodfish Dark` / `Woodfish Dracula`, or rerun `Woodfish Theme: 开启 Woodfish 主题` to restore the last built-in theme and reload the window.
 
 ### Issue: Rainbow cursor not working
 The rainbow cursor depends on the integrated runtime payload and the theme being active.
 - **Enable Theme First**: You must enable the main Woodfish Theme before the cursor styles can be properly applied.
+- **Built-in Theme Required**: The active color theme must be `Woodfish Dark` or `Woodfish Dracula`.
 - **Enable Cursor Layer**: Run `Woodfish Theme: 开启 Woodfish 彩色光标` or `Woodfish Theme: 开启/关闭彩色光标`, then reload the window.
+
+### Issue: Enable restored the wrong built-in theme
+`Woodfish Theme: 开启 Woodfish 主题` restores the last selected built-in Woodfish theme.
+- **Switch the remembered theme**: Manually select `Woodfish Dark` or `Woodfish Dracula` from the VS Code theme picker once.
+- **Re-run Enable**: The next enable action restores that built-in theme unless you switch to another built-in Woodfish theme later.
 
 ### Issue: Glow effects too strong or too weak
 Glow intensity can vary depending on your monitor and personal preference.

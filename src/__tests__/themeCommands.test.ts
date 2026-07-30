@@ -80,4 +80,57 @@ describe('theme command runtime flow', () => {
     expect(deps.runtimeService.completeUninstall).toHaveBeenCalledTimes(1);
     expect(deps.featureState.refreshFromConfig).toHaveBeenCalledTimes(1);
   });
+
+  it('restores the remembered Woodfish theme when enabling again', async () => {
+    const mockSetColorTheme = jest.fn().mockResolvedValue(undefined);
+    let runEnableTheme: (() => Promise<void>) | undefined;
+
+    jest.isolateModules(() => {
+      jest.doMock('../config/featureFlags', () => ({
+        readCurrentColorTheme: jest.fn(() => 'One Dark Pro'),
+        readFeatureFlags: jest.fn(),
+        readRuntimeSettings: jest.fn(),
+        setColorTheme: mockSetColorTheme,
+      }));
+
+      jest.doMock('../services/runtime/state', () => ({
+        clearRuntimeInstallState: jest.fn(),
+        readLastSelectedThemeLabel: jest.fn(() => 'Woodfish Dracula'),
+        readRuntimeInstallState: jest.fn(() => ({
+          lastSelectedThemeLabel: 'Woodfish Dracula',
+        })),
+        writeLastSelectedThemeLabel: jest.fn(),
+        writeRuntimeInstallState: jest.fn(),
+      }));
+
+      jest.doMock('../ui/progress', () => ({
+        withProgressNotification: jest.fn(async (_title: string, task: () => Promise<void>) =>
+          task()
+        ),
+      }));
+
+      const serviceModule =
+        require('../services/runtime/service') as typeof import('../services/runtime/service');
+      const syncSpy = jest
+        .spyOn(serviceModule.IntegratedThemeService.prototype, 'syncWithCurrentSettings')
+        .mockResolvedValue(undefined);
+
+      runEnableTheme = async () => {
+        const service = new serviceModule.IntegratedThemeService({
+          asAbsolutePath: jest.fn((value: string) => value),
+          globalState: {
+            get: jest.fn(),
+            update: jest.fn(),
+          },
+        } as unknown as import('vscode').ExtensionContext);
+
+        await service.enableTheme();
+        syncSpy.mockRestore();
+      };
+    });
+
+    await runEnableTheme?.();
+
+    expect(mockSetColorTheme).toHaveBeenCalledWith('Woodfish Dracula');
+  });
 });
