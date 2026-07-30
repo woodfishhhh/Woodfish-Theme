@@ -40,6 +40,8 @@ Woodfish Theme 是一套面向 VS Code 的深色主题与运行时视觉效果�
 - **渐变语法**：为不同 token 类型应用独立的渐变色带，可整体关闭或追加自定义规则。
 - **可调发光**：发光层可独立开关，并通过强度倍率适配不同字体和显示器。
 - **彩虹光标**：颜色、循环速度、圆角、模糊与透明度均可配置。
+- **安全恢复**：写入前保存并校验当前工作台备份，失败时自动回滚；修复与彻底停用只使用匹配当前 VS Code 安装的可信备份。
+- **动效降级**：尊重系统的“减少动态效果”偏好，自动停用持续动画与过渡。
 - **真实运行状态**：状态栏显示 `on / paused / off`，并用 `A / G / C` 标记当前开启的效果层。
 
 ## 三步开始
@@ -56,7 +58,7 @@ Woodfish Theme 是一套面向 VS Code 的深色主题与运行时视觉效果�
 下载对应版本的 `.vsix` 后运行：
 
 ```bash
-code --install-extension woodfish-theme-5.1.6.vsix
+code --install-extension woodfish-theme-5.1.7.vsix
 ```
 
 </details>
@@ -83,7 +85,7 @@ Woodfish Dark / Woodfish Dracula
 | `A / G / C` | 渐变语法 / 文字发光 / 彩虹光标已开启 |
 
 > [!IMPORTANT]
-> 效果层会修改 VS Code 的 `workbench.html`，切换效果后需要重新加载窗口。VS Code 更新可能替换该文件；遇到效果消失时可运行 `Woodfish Theme: 修复 Woodfish 注入`。
+> 效果层会修改 VS Code 的 `workbench.html`，切换效果后需要重新加载窗口。扩展使用同目录临时文件完成校验后的原子替换，并保存带哈希、路径和 VS Code 版本信息的备份。VS Code 更新可能替换该文件；遇到效果消失时可运行 `Woodfish Theme: 修复 Woodfish 注入`。
 
 ## 常用命令
 
@@ -145,6 +147,8 @@ Woodfish Dark / Woodfish Dracula
 - `cursor.glowOpacity`（`0 - 1`）：调整尾迹可见度。
 - `cursor.customRules`（CSS 字符串数组）：追加最终光标 CSS 覆盖。
 
+自定义规则最多 32 条，每条最多 4096 个字符，总计最多 16384 个字符。为避免突破样式边界或加载外部资源，包含 `</style`、`<script`、`@import` 或 `url(...)` 的规则会被忽略。在不受信任的工作区中，VS Code 会限制自定义规则与渐变色配置；其余安全设置仍可使用。
+
 完整说明也可直接在 VS Code 设置页中查看。
 
 ## 排查问题
@@ -173,12 +177,14 @@ Woodfish Dark / Woodfish Dracula
 npm install
 npm run compile
 npm test
+npm run test:integration
 npm run lint
 npm run format:check
+npm run verify
 npm run package
 ```
 
-扩展入口位于 `src/extension.ts`；主题资源位于 `themes/bearded/`、`themes/dracula/` 与 `themes/shared/`。
+`npm run test:integration` 会启动隔离的 VS Code 扩展宿主并验证开启、关闭与工作台恢复链路。扩展入口位于 `src/extension.ts`；主题资源位于 `themes/bearded/`、`themes/dracula/` 与 `themes/shared/`。
 
 ## 项目信息
 

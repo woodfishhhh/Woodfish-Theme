@@ -41,8 +41,11 @@ describe('runtime theme assets', () => {
     expect(assets.tabBar).toContain('.tabs-container > .tab.active::after');
     expect(assets.tabBar).toContain('@media (prefers-reduced-motion: reduce)');
     expect(assets.syntaxGradient).toContain('#bd93f9');
+    expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:6|12|13|14|15|16)\b/);
     expect(assets.glow).toContain('Woodfish Dracula glow profile');
-    expect(assets.cursorGlow).toContain('filter: none !important;');
+    expect(assets.cursorGlow).toContain(
+      'filter: var(--woodfish-cursor-glow-filter, none) !important;'
+    );
     expect(assets.cursorCore).toContain('@media (prefers-reduced-motion: reduce)');
     expect(assets.cursorGlow).toContain('@media (prefers-reduced-motion: reduce)');
     expect(assets.cursorDefaults).toEqual({
@@ -57,8 +60,10 @@ describe('runtime theme assets', () => {
 
     expect(css).toContain('--woodfish-tab-border-gradient');
     expect(css).toContain('--woodfish-tab-border-animation-duration: 7s');
-    expect(css).toContain('filter: none !important;');
-    expect(css).toContain('opacity: 0.45 !important;');
+    expect(css).toContain('filter: var(--woodfish-cursor-glow-filter, none) !important;');
+    expect(css).toContain('--woodfish-cursor-glow-filter: none;');
+    expect(css).toContain('--woodfish-cursor-glow-opacity: 0.45;');
+    expect(css).toContain('opacity: var(--woodfish-cursor-glow-opacity');
     expect(css).toContain('text-shadow: 0 0 6px currentColor !important;');
     expect(css).not.toContain('brightness(180%)');
   });

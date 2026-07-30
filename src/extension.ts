@@ -28,9 +28,16 @@ export function activate(context: vscode.ExtensionContext): void {
     };
 
     registerCommands(context, commandDeps);
-    void runtimeService.initializeOnStartup().finally(() => {
-      featureState.refreshFromConfig();
-    });
+    void runtimeService
+      .initializeOnStartup()
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        getOutputChannel().appendLine(`Startup runtime sync failed: ${message}`);
+        showErrorMessage(`启动同步失败: ${message}。可运行“修复 Woodfish 注入”重试。`);
+      })
+      .finally(() => {
+        featureState.refreshFromConfig();
+      });
 
     if (context.extensionMode === vscode.ExtensionMode.Development) {
       showInfoMessage('扩展已在开发模式下激活');

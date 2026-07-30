@@ -1,8 +1,13 @@
 import * as vscode from 'vscode';
 
 export type RuntimeInstallState = {
+  stateVersion?: number;
   workbenchPath?: string;
   backupPath?: string;
+  backupHash?: string;
+  backupWorkbenchPath?: string;
+  backupVscodeVersion?: string;
+  backupCreatedAt?: string;
   payloadHash?: string;
   vscodeVersion?: string;
   legacyPayloads?: string[];

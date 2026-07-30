@@ -156,9 +156,11 @@ describe('runtime payload builder', () => {
     );
     const glowLayer = css.match(/div\.cursor::after\s*\{[\s\S]*?\}/)?.[0];
 
-    expect(glowLayer).toContain('filter: none !important;');
-    expect(glowLayer).toContain('opacity: 0.45 !important;');
-    expect(glowLayer).toContain(
+    expect(glowLayer).toContain('filter: var(--woodfish-cursor-glow-filter, none) !important;');
+    expect(glowLayer).toContain('opacity: var(--woodfish-cursor-glow-opacity, 0.7) !important;');
+    expect(css).toContain('--woodfish-cursor-glow-filter: none;');
+    expect(css).toContain('--woodfish-cursor-glow-opacity: 0.45;');
+    expect(css).toContain(
       'linear-gradient(180deg, #ff2d95, #ff4500, #ffd700, #7cfc00, #00ffff, #1e90ff, #9370db, #ff00ff, #ff1493)'
     );
     expect(glowLayer).not.toContain('brightness(');
@@ -177,7 +179,8 @@ describe('runtime payload builder', () => {
     );
     const glowLayer = css.match(/div\.cursor::after\s*\{[\s\S]*?\}/)?.[0];
 
-    expect(glowLayer).toContain('filter: blur(6px) !important;');
+    expect(glowLayer).toContain('filter: var(--woodfish-cursor-glow-filter, none) !important;');
+    expect(css).toContain('--woodfish-cursor-glow-filter: blur(6px);');
   });
 
   it('uses theme cursor defaults while global cursor settings are untouched', () => {
@@ -188,13 +191,17 @@ describe('runtime payload builder', () => {
     const cursorCore = css.match(/div\.cursor\s*\{[\s\S]*?\}/)?.[0];
     const glowLayer = css.match(/div\.cursor::after\s*\{[\s\S]*?\}/)?.[0];
 
-    expect(cursorCore).toContain('border-radius: 1px !important;');
-    expect(css).toContain('animation: 12s linear infinite bp-animation !important;');
+    expect(cursorCore).toContain(
+      'border-radius: var(--woodfish-cursor-border-radius, 2px) !important;'
+    );
+    expect(css).toContain('--woodfish-cursor-border-radius: 1px;');
+    expect(css).toContain('--woodfish-cursor-animation-duration: 12s;');
     expect(css).toContain(
       'linear-gradient(180deg, #ff79c6, #bd93f9, #8be9fd, #50fa7b, #8be9fd, #bd93f9, #ff79c6)'
     );
-    expect(glowLayer).toContain('filter: none !important;');
-    expect(glowLayer).toContain('opacity: 0.45 !important;');
+    expect(glowLayer).toContain('filter: var(--woodfish-cursor-glow-filter, none) !important;');
+    expect(css).toContain('--woodfish-cursor-glow-filter: none;');
+    expect(css).toContain('--woodfish-cursor-glow-opacity: 0.45;');
   });
 
   it('preserves explicit cursor settings over theme defaults', () => {
@@ -214,11 +221,11 @@ describe('runtime payload builder', () => {
       }
     );
 
-    expect(css).toContain('animation: 5s linear infinite bp-animation !important;');
+    expect(css).toContain('--woodfish-cursor-animation-duration: 5s;');
     expect(css).toContain('linear-gradient(180deg, #111111, #222222)');
-    expect(css).toContain('border-radius: 4px !important;');
-    expect(css).toContain('filter: blur(3px) !important;');
-    expect(css).toContain('opacity: 0.8 !important;');
+    expect(css).toContain('--woodfish-cursor-border-radius: 4px;');
+    expect(css).toContain('--woodfish-cursor-glow-filter: blur(3px);');
+    expect(css).toContain('--woodfish-cursor-glow-opacity: 0.8;');
   });
 
   it('preserves explicit cursor settings that equal extension defaults', () => {
@@ -247,13 +254,13 @@ describe('runtime payload builder', () => {
       }
     );
 
-    expect(css).toContain('animation: 8s linear infinite bp-animation !important;');
+    expect(css).toContain('--woodfish-cursor-animation-duration: 8s;');
     expect(css).toContain(
       'linear-gradient(180deg, #ff2d95, #ff4500, #ffd700, #7cfc00, #00ffff, #1e90ff, #9370db, #ff00ff, #ff1493)'
     );
-    expect(css).toContain('border-radius: 2px !important;');
-    expect(css).toContain('filter: none !important;');
-    expect(css).toContain('opacity: 0.7 !important;');
+    expect(css).toContain('--woodfish-cursor-border-radius: 2px;');
+    expect(css).toContain('--woodfish-cursor-glow-filter: none;');
+    expect(css).toContain('--woodfish-cursor-glow-opacity: 0.7;');
   });
 
   it('uses transform-driven cursor flow in the runtime payload', () => {
@@ -319,5 +326,94 @@ describe('runtime payload builder', () => {
     expect(css).toContain('.activitybar .badge .badge-content');
     expect(css).not.toContain('--woodfish-activity-badge-gradient');
     expect(css).not.toContain('--woodfish-tab-border-gradient');
+  });
+
+  it('sanitizes unsafe custom CSS, invalid colors, oversized arrays, and numeric ranges', () => {
+    const oversizedRules = Array.from({ length: 40 }, (_, index) => `.mtk${index} { color: red; }`);
+    const settings = normalizeRuntimeSettings({
+      syntaxGradient: {
+        customRules: [
+          '.mtk1 { color: red; }',
+          '</style><script>alert(1)</script>',
+          '.mtk2 { background: url(https://example.com/a.png); }',
+          '@import "https://example.com/a.css";',
+          ...oversizedRules,
+        ],
+      },
+      glow: {
+        intensity: 100,
+      },
+      cursor: {
+        animationDuration: -5,
+        borderRadius: 100,
+        glowBlur: Number.NaN,
+        glowOpacity: -1,
+        gradientStops: [
+          '#123',
+          'rgb(10, 20, 30)',
+          'not-a-color',
+          '</style>',
+          'url(https://example.com/a.png)',
+          ...Array.from({ length: 20 }, () => '#abcdef'),
+        ],
+      },
+    });
+
+    expect(settings.syntaxGradient.customRules).toContain('.mtk1 { color: red; }');
+    expect(settings.syntaxGradient.customRules).toHaveLength(29);
+    expect(settings.syntaxGradient.customRules.join('\n')).not.toMatch(
+      /<\/style|<script|@import|url\s*\(/i
+    );
+    expect(settings.glow.intensity).toBe(3);
+    expect(settings.cursor.animationDuration).toBe(1);
+    expect(settings.cursor.borderRadius).toBe(24);
+    expect(settings.cursor.glowBlur).toBe(0);
+    expect(settings.cursor.glowOpacity).toBe(0);
+    expect(settings.cursor.gradientStops).toEqual([
+      '#123',
+      'rgb(10, 20, 30)',
+      ...Array.from({ length: 11 }, () => '#abcdef'),
+    ]);
+  });
+
+  it('sanitizes settings again at the payload boundary', () => {
+    const unsafeSettings = normalizeRuntimeSettings({
+      cursor: {
+        gradientStops: ['#111', '#222'],
+      },
+    });
+    unsafeSettings.cursor.gradientStops = ['#111', '</style><script>alert(1)</script>'];
+    unsafeSettings.cursor.customRules = ['div.cursor { width: 3px; }', '@import "bad.css";'];
+
+    const css = buildRuntimeCss(unsafeSettings, realCursorAssets);
+
+    expect(css).not.toMatch(/<\/style|<script|@import/i);
+    expect(css).toContain('--woodfish-cursor-gradient: linear-gradient(180deg');
+    expect(css).toContain('--woodfish-cursor-animation-duration: 8s');
+    expect(css).toContain('div.cursor { width: 3px; }');
+  });
+
+  it('provides static cursor and tab styling for reduced-motion users', () => {
+    const tabBar = fs.readFileSync(
+      path.resolve(__dirname, '../../themes/shared/tab-bar.css'),
+      'utf-8'
+    );
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: { enabled: true },
+      }),
+      { ...realCursorAssets, tabBar }
+    );
+
+    expect(css.match(/@media \(prefers-reduced-motion: reduce\)/g)?.length).toBeGreaterThanOrEqual(
+      3
+    );
+    expect(css).toMatch(/\.monaco-editor \.cursor::before\s*\{[\s\S]*?animation: none !important;/);
+    expect(css).toMatch(/\.monaco-editor \.cursor::after\s*\{[\s\S]*?animation: none !important;/);
+    expect(css).toMatch(
+      /\.tabs-container > \.tab\.active::after\s*\{[\s\S]*?animation: none !important;/
+    );
+    expect(css).toContain('height: 100% !important;');
+    expect(css).toContain('background-size: 100% 100% !important;');
   });
 });

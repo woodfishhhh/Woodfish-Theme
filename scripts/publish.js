@@ -36,24 +36,6 @@ function checkRequiredFiles() {
   console.log('✅ 所有必要文件检查通过');
 }
 
-// 清理临时文件
-function cleanTempFiles() {
-  console.log('🧹 清理临时文件...');
-  const tempFiles = [
-    'themes/woodfish-theme-test.css',
-    'VSCode主题扩展发布准备.md',
-    'VSCode主题CSS文件模块化重构.md',
-  ];
-
-  tempFiles.forEach((file) => {
-    if (fs.existsSync(file)) {
-      fs.unlinkSync(file);
-      console.log(`🗑️  删除: ${file}`);
-    }
-  });
-  console.log('✅ 临时文件清理完成');
-}
-
 // 更新版本号
 function updateVersion() {
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -85,8 +67,14 @@ function runCommand(command, description) {
 function runVerification() {
   console.log('🧪 运行发布前验证...');
   runCommand('npm run compile', '🔨 TypeScript 编译');
+  runCommand('npm run format:check', '🎨 Prettier 检查');
   runCommand('npm run lint', '🧹 ESLint 检查');
-  runCommand('npm test', '✅ Jest 测试');
+  runCommand('npm test -- --runInBand', '✅ Jest 测试');
+  const integrationCommand =
+    process.platform === 'linux' && !process.env.DISPLAY
+      ? 'xvfb-run -a npm run test:integration'
+      : 'npm run test:integration';
+  runCommand(integrationCommand, '🧭 VS Code 集成测试');
   runCommand('node scripts/pre-publish-check.js', '🔍 发布前检查');
 }
 
@@ -157,7 +145,6 @@ function publishToMarketplace(version) {
 function main() {
   try {
     checkRequiredFiles();
-    cleanTempFiles();
     const version = updateVersion();
     runVerification();
     packageExtension(version);

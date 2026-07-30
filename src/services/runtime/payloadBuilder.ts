@@ -3,6 +3,7 @@ import {
   CursorThemeDefaultKey,
   DEFAULT_RUNTIME_SETTINGS,
   ThemeRuntimeSettings,
+  normalizeRuntimeSettings,
 } from '../../types/features';
 
 export type RuntimeCssAssets = {
@@ -30,64 +31,6 @@ export const DEFAULT_BEARDED_THEME_VARIABLES = `
   --woodfish-tab-border-gradient: linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea);
 }
 `.trim();
-
-type PartialDeep<T> = {
-  [K in keyof T]?: T[K] extends string[]
-    ? string[]
-    : T[K] extends object
-      ? PartialDeep<T[K]>
-      : T[K];
-};
-
-function mergeStringArray(value: string[] | undefined, fallback: string[]): string[] {
-  return Array.isArray(value) ? [...value] : [...fallback];
-}
-
-export function normalizeRuntimeSettings(
-  partial: PartialDeep<ThemeRuntimeSettings> = {}
-): ThemeRuntimeSettings {
-  return {
-    syntaxGradient: {
-      enabled: partial.syntaxGradient?.enabled ?? DEFAULT_RUNTIME_SETTINGS.syntaxGradient.enabled,
-      customRules: mergeStringArray(
-        partial.syntaxGradient?.customRules,
-        DEFAULT_RUNTIME_SETTINGS.syntaxGradient.customRules
-      ),
-    },
-    glow: {
-      enabled: partial.glow?.enabled ?? DEFAULT_RUNTIME_SETTINGS.glow.enabled,
-      intensity: partial.glow?.intensity ?? DEFAULT_RUNTIME_SETTINGS.glow.intensity,
-      customRules: mergeStringArray(
-        partial.glow?.customRules,
-        DEFAULT_RUNTIME_SETTINGS.glow.customRules
-      ),
-    },
-    cursor: {
-      enabled: partial.cursor?.enabled ?? DEFAULT_RUNTIME_SETTINGS.cursor.enabled,
-      animationDuration:
-        partial.cursor?.animationDuration ?? DEFAULT_RUNTIME_SETTINGS.cursor.animationDuration,
-      gradientStops: mergeStringArray(
-        partial.cursor?.gradientStops,
-        DEFAULT_RUNTIME_SETTINGS.cursor.gradientStops
-      ),
-      borderRadius: partial.cursor?.borderRadius ?? DEFAULT_RUNTIME_SETTINGS.cursor.borderRadius,
-      glow: partial.cursor?.glow ?? DEFAULT_RUNTIME_SETTINGS.cursor.glow,
-      glowBlur: partial.cursor?.glowBlur ?? DEFAULT_RUNTIME_SETTINGS.cursor.glowBlur,
-      glowOpacity: partial.cursor?.glowOpacity ?? DEFAULT_RUNTIME_SETTINGS.cursor.glowOpacity,
-      customRules: mergeStringArray(
-        partial.cursor?.customRules,
-        DEFAULT_RUNTIME_SETTINGS.cursor.customRules
-      ),
-    },
-    ...(partial.explicitSettings
-      ? {
-          explicitSettings: {
-            cursor: { ...partial.explicitSettings.cursor },
-          },
-        }
-      : {}),
-  };
-}
 
 function scaleGlowCss(glowCss: string, intensity: number): string {
   const safeIntensity = Number.isFinite(intensity) && intensity > 0 ? intensity : 1;
@@ -159,16 +102,32 @@ function hasGradientDeclaration(css: string): boolean {
 function applyCursorSettings(cursorCss: string, cursor: CursorSettings): string {
   const gradient = buildCursorGradient(cursor.gradientStops);
 
-  return cursorCss
+  const configured = cursorCss
     .replace(/30s/g, `${cursor.animationDuration}s`)
     .replace(/8s/g, `${cursor.animationDuration}s`)
     .replace(/border-radius:\s*90px/gi, `border-radius: ${cursor.borderRadius}px`)
-    .replace(/border-radius:\s*2px/gi, `border-radius: ${cursor.borderRadius}px`)
-    .replace(/linear-gradient\([\s\S]*?\)\s*!important;/gi, `${gradient} !important;`);
+    .replace(/border-radius:\s*2px/gi, `border-radius: ${cursor.borderRadius}px`);
+
+  return configured.includes('--woodfish-cursor-gradient')
+    ? configured
+    : configured.replace(/linear-gradient\([\s\S]*?\)\s*!important;/gi, `${gradient} !important;`);
+}
+
+function buildCursorVariables(settings: CursorSettings): string {
+  const glowFilter = settings.glowBlur > 0 ? `blur(${settings.glowBlur}px)` : 'none';
+  return [
+    ':root {',
+    `  --woodfish-cursor-gradient: ${buildCursorGradient(settings.gradientStops)};`,
+    `  --woodfish-cursor-animation-duration: ${settings.animationDuration}s;`,
+    `  --woodfish-cursor-border-radius: ${settings.borderRadius}px;`,
+    `  --woodfish-cursor-glow-filter: ${glowFilter};`,
+    `  --woodfish-cursor-glow-opacity: ${settings.glowOpacity};`,
+    '}',
+  ].join('\n');
 }
 
 function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): string {
-  const parts: string[] = [];
+  const parts: string[] = [buildCursorVariables(settings)];
   const gradient = buildCursorGradient(settings.gradientStops);
   const core = applyCursorSettings(assets.cursorCore, settings);
   parts.push(core);
@@ -210,6 +169,7 @@ function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): str
 }
 
 export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeCssAssets): string {
+  const safeSettings = normalizeRuntimeSettings(settings);
   const parts: string[] = ['/* Woodfish runtime payload */'];
   const themeVariables = assets.themeVariables?.trim();
   if (themeVariables && themeVariables.length > 0) {
@@ -217,27 +177,27 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
   }
   parts.push(assets.activityBar.trim(), assets.tabBar.trim());
 
-  if (settings.syntaxGradient.enabled) {
+  if (safeSettings.syntaxGradient.enabled) {
     parts.push(assets.syntaxGradient.trim());
-    if (settings.syntaxGradient.customRules.length > 0) {
-      parts.push(settings.syntaxGradient.customRules.join('\n'));
+    if (safeSettings.syntaxGradient.customRules.length > 0) {
+      parts.push(safeSettings.syntaxGradient.customRules.join('\n'));
     }
   }
 
-  if (settings.glow.enabled) {
-    parts.push(scaleGlowCss(assets.glow.trim(), settings.glow.intensity));
-    if (settings.glow.customRules.length > 0) {
-      parts.push(settings.glow.customRules.join('\n'));
+  if (safeSettings.glow.enabled) {
+    parts.push(scaleGlowCss(assets.glow.trim(), safeSettings.glow.intensity));
+    if (safeSettings.glow.customRules.length > 0) {
+      parts.push(safeSettings.glow.customRules.join('\n'));
     }
   }
 
-  if (settings.cursor.enabled) {
+  if (safeSettings.cursor.enabled) {
     parts.push(
       buildCursorCss(
         applyThemeCursorDefaults(
-          settings.cursor,
+          safeSettings.cursor,
           assets.cursorDefaults,
-          settings.explicitSettings?.cursor
+          safeSettings.explicitSettings?.cursor
         ),
         assets
       )
@@ -247,4 +207,4 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
   return `${parts.filter((part) => part.length > 0).join('\n\n')}\n`;
 }
 
-export { DEFAULT_RUNTIME_SETTINGS };
+export { DEFAULT_RUNTIME_SETTINGS, normalizeRuntimeSettings };

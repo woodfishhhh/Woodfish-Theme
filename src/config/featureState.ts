@@ -2,13 +2,17 @@ import * as vscode from 'vscode';
 import {
   FeatureKey,
   onThemeSettingsChanged,
-  readFeatureFlags,
   readRuntimeSettings,
   setFeatureFlag,
   toggleFeatureFlag,
 } from './featureFlags';
 import { ThemeStatusBar } from '../ui/statusBar';
-import { FeatureFlags, RuntimeStatusSnapshot, ThemeRuntimeSettings } from '../types/features';
+import {
+  FeatureFlags,
+  RuntimeStatusSnapshot,
+  ThemeRuntimeSettings,
+  featureFlagsFromSettings,
+} from '../types/features';
 
 type RuntimeStatusResolver = (features: FeatureFlags) => RuntimeStatusSnapshot;
 
@@ -26,7 +30,7 @@ export class FeatureStateController {
 
   constructor(private readonly statusBar: ThemeStatusBar) {
     this.settings = readRuntimeSettings();
-    this.features = readFeatureFlags();
+    this.features = featureFlagsFromSettings(this.settings);
     this.refreshStatusBar();
   }
 
@@ -61,7 +65,7 @@ export class FeatureStateController {
 
   public refreshFromConfig(): FeatureFlags {
     this.settings = readRuntimeSettings();
-    this.features = readFeatureFlags();
+    this.features = featureFlagsFromSettings(this.settings);
     this.refreshStatusBar();
     return this.current();
   }

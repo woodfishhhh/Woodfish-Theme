@@ -12,6 +12,7 @@ import {
   FeatureFlags,
   ThemeRuntimeSettings,
   featureFlagsFromSettings,
+  normalizeRuntimeSettings,
 } from '../types/features';
 
 export type FeatureKey = keyof typeof FEATURE_SETTING_KEYS;
@@ -49,7 +50,7 @@ function isExplicitSetting(key: string): boolean {
 }
 
 export function readRuntimeSettings(): ThemeRuntimeSettings {
-  return {
+  return normalizeRuntimeSettings({
     syntaxGradient: {
       enabled: readSetting(
         FEATURE_SETTING_KEYS.syntaxGradient,
@@ -102,7 +103,7 @@ export function readRuntimeSettings(): ThemeRuntimeSettings {
         glowOpacity: isExplicitSetting(CURSOR_SETTING_KEYS.glowOpacity),
       },
     },
-  };
+  });
 }
 
 export function readFeatureFlags(): FeatureFlags {

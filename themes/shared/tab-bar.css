@@ -36,5 +36,6 @@
   .tabs-container > .tab.active::after {
     animation: none !important;
     background-position: 50% 50% !important;
+    background-size: 100% 100% !important;
   }
 }

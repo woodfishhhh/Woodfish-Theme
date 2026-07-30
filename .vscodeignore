@@ -4,6 +4,8 @@
 node_modules/**
 src/**
 scripts/**
+AGENTS.md
+**/AGENTS.md
 .codebuddy/**
 .omx/**
 .superpowers/**
@@ -11,6 +13,7 @@ scripts/**
 
 # 构建输出
 dist/**
+out/integration/**
 
 # 测试文件
 test/**
@@ -25,7 +28,8 @@ vsc-extension-quickstart.md
 eslint.config.mjs
 jest.config.js
 plan.md
-AGENTS.md
+docs/CHANGELOG.md
+docs/CONTRIBUTING.md
 
 # 旧版入口备份（不参与打包）
 extension.legacy.js

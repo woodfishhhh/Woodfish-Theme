@@ -4,7 +4,7 @@
 
 Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow style, and optional rainbow cursor effects.
 
-[![Version](https://img.shields.io/badge/version-5.1.6-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
+[![Version](https://img.shields.io/badge/version-5.1.7-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 
@@ -13,6 +13,8 @@ Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow st
 - Gradient syntax highlighting
 - Glow effects
 - Optional rainbow cursor (via CSS injection)
+- Validated atomic workbench updates with version-aware backups and rollback
+- Reduced-motion fallbacks for continuous effects
 - Modular CSS structure
 
 ## 🆕 New Features
@@ -49,7 +51,7 @@ Woodfish Dracula uses palette-matched syntax gradients, shorter layered glow, a 
 ### Install from VSIX
 
 ```bash
-code --install-extension woodfish-theme-5.1.6.vsix
+code --install-extension woodfish-theme-5.1.7.vsix
 ```
 
 ## Runtime Model
@@ -62,6 +64,7 @@ Runtime behaviors are now handled internally:
 - startup checks whether the theme and payload still match
 - known legacy Woodfish payloads are taken over before the new payload is injected
 - unknown third-party payloads are not modified automatically
+- workbench updates are validated before an atomic replacement, and repair or complete disable only restores a backup that matches the current VS Code installation
 
 ## Usage
 
@@ -174,13 +177,19 @@ If you encounter issues, please try the following steps. For more details, see t
 - `woodfishTheme.cursor.customRules`
   - Final override layer for advanced cursor tweaks.
 
+Custom rule arrays accept up to 32 entries, 4096 characters per entry, and 16384 characters in total. Rules containing `</style`, `<script`, `@import`, or `url(...)` are ignored. VS Code restricts custom CSS and cursor gradient settings in untrusted workspaces; the remaining safe settings continue to work.
+
 ## Development
 
 ```bash
 npm install
 npm run compile
+npm test
+npm run test:integration
+npm run lint
 npm run format
 npm run format:check
+npm run verify
 npm run package
 ```
 

@@ -9,10 +9,11 @@ import {
   setColorTheme,
 } from '../../config/featureFlags';
 import { FeatureFlags, RuntimeStatusSnapshot } from '../../types/features';
-import { showInfoMessage, showReloadPrompt } from '../../ui/notifications';
+import { showErrorMessage, showInfoMessage, showReloadPrompt } from '../../ui/notifications';
 import { getOutputChannel } from '../../ui/output';
 import { withProgressNotification } from '../../ui/progress';
 import { readRuntimeAssets } from './assets';
+import { writeValidatedFileAtomic } from './atomicFile';
 import { getWorkbenchHtmlPath } from './locator';
 import { buildRuntimeCss } from './payloadBuilder';
 import { deriveRuntimeStatus } from './status';
@@ -51,37 +52,13 @@ function hashPayload(css: string): string {
   return crypto.createHash('sha256').update(css).digest('hex');
 }
 
-function mergeLegacyPayloads(
-  current: string[] | undefined,
-  incoming: string[]
-): string[] | undefined {
-  if (incoming.length === 0 && (!current || current.length === 0)) {
-    return undefined;
-  }
-
-  const merged = new Set<string>(current ?? []);
-  for (const fragment of incoming) {
-    merged.add(fragment);
-  }
-
-  return [...merged];
+function hashDocument(content: string): string {
+  return crypto.createHash('sha256').update(content).digest('hex');
 }
 
-function restoreLegacyPayloads(html: string, legacyPayloads: string[]): string {
-  if (legacyPayloads.length === 0) {
-    return html;
-  }
-
-  const block = legacyPayloads.join('\n');
-  if (html.includes('</head>')) {
-    return html.replace('</head>', `${block}\n</head>`);
-  }
-
-  if (html.includes('</html>')) {
-    return html.replace('</html>', `${block}\n</html>`);
-  }
-
-  return `${html}\n${block}`;
+function isValidWorkbenchDocument(content: string): boolean {
+  const normalized = content.toLowerCase();
+  return normalized.includes('<html') && normalized.includes('</html>');
 }
 
 function resolveBackupPath(workbenchPath: string, state: RuntimeInstallState): string {
@@ -111,9 +88,25 @@ type SyncOptions = {
   restoreBackup?: boolean;
 };
 
+type ValidBackup = {
+  html: string;
+  path: string;
+};
+
+function mergeSyncOptions(current: SyncOptions | null, incoming: SyncOptions): SyncOptions {
+  if (!current) {
+    return { ...incoming };
+  }
+
+  return {
+    showPrompt: current.showPrompt !== false || incoming.showPrompt !== false,
+    restoreBackup: current.restoreBackup === true || incoming.restoreBackup === true,
+  };
+}
+
 export class IntegratedThemeService {
-  private syncInFlight = false;
-  private queuedSync = false;
+  private activeSync: Promise<void> | null = null;
+  private queuedSyncOptions: SyncOptions | null = null;
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
@@ -124,25 +117,29 @@ export class IntegratedThemeService {
           event.affectsConfiguration('woodfishTheme') ||
           event.affectsConfiguration('workbench.colorTheme')
         ) {
-          void this.syncWithCurrentSettings({ showPrompt: true });
+          this.runBackgroundSync({ showPrompt: true });
         }
       })
     );
   }
 
-  public getRuntimeStatus(features: FeatureFlags = readFeatureFlags()): RuntimeStatusSnapshot {
+  public getRuntimeStatus(
+    features: FeatureFlags = readFeatureFlags(),
+    currentHtml: string | null = this.readWorkbenchHtml()
+  ): RuntimeStatusSnapshot {
     return deriveRuntimeStatus({
       activeTheme: readCurrentColorTheme(),
-      hasPayload: this.hasCurrentPayload(),
+      hasPayload: currentHtml ? hasWoodfishPayload(currentHtml) : false,
       features,
     });
   }
 
   public async initializeOnStartup(): Promise<void> {
-    const status = this.getRuntimeStatus();
+    const currentHtml = this.readWorkbenchHtml();
+    const status = this.getRuntimeStatus(readFeatureFlags(), currentHtml);
 
     if (status.isWoodfishTheme) {
-      if (!this.hasExpectedPayload()) {
+      if (!this.hasExpectedPayload(currentHtml)) {
         await this.syncWithCurrentSettings({ showPrompt: false });
       }
       return;
@@ -202,13 +199,27 @@ export class IntegratedThemeService {
     await showReloadPrompt('Woodfish 运行时注入已清理，请重新加载 VS Code。');
   }
 
-  public async syncWithCurrentSettings(options: SyncOptions = {}): Promise<void> {
-    if (this.syncInFlight) {
-      this.queuedSync = true;
-      return;
+  public syncWithCurrentSettings(options: SyncOptions = {}): Promise<void> {
+    this.queuedSyncOptions = mergeSyncOptions(this.queuedSyncOptions, options);
+    if (!this.activeSync) {
+      this.activeSync = this.drainSyncQueue().finally(() => {
+        this.activeSync = null;
+        this.queuedSyncOptions = null;
+      });
     }
 
-    this.syncInFlight = true;
+    return this.activeSync;
+  }
+
+  private async drainSyncQueue(): Promise<void> {
+    while (this.queuedSyncOptions) {
+      const options = this.queuedSyncOptions;
+      this.queuedSyncOptions = null;
+      await this.performSync(options);
+    }
+  }
+
+  private async performSync(options: SyncOptions): Promise<void> {
     try {
       if (!this.isWoodfishThemeActive()) {
         const runtimeStatus = this.getRuntimeStatus();
@@ -231,12 +242,9 @@ export class IntegratedThemeService {
       }
 
       await this.applyPayload(options);
-    } finally {
-      this.syncInFlight = false;
-      if (this.queuedSync) {
-        this.queuedSync = false;
-        void this.syncWithCurrentSettings({ showPrompt: false });
-      }
+    } catch (error) {
+      this.queuedSyncOptions = null;
+      throw error;
     }
   }
 
@@ -244,13 +252,7 @@ export class IntegratedThemeService {
     return resolveWoodfishTheme(readCurrentColorTheme()) !== undefined;
   }
 
-  private hasCurrentPayload(): boolean {
-    const currentHtml = this.readWorkbenchHtml();
-    return currentHtml ? hasWoodfishPayload(currentHtml) : false;
-  }
-
-  private hasExpectedPayload(): boolean {
-    const currentHtml = this.readWorkbenchHtml();
+  private hasExpectedPayload(currentHtml: string | null = this.readWorkbenchHtml()): boolean {
     if (!currentHtml || !hasWoodfishPayload(currentHtml)) {
       return false;
     }
@@ -294,33 +296,45 @@ export class IntegratedThemeService {
     const payloadHash = hashPayload(css);
     const state = readRuntimeInstallState(this.context);
     const backupPath = resolveBackupPath(workbenchPath, state);
-    const withoutCurrentPayload = removeWorkbenchPayload(currentHtml);
-    const legacyCleanup = removeKnownLegacyWoodfishPayloads(withoutCurrentPayload);
-    const nextHtml = injectWorkbenchPayload(
-      legacyCleanup.html,
-      buildPayloadDocument(css, payloadHash)
-    );
-    const changed = nextHtml !== currentHtml;
-
-    if (!fs.existsSync(backupPath)) {
-      fs.writeFileSync(backupPath, currentHtml, 'utf-8');
+    const currentBaseline = this.cleanWoodfishPayloads(currentHtml);
+    let backup = this.readValidBackup(workbenchPath, state);
+    if (!backup) {
+      const backupHtml = currentBaseline;
+      writeValidatedFileAtomic(backupPath, backupHtml, isValidWorkbenchDocument);
+      backup = {
+        html: backupHtml,
+        path: backupPath,
+      };
     }
 
+    const baselineHtml = options.restoreBackup === true ? backup.html : currentBaseline;
+    const nextHtml = injectWorkbenchPayload(baselineHtml, buildPayloadDocument(css, payloadHash));
+    const changed = nextHtml !== currentHtml;
+
     if (changed) {
-      fs.writeFileSync(workbenchPath, nextHtml, 'utf-8');
+      writeValidatedFileAtomic(
+        workbenchPath,
+        nextHtml,
+        (content) => isValidWorkbenchDocument(content) && hasWoodfishPayload(content)
+      );
       getOutputChannel().appendLine(`Applied integrated runtime to ${workbenchPath}`);
     }
 
     await writeRuntimeInstallState(this.context, {
       ...state,
+      stateVersion: 2,
       workbenchPath,
-      backupPath,
+      backupPath: backup.path,
+      backupHash: hashDocument(backup.html),
+      backupWorkbenchPath: workbenchPath,
+      backupVscodeVersion: vscode.version,
+      backupCreatedAt:
+        state.backupHash === hashDocument(backup.html) && state.backupCreatedAt
+          ? state.backupCreatedAt
+          : new Date().toISOString(),
       payloadHash,
       vscodeVersion: vscode.version,
-      legacyPayloads: mergeLegacyPayloads(
-        state.legacyPayloads,
-        legacyCleanup.removed.map((match) => match.fragment)
-      ),
+      legacyPayloads: undefined,
     });
 
     if (changed && options.showPrompt !== false) {
@@ -336,17 +350,15 @@ export class IntegratedThemeService {
 
     const currentHtml = fs.readFileSync(workbenchPath, 'utf-8');
     const state = readRuntimeInstallState(this.context);
-    const cleanedHtml = removeWorkbenchPayload(currentHtml);
-    const nextHtml =
-      options.restoreBackup === true && state.legacyPayloads && state.legacyPayloads.length > 0
-        ? restoreLegacyPayloads(cleanedHtml, state.legacyPayloads)
-        : cleanedHtml;
+    const backup =
+      options.restoreBackup === true ? this.readValidBackup(workbenchPath, state) : null;
+    const nextHtml = this.cleanWoodfishPayloads(backup?.html ?? currentHtml);
 
     if (nextHtml === currentHtml) {
       return;
     }
 
-    fs.writeFileSync(workbenchPath, nextHtml, 'utf-8');
+    writeValidatedFileAtomic(workbenchPath, nextHtml, isValidWorkbenchDocument);
     getOutputChannel().appendLine(`Removed integrated runtime from ${workbenchPath}`);
 
     await writeRuntimeInstallState(this.context, {
@@ -356,6 +368,46 @@ export class IntegratedThemeService {
 
     if (options.showPrompt !== false) {
       await showReloadPrompt('Woodfish 主题样式已移除，请重新加载 VS Code。');
+    }
+  }
+
+  private cleanWoodfishPayloads(html: string): string {
+    return removeKnownLegacyWoodfishPayloads(removeWorkbenchPayload(html)).html;
+  }
+
+  private runBackgroundSync(options: SyncOptions): void {
+    void this.syncWithCurrentSettings(options).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      getOutputChannel().appendLine(`Background runtime sync failed: ${message}`);
+      showErrorMessage(`自动同步失败: ${message}。可运行“修复 Woodfish 注入”重试。`);
+    });
+  }
+
+  private readValidBackup(workbenchPath: string, state: RuntimeInstallState): ValidBackup | null {
+    const backupPath = resolveBackupPath(workbenchPath, state);
+    if (
+      state.stateVersion !== 2 ||
+      state.backupPath !== backupPath ||
+      state.backupWorkbenchPath !== workbenchPath ||
+      state.backupVscodeVersion !== vscode.version ||
+      !state.backupHash ||
+      !fs.existsSync(backupPath)
+    ) {
+      return null;
+    }
+
+    try {
+      const html = fs.readFileSync(backupPath, 'utf-8');
+      if (!isValidWorkbenchDocument(html) || hashDocument(html) !== state.backupHash) {
+        return null;
+      }
+
+      return {
+        html,
+        path: backupPath,
+      };
+    } catch {
+      return null;
     }
   }
 }
