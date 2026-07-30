@@ -3,5 +3,25 @@
   "slug": "dracula",
   "activityBadgeGradient": "linear-gradient(45deg, #ff79c6, #bd93f9)",
   "activityBadgeTextColor": "#282A36",
-  "tabBorderGradient": "linear-gradient(to right, #ff79c6, #bd93f9, #8be9fd, #50fa7b)"
+  "tabBorderGradient": "linear-gradient(to right, #ff79c6, #bd93f9, #8be9fd, #50fa7b)",
+  "runtime": {
+    "activityBadgeShadow": "0 0 10px rgb(255 121 198 / 35%)",
+    "tabBorderShadow": "0 0 8px rgb(189 147 249 / 32%)",
+    "tabBorderAnimationDuration": "7s",
+    "cursorDefaults": {
+      "animationDuration": 12,
+      "gradientStops": [
+        "#ff79c6",
+        "#bd93f9",
+        "#8be9fd",
+        "#50fa7b",
+        "#8be9fd",
+        "#bd93f9",
+        "#ff79c6"
+      ],
+      "borderRadius": 1,
+      "glowBlur": 0,
+      "glowOpacity": 0.45
+    }
+  }
 }

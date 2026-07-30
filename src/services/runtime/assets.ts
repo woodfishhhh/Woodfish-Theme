@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { RuntimeCssAssets } from './payloadBuilder';
+import { CursorThemeDefaults, RuntimeCssAssets } from './payloadBuilder';
 import {
   DEFAULT_WOODFISH_THEME_LABEL,
   getDefaultWoodfishTheme,
@@ -18,6 +18,12 @@ type ThemeMeta = {
   activityBadgeGradient: string;
   activityBadgeTextColor?: string;
   tabBorderGradient: string;
+  runtime?: {
+    activityBadgeShadow?: string;
+    tabBorderShadow?: string;
+    tabBorderAnimationDuration?: string;
+    cursorDefaults?: CursorThemeDefaults;
+  };
 };
 
 function readJsonFile<T>(filePath: string): T {
@@ -25,11 +31,16 @@ function readJsonFile<T>(filePath: string): T {
 }
 
 function buildThemeVariableBlock(meta: ThemeMeta): string {
+  const runtime = meta.runtime ?? {};
+
   return [
     ':root {',
     `  --woodfish-activity-badge-gradient: ${meta.activityBadgeGradient};`,
     `  --woodfish-activity-badge-text-color: ${meta.activityBadgeTextColor ?? 'rgb(70 70 70)'};`,
+    `  --woodfish-activity-badge-shadow: ${runtime.activityBadgeShadow ?? 'none'};`,
     `  --woodfish-tab-border-gradient: ${meta.tabBorderGradient};`,
+    `  --woodfish-tab-border-shadow: ${runtime.tabBorderShadow ?? 'none'};`,
+    `  --woodfish-tab-border-animation-duration: ${runtime.tabBorderAnimationDuration ?? '3s'};`,
     '}',
   ].join('\n');
 }
@@ -44,13 +55,18 @@ export function readRuntimeAssets(
   const resolveThemePath = (...segments: string[]): string =>
     context.asAbsolutePath(path.join('themes', theme.directory, ...segments));
   const themeMeta = readJsonFile<ThemeMeta>(resolveThemePath(theme.metaFile));
+  const glowParts = [readFile(resolveSharedThemePath('glow-effects.css'))];
+  if (theme.glowFile) {
+    glowParts.push(readFile(resolveThemePath(theme.glowFile)));
+  }
 
   return {
     themeVariables: buildThemeVariableBlock(themeMeta),
+    cursorDefaults: themeMeta.runtime?.cursorDefaults,
     activityBar: readFile(resolveSharedThemePath('activity-bar.css')),
     tabBar: readFile(resolveSharedThemePath('tab-bar.css')),
     syntaxGradient: readFile(resolveThemePath(theme.syntaxFile)),
-    glow: readFile(resolveSharedThemePath('glow-effects.css')),
+    glow: glowParts.join('\n\n'),
     cursorCore: readFile(resolveSharedThemePath('cursor-core.css')),
     cursorGlow: readFile(resolveSharedThemePath('cursor-glow.css')),
   };

@@ -65,6 +65,27 @@ describe('featureFlags config access', () => {
     expect(settings.cursor.enabled).toBe(false);
   });
 
+  it('sanitizes malformed values read from workspace configuration', () => {
+    const configuration = createConfiguration({
+      'woodfishTheme.glow.enabled': 'yes',
+      'woodfishTheme.glow.intensity': Number.POSITIVE_INFINITY,
+      'woodfishTheme.glow.customRules': ['.mtk1 { opacity: 0.5; }', '@import "bad.css";'],
+      'woodfishTheme.cursor.animationDuration': 1000,
+      'woodfishTheme.cursor.gradientStops': ['#123456', 'invalid', 'rgb(1, 2, 3)'],
+      'woodfishTheme.cursor.customRules': ['</style><script>alert(1)</script>'],
+    });
+    getConfigurationMock.mockReturnValue(configuration);
+
+    const settings = readRuntimeSettings();
+
+    expect(settings.glow.enabled).toBe(true);
+    expect(settings.glow.intensity).toBe(1);
+    expect(settings.glow.customRules).toEqual(['.mtk1 { opacity: 0.5; }']);
+    expect(settings.cursor.animationDuration).toBe(60);
+    expect(settings.cursor.gradientStops).toEqual(['#123456', 'rgb(1, 2, 3)']);
+    expect(settings.cursor.customRules).toEqual([]);
+  });
+
   it('updates only retained feature flags through the woodfishTheme section keys', async () => {
     const configuration = createConfiguration();
     getConfigurationMock.mockImplementation((section?: string) =>

@@ -1,19 +1,19 @@
 /* 选中标签栏上边框（结构共享，颜色由主题变量提供） */
 @keyframes tabBorderTopMoveGradient {
   from {
-    background-position: 0% !important;
+    background-position: 0% 50% !important;
   }
   to {
-    background-position: 100% !important;
+    background-position: 100% 50% !important;
   }
 }
 
-.tab.tab-actions-right.sizing-fit.has-icon.tab-border-bottom.tab-border-top.active {
+.tabs-container > .tab.active {
   --tab-border-top-color: transparent !important;
   position: relative !important;
 }
 
-.tab.tab-actions-right.sizing-fit.has-icon.tab-border-bottom.tab-border-top.active:after {
+.tabs-container > .tab.active::after {
   content: '' !important;
   position: absolute !important;
   top: 0 !important;
@@ -25,6 +25,17 @@
     --woodfish-tab-border-gradient,
     linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea)
   ) !important;
-  animation: tabBorderTopMoveGradient 3s infinite alternate !important;
-  background-size: 200% !important;
+  background-size: 200% 100% !important;
+  box-shadow: var(--woodfish-tab-border-shadow, none) !important;
+  animation: tabBorderTopMoveGradient
+    var(--woodfish-tab-border-animation-duration, 3s) ease-in-out infinite alternate !important;
+  pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs-container > .tab.active::after {
+    animation: none !important;
+    background-position: 50% 50% !important;
+    background-size: 100% 100% !important;
+  }
 }

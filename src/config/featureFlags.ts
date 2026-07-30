@@ -12,6 +12,7 @@ import {
   FeatureFlags,
   ThemeRuntimeSettings,
   featureFlagsFromSettings,
+  normalizeRuntimeSettings,
 } from '../types/features';
 
 export type FeatureKey = keyof typeof FEATURE_SETTING_KEYS;
@@ -33,7 +34,7 @@ function readSetting<T>(key: string, fallback: T): T {
 }
 
 export function readRuntimeSettings(): ThemeRuntimeSettings {
-  return {
+  return normalizeRuntimeSettings({
     syntaxGradient: {
       enabled: readSetting(
         FEATURE_SETTING_KEYS.syntaxGradient,
@@ -77,7 +78,7 @@ export function readRuntimeSettings(): ThemeRuntimeSettings {
         DEFAULT_RUNTIME_SETTINGS.cursor.customRules
       ),
     },
-  };
+  });
 }
 
 export function readFeatureFlags(): FeatureFlags {

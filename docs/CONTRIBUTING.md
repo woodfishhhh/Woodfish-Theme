@@ -148,6 +148,20 @@ feat(theme): 添加新的渐变样式
 - [ ] 没有破坏现有功能
 - [ ] 在不同主题下测试过
 
+至少运行以下检查：
+
+```bash
+npm run compile
+npm run lint
+npm run format:check
+npm test
+npm run test:integration
+npm run pre-publish
+npm run package
+```
+
+`npm run test:integration` 会启动隔离的 VS Code 扩展宿主，验证 runtime payload 的开启、关闭与原始工作台恢复。CI 会在 Linux 的虚拟显示环境中执行同一条链路，并继续检查 VSIX 内容。
+
 ### 4. 提交 Pull Request
 
 1. 推送您的分支到 GitHub

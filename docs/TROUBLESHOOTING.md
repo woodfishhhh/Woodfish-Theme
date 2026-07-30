@@ -31,6 +31,15 @@ Glow intensity can vary depending on your monitor and personal preference.
 - **Use the setting directly**: Adjust `woodfishTheme.glow.intensity` in Settings or `settings.json`.
 - **Advanced override**: Use `woodfishTheme.glow.customRules` if you want to target only specific tokens.
 
+### Issue: A custom CSS rule is ignored
+Woodfish validates custom CSS before adding it to the runtime payload.
+- **Check the limits**: Each custom rule must be at most 4096 characters, with at most 32 rules and 16384 characters in total per setting.
+- **Remove unsafe constructs**: Rules containing `</style`, `<script`, `@import`, or `url(...)` are rejected.
+- **Check Workspace Trust**: Custom rule arrays and cursor gradient stops are restricted while the workspace is untrusted.
+
+### Issue: Animations are disabled
+Woodfish respects the operating system's reduced-motion preference. When reduced motion is enabled, continuous cursor and tab animations are disabled while the static styling remains visible.
+
 ---
 
 ## Debugging Steps
@@ -60,6 +69,9 @@ If you've uninstalled the extension but effects still persist:
 1. Run `Woodfish Theme: 彻底停用 Woodfish 主题` before uninstalling.
 2. If effects still remain, inspect your VS Code installation for other injection-based extensions that may still patch the same `workbench.html`.
 3. Remember that Woodfish only auto-takes over known legacy Woodfish payloads; unknown third-party payloads must be cleaned by their own source extension.
+
+### Repair and backup behavior
+`Woodfish Theme: 修复 Woodfish 注入` restores only a backup whose hash, workbench path, and VS Code version still match the current installation. If the stored backup is missing or invalid, Woodfish derives a clean baseline from the current workbench instead of copying stale bytes across VS Code versions. Every replacement is validated before installation and rolled back if the write cannot be completed.
 
 ### Resetting VS Code Settings
 If settings are corrupted:

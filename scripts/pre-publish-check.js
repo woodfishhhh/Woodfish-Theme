@@ -6,12 +6,38 @@ const { execFileSync } = require('child_process');
 
 const VSCE_ENTRY = path.join('node_modules', '@vscode', 'vsce', 'vsce');
 const VSCE_ENTRY_ABSOLUTE = path.resolve(VSCE_ENTRY);
+const FORBIDDEN_PACKAGE_PATHS = [
+  /^AGENTS\.md$/i,
+  /\/AGENTS\.md$/i,
+  /^plan\.md$/i,
+  /^eslint\.config\.mjs$/i,
+  /^jest\.config\.js$/i,
+  /^docs\/CHANGELOG\.md$/i,
+  /^docs\/CONTRIBUTING\.md$/i,
+  /^docs\/superpowers\//i,
+  /^out\/integration\//i,
+  /^\.codebuddy\//i,
+  /^\.omx\//i,
+  /^\.superpowers\//i,
+  /^\.worktrees\//i,
+];
 
 console.log('🔍 Woodfish Theme 发布前检查');
 console.log('================================');
 
 function isValidExtensionVersion(version) {
   return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(version);
+}
+
+function findForbiddenPackagePaths(tree) {
+  const packagePaths = tree
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  return packagePaths.filter((packagePath) =>
+    FORBIDDEN_PACKAGE_PATHS.some((pattern) => pattern.test(packagePath.replaceAll('\\', '/')))
+  );
 }
 
 // 检查项目结构
@@ -117,6 +143,7 @@ function checkThemeFiles() {
     'themes/bearded/syntax-highlighting.css',
     'themes/bearded/theme.meta.json',
     'themes/dracula/syntax-highlighting.css',
+    'themes/dracula/glow-effects.css',
     'themes/dracula/theme.meta.json',
     'themes/dracula/NOTICE.md',
   ];
@@ -179,29 +206,19 @@ function checkPackageHygiene() {
   console.log('\n📦 检查 VSIX 打包清单...');
 
   try {
-    const tree = execFileSync(process.execPath, [VSCE_ENTRY_ABSOLUTE, 'ls', '--tree'], {
+    const tree = execFileSync(process.execPath, [VSCE_ENTRY_ABSOLUTE, 'ls'], {
       encoding: 'utf8',
     });
-    const forbiddenEntries = [
-      'plan.md',
-      'eslint.config.mjs',
-      'jest.config.js',
-      '.omx/',
-      '.superpowers/',
-      '.worktrees/',
-    ];
-    let allGood = true;
-
-    forbiddenEntries.forEach((entry) => {
-      if (tree.includes(entry)) {
+    const forbiddenPackagePaths = findForbiddenPackagePaths(tree);
+    if (forbiddenPackagePaths.length > 0) {
+      forbiddenPackagePaths.forEach((entry) => {
         console.log(`❌ 打包内容不应包含: ${entry}`);
-        allGood = false;
-      } else {
-        console.log(`✅ 已排除: ${entry}`);
-      }
-    });
+      });
+      return false;
+    }
 
-    return allGood;
+    console.log('✅ 内部策略、开发配置和非用户文档均已排除');
+    return true;
   } catch (error) {
     console.log(`❌ 无法检查 VSIX 打包清单: ${error.message}`);
     return false;
@@ -253,4 +270,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { isValidExtensionVersion, main };
+module.exports = { findForbiddenPackagePaths, isValidExtensionVersion, main };
