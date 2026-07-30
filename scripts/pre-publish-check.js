@@ -4,21 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const VSCE_ENTRY = path.join(
-  'node_modules',
-  '@vscode',
-  'vsce',
-  'vsce',
-);
+const VSCE_ENTRY = path.join('node_modules', '@vscode', 'vsce', 'vsce');
 const VSCE_ENTRY_ABSOLUTE = path.resolve(VSCE_ENTRY);
 
 console.log('🔍 Woodfish Theme 发布前检查');
 console.log('================================');
 
 function isValidExtensionVersion(version) {
-  return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(
-    version,
-  );
+  return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(version);
 }
 
 // 检查项目结构
@@ -72,9 +65,7 @@ function checkPackageJson() {
   let allGood = true;
   for (const [field, value] of Object.entries(requiredFields)) {
     if (value) {
-      console.log(
-        `✅ ${field}: ${Array.isArray(value) ? value.join(', ') : value}`,
-      );
+      console.log(`✅ ${field}: ${Array.isArray(value) ? value.join(', ') : value}`);
     } else {
       console.log(`❌ ${field}: 未设置`);
       allGood = false;
@@ -151,12 +142,11 @@ function checkDocumentation() {
   // 检查README.md
   const readme = fs.readFileSync('README.md', 'utf8');
   const requiredSections = [
-    '# 🌈 Woodfish Theme',
-    '## ✨ 特色功能',
-    '## 📦 安装',
-    '## 🚀 使用方法',
-    '## ⚙️ 配置说明',
-    '## 📝 更新日志',
+    '## 效果预览',
+    '## 它提供什么',
+    '## 三步开始',
+    '## 配置示例',
+    '## 本地开发',
   ];
 
   requiredSections.forEach((section) => {

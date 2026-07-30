@@ -1,5 +1,11 @@
 # 更新日志
 
+## [Unreleased]
+
+- 新增 `Woodfish Dracula` 内置主题，并将主题运行时重构为 `bearded / dracula / shared` 资源结构
+- 开启主题时恢复最近一次选择的内置 Woodfish 主题
+- 彩色光标尾迹默认关闭 GPU blur，同时保留透明度与显式 blur 配置
+
 ## [5.1.6] - 2026-04-11
 
 - 修复扩展市场简介图片无法显示的问题，统一 README 相对图片所依赖的 GitHub 仓库元数据

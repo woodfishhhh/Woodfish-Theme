@@ -70,10 +70,11 @@ code .
 
 如果您想改进主题设计：
 
-1. 修改 `themes/Bearded Theme/` 下的主题 JSON 或 CSS 资源
-2. 如涉及运行时拼装逻辑，同时检查 `src/services/runtime/payloadBuilder.ts`
-3. 至少在 `Woodfish Dark` 下验证启用、停用、修复注入这几条主路径
-4. 提供前后对比截图，并说明是否影响彩色字体 / 发光 / 彩色光标
+1. 主题 JSON、元数据和语法渐变分别位于 `themes/bearded/` 与 `themes/dracula/`
+2. 两个主题共用的运行时 CSS 位于 `themes/shared/`
+3. 如涉及运行时拼装逻辑，同时检查 `src/services/runtime/assets.ts` 与 `src/services/runtime/payloadBuilder.ts`
+4. 至少在 `Woodfish Dark` 和 `Woodfish Dracula` 下验证启用、停用、主题切换与修复注入
+5. 提供前后对比截图，并说明是否影响彩色字体 / 发光 / 彩色光标
 
 ### 📝 文档改进
 

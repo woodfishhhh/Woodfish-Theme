@@ -15,8 +15,10 @@ xiangmu/
 │   ├── services/runtime/  # Core runtime service
 │   ├── types/              # TypeScript types
 │   ├── ui/                # Status bar, notifications, output
-│   └── __tests__/         # 8 Jest test files
-├── themes/Bearded Theme/   # Theme JSON (spaces in path!)
+│   └── __tests__/         # Jest regression tests
+├── themes/bearded/        # Woodfish Dark theme and syntax assets
+├── themes/dracula/        # Woodfish Dracula theme and syntax assets
+├── themes/shared/         # Shared runtime CSS
 ├── out/                    # Compiled output
 ├── package.json
 ├── tsconfig.json           # Strict TypeScript
@@ -32,14 +34,17 @@ xiangmu/
 | Runtime service | `src/services/runtime/service.ts` |
 | Workbench patcher | `src/services/runtime/workbenchPatcher.ts` |
 | Feature state | `src/config/featureState.ts` |
-| Theme config | `themes/Bearded Theme/Bearded Theme.json` |
+| Theme registry | `src/services/runtime/themeRegistry.ts` |
+| Woodfish Dark | `themes/bearded/Woodfish Dark.json` |
+| Woodfish Dracula | `themes/dracula/Woodfish Dracula.json` |
+| Shared runtime CSS | `themes/shared/` |
 
 ## Conventions
 
 - **TypeScript strict mode** - no `any`, no `@ts-ignore`
 - **Chinese UI** - all user-facing strings in Chinese
 - **Output to `out/`** - not `dist/` or `build/`
-- **Runtime injection** - modifies workbench.html via Custom CSS extension
+- **Runtime injection** - patches `workbench.html` through `workbenchPatcher.ts`
 
 ## Anti-Patterns (THIS PROJECT)
 
@@ -58,6 +63,5 @@ npm run test:coverage  # With coverage
 
 ## Notes
 
-- Requires `be5invis.vscode-custom-css` or `bartag.custom-css-hot-reload`
 - 8 feature commands + repair/uninstall commands
-- Theme path contains spaces: `themes/Bearded Theme/`
+- Theme-specific syntax and metadata stay separate from shared runtime CSS

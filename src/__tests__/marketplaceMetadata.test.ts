@@ -20,13 +20,18 @@ function normalizeGithubRepo(url: string): string | null {
 
 function findRelativeImagePaths(markdown: string): string[] {
   const markdownImages = [...markdown.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map((match) => match[1]);
-  return markdownImages.filter((imagePath) => !/^(?:https?:)?\/\//i.test(imagePath));
+  const htmlImages = [...markdown.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map(
+    (match) => match[1]
+  );
+  return [...markdownImages, ...htmlImages].filter(
+    (imagePath) => !/^(?:https?:)?\/\//i.test(imagePath)
+  );
 }
 
 function findGithubRepos(markdown: string): string[] {
-  return [...markdown.matchAll(/https:\/\/github\.com\/([^)\s#]+\/[^)\s/#]+)/gi)].map(
-    (match) => match[1]
-  );
+  return [...markdown.matchAll(/https:\/\/github\.com\/[^)\s"'<>]+/gi)]
+    .map((match) => normalizeGithubRepo(match[0]))
+    .filter((repo): repo is string => repo !== null);
 }
 
 describe('marketplace metadata guardrails', () => {

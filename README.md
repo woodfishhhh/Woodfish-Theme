@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Woodfish Theme：带有渐变语法、可调发光和彩虹光标的 VS Code 深色主题">
+  <img src="./assets/readme/hero.png" width="100%" alt="Woodfish Theme：带有渐变语法、可调发光和彩虹光标的 VS Code 深色主题">
 </p>
 
 <p align="center">

@@ -130,6 +130,7 @@ If you encounter issues, please try the following steps. For more details, see t
     "#ffd700",
     "#00ffff"
   ],
+  "woodfishTheme.cursor.glowBlur": 0,
   "woodfishTheme.cursor.glowOpacity": 0.55,
   "woodfishTheme.cursor.customRules": [
     "div.cursor { width: 3px !important; }"
@@ -156,7 +157,7 @@ If you encounter issues, please try the following steps. For more details, see t
 - `woodfishTheme.cursor.glow`
   - Toggles cursor trail glow.
 - `woodfishTheme.cursor.glowBlur`
-  - Measured in `px`. Controls the blur radius of the trail.
+  - Measured in `px`. Defaults to `0` for a filter-free trail; values above `0` explicitly opt into blur.
 - `woodfishTheme.cursor.glowOpacity`
   - Range `0 - 1`. Controls how visible the trail is.
 - `woodfishTheme.cursor.customRules`
