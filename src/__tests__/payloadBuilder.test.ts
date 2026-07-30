@@ -393,6 +393,28 @@ describe('runtime payload builder', () => {
     expect(css).toContain('div.cursor { width: 3px; }');
   });
 
+  it('rejects obfuscated external loads and style-boundary escapes in custom CSS', () => {
+    const safeRule = '.mtk1 { color: red; }';
+    const settings = normalizeRuntimeSettings({
+      syntaxGradient: {
+        customRules: [
+          safeRule,
+          String.raw`.mtk2 { background: u\72l(https://example.com/a.png); }`,
+          '.mtk3 { background: u/**/rl(https://example.com/b.png); }',
+          '@im/**/port "https://example.com/a.css";',
+          String.raw`</st\79le><script>alert(1)</script>`,
+          '.mtk4 { background-image: -webkit-image-set("https://example.com/c.png" 1x); }',
+          String.raw`.mtk5 { background-image: image("h\74tps://example.com/d.png"); }`,
+        ],
+      },
+    });
+
+    expect(settings.syntaxGradient.customRules).toEqual([safeRule]);
+    expect(buildRuntimeCss(settings, realCursorAssets)).not.toMatch(
+      /example\.com|<\/style|<script|@import|url\s*\(/i
+    );
+  });
+
   it('provides static cursor and tab styling for reduced-motion users', () => {
     const tabBar = fs.readFileSync(
       path.resolve(__dirname, '../../themes/shared/tab-bar.css'),

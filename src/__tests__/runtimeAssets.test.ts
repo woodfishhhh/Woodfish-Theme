@@ -81,4 +81,20 @@ describe('runtime theme assets', () => {
     expect(theme.colors['editorLineNumber.activeForeground']).toBe('#F8F8F2');
     expect(theme.colors['tab.inactiveForeground']).toBe('#8391C2');
   });
+
+  it('caches immutable extension assets for repeated runtime syncs', () => {
+    const isolatedContext = {
+      asAbsolutePath: jest.fn((value: string) => path.resolve(extensionRoot, value)),
+    } as unknown as import('vscode').ExtensionContext;
+    const firstLoad = readRuntimeAssets(isolatedContext, 'Woodfish Dracula');
+    const secondLoad = readRuntimeAssets(isolatedContext, 'Woodfish Dracula');
+
+    expect(secondLoad).toBe(firstLoad);
+  });
+
+  it('rejects unknown theme labels instead of silently loading another theme', () => {
+    expect(() => readRuntimeAssets(context, 'Unknown Woodfish Theme')).toThrow(
+      'Unknown Woodfish runtime theme'
+    );
+  });
 });

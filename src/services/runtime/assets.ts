@@ -2,11 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CursorThemeDefaults, RuntimeCssAssets } from './payloadBuilder';
-import {
-  DEFAULT_WOODFISH_THEME_LABEL,
-  getDefaultWoodfishTheme,
-  resolveWoodfishTheme,
-} from './themeRegistry';
+import { DEFAULT_WOODFISH_THEME_LABEL, resolveWoodfishTheme } from './themeRegistry';
+
+const runtimeAssetCache = new WeakMap<vscode.ExtensionContext, Map<string, RuntimeCssAssets>>();
 
 function readFile(filePath: string): string {
   return fs.readFileSync(filePath, 'utf-8').trim();
@@ -49,7 +47,22 @@ export function readRuntimeAssets(
   context: vscode.ExtensionContext,
   themeLabel = DEFAULT_WOODFISH_THEME_LABEL
 ): RuntimeCssAssets {
-  const theme = resolveWoodfishTheme(themeLabel) ?? getDefaultWoodfishTheme();
+  const theme = resolveWoodfishTheme(themeLabel);
+  if (!theme) {
+    throw new Error(`Unknown Woodfish runtime theme: ${themeLabel}`);
+  }
+
+  let contextCache = runtimeAssetCache.get(context);
+  if (!contextCache) {
+    contextCache = new Map<string, RuntimeCssAssets>();
+    runtimeAssetCache.set(context, contextCache);
+  }
+
+  const cachedAssets = contextCache.get(theme.label);
+  if (cachedAssets) {
+    return cachedAssets;
+  }
+
   const resolveSharedThemePath = (...segments: string[]): string =>
     context.asAbsolutePath(path.join('themes', 'shared', ...segments));
   const resolveThemePath = (...segments: string[]): string =>
@@ -60,7 +73,7 @@ export function readRuntimeAssets(
     glowParts.push(readFile(resolveThemePath(theme.glowFile)));
   }
 
-  return {
+  const assets = {
     themeVariables: buildThemeVariableBlock(themeMeta),
     cursorDefaults: themeMeta.runtime?.cursorDefaults,
     activityBar: readFile(resolveSharedThemePath('activity-bar.css')),
@@ -70,4 +83,6 @@ export function readRuntimeAssets(
     cursorCore: readFile(resolveSharedThemePath('cursor-core.css')),
     cursorGlow: readFile(resolveSharedThemePath('cursor-glow.css')),
   };
+  contextCache.set(theme.label, assets);
+  return assets;
 }

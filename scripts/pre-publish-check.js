@@ -6,37 +6,81 @@ const { execFileSync } = require('child_process');
 
 const VSCE_ENTRY = path.join('node_modules', '@vscode', 'vsce', 'vsce');
 const VSCE_ENTRY_ABSOLUTE = path.resolve(VSCE_ENTRY);
+const MAX_PACKAGE_SOURCE_BYTES = 400 * 1024;
 const FORBIDDEN_PACKAGE_PATHS = [
   /^AGENTS\.md$/i,
   /\/AGENTS\.md$/i,
   /^plan\.md$/i,
+  /^README\.en\.md$/i,
   /^eslint\.config\.mjs$/i,
   /^jest\.config\.js$/i,
   /^docs\/CHANGELOG\.md$/i,
   /^docs\/CONTRIBUTING\.md$/i,
   /^docs\/superpowers\//i,
   /^out\/integration\//i,
+  /^coverage\//i,
+  /^\.nyc_output\//i,
+  /^build\//i,
   /^\.codebuddy\//i,
   /^\.omx\//i,
   /^\.superpowers\//i,
   /^\.worktrees\//i,
+  /^assets\/readme\//i,
+  /^images\/(?:img1\.png|img2\.png|icon\.svg)$/i,
 ];
-
-console.log('🔍 Woodfish Theme 发布前检查');
-console.log('================================');
+const REQUIRED_PACKAGE_PATHS = [
+  'out/extension.js',
+  'images/head.jpg',
+  'themes/bearded/Woodfish Dark.json',
+  'themes/bearded/theme.meta.json',
+  'themes/bearded/syntax-highlighting.css',
+  'themes/dracula/Woodfish Dracula.json',
+  'themes/dracula/theme.meta.json',
+  'themes/dracula/syntax-highlighting.css',
+  'themes/dracula/glow-effects.css',
+  'themes/shared/activity-bar.css',
+  'themes/shared/tab-bar.css',
+  'themes/shared/glow-effects.css',
+  'themes/shared/cursor-core.css',
+  'themes/shared/cursor-glow.css',
+];
 
 function isValidExtensionVersion(version) {
   return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(version);
 }
 
-function findForbiddenPackagePaths(tree) {
-  const packagePaths = tree
+function parsePackagePaths(tree) {
+  return tree
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
+}
+
+function findForbiddenPackagePaths(tree) {
+  const packagePaths = parsePackagePaths(tree);
 
   return packagePaths.filter((packagePath) =>
     FORBIDDEN_PACKAGE_PATHS.some((pattern) => pattern.test(packagePath.replaceAll('\\', '/')))
+  );
+}
+
+function findMissingRequiredPackagePaths(tree) {
+  const packagePaths = new Set(
+    parsePackagePaths(tree).map((packagePath) => packagePath.replaceAll('\\', '/').toLowerCase())
+  );
+
+  return REQUIRED_PACKAGE_PATHS.filter(
+    (requiredPath) => !packagePaths.has(requiredPath.toLowerCase())
+  );
+}
+
+function calculatePackageSourceBytes(
+  tree,
+  getSize = (packagePath) => fs.statSync(path.resolve(packagePath)).size
+) {
+  return parsePackagePaths(tree).reduce(
+    (total, packagePath) => total + getSize(packagePath.replaceAll('\\', '/')),
+    0
   );
 }
 
@@ -186,17 +230,19 @@ function checkDocumentation() {
     }
   });
 
-  // 检查图片引用
-  const imageRefs = readme.match(/!\[.*?\]\((.*?)\)/g);
-  if (imageRefs) {
-    imageRefs.forEach((ref) => {
-      const imagePath = ref.match(/\((.*?)\)/)[1];
-      if (fs.existsSync(imagePath)) {
-        console.log(`✅ 图片存在: ${imagePath}`);
-      } else {
-        console.log(`⚠️  图片缺失: ${imagePath}`);
-      }
-    });
+  const markdownImages = [...readme.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map((match) => match[1]);
+  const htmlImages = [...readme.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map(
+    (match) => match[1]
+  );
+  for (const imagePath of [...markdownImages, ...htmlImages]) {
+    if (/^(?:https?:)?\/\//i.test(imagePath)) {
+      console.log(`✅ 远程图片引用: ${imagePath}`);
+    } else if (fs.existsSync(imagePath)) {
+      console.log(`✅ 图片存在: ${imagePath}`);
+    } else {
+      console.log(`❌ 图片缺失: ${imagePath}`);
+      allGood = false;
+    }
   }
 
   return allGood;
@@ -211,15 +257,35 @@ function checkPackageHygiene() {
       encoding: 'utf8',
     });
     const forbiddenPackagePaths = findForbiddenPackagePaths(tree);
+    const missingRequiredPackagePaths = findMissingRequiredPackagePaths(tree);
+    const packageSourceBytes = calculatePackageSourceBytes(tree);
+
     if (forbiddenPackagePaths.length > 0) {
       forbiddenPackagePaths.forEach((entry) => {
         console.log(`❌ 打包内容不应包含: ${entry}`);
       });
-      return false;
     }
 
-    console.log('✅ 内部策略、开发配置和非用户文档均已排除');
-    return true;
+    if (missingRequiredPackagePaths.length > 0) {
+      missingRequiredPackagePaths.forEach((entry) => {
+        console.log(`❌ 打包内容缺少运行所需文件: ${entry}`);
+      });
+    }
+
+    if (packageSourceBytes > MAX_PACKAGE_SOURCE_BYTES) {
+      console.log(
+        `❌ 打包源文件共 ${packageSourceBytes} bytes，超过 ${MAX_PACKAGE_SOURCE_BYTES} bytes 预算`
+      );
+    }
+
+    const passed =
+      forbiddenPackagePaths.length === 0 &&
+      missingRequiredPackagePaths.length === 0 &&
+      packageSourceBytes <= MAX_PACKAGE_SOURCE_BYTES;
+    if (passed) {
+      console.log(`✅ 打包清单完整且精简（源文件 ${packageSourceBytes} bytes）`);
+    }
+    return passed;
   } catch (error) {
     console.log(`❌ 无法检查 VSIX 打包清单: ${error.message}`);
     return false;
@@ -243,6 +309,9 @@ function generateReleaseChecklist() {
 
 // 主函数
 function main() {
+  console.log('🔍 Woodfish Theme 发布前检查');
+  console.log('================================');
+
   const checks = [
     checkProjectStructure(),
     checkPackageJson(),
@@ -271,4 +340,11 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { findForbiddenPackagePaths, isValidExtensionVersion, main };
+module.exports = {
+  MAX_PACKAGE_SOURCE_BYTES,
+  calculatePackageSourceBytes,
+  findForbiddenPackagePaths,
+  findMissingRequiredPackagePaths,
+  isValidExtensionVersion,
+  main,
+};
