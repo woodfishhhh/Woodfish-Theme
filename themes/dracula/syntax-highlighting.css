@@ -1,35 +1,78 @@
-/* 关键字 / 运算符 / control */
+/*
+ * Keep every gradient inside the token's native Dracula color family.
+ * Comments and default foreground text intentionally stay flat.
+ */
+:not(.cursor).mtk3,
+:not(.cursor).mtk5,
+:not(.cursor).mtk7,
+:not(.cursor).mtk8,
+:not(.cursor).mtk9,
 :not(.cursor).mtk10 {
-  background-image: linear-gradient(90deg, #ff79c6, #bd93f9) !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
-  font-weight: 600 !important;
 }
 
-/* 函数 / 方法 */
+/* Constants and numeric literals: Dracula purple. */
+:not(.cursor).mtk3 {
+  background-image: linear-gradient(
+    90deg,
+    #d6acff 0%,
+    #bd93f9 52%,
+    #a678e8 100%
+  ) !important;
+}
+
+/* Functions and method calls: Dracula green. */
 :not(.cursor).mtk5 {
-  background-image: linear-gradient(90deg, #8be9fd, #50fa7b) !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-  -webkit-background-clip: text !important;
+  background-image: linear-gradient(
+    90deg,
+    #69ff94 0%,
+    #50fa7b 52%,
+    #34db64 100%
+  ) !important;
   font-weight: 600 !important;
 }
 
-/* 字符串 / 文本常量 */
+/* Parameters and declaration accents: Dracula orange. */
+:not(.cursor).mtk7 {
+  background-image: linear-gradient(
+    90deg,
+    #ffd0a6 0%,
+    #ffb86c 52%,
+    #f5964f 100%
+  ) !important;
+}
+
+/* Strings and textual constants: Dracula yellow. */
 :not(.cursor).mtk8 {
-  background-image: linear-gradient(90deg, #ffb86c, #f1fa8c) !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-  -webkit-background-clip: text !important;
+  background-image: linear-gradient(
+    90deg,
+    #ffffa5 0%,
+    #f1fa8c 52%,
+    #d8e66f 100%
+  ) !important;
   font-weight: 500 !important;
 }
 
-/* 类型 / 内建 / class-like */
+/* Types, built-ins, and classes: Dracula cyan. */
 :not(.cursor).mtk9 {
-  background-image: linear-gradient(90deg, #8be9fd, #bd93f9) !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-  -webkit-background-clip: text !important;
+  background-image: linear-gradient(
+    90deg,
+    #a4ffff 0%,
+    #8be9fd 52%,
+    #62d8f4 100%
+  ) !important;
   font-weight: 500 !important;
+}
+
+/* Keywords, storage, control flow, and operators: Dracula pink. */
+:not(.cursor).mtk10 {
+  background-image: linear-gradient(
+    90deg,
+    #ff92df 0%,
+    #ff79c6 52%,
+    #e95ab4 100%
+  ) !important;
+  font-weight: 600 !important;
 }

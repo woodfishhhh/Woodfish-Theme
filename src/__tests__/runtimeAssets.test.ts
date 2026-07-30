@@ -43,7 +43,29 @@ describe('runtime theme assets', () => {
     expect(assets.tabBar).toContain('background-position: 0% 50%;');
     expect(assets.tabBar).toContain('background-position: 100% 50%;');
     expect(assets.tabBar).not.toMatch(/background-position\s*:\s*(?:0%|100%)\s+50%\s*!important\b/);
-    expect(assets.syntaxGradient).toContain('#bd93f9');
+    expect(assets.syntaxGradient).toContain(
+      'linear-gradient(\n    90deg,\n    #d6acff 0%,\n    #bd93f9 52%,\n    #a678e8 100%'
+    );
+    expect(assets.syntaxGradient).toContain(
+      'linear-gradient(\n    90deg,\n    #69ff94 0%,\n    #50fa7b 52%,\n    #34db64 100%'
+    );
+    expect(assets.syntaxGradient).toContain(
+      'linear-gradient(\n    90deg,\n    #ffd0a6 0%,\n    #ffb86c 52%,\n    #f5964f 100%'
+    );
+    expect(assets.syntaxGradient).toContain(
+      'linear-gradient(\n    90deg,\n    #ffffa5 0%,\n    #f1fa8c 52%,\n    #d8e66f 100%'
+    );
+    expect(assets.syntaxGradient).toContain(
+      'linear-gradient(\n    90deg,\n    #a4ffff 0%,\n    #8be9fd 52%,\n    #62d8f4 100%'
+    );
+    expect(assets.syntaxGradient).toContain(
+      'linear-gradient(\n    90deg,\n    #ff92df 0%,\n    #ff79c6 52%,\n    #e95ab4 100%'
+    );
+    expect(assets.syntaxGradient).not.toContain('#ff79c6, #bd93f9');
+    expect(assets.syntaxGradient).not.toContain('#8be9fd, #50fa7b');
+    expect(assets.syntaxGradient).not.toContain('#ffb86c, #f1fa8c');
+    expect(assets.syntaxGradient).not.toContain('#8be9fd, #bd93f9');
+    expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:1|2)\b/);
     expect(assets.syntaxGradient).not.toMatch(/\.mtk(?:6|12|13|14|15|16)\b/);
     expect(assets.glow).toContain('Woodfish Dracula glow profile');
     expect(assets.cursorGlow).toContain(
@@ -68,6 +90,12 @@ describe('runtime theme assets', () => {
     expect(css).toContain('--woodfish-cursor-glow-opacity: 0.45;');
     expect(css).toContain('opacity: var(--woodfish-cursor-glow-opacity');
     expect(css).toContain('text-shadow: 0 0 6px currentColor !important;');
+    expect(css).toContain('#bd93f9 52%');
+    expect(css).toContain('#50fa7b 52%');
+    expect(css).toContain('#ffb86c 52%');
+    expect(css).toContain('#f1fa8c 52%');
+    expect(css).toContain('#8be9fd 52%');
+    expect(css).toContain('#ff79c6 52%');
     expect(css).not.toContain('brightness(180%)');
   });
 
