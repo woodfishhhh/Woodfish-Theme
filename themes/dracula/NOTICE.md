@@ -1,15 +1,13 @@
 # Dracula Source Notice
 
-`themes/dracula/Woodfish Dracula.json` is derived from the official Dracula VS Code theme.
+`Woodfish Dracula.json` is an unmodified copy of the official Dracula theme from
+Dracula for Visual Studio Code 2.25.1.
 
-- Source repository: `https://github.com/dracula/visual-studio-code`
-- Upstream source file: `src/dracula.yml`
-- Retrieved on: `2026-04-15`
-- Upstream license: `MIT`
+- Source: https://github.com/dracula/visual-studio-code
+- Upstream package: `dracula-theme.theme-dracula`
+- Upstream file: `theme/dracula.json`
+- License: MIT
 
-Woodfish-specific additions in this directory:
-
-- renamed the built-in theme display name to `Woodfish Dracula`
-- added `theme.meta.json` for shared injected accent variables
-- added `syntax-highlighting.css` for restrained Woodfish gradient overlays
-- added `glow-effects.css` for the Dracula-specific low-radius glow hierarchy
+The complete upstream license is included in `LICENSE.txt`. Woodfish contributes
+the display label and the independent runtime overlay; it does not rewrite this
+theme file.

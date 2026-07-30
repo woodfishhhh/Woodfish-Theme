@@ -33,6 +33,13 @@ jest.mock('../config/featureFlags', () => ({
   readCurrentColorTheme: jest.fn(() => 'Woodfish Dark'),
   readFeatureFlags: jest.fn(),
   readRuntimeSettings: jest.fn(() => ({
+    overlay: {
+      enabled: true,
+      hueShift: 24,
+      lightnessDelta: 0.06,
+      neutralChroma: 0.06,
+      angle: 90,
+    },
     syntaxGradient: {
       enabled: true,
       customRules: [],
@@ -53,7 +60,7 @@ jest.mock('../config/featureFlags', () => ({
       customRules: [],
     },
   })),
-  setColorTheme: jest.fn(),
+  setOverlayEnabled: jest.fn(),
 }));
 
 const mockWriteRuntimeInstallState = jest.fn().mockResolvedValue(undefined);
@@ -73,8 +80,7 @@ jest.mock('../services/runtime/assets', () => ({
   readRuntimeAssets: jest.fn(() => ({
     activityBar: '.activity {}',
     tabBar: '.tab {}',
-    syntaxGradient: '.syntax {}',
-    glow: '.glow {}',
+    overlayBootstrap: 'globalThis.woodfishOverlay = true;',
     cursorCore: '.cursor {}',
     cursorGlow: '.glow-cursor {}',
   })),
@@ -85,7 +91,10 @@ jest.mock('../services/runtime/locator', () => ({
 }));
 
 jest.mock('../services/runtime/payloadBuilder', () => ({
-  buildRuntimeCss: jest.fn(() => '.woodfish { color: red; }'),
+  buildRuntimePayload: jest.fn(() => ({
+    css: '.woodfish { color: red; }',
+    bootstrap: 'globalThis.woodfishOverlay = true;',
+  })),
 }));
 
 jest.mock('../services/runtime/status', () => ({
@@ -110,7 +119,12 @@ jest.mock('../ui/progress', () => ({
   withProgressNotification: jest.fn(async (_title: string, task: () => Promise<void>) => task()),
 }));
 
-import { readCurrentColorTheme } from '../config/featureFlags';
+import {
+  readCurrentColorTheme,
+  readRuntimeSettings,
+  setOverlayEnabled,
+} from '../config/featureFlags';
+import { buildRuntimePayload } from '../services/runtime/payloadBuilder';
 import { IntegratedThemeService } from '../services/runtime/service';
 
 describe('IntegratedThemeService', () => {
@@ -382,22 +396,101 @@ describe('IntegratedThemeService', () => {
     expect(mockWriteRuntimeInstallState).toHaveBeenCalledTimes(2);
   });
 
-  it('returns the remembered built-in theme when enable needs to restore it', () => {
+  it('enables the overlay without replacing the active external theme', async () => {
     (readCurrentColorTheme as jest.Mock).mockReturnValueOnce('One Dark Pro');
-    mockReadLastSelectedThemeLabel.mockReturnValueOnce('Woodfish Dracula');
-
     const service = new IntegratedThemeService(context);
 
-    expect(service.getThemeLabelForEnable()).toBe('Woodfish Dracula');
+    await service.enableTheme();
+
+    expect(setOverlayEnabled).toHaveBeenCalledWith(true);
+    expect(mockFiles.get(currentWorkbenchPath)).toContain('data-woodfish-theme="bootstrap"');
   });
 
-  it('falls back to Woodfish Dark when the remembered theme is invalid', () => {
-    (readCurrentColorTheme as jest.Mock).mockReturnValueOnce('One Dark Pro');
-    mockReadLastSelectedThemeLabel.mockReturnValueOnce('One Dark Pro');
+  it('persists overlay disable intent and removes the installed payload', async () => {
+    const service = new IntegratedThemeService(context);
+    await service.syncWithCurrentSettings();
+
+    await service.disableTheme();
+
+    expect(setOverlayEnabled).toHaveBeenCalledWith(false);
+    expect(mockFiles.get(currentWorkbenchPath)).not.toContain('WOODFISH_THEME_START');
+  });
+
+  it('removes a stale payload at startup when the overlay master switch is off', async () => {
+    mockFiles.set(
+      currentWorkbenchPath,
+      '<html><body>workbench</body><!-- WOODFISH_THEME_START -->payload<!-- WOODFISH_THEME_END --></html>'
+    );
+    (readRuntimeSettings as jest.Mock).mockReturnValueOnce({
+      overlay: {
+        enabled: false,
+        hueShift: 24,
+        lightnessDelta: 0.06,
+        neutralChroma: 0.06,
+        angle: 90,
+      },
+      syntaxGradient: { enabled: true, customRules: [] },
+      glow: { enabled: true, intensity: 1, customRules: [] },
+      cursor: {
+        enabled: true,
+        animationDuration: 8,
+        gradientStops: ['#fff', '#000'],
+        borderRadius: 2,
+        glow: true,
+        glowBlur: 4,
+        glowOpacity: 0.7,
+        customRules: [],
+      },
+    });
 
     const service = new IntegratedThemeService(context);
+    await service.initializeOnStartup();
 
-    expect(service.getThemeLabelForEnable()).toBe('Woodfish Dark');
+    expect(mockFiles.get(currentWorkbenchPath)).not.toContain('WOODFISH_THEME_START');
+  });
+
+  it('replaces the payload when only the bootstrap implementation changes', async () => {
+    (buildRuntimePayload as jest.Mock)
+      .mockReturnValueOnce({
+        css: '.woodfish { color: red; }',
+        bootstrap: 'globalThis.woodfishOverlayVersion = "a";',
+      })
+      .mockReturnValueOnce({
+        css: '.woodfish { color: red; }',
+        bootstrap: 'globalThis.woodfishOverlayVersion = "b";',
+      });
+    const service = new IntegratedThemeService(context);
+
+    await service.syncWithCurrentSettings();
+    const firstHtml = mockFiles.get(currentWorkbenchPath) ?? '';
+    await service.syncWithCurrentSettings();
+    const secondHtml = mockFiles.get(currentWorkbenchPath) ?? '';
+
+    expect(firstHtml).toContain('woodfishOverlayVersion = "a"');
+    expect(secondHtml).toContain('woodfishOverlayVersion = "b"');
+    expect(secondHtml).not.toBe(firstHtml);
+    expect(firstHtml.match(/data-woodfish-hash="([^"]+)"/)?.[1]).not.toBe(
+      secondHtml.match(/data-woodfish-hash="([^"]+)"/)?.[1]
+    );
+  });
+
+  it('repairs bootstrap content even when the recorded payload hash was left intact', async () => {
+    const service = new IntegratedThemeService(context);
+    await service.syncWithCurrentSettings();
+    const installedHtml = mockFiles.get(currentWorkbenchPath) ?? '';
+    mockFiles.set(
+      currentWorkbenchPath,
+      installedHtml.replace(
+        'globalThis.woodfishOverlay = true;',
+        'globalThis.woodfishOverlay = false;'
+      )
+    );
+
+    await service.initializeOnStartup();
+
+    const repairedHtml = mockFiles.get(currentWorkbenchPath) ?? '';
+    expect(repairedHtml).toContain('globalThis.woodfishOverlay = true;');
+    expect(repairedHtml).not.toContain('globalThis.woodfishOverlay = false;');
   });
 
   function validBackupState(backupHtml: string): Record<string, unknown> {

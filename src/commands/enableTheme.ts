@@ -5,7 +5,7 @@ import { CommandDeps } from './types';
 
 export function registerEnableThemeCommand(deps: CommandDeps): vscode.Disposable {
   return vscode.commands.registerCommand(COMMANDS.enable, async () => {
-    await runSafely('启用主题', async () => {
+    await runSafely('启用通用叠层', async () => {
       await deps.runtimeService.enableTheme();
       deps.featureState.refreshFromConfig();
     });

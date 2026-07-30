@@ -81,8 +81,8 @@ describe('theme command runtime flow', () => {
     expect(deps.featureState.refreshFromConfig).toHaveBeenCalledTimes(1);
   });
 
-  it('restores the remembered Woodfish theme when enabling again', async () => {
-    const mockSetColorTheme = jest.fn().mockResolvedValue(undefined);
+  it('persists the overlay master switch before synchronizing', async () => {
+    const mockSetOverlayEnabled = jest.fn().mockResolvedValue(undefined);
     let runEnableTheme: (() => Promise<void>) | undefined;
 
     jest.isolateModules(() => {
@@ -90,7 +90,7 @@ describe('theme command runtime flow', () => {
         readCurrentColorTheme: jest.fn(() => 'One Dark Pro'),
         readFeatureFlags: jest.fn(),
         readRuntimeSettings: jest.fn(),
-        setColorTheme: mockSetColorTheme,
+        setOverlayEnabled: mockSetOverlayEnabled,
       }));
 
       jest.doMock('../services/runtime/state', () => ({
@@ -131,6 +131,6 @@ describe('theme command runtime flow', () => {
 
     await runEnableTheme?.();
 
-    expect(mockSetColorTheme).toHaveBeenCalledWith('Woodfish Dracula');
+    expect(mockSetOverlayEnabled).toHaveBeenCalledWith(true);
   });
 });

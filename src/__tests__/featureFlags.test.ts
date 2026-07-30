@@ -12,7 +12,7 @@ jest.mock(
 );
 
 import * as vscode from 'vscode';
-import { readRuntimeSettings, setFeatureFlag } from '../config/featureFlags';
+import { readRuntimeSettings, setFeatureFlag, setOverlayEnabled } from '../config/featureFlags';
 import { CONFIG_SECTION } from '../constants/config';
 
 type MockConfiguration = {
@@ -48,6 +48,13 @@ describe('featureFlags config access', () => {
 
     const settings = readRuntimeSettings();
 
+    expect(settings.overlay).toEqual({
+      enabled: true,
+      hueShift: 24,
+      lightnessDelta: 0.06,
+      neutralChroma: 0.06,
+      angle: 90,
+    });
     expect(settings.syntaxGradient.enabled).toBe(true);
     expect((settings.syntaxGradient as Record<string, unknown>).preset).toBeUndefined();
     expect(settings.glow.enabled).toBe(true);
@@ -67,6 +74,10 @@ describe('featureFlags config access', () => {
 
   it('prefers explicit fully qualified user values when present', () => {
     const configuration = createConfiguration({
+      'woodfishTheme.overlay.enabled': false,
+      'woodfishTheme.overlay.hueShift': 36,
+      'woodfishTheme.overlay.lightnessDelta': 0.08,
+      'woodfishTheme.overlay.neutralChroma': 0.07,
       'woodfishTheme.glow.enabled': false,
       'woodfishTheme.cursor.enabled': false,
     });
@@ -74,12 +85,21 @@ describe('featureFlags config access', () => {
 
     const settings = readRuntimeSettings();
 
+    expect(settings.overlay).toMatchObject({
+      enabled: false,
+      hueShift: 36,
+      lightnessDelta: 0.08,
+      neutralChroma: 0.07,
+    });
     expect(settings.glow.enabled).toBe(false);
     expect(settings.cursor.enabled).toBe(false);
   });
 
   it('sanitizes malformed values read from workspace configuration', () => {
     const configuration = createConfiguration({
+      'woodfishTheme.overlay.hueShift': Number.POSITIVE_INFINITY,
+      'woodfishTheme.overlay.lightnessDelta': -10,
+      'woodfishTheme.overlay.neutralChroma': 99,
       'woodfishTheme.glow.enabled': 'yes',
       'woodfishTheme.glow.intensity': Number.POSITIVE_INFINITY,
       'woodfishTheme.glow.customRules': ['.mtk1 { opacity: 0.5; }', '@import "bad.css";'],
@@ -91,6 +111,9 @@ describe('featureFlags config access', () => {
 
     const settings = readRuntimeSettings();
 
+    expect(settings.overlay.hueShift).toBe(24);
+    expect(settings.overlay.lightnessDelta).toBe(0);
+    expect(settings.overlay.neutralChroma).toBe(0.4);
     expect(settings.glow.enabled).toBe(true);
     expect(settings.glow.intensity).toBe(1);
     expect(settings.glow.customRules).toEqual(['.mtk1 { opacity: 0.5; }']);
@@ -173,6 +196,23 @@ describe('featureFlags config access', () => {
     expect(themeConfiguration.update).toHaveBeenCalledTimes(1);
     expect(themeConfiguration.update).toHaveBeenCalledWith(
       'glow.enabled',
+      false,
+      vscode.ConfigurationTarget.Global
+    );
+    expect(rootConfiguration.update).not.toHaveBeenCalled();
+  });
+
+  it('persists the top-level overlay installation intent independently', async () => {
+    const rootConfiguration = createConfiguration();
+    const themeConfiguration = createConfiguration();
+    getConfigurationMock.mockImplementation((section?: string) =>
+      section === CONFIG_SECTION ? themeConfiguration : rootConfiguration
+    );
+
+    await setOverlayEnabled(false);
+
+    expect(themeConfiguration.update).toHaveBeenCalledWith(
+      'overlay.enabled',
       false,
       vscode.ConfigurationTarget.Global
     );

@@ -3,7 +3,9 @@ import * as path from 'path';
 import {
   DEFAULT_BEARDED_THEME_VARIABLES,
   DEFAULT_RUNTIME_SETTINGS,
+  buildRuntimeBootstrap,
   buildRuntimeCss,
+  buildRuntimePayload,
   normalizeRuntimeSettings,
 } from '../services/runtime/payloadBuilder';
 
@@ -12,8 +14,7 @@ describe('runtime payload builder', () => {
     themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
     tabBar: '.tab { color: blue; }',
-    syntaxGradient: '.mtk1 { color: pink !important; }',
-    glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
+    overlayBootstrap: '(() => { document.documentElement.dataset.woodfishOverlay = "active"; })();',
     cursorCore:
       'div.cursor { animation: 30s linear infinite alternate bp-animation !important; border-radius: 2px !important; }',
     cursorGlow: 'div.cursor::after { box-shadow: 0 0 15px rgba(255, 255, 255, 0.7) !important; }',
@@ -31,8 +32,10 @@ describe('runtime payload builder', () => {
     themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
     tabBar: '.tab { color: blue; }',
-    syntaxGradient: '.mtk1 { color: pink !important; }',
-    glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
+    overlayBootstrap: fs.readFileSync(
+      path.resolve(__dirname, '../../themes/shared/overlay-bootstrap.js'),
+      'utf-8'
+    ),
     cursorCore: fs.readFileSync(
       path.resolve(__dirname, '../../themes/shared/cursor-core.css'),
       'utf-8'
@@ -76,8 +79,11 @@ describe('runtime payload builder', () => {
     expect(css).toContain('--woodfish-activity-badge-gradient');
     expect(css).toContain('--woodfish-tab-border-gradient');
     expect(css).toContain('.activity { color: red; }');
-    expect(css).toContain('.mtk1 { color: pink !important; }');
-    expect(css).toContain('text-shadow: 0 0 15px currentColor !important;');
+    expect(css).toContain('[data-woodfish-overlay-token="true"]');
+    expect(css).toContain('--woodfish-overlay-hue-shift: 24');
+    expect(css).toContain('--woodfish-overlay-lightness-delta: 0.06');
+    expect(css).toContain('0 0 2px var(--woodfish-overlay-glow-near)');
+    expect(css).toContain('0 0 5px var(--woodfish-overlay-glow-mid)');
     expect(css).toContain('animation: 12s linear infinite alternate bp-animation !important;');
     expect(css).toContain('border-radius: 6px !important;');
     expect(css).toContain('linear-gradient(180deg, #111111, #222222, #333333)');
@@ -99,13 +105,20 @@ describe('runtime payload builder', () => {
     expect(css).toContain('--woodfish-activity-badge-gradient');
     expect(css).toContain('.activity { color: red; }');
     expect(css).toContain('.tab { color: blue; }');
-    expect(css).not.toContain('.mtk1 { color: pink !important; }');
+    expect(css).not.toContain('[data-woodfish-overlay-token="true"] {');
     expect(css).not.toContain('text-shadow');
     expect(css).not.toContain('div.cursor');
   });
 
   it('exposes the expected defaults for an enabled integrated theme', () => {
     expect((DEFAULT_RUNTIME_SETTINGS as Record<string, unknown>).runtime).toBeUndefined();
+    expect(DEFAULT_RUNTIME_SETTINGS.overlay).toEqual({
+      enabled: true,
+      hueShift: 24,
+      lightnessDelta: 0.06,
+      neutralChroma: 0.06,
+      angle: 90,
+    });
     expect(DEFAULT_RUNTIME_SETTINGS.syntaxGradient.enabled).toBe(true);
     expect(
       (DEFAULT_RUNTIME_SETTINGS.syntaxGradient as Record<string, unknown>).preset
@@ -115,6 +128,16 @@ describe('runtime payload builder', () => {
     expect(
       packageJson.contributes.configuration.properties['woodfishTheme.runtime.enabled']
     ).toBeUndefined();
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.overlay.enabled'].default
+    ).toBe(true);
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.overlay.hueShift'].default
+    ).toBe(24);
+    expect(
+      packageJson.contributes.configuration.properties['woodfishTheme.overlay.lightnessDelta']
+        .default
+    ).toBe(0.06);
     expect(
       packageJson.contributes.configuration.properties['woodfishTheme.runtime.autoSwitchTheme']
     ).toBeUndefined();
@@ -127,6 +150,19 @@ describe('runtime payload builder', () => {
     expect(
       packageJson.contributes.configuration.properties['woodfishTheme.cursor.enabled'].default
     ).toBe(true);
+  });
+
+  it('ships the bootstrap only while text gradient or glow processing is enabled', () => {
+    const enabled = buildRuntimePayload(DEFAULT_RUNTIME_SETTINGS, realCursorAssets);
+    const cursorOnlySettings = normalizeRuntimeSettings({
+      syntaxGradient: { enabled: false },
+      glow: { enabled: false },
+      cursor: { enabled: true },
+    });
+
+    expect(enabled.bootstrap).toContain('MAX_TOKENS_PER_FRAME = 600');
+    expect(buildRuntimeBootstrap(cursorOnlySettings, realCursorAssets)).toBe('');
+    expect(buildRuntimePayload(cursorOnlySettings, realCursorAssets).css).toContain('div.cursor');
   });
 
   it('deduplicates cursor selectors and shared keyframes in the runtime payload', () => {
@@ -316,8 +352,8 @@ describe('runtime payload builder', () => {
       {
         activityBar: '.activitybar .badge .badge-content { color: red; }',
         tabBar: '.tab { color: blue; }',
-        syntaxGradient: '.mtk1 { color: pink !important; }',
-        glow: 'span.mtk1 { text-shadow: 0 0 30px currentColor !important; }',
+        overlayBootstrap:
+          '(() => { document.documentElement.dataset.woodfishOverlay = "active"; })();',
         cursorCore: 'div.cursor { border-radius: 2px !important; }',
         cursorGlow: 'div.cursor::after { opacity: 0.7 !important; }',
       }
@@ -331,6 +367,12 @@ describe('runtime payload builder', () => {
   it('sanitizes unsafe custom CSS, invalid colors, oversized arrays, and numeric ranges', () => {
     const oversizedRules = Array.from({ length: 40 }, (_, index) => `.mtk${index} { color: red; }`);
     const settings = normalizeRuntimeSettings({
+      overlay: {
+        hueShift: 900,
+        lightnessDelta: -1,
+        neutralChroma: Number.POSITIVE_INFINITY,
+        angle: 900,
+      },
       syntaxGradient: {
         customRules: [
           '.mtk1 { color: red; }',
@@ -365,6 +407,10 @@ describe('runtime payload builder', () => {
       /<\/style|<script|@import|url\s*\(/i
     );
     expect(settings.glow.intensity).toBe(3);
+    expect(settings.overlay.hueShift).toBe(180);
+    expect(settings.overlay.lightnessDelta).toBe(0);
+    expect(settings.overlay.neutralChroma).toBe(0.06);
+    expect(settings.overlay.angle).toBe(360);
     expect(settings.cursor.animationDuration).toBe(1);
     expect(settings.cursor.borderRadius).toBe(24);
     expect(settings.cursor.glowBlur).toBe(0);

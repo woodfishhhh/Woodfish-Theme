@@ -3,13 +3,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { CursorThemeDefaults, RuntimeCssAssets } from './payloadBuilder';
 import { DEFAULT_WOODFISH_THEME_LABEL, resolveWoodfishTheme } from './themeRegistry';
-import {
-  compileTokenColorSelectors,
-  EditorColorOverrides,
-  resolveEditorColorOverrides,
-  TokenColorTheme,
-  TokenGradientProfile,
-} from './tokenColorMap';
 
 const runtimeAssetCache = new WeakMap<vscode.ExtensionContext, Map<string, RuntimeCssAssets>>();
 
@@ -28,7 +21,6 @@ type ThemeMeta = {
     tabBorderShadow?: string;
     tabBorderAnimationDuration?: string;
     cursorDefaults?: CursorThemeDefaults;
-    syntaxGradient?: TokenGradientProfile;
   };
 };
 
@@ -51,26 +43,11 @@ function buildThemeVariableBlock(meta: ThemeMeta): string {
   ].join('\n');
 }
 
-function readEditorColorOverrides(themeLabel: string): EditorColorOverrides {
-  const workspace = vscode.workspace as typeof vscode.workspace | undefined;
-  if (!workspace) {
-    return {};
-  }
-
-  const customizations = workspace
-    .getConfiguration('workbench')
-    .get<unknown>('colorCustomizations');
-  return resolveEditorColorOverrides(customizations, themeLabel);
-}
-
 export function readRuntimeAssets(
   context: vscode.ExtensionContext,
   themeLabel = DEFAULT_WOODFISH_THEME_LABEL
 ): RuntimeCssAssets {
   const theme = resolveWoodfishTheme(themeLabel);
-  if (!theme) {
-    throw new Error(`Unknown Woodfish runtime theme: ${themeLabel}`);
-  }
 
   let contextCache = runtimeAssetCache.get(context);
   if (!contextCache) {
@@ -78,8 +55,7 @@ export function readRuntimeAssets(
     runtimeAssetCache.set(context, contextCache);
   }
 
-  const editorColorOverrides = readEditorColorOverrides(theme.label);
-  const cacheKey = `${theme.label}:${JSON.stringify(editorColorOverrides)}`;
+  const cacheKey = theme ? `built-in:${theme.label}` : 'external';
   const cachedAssets = contextCache.get(cacheKey);
   if (cachedAssets) {
     return cachedAssets;
@@ -87,33 +63,20 @@ export function readRuntimeAssets(
 
   const resolveSharedThemePath = (...segments: string[]): string =>
     context.asAbsolutePath(path.join('themes', 'shared', ...segments));
-  const resolveThemePath = (...segments: string[]): string =>
-    context.asAbsolutePath(path.join('themes', theme.directory, ...segments));
-  const themeMeta = readJsonFile<ThemeMeta>(resolveThemePath(theme.metaFile));
-  const themeSource = readJsonFile<TokenColorTheme>(resolveThemePath(theme.themeFile));
-  const glowParts = [readFile(resolveSharedThemePath('glow-effects.css'))];
-  if (theme.glowFile) {
-    glowParts.push(
-      compileTokenColorSelectors(
-        readFile(resolveThemePath(theme.glowFile)),
-        themeSource,
-        editorColorOverrides
+  const themeMeta = theme
+    ? readJsonFile<ThemeMeta>(
+        context.asAbsolutePath(path.join('themes', theme.directory, theme.metaFile))
       )
-    );
-  }
+    : undefined;
 
   const assets = {
-    themeVariables: buildThemeVariableBlock(themeMeta),
-    cursorDefaults: themeMeta.runtime?.cursorDefaults,
-    activityBar: readFile(resolveSharedThemePath('activity-bar.css')),
-    tabBar: readFile(resolveSharedThemePath('tab-bar.css')),
-    syntaxGradient: compileTokenColorSelectors(
-      readFile(resolveThemePath(theme.syntaxFile)),
-      themeSource,
-      editorColorOverrides,
-      themeMeta.runtime?.syntaxGradient
-    ),
-    glow: glowParts.join('\n\n'),
+    ...(themeMeta ? { themeVariables: buildThemeVariableBlock(themeMeta) } : {}),
+    ...(themeMeta?.runtime?.cursorDefaults
+      ? { cursorDefaults: themeMeta.runtime.cursorDefaults }
+      : {}),
+    activityBar: theme ? readFile(resolveSharedThemePath('activity-bar.css')) : '',
+    tabBar: theme ? readFile(resolveSharedThemePath('tab-bar.css')) : '',
+    overlayBootstrap: readFile(resolveSharedThemePath('overlay-bootstrap.js')),
     cursorCore: readFile(resolveSharedThemePath('cursor-core.css')),
     cursorGlow: readFile(resolveSharedThemePath('cursor-glow.css')),
   };

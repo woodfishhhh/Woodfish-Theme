@@ -5,16 +5,21 @@ import {
   ThemeRuntimeSettings,
   normalizeRuntimeSettings,
 } from '../../types/features';
+import { buildUniversalOverlayCss, shouldInstallOverlayBootstrap } from './overlay';
 
 export type RuntimeCssAssets = {
   themeVariables?: string;
   cursorDefaults?: CursorThemeDefaults;
   activityBar: string;
   tabBar: string;
-  syntaxGradient: string;
-  glow: string;
+  overlayBootstrap: string;
   cursorCore: string;
   cursorGlow: string;
+};
+
+export type RuntimePayload = {
+  css: string;
+  bootstrap: string;
 };
 
 export type CursorThemeDefaults = Partial<
@@ -31,14 +36,6 @@ export const DEFAULT_BEARDED_THEME_VARIABLES = `
   --woodfish-tab-border-gradient: linear-gradient(to right, #eacd61, #ea618e, #3cec85, #61afea);
 }
 `.trim();
-
-function scaleGlowCss(glowCss: string, intensity: number): string {
-  const safeIntensity = Number.isFinite(intensity) && intensity > 0 ? intensity : 1;
-  return glowCss.replace(/0 0 (\d+)px currentColor/gi, (_match, size) => {
-    const scaled = Math.max(1, Math.round(Number(size) * safeIntensity));
-    return `0 0 ${scaled}px currentColor`;
-  });
-}
 
 function buildCursorGradient(stops: string[]): string {
   return `linear-gradient(180deg, ${stops.join(', ')})`;
@@ -171,21 +168,35 @@ function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): str
 export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeCssAssets): string {
   const safeSettings = normalizeRuntimeSettings(settings);
   const parts: string[] = ['/* Woodfish runtime payload */'];
+  if (!safeSettings.overlay.enabled) {
+    return `${parts[0]}\n`;
+  }
+
   const themeVariables = assets.themeVariables?.trim();
   if (themeVariables && themeVariables.length > 0) {
     parts.push(themeVariables);
   }
-  parts.push(assets.activityBar.trim(), assets.tabBar.trim());
+  const activityBar = assets.activityBar.trim();
+  const tabBar = assets.tabBar.trim();
+  if (activityBar.length > 0) {
+    parts.push(activityBar);
+  }
+  if (tabBar.length > 0) {
+    parts.push(tabBar);
+  }
+
+  const overlayCss = buildUniversalOverlayCss(safeSettings);
+  if (overlayCss.length > 0) {
+    parts.push(overlayCss);
+  }
 
   if (safeSettings.syntaxGradient.enabled) {
-    parts.push(assets.syntaxGradient.trim());
     if (safeSettings.syntaxGradient.customRules.length > 0) {
       parts.push(safeSettings.syntaxGradient.customRules.join('\n'));
     }
   }
 
   if (safeSettings.glow.enabled) {
-    parts.push(scaleGlowCss(assets.glow.trim(), safeSettings.glow.intensity));
     if (safeSettings.glow.customRules.length > 0) {
       parts.push(safeSettings.glow.customRules.join('\n'));
     }
@@ -205,6 +216,24 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
   }
 
   return `${parts.filter((part) => part.length > 0).join('\n\n')}\n`;
+}
+
+export function buildRuntimeBootstrap(
+  settings: ThemeRuntimeSettings,
+  assets: RuntimeCssAssets
+): string {
+  const safeSettings = normalizeRuntimeSettings(settings);
+  return shouldInstallOverlayBootstrap(safeSettings) ? assets.overlayBootstrap.trim() : '';
+}
+
+export function buildRuntimePayload(
+  settings: ThemeRuntimeSettings,
+  assets: RuntimeCssAssets
+): RuntimePayload {
+  return {
+    css: buildRuntimeCss(settings, assets),
+    bootstrap: buildRuntimeBootstrap(settings, assets),
+  };
 }
 
 export { DEFAULT_RUNTIME_SETTINGS, normalizeRuntimeSettings };
