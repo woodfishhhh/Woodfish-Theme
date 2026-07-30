@@ -20,4 +20,13 @@ describe('repository cleanup guardrails', () => {
     expect(fs.existsSync(path.join(projectRoot, 'scripts', 'release.sh'))).toBe(false);
     expect(fs.existsSync(path.join(projectRoot, 'scripts', 'publish.js'))).toBe(true);
   });
+
+  it('normalizes source files to LF across Windows and Linux checkouts', () => {
+    const attributes = fs.readFileSync(path.join(projectRoot, '.gitattributes'), 'utf-8');
+
+    expect(attributes).toContain('* text=auto eol=lf');
+    expect(attributes).toContain('*.png binary');
+    expect(attributes).toContain('*.jpg binary');
+    expect(attributes).toContain('*.vsix binary');
+  });
 });

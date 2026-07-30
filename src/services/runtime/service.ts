@@ -310,6 +310,7 @@ export class IntegratedThemeService {
     const baselineHtml = options.restoreBackup === true ? backup.html : currentBaseline;
     const nextHtml = injectWorkbenchPayload(baselineHtml, buildPayloadDocument(css, payloadHash));
     const changed = nextHtml !== currentHtml;
+    const backupHash = hashDocument(backup.html);
 
     if (changed) {
       writeValidatedFileAtomic(
@@ -325,11 +326,11 @@ export class IntegratedThemeService {
       stateVersion: 2,
       workbenchPath,
       backupPath: backup.path,
-      backupHash: hashDocument(backup.html),
+      backupHash,
       backupWorkbenchPath: workbenchPath,
       backupVscodeVersion: vscode.version,
       backupCreatedAt:
-        state.backupHash === hashDocument(backup.html) && state.backupCreatedAt
+        state.backupHash === backupHash && state.backupCreatedAt
           ? state.backupCreatedAt
           : new Date().toISOString(),
       payloadHash,

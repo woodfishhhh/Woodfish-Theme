@@ -13,11 +13,14 @@ AGENTS.md
 
 # 构建输出
 dist/**
+build/**
 out/integration/**
 
 # 测试文件
 test/**
 **/*.test.js
+coverage/**
+.nyc_output/**
 
 # 配置文件
 .gitignore
@@ -51,6 +54,13 @@ extension.js
 !README.md
 VSCode*.md
 docs/superpowers/**
+
+# 仓库文档与预览资源（主 README 使用远程链接，不需要随扩展安装）
+README.en.md
+assets/readme/**
+images/img1.png
+images/img2.png
+images/icon.svg
 
 # 测试CSS文件
 themes/woodfish-theme-test.css

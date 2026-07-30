@@ -4,16 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync, execSync } = require('child_process');
 
-const VSCE_ENTRY = path.join(
-  'node_modules',
-  '@vscode',
-  'vsce',
-  'vsce',
-);
+const VSCE_ENTRY = path.join('node_modules', '@vscode', 'vsce', 'vsce');
 const VSCE_ENTRY_ABSOLUTE = path.resolve(VSCE_ENTRY);
-
-console.log('🚀 Woodfish Theme 发布脚本');
-console.log('================================');
+const PACKAGE_SCRIPT_ABSOLUTE = path.resolve('scripts', 'package.js');
 
 // 检查必要文件
 function checkRequiredFiles() {
@@ -46,16 +39,22 @@ function updateVersion() {
   return packageJson.version;
 }
 
-const isPreReleasePublish = process.argv.includes('--pre-release');
-
-function buildVsceArgs(command) {
+function buildVsceArgs(command, { isPreRelease = false, packagePath } = {}) {
   const args = [command];
 
-  if (isPreReleasePublish) {
+  if (isPreRelease) {
     args.push('--pre-release');
+  }
+  if (packagePath) {
+    args.push('--packagePath', packagePath);
   }
 
   return args;
+}
+
+function getPackageOutputPath(version) {
+  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  return path.resolve(`${packageJson.name}-${version}.vsix`);
 }
 
 // 运行测试
@@ -79,15 +78,17 @@ function runVerification() {
 }
 
 // 打包扩展
-function packageExtension(version) {
+function packageExtension(version, isPreRelease) {
   console.log('📦 打包扩展...');
   try {
-    execFileSync(
-      process.execPath,
-      [VSCE_ENTRY_ABSOLUTE, ...buildVsceArgs('package')],
-      { stdio: 'inherit' },
-    );
+    const packagePath = getPackageOutputPath(version);
+    const args = isPreRelease ? ['--pre-release'] : [];
+    args.push('--out', packagePath);
+    execFileSync(process.execPath, [PACKAGE_SCRIPT_ABSOLUTE, ...args], {
+      stdio: 'inherit',
+    });
     console.log('✅ 扩展打包完成');
+    return packagePath;
   } catch (error) {
     console.error('❌ 打包失败:', error.message);
     process.exit(1);
@@ -95,17 +96,13 @@ function packageExtension(version) {
 }
 
 // 发布到市场
-function publishToMarketplace(version) {
+function publishToMarketplace(version, packagePath, isPreRelease) {
   console.log('🌐 准备发布到VSCode市场...');
-  if (isPreReleasePublish) {
+  if (isPreRelease) {
     console.log('ℹ️  本次将按 VS Code Marketplace 预发布版本渠道发布');
   }
-  console.log(
-    'ℹ️  注意：将使用您本地环境配置的 VSCode 发布令牌 (通过 vsce login 设置)',
-  );
-  console.log(
-    '    如果您未在本地登录，发布可能会失败。脚本不会保存或读取任何令牌文件。',
-  );
+  console.log('ℹ️  注意：将使用您本地环境配置的 VSCode 发布令牌 (通过 vsce login 设置)');
+  console.log('    如果您未在本地登录，发布可能会失败。脚本不会保存或读取任何令牌文件。');
 
   const readline = require('readline').createInterface({
     input: process.stdin,
@@ -117,13 +114,16 @@ function publishToMarketplace(version) {
       try {
         execFileSync(
           process.execPath,
-          [VSCE_ENTRY_ABSOLUTE, ...buildVsceArgs('publish')],
-          { stdio: 'inherit' },
+          [VSCE_ENTRY_ABSOLUTE, ...buildVsceArgs('publish', { isPreRelease, packagePath })],
+          { stdio: 'inherit' }
         );
         console.log('🎉 发布到VSCode市场成功！');
       } catch (error) {
         console.error('❌ 发布失败:', error.message);
         console.log('💡 请检查发布令牌和网络连接');
+        process.exitCode = 1;
+        readline.close();
+        return;
       }
     } else {
       console.log('⏸️  跳过市场发布');
@@ -142,13 +142,17 @@ function publishToMarketplace(version) {
 }
 
 // 主函数
-function main() {
+function main(args = process.argv.slice(2)) {
   try {
+    console.log('🚀 Woodfish Theme 发布脚本');
+    console.log('================================');
+
+    const isPreRelease = args.includes('--pre-release');
     checkRequiredFiles();
     const version = updateVersion();
     runVerification();
-    packageExtension(version);
-    publishToMarketplace(version);
+    const packagePath = packageExtension(version, isPreRelease);
+    publishToMarketplace(version, packagePath, isPreRelease);
   } catch (error) {
     console.error('❌ 发布过程中出现错误:', error.message);
     process.exit(1);
@@ -160,4 +164,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { main };
+module.exports = { buildVsceArgs, getPackageOutputPath, main };

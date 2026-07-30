@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  中文 · <a href="./README.en.md">English</a> ·
+  中文 · <a href="https://github.com/woodfishhhh/Woodfish-Theme/blob/HEAD/README.en.md">English</a> ·
   <a href="https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme">安装扩展</a> ·
   <a href="./docs/TROUBLESHOOTING.md">故障排查</a>
 </p>

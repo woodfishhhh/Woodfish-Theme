@@ -98,7 +98,8 @@ export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
   },
 };
 
-const UNSAFE_CSS_PATTERN = /<\/?script\b|<\/style\b|@import\b|url\s*\(/i;
+const UNSAFE_CSS_PATTERN =
+  /<\/?script\b|<\/style\b|@import\b|url\s*\(|(?:-webkit-)?image-set\s*\(|\bimage\s*\(|(?:https?|data|file|ftp|blob):/i;
 const HEX_COLOR_PATTERN = /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i;
 const CSS_NAMED_COLORS = new Set([
   'aliceblue',
@@ -267,6 +268,28 @@ function sanitizeNumber(
     : fallback;
 }
 
+function normalizeCssForSafety(value: string): string {
+  const withoutComments = value
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\\(?:\r\n|[\n\r\f])/g, '');
+
+  return withoutComments.replace(
+    /\\([0-9a-f]{1,6})(?:[ \t\r\n\f])?|\\([^\r\n\f])/gi,
+    (_match, hexadecimal: string | undefined, escapedCharacter: string | undefined) => {
+      if (!hexadecimal) {
+        return escapedCharacter ?? '';
+      }
+
+      const codePoint = Number.parseInt(hexadecimal, 16);
+      return codePoint === 0 || codePoint > 0x10ffff ? '\uFFFD' : String.fromCodePoint(codePoint);
+    }
+  );
+}
+
+function containsUnsafeCss(value: string): boolean {
+  return UNSAFE_CSS_PATTERN.test(normalizeCssForSafety(value));
+}
+
 function sanitizeCustomRules(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -283,7 +306,7 @@ function sanitizeCustomRules(value: unknown): string[] {
       rule.length === 0 ||
       rule.length > RUNTIME_SETTING_LIMITS.customRuleLength ||
       totalLength + rule.length > RUNTIME_SETTING_LIMITS.customRulesTotalLength ||
-      UNSAFE_CSS_PATTERN.test(rule)
+      containsUnsafeCss(rule)
     ) {
       continue;
     }
@@ -358,7 +381,7 @@ function sanitizeGradientStops(value: unknown, fallback: string[]): string[] {
       (candidate) =>
         candidate.length > 0 &&
         candidate.length <= RUNTIME_SETTING_LIMITS.gradientStopLength &&
-        !UNSAFE_CSS_PATTERN.test(candidate) &&
+        !containsUnsafeCss(candidate) &&
         isValidCssColor(candidate)
     );
   return stops.length >= 2 ? stops : [...fallback];
