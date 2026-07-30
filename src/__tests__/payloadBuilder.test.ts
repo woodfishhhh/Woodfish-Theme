@@ -130,6 +130,43 @@ describe('runtime payload builder', () => {
     expect(css.match(/div\.cursor::after\s*\{/g)).toHaveLength(1);
   });
 
+  it('keeps cursor glow filter-free by default and applies configured opacity', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: {
+          enabled: true,
+          glow: true,
+          glowOpacity: 0.45,
+        },
+      }),
+      realCursorAssets
+    );
+    const glowLayer = css.match(/div\.cursor::after\s*\{[\s\S]*?\}/)?.[0];
+
+    expect(glowLayer).toContain('filter: none !important;');
+    expect(glowLayer).toContain('opacity: 0.45 !important;');
+    expect(glowLayer).toContain(
+      'linear-gradient(180deg, #ff2d95, #ff4500, #ffd700, #7cfc00, #00ffff, #1e90ff, #9370db, #ff00ff, #ff1493)'
+    );
+    expect(glowLayer).not.toContain('brightness(');
+  });
+
+  it('allows cursor blur as an explicit opt-in', () => {
+    const css = buildRuntimeCss(
+      normalizeRuntimeSettings({
+        cursor: {
+          enabled: true,
+          glow: true,
+          glowBlur: 6,
+        },
+      }),
+      realCursorAssets
+    );
+    const glowLayer = css.match(/div\.cursor::after\s*\{[\s\S]*?\}/)?.[0];
+
+    expect(glowLayer).toContain('filter: blur(6px) !important;');
+  });
+
   it('uses transform-driven cursor flow in the runtime payload', () => {
     const css = buildRuntimeCss(
       normalizeRuntimeSettings({

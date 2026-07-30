@@ -172,17 +172,17 @@
         },
         "woodfishTheme.cursor.glowBlur": {
           "type": "number",
-          "default": 4,
+          "default": 0,
           "minimum": 0,
           "maximum": 24,
-          "markdownDescription": "效果：调节光标尾迹的柔和程度。单位：像素 `px`，范围 `0 - 24`。原理：运行时会替换尾迹样式中的 `blur(...)` 半径。例子：`2` 更清晰，`4` 默认，`8` 更梦幻。为什么要有这个项：相同颜色在不同 DPI 和显示器上，模糊半径的体感差异很大。"
+          "markdownDescription": "效果：按需开启光标尾迹模糊。单位：像素 `px`，范围 `0 - 24`，默认 `0` 表示不启用 GPU blur。原理：只有值大于 `0` 时，运行时才会添加 `blur(...)`。例子：保持 `0` 获得更低的 GPU 开销，设为 `4` 可恢复柔和光晕。为什么要有这个项：默认优先性能，同时保留用户主动选择模糊效果的能力。"
         },
         "woodfishTheme.cursor.glowOpacity": {
           "type": "number",
           "default": 0.7,
           "minimum": 0,
           "maximum": 1,
-          "markdownDescription": "效果：调节光标尾迹发光的存在感。单位：透明度，范围 `0 - 1`。原理：运行时会替换尾迹的 RGBA alpha 值。例子：`0.35` 更克制，`0.7` 默认，`1` 最亮。为什么要有这个项：这样用户可以控制“看得见多少”，而不是只能全开或全关。"
+          "markdownDescription": "效果：调节光标尾迹发光的存在感。单位：透明度，范围 `0 - 1`。原理：运行时会替换尾迹层的 `opacity`。例子：`0.35` 更克制，`0.7` 默认，`1` 最亮。为什么要有这个项：这样用户可以控制“看得见多少”，而不是只能全开或全关。"
         },
         "woodfishTheme.cursor.customRules": {
           "type": "array",
