@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import * as path from 'path';
 
 const mockExistsSync = jest.fn();
 const mockReadFileSync = jest.fn();
@@ -126,10 +127,15 @@ import {
 } from '../config/featureFlags';
 import { buildRuntimePayload } from '../services/runtime/payloadBuilder';
 import { IntegratedThemeService } from '../services/runtime/service';
+import { showReloadPrompt } from '../ui/notifications';
 
 describe('IntegratedThemeService', () => {
   const currentWorkbenchPath = 'C:/current-version/workbench.html';
   const currentBackupPath = `${currentWorkbenchPath}.woodfish-backup`;
+  const currentBootstrapPath = path.join(
+    path.dirname(currentWorkbenchPath),
+    'woodfish-overlay-bootstrap.js'
+  );
   const context = {
     asAbsolutePath: jest.fn((value: string) => value),
     subscriptions: [],
@@ -404,6 +410,11 @@ describe('IntegratedThemeService', () => {
 
     expect(setOverlayEnabled).toHaveBeenCalledWith(true);
     expect(mockFiles.get(currentWorkbenchPath)).toContain('data-woodfish-theme="bootstrap"');
+    expect(mockFiles.get(currentWorkbenchPath)).toContain(
+      'src="./woodfish-overlay-bootstrap.js?v='
+    );
+    expect(mockFiles.get(currentWorkbenchPath)).not.toContain('globalThis.woodfishOverlay = true;');
+    expect(mockFiles.get(currentBootstrapPath)).toContain('globalThis.woodfishOverlay = true;');
   });
 
   it('persists overlay disable intent and removes the installed payload', async () => {
@@ -414,6 +425,7 @@ describe('IntegratedThemeService', () => {
 
     expect(setOverlayEnabled).toHaveBeenCalledWith(false);
     expect(mockFiles.get(currentWorkbenchPath)).not.toContain('WOODFISH_THEME_START');
+    expect(mockFiles.has(currentBootstrapPath)).toBe(false);
   });
 
   it('removes a stale payload at startup when the overlay master switch is off', async () => {
@@ -449,6 +461,47 @@ describe('IntegratedThemeService', () => {
     expect(mockFiles.get(currentWorkbenchPath)).not.toContain('WOODFISH_THEME_START');
   });
 
+  it('removes an orphaned managed bootstrap at startup when the overlay is off', async () => {
+    mockFiles.set(
+      currentBootstrapPath,
+      '/* WOODFISH_THEME_BOOTSTRAP - managed file */\nglobalThis.orphan = true;\n'
+    );
+    (readRuntimeSettings as jest.Mock).mockReturnValueOnce({
+      overlay: {
+        enabled: false,
+        hueShift: 24,
+        lightnessDelta: 0.06,
+        neutralChroma: 0.06,
+        angle: 90,
+      },
+      syntaxGradient: { enabled: true, customRules: [] },
+      glow: { enabled: true, intensity: 1, customRules: [] },
+      cursor: {
+        enabled: true,
+        animationDuration: 8,
+        gradientStops: ['#fff', '#000'],
+        borderRadius: 2,
+        glow: true,
+        glowBlur: 4,
+        glowOpacity: 0.7,
+        customRules: [],
+      },
+    });
+
+    const service = new IntegratedThemeService(context);
+    await service.initializeOnStartup();
+
+    expect(mockFiles.has(currentBootstrapPath)).toBe(false);
+  });
+
+  it('prompts for reload after installing a missing runtime at startup', async () => {
+    const service = new IntegratedThemeService(context);
+
+    await service.initializeOnStartup();
+
+    expect(showReloadPrompt).toHaveBeenCalledWith('Woodfish 通用叠层已更新，请重新加载 VS Code。');
+  });
+
   it('replaces the payload when only the bootstrap implementation changes', async () => {
     (buildRuntimePayload as jest.Mock)
       .mockReturnValueOnce({
@@ -463,11 +516,15 @@ describe('IntegratedThemeService', () => {
 
     await service.syncWithCurrentSettings();
     const firstHtml = mockFiles.get(currentWorkbenchPath) ?? '';
+    const firstBootstrap = mockFiles.get(currentBootstrapPath) ?? '';
     await service.syncWithCurrentSettings();
     const secondHtml = mockFiles.get(currentWorkbenchPath) ?? '';
+    const secondBootstrap = mockFiles.get(currentBootstrapPath) ?? '';
 
-    expect(firstHtml).toContain('woodfishOverlayVersion = "a"');
-    expect(secondHtml).toContain('woodfishOverlayVersion = "b"');
+    expect(firstHtml).not.toContain('woodfishOverlayVersion = "a"');
+    expect(secondHtml).not.toContain('woodfishOverlayVersion = "b"');
+    expect(firstBootstrap).toContain('woodfishOverlayVersion = "a"');
+    expect(secondBootstrap).toContain('woodfishOverlayVersion = "b"');
     expect(secondHtml).not.toBe(firstHtml);
     expect(firstHtml.match(/data-woodfish-hash="([^"]+)"/)?.[1]).not.toBe(
       secondHtml.match(/data-woodfish-hash="([^"]+)"/)?.[1]
@@ -477,10 +534,9 @@ describe('IntegratedThemeService', () => {
   it('repairs bootstrap content even when the recorded payload hash was left intact', async () => {
     const service = new IntegratedThemeService(context);
     await service.syncWithCurrentSettings();
-    const installedHtml = mockFiles.get(currentWorkbenchPath) ?? '';
     mockFiles.set(
-      currentWorkbenchPath,
-      installedHtml.replace(
+      currentBootstrapPath,
+      (mockFiles.get(currentBootstrapPath) ?? '').replace(
         'globalThis.woodfishOverlay = true;',
         'globalThis.woodfishOverlay = false;'
       )
@@ -488,9 +544,9 @@ describe('IntegratedThemeService', () => {
 
     await service.initializeOnStartup();
 
-    const repairedHtml = mockFiles.get(currentWorkbenchPath) ?? '';
-    expect(repairedHtml).toContain('globalThis.woodfishOverlay = true;');
-    expect(repairedHtml).not.toContain('globalThis.woodfishOverlay = false;');
+    const repairedBootstrap = mockFiles.get(currentBootstrapPath) ?? '';
+    expect(repairedBootstrap).toContain('globalThis.woodfishOverlay = true;');
+    expect(repairedBootstrap).not.toContain('globalThis.woodfishOverlay = false;');
   });
 
   function validBackupState(backupHtml: string): Record<string, unknown> {

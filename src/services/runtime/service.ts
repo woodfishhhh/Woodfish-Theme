@@ -33,7 +33,17 @@ import {
   removeWorkbenchPayload,
 } from './workbenchPatcher';
 
-const PAYLOAD_SCHEMA_VERSION = 3;
+const PAYLOAD_SCHEMA_VERSION = 4;
+const BOOTSTRAP_FILE_NAME = 'woodfish-overlay-bootstrap.js';
+const BOOTSTRAP_FILE_HEADER = '/* WOODFISH_THEME_BOOTSTRAP - managed file */';
+
+function buildBootstrapFileContent(bootstrap: string): string {
+  return `${BOOTSTRAP_FILE_HEADER}\n${bootstrap}\n`;
+}
+
+function getBootstrapFilePath(workbenchPath: string): string {
+  return path.join(path.dirname(workbenchPath), BOOTSTRAP_FILE_NAME);
+}
 
 function buildPayloadDocument(payload: RuntimePayload, payloadHash: string): string {
   const parts = [
@@ -43,9 +53,7 @@ function buildPayloadDocument(payload: RuntimePayload, payloadHash: string): str
   ];
   if (payload.bootstrap.length > 0) {
     parts.push(
-      `<script data-woodfish-theme="bootstrap" data-woodfish-schema="${PAYLOAD_SCHEMA_VERSION}">`,
-      payload.bootstrap,
-      '</script>'
+      `<script defer src="./${BOOTSTRAP_FILE_NAME}?v=${payloadHash}" data-woodfish-theme="bootstrap" data-woodfish-schema="${PAYLOAD_SCHEMA_VERSION}"></script>`
     );
   }
   return parts.join('\n');
@@ -155,14 +163,19 @@ export class IntegratedThemeService {
     const settings = readRuntimeSettings();
 
     if (!shouldInstallRuntime(settings)) {
-      if (currentHtml && hasWoodfishPayload(currentHtml)) {
+      const workbenchPath = getWorkbenchHtmlPath();
+      if (
+        currentHtml &&
+        (hasWoodfishPayload(currentHtml) ||
+          (workbenchPath ? this.hasManagedBootstrapFile(workbenchPath) : false))
+      ) {
         await this.removePayload({ showPrompt: false });
       }
       return;
     }
 
     if (!this.hasExpectedPayload(currentHtml)) {
-      await this.syncWithCurrentSettings({ showPrompt: false });
+      await this.syncWithCurrentSettings({ showPrompt: true });
     }
   }
 
@@ -246,6 +259,11 @@ export class IntegratedThemeService {
       return false;
     }
 
+    const workbenchPath = getWorkbenchHtmlPath();
+    if (!workbenchPath) {
+      return false;
+    }
+
     const activeTheme = readCurrentColorTheme();
     const settings = readRuntimeSettings();
     if (!shouldInstallRuntime(settings)) {
@@ -253,7 +271,10 @@ export class IntegratedThemeService {
     }
     const payload = buildRuntimePayload(settings, readRuntimeAssets(this.context, activeTheme));
     const payloadHash = hashPayload(payload);
-    return currentHtml.includes(buildPayloadDocument(payload, payloadHash));
+    return (
+      currentHtml.includes(buildPayloadDocument(payload, payloadHash)) &&
+      this.hasExpectedBootstrapFile(workbenchPath, payload.bootstrap)
+    );
   }
 
   private readWorkbenchHtml(): string | null {
@@ -282,6 +303,10 @@ export class IntegratedThemeService {
     const payload = buildRuntimePayload(settings, assets);
     const payloadHash = hashPayload(payload);
     const payloadDocument = buildPayloadDocument(payload, payloadHash);
+    let bootstrapChanged = false;
+    if (payload.bootstrap.length > 0) {
+      bootstrapChanged = this.writeBootstrapFile(workbenchPath, payload.bootstrap);
+    }
     const state = readRuntimeInstallState(this.context);
     const backupPath = resolveBackupPath(workbenchPath, state);
     const currentBaseline = this.cleanWoodfishPayloads(currentHtml);
@@ -311,6 +336,9 @@ export class IntegratedThemeService {
       );
       getOutputChannel().appendLine(`Applied integrated runtime to ${workbenchPath}`);
     }
+    if (payload.bootstrap.length === 0) {
+      bootstrapChanged = this.removeBootstrapFile(workbenchPath) || bootstrapChanged;
+    }
 
     await writeRuntimeInstallState(this.context, {
       ...state,
@@ -325,11 +353,16 @@ export class IntegratedThemeService {
           ? state.backupCreatedAt
           : new Date().toISOString(),
       payloadHash,
+      bootstrapPath: payload.bootstrap.length > 0 ? getBootstrapFilePath(workbenchPath) : undefined,
+      bootstrapHash:
+        payload.bootstrap.length > 0
+          ? hashDocument(buildBootstrapFileContent(payload.bootstrap))
+          : undefined,
       vscodeVersion: vscode.version,
       legacyPayloads: undefined,
     });
 
-    if (changed && options.showPrompt !== false) {
+    if ((changed || bootstrapChanged) && options.showPrompt !== false) {
       await showReloadPrompt('Woodfish 通用叠层已更新，请重新加载 VS Code。');
     }
   }
@@ -345,17 +378,22 @@ export class IntegratedThemeService {
     const backup =
       options.restoreBackup === true ? this.readValidBackup(workbenchPath, state) : null;
     const nextHtml = this.cleanWoodfishPayloads(backup?.html ?? currentHtml);
+    const htmlChanged = nextHtml !== currentHtml;
 
-    if (nextHtml === currentHtml) {
+    if (htmlChanged) {
+      writeValidatedFileAtomic(workbenchPath, nextHtml, isValidWorkbenchDocument);
+      getOutputChannel().appendLine(`Removed integrated runtime from ${workbenchPath}`);
+    }
+    const bootstrapChanged = this.removeBootstrapFile(workbenchPath);
+    if (!htmlChanged && !bootstrapChanged) {
       return;
     }
-
-    writeValidatedFileAtomic(workbenchPath, nextHtml, isValidWorkbenchDocument);
-    getOutputChannel().appendLine(`Removed integrated runtime from ${workbenchPath}`);
 
     await writeRuntimeInstallState(this.context, {
       ...state,
       payloadHash: undefined,
+      bootstrapPath: undefined,
+      bootstrapHash: undefined,
     });
 
     if (options.showPrompt !== false) {
@@ -365,6 +403,64 @@ export class IntegratedThemeService {
 
   private cleanWoodfishPayloads(html: string): string {
     return removeKnownLegacyWoodfishPayloads(removeWorkbenchPayload(html)).html;
+  }
+
+  private hasExpectedBootstrapFile(workbenchPath: string, bootstrap: string): boolean {
+    const bootstrapPath = getBootstrapFilePath(workbenchPath);
+    if (!fs.existsSync(bootstrapPath)) {
+      return bootstrap.length === 0;
+    }
+
+    const current = fs.readFileSync(bootstrapPath, 'utf-8');
+    if (bootstrap.length === 0) {
+      return !this.hasManagedBootstrapFile(workbenchPath, current);
+    }
+
+    return current === buildBootstrapFileContent(bootstrap);
+  }
+
+  private hasManagedBootstrapFile(workbenchPath: string, content?: string): boolean {
+    const bootstrapPath = getBootstrapFilePath(workbenchPath);
+    if (!fs.existsSync(bootstrapPath)) {
+      return false;
+    }
+
+    const current = content ?? fs.readFileSync(bootstrapPath, 'utf-8');
+    return current.startsWith(BOOTSTRAP_FILE_HEADER);
+  }
+
+  private writeBootstrapFile(workbenchPath: string, bootstrap: string): boolean {
+    const bootstrapPath = getBootstrapFilePath(workbenchPath);
+    const nextContent = buildBootstrapFileContent(bootstrap);
+
+    if (fs.existsSync(bootstrapPath)) {
+      const current = fs.readFileSync(bootstrapPath, 'utf-8');
+      if (current === nextContent) {
+        return false;
+      }
+      if (!current.startsWith(BOOTSTRAP_FILE_HEADER)) {
+        throw new Error(`Woodfish refused to replace an unmanaged file: ${bootstrapPath}`);
+      }
+    }
+
+    writeValidatedFileAtomic(
+      bootstrapPath,
+      nextContent,
+      (content) => content === nextContent && content.startsWith(BOOTSTRAP_FILE_HEADER)
+    );
+    getOutputChannel().appendLine(`Applied overlay bootstrap to ${bootstrapPath}`);
+    return true;
+  }
+
+  private removeBootstrapFile(workbenchPath: string): boolean {
+    const bootstrapPath = getBootstrapFilePath(workbenchPath);
+    if (!this.hasManagedBootstrapFile(workbenchPath)) {
+      return false;
+    }
+
+    fs.unlinkSync(bootstrapPath);
+    getOutputChannel().appendLine(`Removed overlay bootstrap from ${bootstrapPath}`);
+    return true;
   }
 
   private runBackgroundSync(options: SyncOptions): void {
