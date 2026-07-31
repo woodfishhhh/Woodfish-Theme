@@ -4,6 +4,7 @@ import {
   CURSOR_SETTING_KEYS,
   FEATURE_SETTING_KEYS,
   GLOW_SETTING_KEYS,
+  OVERLAY_SETTING_KEYS,
   SYNTAX_SETTING_KEYS,
   WORKBENCH_SECTION,
 } from '../constants/config';
@@ -51,6 +52,22 @@ function isExplicitSetting(key: string): boolean {
 
 export function readRuntimeSettings(): ThemeRuntimeSettings {
   return normalizeRuntimeSettings({
+    overlay: {
+      enabled: readSetting(OVERLAY_SETTING_KEYS.enabled, DEFAULT_RUNTIME_SETTINGS.overlay.enabled),
+      hueShift: readSetting(
+        OVERLAY_SETTING_KEYS.hueShift,
+        DEFAULT_RUNTIME_SETTINGS.overlay.hueShift
+      ),
+      lightnessDelta: readSetting(
+        OVERLAY_SETTING_KEYS.lightnessDelta,
+        DEFAULT_RUNTIME_SETTINGS.overlay.lightnessDelta
+      ),
+      neutralChroma: readSetting(
+        OVERLAY_SETTING_KEYS.neutralChroma,
+        DEFAULT_RUNTIME_SETTINGS.overlay.neutralChroma
+      ),
+      angle: readSetting(OVERLAY_SETTING_KEYS.angle, DEFAULT_RUNTIME_SETTINGS.overlay.angle),
+    },
     syntaxGradient: {
       enabled: readSetting(
         FEATURE_SETTING_KEYS.syntaxGradient,
@@ -115,6 +132,14 @@ export async function setFeatureFlag(feature: FeatureKey, enabled: boolean): Pro
   await getThemeConfig().update(settingKey, enabled, vscode.ConfigurationTarget.Global);
 }
 
+export async function setOverlayEnabled(enabled: boolean): Promise<void> {
+  await getThemeConfig().update(
+    OVERLAY_SETTING_KEYS.enabled,
+    enabled,
+    vscode.ConfigurationTarget.Global
+  );
+}
+
 export async function toggleFeatureFlag(feature: FeatureKey): Promise<boolean> {
   const current = readFeatureFlags()[feature];
   const next = !current;
@@ -126,14 +151,13 @@ export function readCurrentColorTheme(): string {
   return vscode.workspace.getConfiguration(WORKBENCH_SECTION).get<string>('colorTheme', '');
 }
 
-export async function setColorTheme(themeName: string): Promise<void> {
-  await vscode.workspace
-    .getConfiguration(WORKBENCH_SECTION)
-    .update('colorTheme', themeName, vscode.ConfigurationTarget.Global);
-}
-
 export function onThemeSettingsChanged(handler: () => void): vscode.Disposable {
   const watchedPaths = [
+    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.enabled}`,
+    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.hueShift}`,
+    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.lightnessDelta}`,
+    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.neutralChroma}`,
+    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.angle}`,
     `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.syntaxGradient}`,
     `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.glow}`,
     `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.cursor}`,

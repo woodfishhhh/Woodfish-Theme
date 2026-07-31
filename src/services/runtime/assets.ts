@@ -48,9 +48,6 @@ export function readRuntimeAssets(
   themeLabel = DEFAULT_WOODFISH_THEME_LABEL
 ): RuntimeCssAssets {
   const theme = resolveWoodfishTheme(themeLabel);
-  if (!theme) {
-    throw new Error(`Unknown Woodfish runtime theme: ${themeLabel}`);
-  }
 
   let contextCache = runtimeAssetCache.get(context);
   if (!contextCache) {
@@ -58,31 +55,31 @@ export function readRuntimeAssets(
     runtimeAssetCache.set(context, contextCache);
   }
 
-  const cachedAssets = contextCache.get(theme.label);
+  const cacheKey = theme ? `built-in:${theme.label}` : 'external';
+  const cachedAssets = contextCache.get(cacheKey);
   if (cachedAssets) {
     return cachedAssets;
   }
 
   const resolveSharedThemePath = (...segments: string[]): string =>
     context.asAbsolutePath(path.join('themes', 'shared', ...segments));
-  const resolveThemePath = (...segments: string[]): string =>
-    context.asAbsolutePath(path.join('themes', theme.directory, ...segments));
-  const themeMeta = readJsonFile<ThemeMeta>(resolveThemePath(theme.metaFile));
-  const glowParts = [readFile(resolveSharedThemePath('glow-effects.css'))];
-  if (theme.glowFile) {
-    glowParts.push(readFile(resolveThemePath(theme.glowFile)));
-  }
+  const themeMeta = theme
+    ? readJsonFile<ThemeMeta>(
+        context.asAbsolutePath(path.join('themes', theme.directory, theme.metaFile))
+      )
+    : undefined;
 
   const assets = {
-    themeVariables: buildThemeVariableBlock(themeMeta),
-    cursorDefaults: themeMeta.runtime?.cursorDefaults,
-    activityBar: readFile(resolveSharedThemePath('activity-bar.css')),
-    tabBar: readFile(resolveSharedThemePath('tab-bar.css')),
-    syntaxGradient: readFile(resolveThemePath(theme.syntaxFile)),
-    glow: glowParts.join('\n\n'),
+    ...(themeMeta ? { themeVariables: buildThemeVariableBlock(themeMeta) } : {}),
+    ...(themeMeta?.runtime?.cursorDefaults
+      ? { cursorDefaults: themeMeta.runtime.cursorDefaults }
+      : {}),
+    activityBar: theme ? readFile(resolveSharedThemePath('activity-bar.css')) : '',
+    tabBar: theme ? readFile(resolveSharedThemePath('tab-bar.css')) : '',
+    overlayBootstrap: readFile(resolveSharedThemePath('overlay-bootstrap.js')),
     cursorCore: readFile(resolveSharedThemePath('cursor-core.css')),
     cursorGlow: readFile(resolveSharedThemePath('cursor-glow.css')),
   };
-  contextCache.set(theme.label, assets);
+  contextCache.set(cacheKey, assets);
   return assets;
 }

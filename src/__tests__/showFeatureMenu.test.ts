@@ -50,7 +50,6 @@ describe('showFeatureMenu command', () => {
           isWoodfishTheme: true,
           hasPayload: true,
         }) satisfies RuntimeStatusSnapshot,
-      getThemeLabelForEnable: () => 'Woodfish Dracula',
     },
   } as unknown as CommandDeps;
 
@@ -78,21 +77,21 @@ describe('showFeatureMenu command', () => {
       COMMANDS.reloadWindow,
     ]);
     expect(items.map((item) => item.label)).toEqual([
-      expect.stringContaining('开启 Woodfish 主题'),
-      expect.stringContaining('关闭 Woodfish 主题'),
+      expect.stringContaining('开启 Woodfish 通用叠层'),
+      expect.stringContaining('关闭 Woodfish 通用叠层'),
       expect.stringContaining('开启/关闭 Woodfish 彩色字体'),
       expect.stringContaining('开启/关闭 Woodfish 发光字体'),
       expect.stringContaining('开启 Woodfish 彩色光标'),
       expect.stringContaining('开启/关闭彩色光标'),
       expect.stringContaining('修复 Woodfish 注入'),
-      expect.stringContaining('彻底停用 Woodfish 主题'),
+      expect.stringContaining('彻底停用 Woodfish 叠层'),
       expect.stringContaining('Reload Window'),
     ]);
     expect(items[0]?.description).toContain('Woodfish Dracula');
-    expect(items[1]?.description).toContain('移除当前 Woodfish 注入');
+    expect(items[1]?.description).toContain('移除叠层但保留各项参数');
   });
 
-  it('uses the restored built-in theme label when runtime is currently off', async () => {
+  it('keeps the active external theme when runtime is currently off', async () => {
     registerShowFeatureMenuCommand({
       ...deps,
       runtimeService: {
@@ -103,14 +102,13 @@ describe('showFeatureMenu command', () => {
             isWoodfishTheme: false,
             hasPayload: false,
           }) satisfies RuntimeStatusSnapshot,
-        getThemeLabelForEnable: () => 'Woodfish Dracula',
       },
     } as unknown as CommandDeps);
 
     await registeredHandler?.();
 
     const items = showQuickPickMock.mock.calls[0]?.[0] as MenuItem[];
-    expect(items[0]?.description).toContain('切换到 Woodfish Dracula 并写入一体化注入');
+    expect(items[0]?.description).toContain('在当前主题 One Dark Pro 上启用叠层');
   });
 
   it('executes the selected command from the menu', async () => {

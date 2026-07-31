@@ -31,16 +31,18 @@ const FORBIDDEN_PACKAGE_PATHS = [
 const REQUIRED_PACKAGE_PATHS = [
   'out/extension.js',
   'images/head.jpg',
+  'THIRD_PARTY_NOTICES.md',
   'themes/bearded/Woodfish Dark.json',
   'themes/bearded/theme.meta.json',
-  'themes/bearded/syntax-highlighting.css',
+  'themes/bearded/NOTICE.md',
+  'themes/bearded/LICENSE.txt',
   'themes/dracula/Woodfish Dracula.json',
   'themes/dracula/theme.meta.json',
-  'themes/dracula/syntax-highlighting.css',
-  'themes/dracula/glow-effects.css',
+  'themes/dracula/NOTICE.md',
+  'themes/dracula/LICENSE.txt',
   'themes/shared/activity-bar.css',
   'themes/shared/tab-bar.css',
-  'themes/shared/glow-effects.css',
+  'themes/shared/overlay-bootstrap.js',
   'themes/shared/cursor-core.css',
   'themes/shared/cursor-glow.css',
 ];
@@ -211,15 +213,15 @@ function checkThemeFiles() {
   const moduleFiles = [
     'themes/shared/activity-bar.css',
     'themes/shared/tab-bar.css',
-    'themes/shared/glow-effects.css',
+    'themes/shared/overlay-bootstrap.js',
     'themes/shared/cursor-core.css',
     'themes/shared/cursor-glow.css',
-    'themes/bearded/syntax-highlighting.css',
     'themes/bearded/theme.meta.json',
-    'themes/dracula/syntax-highlighting.css',
-    'themes/dracula/glow-effects.css',
+    'themes/bearded/NOTICE.md',
+    'themes/bearded/LICENSE.txt',
     'themes/dracula/theme.meta.json',
     'themes/dracula/NOTICE.md',
+    'themes/dracula/LICENSE.txt',
   ];
 
   moduleFiles.forEach((file) => {

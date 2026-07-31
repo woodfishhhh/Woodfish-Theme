@@ -5,6 +5,7 @@ type DeriveRuntimeStatusInput = {
   activeTheme: string;
   hasPayload: boolean;
   features: FeatureFlags;
+  overlayEnabled: boolean;
 };
 
 function hasAnyVisibleEffect(features: FeatureFlags): boolean {
@@ -15,10 +16,12 @@ export function deriveRuntimeStatus({
   activeTheme,
   hasPayload,
   features,
+  overlayEnabled,
 }: DeriveRuntimeStatusInput): RuntimeStatusSnapshot {
   const isWoodfishThemeActive = isWoodfishTheme(activeTheme);
+  const shouldBeActive = overlayEnabled && hasAnyVisibleEffect(features);
 
-  if (isWoodfishThemeActive && hasPayload) {
+  if (shouldBeActive && hasPayload) {
     return {
       state: 'on',
       activeTheme,
@@ -27,7 +30,7 @@ export function deriveRuntimeStatus({
     };
   }
 
-  if (!isWoodfishThemeActive && hasAnyVisibleEffect(features)) {
+  if (shouldBeActive) {
     return {
       state: 'paused',
       activeTheme,

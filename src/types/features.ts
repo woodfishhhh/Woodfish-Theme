@@ -13,6 +13,14 @@ export type RuntimeStatusSnapshot = {
   hasPayload: boolean;
 };
 
+export type OverlaySettings = {
+  enabled: boolean;
+  hueShift: number;
+  lightnessDelta: number;
+  neutralChroma: number;
+  angle: number;
+};
+
 export type SyntaxGradientSettings = {
   enabled: boolean;
   customRules: string[];
@@ -45,6 +53,7 @@ export type ThemeRuntimeExplicitSettings = {
 };
 
 export type ThemeRuntimeSettings = {
+  overlay: OverlaySettings;
   syntaxGradient: SyntaxGradientSettings;
   glow: GlowSettings;
   cursor: CursorSettings;
@@ -52,6 +61,7 @@ export type ThemeRuntimeSettings = {
 };
 
 export type PartialRuntimeSettings = {
+  overlay?: Partial<OverlaySettings>;
   syntaxGradient?: Partial<SyntaxGradientSettings>;
   glow?: Partial<GlowSettings>;
   cursor?: Partial<CursorSettings>;
@@ -67,6 +77,13 @@ export const RUNTIME_SETTING_LIMITS = {
 } as const;
 
 export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
+  overlay: {
+    enabled: true,
+    hueShift: 24,
+    lightnessDelta: 0.06,
+    neutralChroma: 0.06,
+    angle: 90,
+  },
   syntaxGradient: {
     enabled: true,
     customRules: [],
@@ -397,6 +414,28 @@ export function normalizeRuntimeSettings(
     : undefined;
 
   return {
+    overlay: {
+      enabled: sanitizeBoolean(partial.overlay?.enabled, DEFAULT_RUNTIME_SETTINGS.overlay.enabled),
+      hueShift: sanitizeNumber(
+        partial.overlay?.hueShift,
+        DEFAULT_RUNTIME_SETTINGS.overlay.hueShift,
+        0,
+        180
+      ),
+      lightnessDelta: sanitizeNumber(
+        partial.overlay?.lightnessDelta,
+        DEFAULT_RUNTIME_SETTINGS.overlay.lightnessDelta,
+        0,
+        0.5
+      ),
+      neutralChroma: sanitizeNumber(
+        partial.overlay?.neutralChroma,
+        DEFAULT_RUNTIME_SETTINGS.overlay.neutralChroma,
+        0,
+        0.4
+      ),
+      angle: sanitizeNumber(partial.overlay?.angle, DEFAULT_RUNTIME_SETTINGS.overlay.angle, 0, 360),
+    },
     syntaxGradient: {
       enabled: sanitizeBoolean(
         partial.syntaxGradient?.enabled,

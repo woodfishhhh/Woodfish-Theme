@@ -40,6 +40,7 @@ export class FeatureStateController {
 
   public currentSettings(): ThemeRuntimeSettings {
     return {
+      overlay: { ...this.settings.overlay },
       syntaxGradient: {
         ...this.settings.syntaxGradient,
         customRules: [...this.settings.syntaxGradient.customRules],

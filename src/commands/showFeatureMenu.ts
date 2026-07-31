@@ -12,20 +12,18 @@ export function registerShowFeatureMenuCommand(deps: CommandDeps): vscode.Dispos
     await runSafely('切换功能菜单', async () => {
       const current = deps.featureState.current();
       const runtime = deps.runtimeService.getRuntimeStatus(current);
-      const enableThemeLabel = deps.runtimeService.getThemeLabelForEnable();
       const items: FeatureMenuItem[] = [
         {
-          label: '$(play) 开启 Woodfish 主题',
+          label: '$(layers-active) 开启 Woodfish 通用叠层',
           description:
             runtime.state === 'on'
-              ? `重新写入当前主题注入并保持 ${runtime.activeTheme || enableThemeLabel}`
-              : `切换到 ${enableThemeLabel} 并写入一体化注入`,
+              ? `重新写入叠层并保持当前主题 ${runtime.activeTheme || '未检测到'}`
+              : `在当前主题 ${runtime.activeTheme || '未检测到'} 上启用叠层`,
           command: COMMANDS.enable,
         },
         {
-          label: '$(primitive-square) 关闭 Woodfish 主题',
-          description:
-            runtime.state === 'off' ? '当前：未检测到 Woodfish 注入' : '移除当前 Woodfish 注入',
+          label: '$(circle-slash) 关闭 Woodfish 通用叠层',
+          description: runtime.state === 'off' ? '当前：叠层已关闭' : '移除叠层但保留各项参数',
           command: COMMANDS.disable,
         },
         {
@@ -54,7 +52,7 @@ export function registerShowFeatureMenuCommand(deps: CommandDeps): vscode.Dispos
           command: COMMANDS.repairWorkbench,
         },
         {
-          label: '$(trash) 彻底停用 Woodfish 主题',
+          label: '$(trash) 彻底停用 Woodfish 叠层',
           description: '移除当前注入，并清理接管记录',
           command: COMMANDS.completeUninstall,
         },
@@ -66,7 +64,7 @@ export function registerShowFeatureMenuCommand(deps: CommandDeps): vscode.Dispos
       ];
 
       const selection = await vscode.window.showQuickPick(items, {
-        placeHolder: '选择要执行的 Woodfish / VS Code 指令',
+        placeHolder: '选择 Woodfish 叠层或 VS Code 指令',
       });
 
       if (selection) {

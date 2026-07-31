@@ -5,6 +5,7 @@ describe('runtime status detection', () => {
     const snapshot = deriveRuntimeStatus({
       activeTheme: 'Woodfish Dark',
       hasPayload: true,
+      overlayEnabled: true,
       features: {
         syntaxGradient: true,
         glow: true,
@@ -21,6 +22,7 @@ describe('runtime status detection', () => {
     const snapshot = deriveRuntimeStatus({
       activeTheme: 'Woodfish Dracula',
       hasPayload: true,
+      overlayEnabled: true,
       features: {
         syntaxGradient: true,
         glow: true,
@@ -33,10 +35,11 @@ describe('runtime status detection', () => {
     expect(snapshot.hasPayload).toBe(true);
   });
 
-  it('returns paused when effects are enabled but the active theme is not Woodfish Dark', () => {
+  it('returns on for an external theme when the universal overlay payload is present', () => {
     const snapshot = deriveRuntimeStatus({
       activeTheme: 'One Dark Pro',
-      hasPayload: false,
+      hasPayload: true,
+      overlayEnabled: true,
       features: {
         syntaxGradient: true,
         glow: false,
@@ -44,15 +47,16 @@ describe('runtime status detection', () => {
       },
     });
 
-    expect(snapshot.state).toBe('paused');
+    expect(snapshot.state).toBe('on');
     expect(snapshot.isWoodfishTheme).toBe(false);
-    expect(snapshot.hasPayload).toBe(false);
+    expect(snapshot.hasPayload).toBe(true);
   });
 
-  it('returns off when Woodfish Dark stays selected but the payload has already been removed', () => {
+  it('returns paused while enabled effects are waiting for their payload', () => {
     const snapshot = deriveRuntimeStatus({
       activeTheme: 'Woodfish Dark',
       hasPayload: false,
+      overlayEnabled: true,
       features: {
         syntaxGradient: true,
         glow: true,
@@ -60,7 +64,7 @@ describe('runtime status detection', () => {
       },
     });
 
-    expect(snapshot.state).toBe('off');
+    expect(snapshot.state).toBe('paused');
     expect(snapshot.isWoodfishTheme).toBe(true);
     expect(snapshot.hasPayload).toBe(false);
   });
@@ -69,6 +73,7 @@ describe('runtime status detection', () => {
     const snapshot = deriveRuntimeStatus({
       activeTheme: 'One Dark Pro',
       hasPayload: false,
+      overlayEnabled: true,
       features: {
         syntaxGradient: false,
         glow: false,
@@ -77,5 +82,21 @@ describe('runtime status detection', () => {
     });
 
     expect(snapshot.state).toBe('off');
+  });
+
+  it('returns off when the overlay master switch is disabled', () => {
+    const snapshot = deriveRuntimeStatus({
+      activeTheme: 'Woodfish Dracula',
+      hasPayload: true,
+      overlayEnabled: false,
+      features: {
+        syntaxGradient: true,
+        glow: true,
+        cursor: true,
+      },
+    });
+
+    expect(snapshot.state).toBe('off');
+    expect(snapshot.hasPayload).toBe(true);
   });
 });

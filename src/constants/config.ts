@@ -1,11 +1,18 @@
 export const CONFIG_SECTION = 'woodfishTheme';
 export const WORKBENCH_SECTION = 'workbench';
-export const WOODFISH_THEME_NAME = 'Woodfish Dark';
 
 export const FEATURE_SETTING_KEYS = {
   syntaxGradient: 'syntaxGradient.enabled',
   glow: 'glow.enabled',
   cursor: 'cursor.enabled',
+} as const;
+
+export const OVERLAY_SETTING_KEYS = {
+  enabled: 'overlay.enabled',
+  hueShift: 'overlay.hueShift',
+  lightnessDelta: 'overlay.lightnessDelta',
+  neutralChroma: 'overlay.neutralChroma',
+  angle: 'overlay.angle',
 } as const;
 
 export const SYNTAX_SETTING_KEYS = {

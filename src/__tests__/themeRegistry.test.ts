@@ -6,19 +6,18 @@ describe('theme registry resolution', () => {
     const { resolveWoodfishTheme } = require('../services/runtime/themeRegistry') as {
       resolveWoodfishTheme: (
         themeName: string
-      ) => { slug: string; directory: string; themeFile: string } | undefined;
+      ) => { slug: string; directory: string; metaFile: string } | undefined;
     };
 
     expect(resolveWoodfishTheme('Woodfish Dark')).toMatchObject({
       slug: 'bearded',
       directory: 'bearded',
-      themeFile: 'Woodfish Dark.json',
+      metaFile: 'theme.meta.json',
     });
     expect(resolveWoodfishTheme('Woodfish Dracula')).toMatchObject({
       slug: 'dracula',
       directory: 'dracula',
-      themeFile: 'Woodfish Dracula.json',
-      glowFile: 'glow-effects.css',
+      metaFile: 'theme.meta.json',
     });
     expect(resolveWoodfishTheme('One Dark Pro')).toBeUndefined();
   });

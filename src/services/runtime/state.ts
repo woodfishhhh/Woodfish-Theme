@@ -9,6 +9,8 @@ export type RuntimeInstallState = {
   backupVscodeVersion?: string;
   backupCreatedAt?: string;
   payloadHash?: string;
+  bootstrapPath?: string;
+  bootstrapHash?: string;
   vscodeVersion?: string;
   legacyPayloads?: string[];
   lastSelectedThemeLabel?: string;

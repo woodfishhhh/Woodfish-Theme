@@ -8,7 +8,7 @@ export class ThemeStatusBar {
   constructor(context: vscode.ExtensionContext) {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     this.item.command = COMMANDS.showFeatureMenu;
-    this.item.tooltip = 'Woodfish Theme - Click to configure integrated effects';
+    this.item.tooltip = 'Woodfish Overlay - Click to configure effects';
     this.item.show();
     context.subscriptions.push(this.item);
   }
@@ -27,7 +27,7 @@ export class ThemeStatusBar {
 
     this.item.text = segments.join(' ');
     this.item.tooltip = [
-      'Woodfish Theme - 点击打开功能菜单',
+      'Woodfish Overlay - 点击打开功能菜单',
       `状态: ${runtime.state}`,
       `当前主题: ${runtime.activeTheme || '未检测到'}`,
       `payload: ${runtime.hasPayload ? 'present' : 'absent'}`,

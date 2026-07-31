@@ -2,34 +2,36 @@
 
 > English | [中文](README.md)
 
-Woodfish Theme is a VS Code theme extension with gradient syntax colors, glow style, and optional rainbow cursor effects.
+Woodfish Theme 6 is a universal VS Code visual overlay. It keeps the active color theme's original token colors, then derives OKLCH gradients, glow, and an optional rainbow cursor at runtime. The bundled Bearded and Dracula themes are optional bases, not requirements.
 
-[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-6.0.0--beta.1-blue.svg)](https://github.com/woodfishhhh/Woodfish-Theme)
+[![License](https://img.shields.io/badge/license-MIT%20%2B%20GPL--3.0-green.svg)](THIRD_PARTY_NOTICES.md)
 [![VSCode](https://img.shields.io/badge/VSCode-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 
 ## Features
 
-- Gradient syntax highlighting
+- Universal overlay for any VS Code color theme
+- Per-token gradients derived from the active theme's computed colors
 - Glow effects
 - Optional rainbow cursor (via CSS injection)
 - Validated atomic workbench updates with version-aware backups and rollback
 - Reduced-motion fallbacks for continuous effects
 - Modular CSS structure
 
-## 🆕 New Features
+## New in 6.0 beta
 
-- **Truthful status bar**: The status bar now shows `Woodfish on/off/paused` plus `A / G / C` effect badges.
-- **Progress notifications**: Activation, disable, repair, and cleanup flows show progress feedback.
-- **Quick menu**: Click the `Woodfish ...` status bar entry to open the full command menu.
-- **Two built-in themes**: Woodfish now ships with both `Woodfish Dark` and `Woodfish Dracula`.
+- **Theme-independent overlay**: Switching color themes no longer pauses or removes Woodfish.
+- **Stable token discovery**: The runtime discovers Monaco token spans without hard-coding `mtk` ids.
+- **Approved defaults**: Hue shift `±24°`, lightness `ΔL ±0.060`, and gradient angle `90°`.
+- **Neutral-color treatment**: White and gray tokens borrow an accent hue from the active theme, so default foreground text also receives visible gradient and glow.
+- **Original bundled bases**: `Woodfish Dark` and `Woodfish Dracula` now contain unmodified upstream theme colors.
 
 
 ## Preview
 
 ![Woodfish Dracula preview](assets/readme/dracula-preview.png)
 
-Woodfish Dracula uses palette-matched syntax gradients, shorter layered glow, a calmer theme cursor, and a slower active-tab sweep. Comments and default text stay flat to preserve hierarchy.
+The overlay automatically derives an OKLCH gradient from every token's current computed color. The original color stays at the midpoint, while `ΔL ±0.060` and a `±24°` hue shift create the endpoints before they are mapped to concrete sRGB values for older VS Code engines. Low-chroma text gets an accent hue from the current theme, and punctuation receives a weaker glow. The screenshot uses the bundled Dracula base, but the same overlay works with third-party themes.
 
 <details>
 <summary><strong>View Woodfish Dark previews</strong></summary>
@@ -51,17 +53,18 @@ Woodfish Dracula uses palette-matched syntax gradients, shorter layered glow, a 
 ### Install from VSIX
 
 ```bash
-code --install-extension woodfish-theme-5.2.0.vsix
+code --install-extension woodfish-theme-6.0.0-beta.1.vsix
 ```
 
 ## Runtime Model
 
 Woodfish Theme now ships with an integrated runtime injector and no longer depends on third-party CSS loader extensions.
 
-Runtime behaviors are now handled internally:
+Runtime behaviors are handled internally:
 
-- enabling the theme restores the most recently selected built-in Woodfish theme and writes the latest payload
-- startup checks whether the theme and payload still match
+- the overlay is enabled by default and preserves the currently selected color theme
+- startup checks whether the full CSS and bootstrap payload still match
+- theme changes trigger a fresh token-color profile without fixed token ids
 - known legacy Woodfish payloads are taken over before the new payload is injected
 - unknown third-party payloads are not modified automatically
 - workbench updates are validated before an atomic replacement, and repair or complete disable only restores a backup that matches the current VS Code installation
@@ -70,18 +73,18 @@ Runtime behaviors are now handled internally:
 
 ### Enable / Disable
 
-- `Woodfish Theme: 开启 Woodfish 主题` (enable)
-- `Woodfish Theme: 关闭 Woodfish 主题` (disable)
+- `Woodfish Theme: 开启 Woodfish 通用叠层` (enable)
+- `Woodfish Theme: 关闭 Woodfish 通用叠层` (disable)
 
 Reload the VS Code window when prompted.
 
-### Select Theme
+### Optional Bundled Themes
 
 1. Press `Ctrl+K Ctrl+T`
 2. Select “Woodfish Dark” or “Woodfish Dracula”
-3. The next time you run `Woodfish Theme: 开启 Woodfish 主题`, the extension restores that last built-in Woodfish theme
+3. Woodfish keeps that original base and applies the same universal overlay on top
 
-When cursor settings are untouched, Woodfish Dracula uses a 12-second pink-purple-cyan-green loop, a `1px` radius, and `0.45` trail opacity. Explicit `woodfishTheme.cursor.*` values always win.
+Enabling or disabling the overlay never changes the selected color theme. When cursor settings are untouched, Woodfish Dracula uses a 12-second pink-purple-cyan-green loop, a `1px` radius, and `0.45` trail opacity. Explicit `woodfishTheme.cursor.*` values always win.
 
 ### Rainbow Cursor
 
@@ -90,9 +93,9 @@ When cursor settings are untouched, Woodfish Dracula uses a 12-second pink-purpl
 
 ### Status Bar Meanings
 
-- `on`: a built-in Woodfish theme such as `Woodfish Dark` or `Woodfish Dracula` is active and the current payload is present
-- `paused`: effect settings are enabled, but the active theme is not a built-in Woodfish theme
-- `off`: no Woodfish payload is currently detected
+- `on`: the universal overlay is enabled and its current payload is present
+- `paused`: overlay effects are enabled but the current payload is missing, usually pending repair or reload
+- `off`: the overlay master switch is disabled, or all effect layers are disabled
 - `A`: syntax gradient
 - `G`: glow
 - `C`: rainbow cursor
@@ -100,7 +103,7 @@ When cursor settings are untouched, Woodfish Dracula uses a 12-second pink-purpl
 ### Other Commands
 
 - `Woodfish Theme: 开启/关闭 Woodfish 发光`
-- `Woodfish Theme: 彻底停用 Woodfish 主题` (best-effort cleanup, will ask for confirmation)
+- `Woodfish Theme: 彻底停用 Woodfish 叠层` (best-effort cleanup, will ask for confirmation)
 
 ## ❓ Troubleshooting
 
@@ -111,25 +114,25 @@ If you encounter issues, please try the following steps. For more details, see t
   - Solution: After running the enable command, make sure to click **"Reload Window"** in the notification.
 - **Issue: Effects persist after deactivation**
   - Reason: Cached CSS or leftovers from previous versions.
-  - Solution: Run the `Woodfish Theme: 彻底停用 Woodfish 主题` command to clean up residues.
+  - Solution: Run the `Woodfish Theme: 彻底停用 Woodfish 叠层` command to clean up residues.
 - **Issue: Status bar is not visible**
   - Reason: The extension is not yet activated.
-  - Solution: Run any `Woodfish Theme:` command (e.g., "开启 Woodfish 主题") to activate the extension.
+  - Solution: Run any `Woodfish Theme:` command (for example, "开启 Woodfish 通用叠层") to activate the extension.
 - **Issue: Rainbow cursor not working**
-  - Reason: The active theme is not a built-in Woodfish theme, or the window has not been reloaded after injection.
-  - Solution: Switch to `Woodfish Dark` or `Woodfish Dracula`, or run `Woodfish Theme: 开启 Woodfish 主题` to restore the last built-in theme, then reload the window.
+  - Reason: The overlay or cursor layer is disabled, or the window has not been reloaded after injection.
+  - Solution: Enable both layers, then reload the window. Any color theme is supported.
 - **Issue: The status bar says `paused`**
-  - Reason: Effect layers are enabled, but the active theme is not a built-in Woodfish theme.
-  - Solution: Run `Woodfish Theme: 开启 Woodfish 主题`, or switch back to `Woodfish Dark` / `Woodfish Dracula` and reload the window.
+  - Reason: Effect layers are enabled, but the matching payload is missing.
+  - Solution: Run `Woodfish Theme: 修复 Woodfish 注入`, then reload the window.
 
 ## 💬 FAQ
 
 - **Q: Why is a reload required every time I toggle a feature?**
   - A: CSS injection modifies the VS Code UI layer, which requires a window reload to process the updated stylesheets.
-- **Q: Can I use multiple themes at once?**
-  - A: Not recommended. Woodfish Theme uses CSS injection, which may conflict with other injection-based themes.
+- **Q: Can I keep my existing color theme?**
+  - A: Yes. Version 6 is specifically designed to overlay any active VS Code color theme.
 - **Q: How do I completely remove all effects?**
-  - A: Use `Woodfish Theme: 彻底停用 Woodfish 主题` to remove the current payload and restore previously taken-over legacy Woodfish fragments when possible.
+  - A: Use `Woodfish Theme: 彻底停用 Woodfish 叠层` to remove the current payload and clean up known legacy Woodfish fragments.
 - **Q: What do `on / paused / off / A / G / C` mean in the status bar?**
   - A: `on / paused / off` are the real runtime states. `A` = syntax gradient, `G` = glow, `C` = rainbow cursor.
 
@@ -137,6 +140,11 @@ If you encounter issues, please try the following steps. For more details, see t
 
 ```json
 {
+  "woodfishTheme.overlay.enabled": true,
+  "woodfishTheme.overlay.hueShift": 24,
+  "woodfishTheme.overlay.lightnessDelta": 0.06,
+  "woodfishTheme.overlay.neutralChroma": 0.06,
+  "woodfishTheme.overlay.angle": 90,
   "woodfishTheme.syntaxGradient.enabled": true,
   "woodfishTheme.glow.intensity": 0.8,
   "woodfishTheme.cursor.gradientStops": [
@@ -154,6 +162,16 @@ If you encounter issues, please try the following steps. For more details, see t
 
 ### Recommended Setting Map
 
+- `woodfishTheme.overlay.enabled`
+  - Persistent master switch for the universal overlay. Defaults to `true`.
+- `woodfishTheme.overlay.hueShift`
+  - Hue offset for both gradient endpoints in degrees. Defaults to `24`.
+- `woodfishTheme.overlay.lightnessDelta`
+  - OKLCH lightness offset. Defaults to `0.06`.
+- `woodfishTheme.overlay.neutralChroma`
+  - Chroma added to white and gray tokens. Defaults to `0.06`.
+- `woodfishTheme.overlay.angle`
+  - Text-gradient direction in degrees. Defaults to `90`.
 - `woodfishTheme.syntaxGradient.enabled`
   - Turns the syntax color layer on or off.
 - `woodfishTheme.syntaxGradient.customRules`
@@ -199,4 +217,4 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+Woodfish extension code is MIT licensed. The bundled Bearded base is GPL-3.0-only and the bundled Dracula base is MIT licensed. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

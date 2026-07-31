@@ -53,13 +53,26 @@ export async function run(): Promise<void> {
   const backupPath = `${workbenchPath}.woodfish-backup`;
   const backupSnapshot = readBackupSnapshot(backupPath);
   const workbenchConfig = vscode.workspace.getConfiguration('workbench');
+  const overlayConfig = vscode.workspace.getConfiguration('woodfishTheme');
   const originalGlobalTheme = workbenchConfig.inspect<string>('colorTheme')?.globalValue;
+  const originalGlobalOverlayEnabled =
+    overlayConfig.inspect<boolean>('overlay.enabled')?.globalValue;
+  const activeThemeBeforeEnable = workbenchConfig.get<string>('colorTheme', '');
 
   try {
     await vscode.commands.executeCommand(COMMANDS.enable);
 
     const patchedWorkbench = fs.readFileSync(workbenchPath, 'utf-8');
     assert.ok(hasWoodfishPayload(patchedWorkbench), 'Enable command did not write its payload');
+    assert.ok(
+      patchedWorkbench.includes('data-woodfish-theme="bootstrap"'),
+      'Enable command did not install the universal overlay bootstrap'
+    );
+    assert.strictEqual(
+      workbenchConfig.get<string>('colorTheme', ''),
+      activeThemeBeforeEnable,
+      'Enable command replaced the active color theme'
+    );
 
     await vscode.commands.executeCommand(COMMANDS.disable);
 
@@ -70,16 +83,24 @@ export async function run(): Promise<void> {
     );
   } finally {
     try {
-      await workbenchConfig.update(
-        'colorTheme',
-        originalGlobalTheme,
+      await overlayConfig.update(
+        'overlay.enabled',
+        originalGlobalOverlayEnabled,
         vscode.ConfigurationTarget.Global
       );
     } finally {
       try {
-        fs.writeFileSync(workbenchPath, originalWorkbench, 'utf-8');
+        await workbenchConfig.update(
+          'colorTheme',
+          originalGlobalTheme,
+          vscode.ConfigurationTarget.Global
+        );
       } finally {
-        restoreBackupSnapshot(backupPath, backupSnapshot);
+        try {
+          fs.writeFileSync(workbenchPath, originalWorkbench, 'utf-8');
+        } finally {
+          restoreBackupSnapshot(backupPath, backupSnapshot);
+        }
       }
     }
   }

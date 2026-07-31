@@ -6,25 +6,23 @@ This guide provides solutions for common issues encountered when using the Woodf
 
 ### Issue: Effects not showing after toggle
 If you've enabled the theme or a specific effect (like Glow or Rainbow Cursor) but don't see any changes:
-1. **Verify Theme**: Make sure the active color theme is `Woodfish Dark` or `Woodfish Dracula`.
+1. **Verify Overlay**: Make sure `woodfishTheme.overlay.enabled` and the desired effect are enabled. Any VS Code color theme is supported.
 2. **Verify Reload**: Did you click "Reload Window" after running the command? Workbench injection requires a full UI reload.
 3. **Check Output Channel**: Open the VS Code Output panel and select `Woodfish Theme` from the dropdown to check for any error logs.
 
 ### Issue: Status bar not visible
 The status bar entry (`Woodfish ...`) appears only when the extension is active.
-- **Activation**: The extension activates when you run any of its commands. Try running `Woodfish Theme: 开启 Woodfish 主题`.
-- **Theme Check**: If the status says `paused`, switch back to `Woodfish Dark` / `Woodfish Dracula`, or rerun `Woodfish Theme: 开启 Woodfish 主题` to restore the last built-in theme and reload the window.
+- **Activation**: The extension activates when you run any of its commands. Try running `Woodfish Theme: 开启 Woodfish 通用叠层`.
+- **Payload Check**: If the status says `paused`, run `Woodfish Theme: 修复 Woodfish 注入` and reload the window.
 
 ### Issue: Rainbow cursor not working
-The rainbow cursor depends on the integrated runtime payload and the theme being active.
-- **Enable Theme First**: You must enable the main Woodfish Theme before the cursor styles can be properly applied.
-- **Built-in Theme Required**: The active color theme must be `Woodfish Dark` or `Woodfish Dracula`.
+The rainbow cursor depends on the integrated runtime payload and the overlay being active.
+- **Enable Overlay First**: Enable the Woodfish universal overlay before applying cursor styles.
+- **Any Theme Works**: The active color theme does not need to be a bundled Woodfish theme.
 - **Enable Cursor Layer**: Run `Woodfish Theme: 开启 Woodfish 彩色光标` or `Woodfish Theme: 开启/关闭彩色光标`, then reload the window.
 
-### Issue: Enable restored the wrong built-in theme
-`Woodfish Theme: 开启 Woodfish 主题` restores the last selected built-in Woodfish theme.
-- **Switch the remembered theme**: Manually select `Woodfish Dark` or `Woodfish Dracula` from the VS Code theme picker once.
-- **Re-run Enable**: The next enable action restores that built-in theme unless you switch to another built-in Woodfish theme later.
+### Issue: Enabling the overlay did not switch themes
+This is intentional in version 6. Enabling Woodfish keeps the current color theme. `Woodfish Dark` and `Woodfish Dracula` remain optional unmodified base themes in the normal VS Code theme picker.
 
 ### Issue: Glow effects too strong or too weak
 Glow intensity can vary depending on your monitor and personal preference.
@@ -49,6 +47,7 @@ If the basic checks don't solve your problem:
 1. **Check Woodfish Settings**:
    - Open your `settings.json`.
    - Verify `woodfishTheme.syntaxGradient.enabled`, `woodfishTheme.glow.enabled`, or `woodfishTheme.cursor.enabled` are enabled as needed.
+   - Verify `woodfishTheme.overlay.enabled` is `true`.
    - Verify `woodfishTheme.cursor.enabled` is `true` if you are debugging the rainbow cursor.
 
 2. **View Output Channel Logs**:
@@ -66,7 +65,7 @@ If the basic checks don't solve your problem:
 
 ### Manual Runtime Cleanup
 If you've uninstalled the extension but effects still persist:
-1. Run `Woodfish Theme: 彻底停用 Woodfish 主题` before uninstalling.
+1. Run `Woodfish Theme: 彻底停用 Woodfish 叠层` before uninstalling.
 2. If effects still remain, inspect your VS Code installation for other injection-based extensions that may still patch the same `workbench.html`.
 3. Remember that Woodfish only auto-takes over known legacy Woodfish payloads; unknown third-party payloads must be cleaned by their own source extension.
 
