@@ -23,6 +23,10 @@ jest.mock(
   'vscode',
   () => ({
     version: '1.100.0',
+    env: {
+      appRoot: 'C:/current-version/app',
+      appName: 'Visual Studio Code',
+    },
     workspace: {
       onDidChangeConfiguration: (...args: unknown[]) => mockOnDidChangeConfiguration(...args),
     },
@@ -60,6 +64,27 @@ jest.mock('../config/featureFlags', () => ({
       glowOpacity: 0.7,
       customRules: [],
     },
+    glass: {
+      enabled: false,
+      mode: 'blur',
+      blur: 30,
+      saturate: 125,
+      opacity: 0.7,
+      noise: 0.02,
+      borderRadius: 0,
+      targets: [],
+      animations: true,
+      reveal: true,
+      nativeWindow: {
+        enabled: false,
+        windowsMaterial: 'acrylic',
+        macVibrancy: 'under-window',
+        opacity: 0.78,
+      },
+    },
+    runtime: {
+      fixChecksums: true,
+    },
   })),
   setOverlayEnabled: jest.fn(),
 }));
@@ -82,13 +107,44 @@ jest.mock('../services/runtime/assets', () => ({
     activityBar: '.activity {}',
     tabBar: '.tab {}',
     overlayBootstrap: 'globalThis.woodfishOverlay = true;',
+    nativeWindowHook: '/* WOODFISH_NATIVE_WINDOW - managed file */',
     cursorCore: '.cursor {}',
     cursorGlow: '.glow-cursor {}',
   })),
 }));
 
 jest.mock('../services/runtime/locator', () => ({
-  getWorkbenchHtmlPath: jest.fn(() => 'C:/current-version/workbench.html'),
+  locateWorkbench: jest.fn(() => ({
+    appRoot: 'C:/current-version/app',
+    workbenchPath: 'C:/current-version/workbench.html',
+    relativePath: 'vs/code/electron-browser/workbench/workbench.html',
+  })),
+  findWorkbenchInAppRoot: jest.fn(() => ({
+    appRoot: 'C:/current-version/app',
+    workbenchPath: 'C:/current-version/workbench.html',
+    relativePath: 'vs/code/electron-browser/workbench/workbench.html',
+  })),
+}));
+
+const mockSyncWorkbenchChecksum = jest.fn(() => 'updated');
+jest.mock('../services/runtime/checksums', () => ({
+  syncWorkbenchChecksum: (...args: unknown[]) => mockSyncWorkbenchChecksum(...(args as [])),
+}));
+
+const mockInstallNativeWindow = jest.fn(() => ({ changed: false, requiresRestart: false }));
+const mockUninstallNativeWindow = jest.fn(() => ({ changed: false, requiresRestart: false }));
+const mockIsNativeWindowInstalled = jest.fn(() => false);
+const mockIsNativeWindowComplete = jest.fn(() => false);
+jest.mock('../services/runtime/nativeWindow', () => ({
+  installNativeWindow: (...args: unknown[]) => mockInstallNativeWindow(...(args as [])),
+  uninstallNativeWindow: (...args: unknown[]) => mockUninstallNativeWindow(...(args as [])),
+  isNativeWindowInstalled: (...args: unknown[]) => mockIsNativeWindowInstalled(...(args as [])),
+  isNativeWindowComplete: (...args: unknown[]) => mockIsNativeWindowComplete(...(args as [])),
+}));
+
+const mockRecordInstallation = jest.fn();
+jest.mock('../services/runtime/installManifest', () => ({
+  recordInstallation: (...args: unknown[]) => mockRecordInstallation(...(args as [])),
 }));
 
 jest.mock('../services/runtime/payloadBuilder', () => ({
@@ -106,6 +162,7 @@ jest.mock('../ui/notifications', () => ({
   showErrorMessage: jest.fn(),
   showInfoMessage: jest.fn(),
   showReloadPrompt: jest.fn().mockResolvedValue(undefined),
+  showRestartPrompt: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockAppendLine = jest.fn();
@@ -137,6 +194,7 @@ describe('IntegratedThemeService', () => {
     'woodfish-overlay-bootstrap.js'
   );
   const context = {
+    extensionPath: 'C:/extensions/woodfish',
     asAbsolutePath: jest.fn((value: string) => value),
     subscriptions: [],
     globalState: {
@@ -370,6 +428,38 @@ describe('IntegratedThemeService', () => {
     expect(commandSettled).toBe(true);
   });
 
+  it('never lets an in-flight sync re-inject after a complete uninstall', async () => {
+    let finishStartupWrite!: () => void;
+    const startupWrite = new Promise<void>((resolve) => {
+      finishStartupWrite = resolve;
+    });
+    mockWriteRuntimeInstallState.mockImplementationOnce(async (_context, state) => {
+      mockRuntimeState = state;
+      await startupWrite;
+    });
+    const enabledSettings = (readRuntimeSettings as jest.Mock).getMockImplementation()?.();
+    let overlayEnabled = true;
+    (readRuntimeSettings as jest.Mock).mockImplementation(() => ({
+      ...enabledSettings,
+      overlay: { ...enabledSettings.overlay, enabled: overlayEnabled },
+    }));
+    (setOverlayEnabled as jest.Mock).mockImplementation(async (enabled: boolean) => {
+      overlayEnabled = enabled;
+    });
+
+    const service = new IntegratedThemeService(context);
+    const startupSync = service.syncWithCurrentSettings({ showPrompt: false });
+    await Promise.resolve();
+    const uninstall = service.completeUninstall();
+    finishStartupWrite();
+    await Promise.all([startupSync, uninstall]);
+    await service.syncWithCurrentSettings({ showPrompt: false });
+
+    expect(mockFiles.get(currentWorkbenchPath)).not.toContain('WOODFISH_THEME_START');
+    expect(mockFiles.has(currentBootstrapPath)).toBe(false);
+    (readRuntimeSettings as jest.Mock).mockImplementation(() => enabledSettings);
+  });
+
   it('preserves a queued repair when a later background sync is coalesced', async () => {
     const backupHtml = '<html><body>validated repair baseline</body></html>';
     mockFiles.set(currentBackupPath, backupHtml);
@@ -499,7 +589,20 @@ describe('IntegratedThemeService', () => {
 
     await service.initializeOnStartup();
 
-    expect(showReloadPrompt).toHaveBeenCalledWith('Woodfish 通用叠层已更新，请重新加载 VS Code。');
+    expect(showReloadPrompt).toHaveBeenCalledWith('Woodfish 通用叠层已更新，请重新加载 VS Code。', {
+      checksumUpdated: true,
+    });
+  });
+
+  it('does not mention the corrupt-installation notice when the checksum was already current', async () => {
+    mockSyncWorkbenchChecksum.mockReturnValueOnce('unchanged');
+    const service = new IntegratedThemeService(context);
+
+    await service.initializeOnStartup();
+
+    expect(showReloadPrompt).toHaveBeenCalledWith('Woodfish 通用叠层已更新，请重新加载 VS Code。', {
+      checksumUpdated: false,
+    });
   });
 
   it('replaces the payload when only the bootstrap implementation changes', async () => {

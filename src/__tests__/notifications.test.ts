@@ -39,11 +39,20 @@ describe('reload prompt behavior', () => {
 
     expect(settled).toBe(true);
     expect(showInformationMessageMock).toHaveBeenCalledWith(
-      '[Woodfish Theme] 请重新加载 VS Code。',
+      '[Woodfish Theme] 请重新加载 VS Code。若重新加载后仍未生效，请完全退出 VS Code 后再打开。',
       '重新加载窗口',
       '稍后'
     );
     expect(executeCommandMock).not.toHaveBeenCalled();
+  });
+
+  it('explains the corrupt-installation notice after a checksum update', async () => {
+    await showReloadPrompt('请重新加载 VS Code。', { checksumUpdated: true });
+
+    const [message] = showInformationMessageMock.mock.calls[0] as [string];
+    expect(message).toContain('安装似乎损坏');
+    expect(message).toContain('完全退出 VS Code');
+    expect(message).not.toContain('若重新加载后仍未生效');
   });
 
   it('reloads the window after the user clicks the reload action', async () => {

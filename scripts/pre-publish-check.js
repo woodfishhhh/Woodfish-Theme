@@ -14,9 +14,7 @@ const FORBIDDEN_PACKAGE_PATHS = [
   /^README\.en\.md$/i,
   /^eslint\.config\.mjs$/i,
   /^jest\.config\.js$/i,
-  /^docs\/CHANGELOG\.md$/i,
-  /^docs\/CONTRIBUTING\.md$/i,
-  /^docs\/superpowers\//i,
+  /^docs\/(?!walkthrough\/|TROUBLESHOOTING\.md$)/i,
   /^out\/integration\//i,
   /^coverage\//i,
   /^\.nyc_output\//i,
@@ -26,11 +24,14 @@ const FORBIDDEN_PACKAGE_PATHS = [
   /^\.superpowers\//i,
   /^\.worktrees\//i,
   /^assets\/readme\//i,
-  /^images\/(?:img1\.png|img2\.png|icon\.svg)$/i,
+  /^images\/(?:img1\.png|img2\.png|icon\.svg|head\.jpg)$/i,
+  // 开发模式下扩展把安装记录写在扩展目录里，里面是本机路径，绝不能随包发布
+  /(?:^|\/)\.woodfish-installations\.json$/i,
 ];
 const REQUIRED_PACKAGE_PATHS = [
   'out/extension.js',
-  'images/head.jpg',
+  'out/uninstall.js',
+  'images/icon.jpg',
   'THIRD_PARTY_NOTICES.md',
   'themes/bearded/Woodfish Dark.json',
   'themes/bearded/theme.meta.json',
@@ -45,6 +46,14 @@ const REQUIRED_PACKAGE_PATHS = [
   'themes/shared/overlay-bootstrap.js',
   'themes/shared/cursor-core.css',
   'themes/shared/cursor-glow.css',
+  'themes/shared/native-window-main.mjs',
+  'themes/black/Woodfish Black.json',
+  'themes/black/theme.meta.json',
+  'themes/neon/Woodfish Neon.json',
+  'themes/neon/theme.meta.json',
+  'themes/light/Woodfish Light.json',
+  'themes/light/theme.meta.json',
+  'docs/walkthrough/enable.md',
 ];
 const REQUIRED_README_PREVIEWS = [
   {

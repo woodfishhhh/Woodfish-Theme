@@ -17,6 +17,7 @@ function buildOverlayVariables(settings: ThemeRuntimeSettings): string {
     `  --woodfish-overlay-hue-shift: ${formatCssNumber(settings.overlay.hueShift)};`,
     `  --woodfish-overlay-lightness-delta: ${formatCssNumber(settings.overlay.lightnessDelta)};`,
     `  --woodfish-overlay-neutral-chroma: ${formatCssNumber(settings.overlay.neutralChroma)};`,
+    `  --woodfish-overlay-tokens: ${settings.syntaxGradient.enabled || settings.glow.enabled ? 1 : 0};`,
     '}',
   ].join('\n');
 }
@@ -35,6 +36,12 @@ function buildGradientDeclarations(): string[] {
     '  background-repeat: no-repeat !important;',
     '  background-size: 100% 100% !important;',
     '  background-position: center !important;',
+    // `background-clip: text` only paints inside the span box; italic or wide glyphs
+    // (JetBrains Mono, Cascadia, ligatures) overhang it and were clipped. Padding
+    // extends the painted area, the negative margin keeps Monaco's layout unchanged.
+    '  padding-inline: 0.12em !important;',
+    '  margin-inline: -0.12em !important;',
+    '  padding-block: 0.08em !important;',
   ];
 }
 
@@ -83,13 +90,29 @@ export function buildUniversalOverlayCss(settings: ThemeRuntimeSettings): string
     );
   }
 
+  if (safeSettings.glow.enabled) {
+    // Light themes: the same glow reads as blur on a bright background, so it is softened.
+    parts.push(
+      [
+        `.monaco-workbench.vs ${OVERLAY_TOKEN_SELECTOR},`,
+        `.monaco-workbench.hc-light ${OVERLAY_TOKEN_SELECTOR} {`,
+        '  text-shadow:',
+        `    0 0 ${scaleGlowRadius(2, safeSettings.glow.intensity)} var(--woodfish-overlay-glow-mid) !important;`,
+        '}',
+      ].join('\n')
+    );
+  }
+
   return parts.join('\n\n');
 }
 
 export function shouldInstallOverlayBootstrap(settings: ThemeRuntimeSettings): boolean {
   const safeSettings = normalizeRuntimeSettings(settings);
+  const glassNeedsScript =
+    safeSettings.glass.enabled &&
+    (safeSettings.glass.mode === 'acrylic' || safeSettings.glass.reveal);
   return (
     safeSettings.overlay.enabled &&
-    (safeSettings.syntaxGradient.enabled || safeSettings.glow.enabled)
+    (safeSettings.syntaxGradient.enabled || safeSettings.glow.enabled || glassNeedsScript)
   );
 }

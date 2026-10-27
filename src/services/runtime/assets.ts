@@ -77,6 +77,7 @@ export function readRuntimeAssets(
     activityBar: theme ? readFile(resolveSharedThemePath('activity-bar.css')) : '',
     tabBar: theme ? readFile(resolveSharedThemePath('tab-bar.css')) : '',
     overlayBootstrap: readFile(resolveSharedThemePath('overlay-bootstrap.js')),
+    nativeWindowHook: readFile(resolveSharedThemePath('native-window-main.mjs')),
     cursorCore: readFile(resolveSharedThemePath('cursor-core.css')),
     cursorGlow: readFile(resolveSharedThemePath('cursor-glow.css')),
   };

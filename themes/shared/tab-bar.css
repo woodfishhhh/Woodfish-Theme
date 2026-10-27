@@ -32,6 +32,12 @@
   pointer-events: none !important;
 }
 
+.monaco-workbench.monaco-reduce-motion .tabs-container > .tab.active::after {
+  animation: none !important;
+  background-position: 50% 50% !important;
+  background-size: 100% 100% !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tabs-container > .tab.active::after {
     animation: none !important;

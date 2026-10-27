@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '6.0.0-beta.1';
+  const VERSION = '7.0.0';
   const TOKEN_SELECTOR =
     '.monaco-editor .view-lines span[class*="mtk"]:not(.cursor):not(.colorpicker-color-decoration)';
   const VIEW_LINES_SELECTOR = '.monaco-editor .view-lines';
@@ -153,6 +153,21 @@
     )}, ${Math.round(clamp(color.b, 0, 255))}, ${Number(clamp(alpha).toFixed(4))})`;
   }
 
+  // Monaco itself only puts `mtk*` color/font-style classes and bracket-pair colors on
+  // token spans. Any other class is an inline decoration from another extension that
+  // sets its own text color (Minecraft Color Highlighter, #15); keep its exact color.
+  const OWN_TOKEN_CLASS = /^(?:mtk\w*|bracket-highlighting-\d+)$/;
+
+  function hasForeignDecoration(token) {
+    const className = token.className;
+    if (typeof className !== 'string') {
+      return false;
+    }
+    return className
+      .split(/\s+/)
+      .some((name) => name.length > 0 && !OWN_TOKEN_CLASS.test(name));
+  }
+
   function punctuationOnly(value) {
     const text = value.replace(/\u00a0/g, ' ').trim();
     return text.length > 0 && /^[()[\]{}.,;:+\-*/%=<>!?&|~^@#`'"\\]+$/.test(text);
@@ -165,9 +180,14 @@
     return Number.isFinite(value) ? value : fallback;
   }
 
-  function start() {
-    if (!document.body) {
-      globalThis.setTimeout(start, 0);
+  function readStringVariable(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  const disposers = [];
+
+  function startTokens() {
+    if (readNumberVariable('--woodfish-overlay-tokens', 1) !== 1) {
       return;
     }
 
@@ -239,6 +259,11 @@
 
     function applyToken(token) {
       if (!token.isConnected) {
+        return;
+      }
+      if (hasForeignDecoration(token)) {
+        token.removeAttribute('data-woodfish-overlay-token');
+        tokenState.delete(token);
         return;
       }
 
@@ -528,28 +553,198 @@
     }, THEME_POLL_INTERVAL_MS);
 
     refreshProfile();
+
+    disposers.push(() => {
+      discoveryObserver.disconnect();
+      themeObserver.disconnect();
+      for (const observer of viewLineObservers.values()) {
+        observer.disconnect();
+      }
+      viewLineObservers.clear();
+      globalThis.clearInterval(themeInterval);
+      if (profileRefreshTimer !== 0) {
+        globalThis.clearTimeout(profileRefreshTimer);
+      }
+      if (frameId !== 0) {
+        cancelAnimationFrame(frameId);
+      }
+      delete document.documentElement.dataset.woodfishOverlayProfile;
+    });
+    return refreshProfile;
+  }
+
+  const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+  const ACRYLIC_FILTER_ID = 'woodfish-acrylic';
+
+  function svgElement(name, attributes) {
+    const element = document.createElementNS(SVG_NAMESPACE, name);
+    for (const [key, value] of Object.entries(attributes)) {
+      element.setAttribute(key, String(value));
+    }
+    return element;
+  }
+
+  // Acrylic recipe (Fluent): backdrop blur, a luminosity-preserving tint applied by CSS,
+  // and a faint monochrome grain so large surfaces do not look like flat smears.
+  function startAcrylicFilter() {
+    if (readStringVariable('--woodfish-glass-mode') !== 'acrylic') {
+      return;
+    }
+
+    const blur = Math.max(0, readNumberVariable('--woodfish-glass-blur', 30));
+    const host = svgElement('svg', {
+      width: 0,
+      height: 0,
+      'aria-hidden': 'true',
+      'data-woodfish-theme': 'acrylic',
+      style: 'position:absolute;width:0;height:0;pointer-events:none',
+    });
+    const filter = svgElement('filter', {
+      id: ACRYLIC_FILTER_ID,
+      x: 0,
+      y: 0,
+      width: '100%',
+      height: '100%',
+      'color-interpolation-filters': 'sRGB',
+    });
+    filter.append(
+      svgElement('feGaussianBlur', {
+        in: 'SourceGraphic',
+        stdDeviation: blur,
+        edgeMode: 'duplicate',
+        result: 'blur',
+      }),
+      svgElement('feTurbulence', {
+        type: 'fractalNoise',
+        baseFrequency: 0.8,
+        numOctaves: 3,
+        stitchTiles: 'stitch',
+        result: 'noise',
+      }),
+      svgElement('feColorMatrix', {
+        in: 'noise',
+        type: 'matrix',
+        values: '0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0.03 0',
+        result: 'grain',
+      }),
+      svgElement('feBlend', { in: 'grain', in2: 'blur', mode: 'overlay' })
+    );
+    host.append(svgElement('defs', {}));
+    host.firstChild.append(filter);
+    document.body.append(host);
+    disposers.push(() => host.remove());
+  }
+
+  const REVEAL_TARGETS = [
+    '.monaco-list-row',
+    '.action-menu-item',
+    '.monaco-button',
+    '.tabs-container > .tab',
+    '.statusbar-item',
+    '.activitybar .action-item',
+    '.composite-bar .action-item',
+    '.pane-header',
+  ].join(',');
+
+  // Reveal highlight (Fluent): a soft light that follows the pointer over interactive rows.
+  function startReveal() {
+    if (readNumberVariable('--woodfish-reveal-enabled', 0) !== 1) {
+      return;
+    }
+
+    let current = null;
+    let pending = null;
+    let frame = 0;
+
+    function clear() {
+      if (current) {
+        current.removeAttribute('data-woodfish-reveal');
+        current.style.removeProperty('--woodfish-reveal-x');
+        current.style.removeProperty('--woodfish-reveal-y');
+        current = null;
+      }
+    }
+
+    function paint() {
+      frame = 0;
+      if (!pending) {
+        return;
+      }
+      const { target, x, y } = pending;
+      pending = null;
+      const element = target instanceof Element ? target.closest(REVEAL_TARGETS) : null;
+      if (element !== current) {
+        clear();
+        current = element;
+        if (current) {
+          current.setAttribute('data-woodfish-reveal', 'true');
+        }
+      }
+      if (current) {
+        const bounds = current.getBoundingClientRect();
+        current.style.setProperty('--woodfish-reveal-x', `${Math.round(x - bounds.left)}px`);
+        current.style.setProperty('--woodfish-reveal-y', `${Math.round(y - bounds.top)}px`);
+      }
+    }
+
+    function onPointerMove(event) {
+      pending = { target: event.target, x: event.clientX, y: event.clientY };
+      if (frame === 0) {
+        frame = requestAnimationFrame(paint);
+      }
+    }
+
+    function onPointerLeave() {
+      pending = null;
+      clear();
+    }
+
+    document.addEventListener('pointermove', onPointerMove, { passive: true, capture: true });
+    document.documentElement.addEventListener('pointerleave', onPointerLeave, { passive: true });
+    disposers.push(() => {
+      document.removeEventListener('pointermove', onPointerMove, { capture: true });
+      document.documentElement.removeEventListener('pointerleave', onPointerLeave);
+      if (frame !== 0) {
+        cancelAnimationFrame(frame);
+      }
+      clear();
+    });
+  }
+
+  function start() {
+    if (!document.body) {
+      globalThis.setTimeout(start, 0);
+      return;
+    }
+
+    const steps = [startTokens, startAcrylicFilter, startReveal];
+    let refresh = () => undefined;
+    for (const step of steps) {
+      try {
+        const result = step();
+        if (typeof result === 'function') {
+          refresh = result;
+        }
+      } catch (error) {
+        console.warn('[Woodfish] overlay step failed', error);
+      }
+    }
+
     document.documentElement.dataset.woodfishOverlay = 'active';
     document.documentElement.dataset.woodfishOverlayVersion = VERSION;
 
     globalThis[CONTROLLER_KEY] = {
       version: VERSION,
-      refresh: refreshProfile,
+      refresh,
       dispose() {
-        discoveryObserver.disconnect();
-        themeObserver.disconnect();
-        for (const observer of viewLineObservers.values()) {
-          observer.disconnect();
-        }
-        viewLineObservers.clear();
-        globalThis.clearInterval(themeInterval);
-        if (profileRefreshTimer !== 0) {
-          globalThis.clearTimeout(profileRefreshTimer);
-        }
-        if (frameId !== 0) {
-          cancelAnimationFrame(frameId);
+        for (const dispose of disposers.splice(0)) {
+          try {
+            dispose();
+          } catch {
+            // Disposal is best effort.
+          }
         }
         delete document.documentElement.dataset.woodfishOverlay;
-        delete document.documentElement.dataset.woodfishOverlayProfile;
         delete document.documentElement.dataset.woodfishOverlayVersion;
       },
     };

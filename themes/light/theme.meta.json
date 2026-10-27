@@ -1,0 +1,26 @@
+{
+  "label": "Woodfish Light",
+  "slug": "light",
+  "activityBadgeGradient": "linear-gradient(45deg, #1F5FBF, #B4235A)",
+  "activityBadgeTextColor": "#FFFFFF",
+  "tabBorderGradient": "linear-gradient(to right, #1F5FBF, #7B3FC4, #B4235A, #0B7568)",
+  "runtime": {
+    "activityBadgeShadow": "none",
+    "tabBorderShadow": "none",
+    "tabBorderAnimationDuration": "6s",
+    "cursorDefaults": {
+      "animationDuration": 10,
+      "gradientStops": [
+        "#1F5FBF",
+        "#7B3FC4",
+        "#B4235A",
+        "#A04F00",
+        "#0B7568",
+        "#1F5FBF"
+      ],
+      "borderRadius": 1,
+      "glowBlur": 0,
+      "glowOpacity": 0.35
+    }
+  }
+}

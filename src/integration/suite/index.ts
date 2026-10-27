@@ -1,40 +1,41 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { COMMANDS } from '../../constants/commands';
-import { getWorkbenchHtmlPath } from '../../services/runtime/locator';
+import { computeVsCodeChecksum } from '../../services/runtime/checksums';
+import { BOOTSTRAP_FILE_NAME, cleanInstallation } from '../../services/runtime/cleanup';
+import { locateWorkbench } from '../../services/runtime/locator';
+import { MAIN_HOOK_LINE, getNativeWindowPaths } from '../../services/runtime/nativeWindow';
 import { hasWoodfishPayload } from '../../services/runtime/workbenchPatcher';
+import { runUninstall } from '../../uninstall';
 
 const EXTENSION_ID = 'zhongjun.woodfish-theme';
 
-type BackupSnapshot =
-  | {
-      existed: true;
-      content: string;
-    }
-  | {
-      existed: false;
-    };
-
-function readBackupSnapshot(backupPath: string): BackupSnapshot {
-  if (!fs.existsSync(backupPath)) {
-    return { existed: false };
-  }
-
-  return {
-    existed: true,
-    content: fs.readFileSync(backupPath, 'utf-8'),
-  };
+function settle(): Promise<void> {
+  // Configuration changes trigger a coalesced background sync; give it time to finish.
+  return new Promise((resolve) => setTimeout(resolve, 1500));
 }
 
-function restoreBackupSnapshot(backupPath: string, snapshot: BackupSnapshot): void {
-  if (snapshot.existed) {
-    fs.writeFileSync(backupPath, snapshot.content, 'utf-8');
-    return;
-  }
+function read(filePath: string): string {
+  return fs.readFileSync(filePath, 'utf-8');
+}
 
-  if (fs.existsSync(backupPath)) {
-    fs.unlinkSync(backupPath);
+function productChecksum(appRoot: string, relativePath: string): string | undefined {
+  const product = JSON.parse(fs.readFileSync(path.join(appRoot, 'product.json'), 'utf-8')) as {
+    checksums?: Record<string, string>;
+  };
+  return product.checksums?.[relativePath];
+}
+
+function assertChecksumMatches(appRoot: string, relativePath: string, workbenchPath: string): void {
+  const recorded = productChecksum(appRoot, relativePath);
+  if (recorded !== undefined) {
+    assert.strictEqual(
+      recorded,
+      computeVsCodeChecksum(fs.readFileSync(workbenchPath)),
+      'product.json checksum does not match the workbench on disk'
+    );
   }
 }
 
@@ -43,65 +44,103 @@ export async function run(): Promise<void> {
 
   const extension = vscode.extensions.getExtension(EXTENSION_ID);
   assert.ok(extension, `Extension ${EXTENSION_ID} was not loaded`);
+  assert.deepStrictEqual((extension.packageJSON as { extensionKind?: string[] }).extensionKind, [
+    'ui',
+  ]);
 
   await extension.activate();
 
-  const workbenchPath = getWorkbenchHtmlPath();
-  assert.ok(workbenchPath, 'Unable to locate the isolated VS Code workbench');
+  const location = locateWorkbench(vscode.env.appRoot);
+  assert.ok(location, `Unable to locate the workbench under ${vscode.env.appRoot}`);
+  console.log(`[woodfish] VS Code ${vscode.version}, workbench ${location.relativePath}`);
 
-  const originalWorkbench = fs.readFileSync(workbenchPath, 'utf-8');
-  const backupPath = `${workbenchPath}.woodfish-backup`;
-  const backupSnapshot = readBackupSnapshot(backupPath);
+  const { appRoot, workbenchPath, relativePath } = location;
+  const nativePaths = getNativeWindowPaths(appRoot);
+  const productPath = path.join(appRoot, 'product.json');
+  const bootstrapPath = path.join(path.dirname(workbenchPath), BOOTSTRAP_FILE_NAME);
   const workbenchConfig = vscode.workspace.getConfiguration('workbench');
-  const overlayConfig = vscode.workspace.getConfiguration('woodfishTheme');
-  const originalGlobalTheme = workbenchConfig.inspect<string>('colorTheme')?.globalValue;
-  const originalGlobalOverlayEnabled =
-    overlayConfig.inspect<boolean>('overlay.enabled')?.globalValue;
+  const config = vscode.workspace.getConfiguration('woodfishTheme');
+  const touchedKeys = ['glass.enabled', 'glass.nativeWindow.enabled'];
+  const originalValues = touchedKeys.map((key) => config.inspect(key)?.globalValue);
   const activeThemeBeforeEnable = workbenchConfig.get<string>('colorTheme', '');
+
+  // The overlay is on by default, so activation may already have injected it.
+  // A complete uninstall gives the pristine baseline every later step is compared to.
+  await settle();
+  await vscode.commands.executeCommand(COMMANDS.completeUninstall, { skipConfirmation: true });
+  const baseline = {
+    workbench: read(workbenchPath),
+    main: read(nativePaths.mainPath),
+    product: read(productPath),
+  };
+  assert.ok(!hasWoodfishPayload(baseline.workbench), 'Baseline still contains a payload');
+  assert.ok(!baseline.main.includes('WOODFISH'), 'Baseline main.js still contains a hook');
+
+  function assertPristine(step: string): void {
+    assert.strictEqual(read(workbenchPath), baseline.workbench, `${step}: workbench.html differs`);
+    assert.strictEqual(read(nativePaths.mainPath), baseline.main, `${step}: main.js differs`);
+    assert.strictEqual(read(productPath), baseline.product, `${step}: product.json differs`);
+    assert.ok(!fs.existsSync(bootstrapPath), `${step}: bootstrap file left behind`);
+    assert.ok(!fs.existsSync(nativePaths.hookPath), `${step}: native hook left behind`);
+    assert.ok(!fs.existsSync(`${workbenchPath}.woodfish-backup`), `${step}: backup left behind`);
+  }
 
   try {
     await vscode.commands.executeCommand(COMMANDS.enable);
 
-    const patchedWorkbench = fs.readFileSync(workbenchPath, 'utf-8');
-    assert.ok(hasWoodfishPayload(patchedWorkbench), 'Enable command did not write its payload');
+    let patched = read(workbenchPath);
+    assert.ok(hasWoodfishPayload(patched), 'Enable command did not write its payload');
+    assert.ok(patched.includes('data-woodfish-theme="bootstrap"'), 'Bootstrap script tag missing');
+    assert.ok(fs.existsSync(bootstrapPath), 'Bootstrap file missing next to workbench.html');
     assert.ok(
-      patchedWorkbench.includes('data-woodfish-theme="bootstrap"'),
-      'Enable command did not install the universal overlay bootstrap'
+      patched.indexOf('WOODFISH_THEME_START') > patched.lastIndexOf('workbench.js'),
+      'Payload must load after VS Code’s own workbench script'
     );
     assert.strictEqual(
       workbenchConfig.get<string>('colorTheme', ''),
       activeThemeBeforeEnable,
       'Enable command replaced the active color theme'
     );
+    assertChecksumMatches(appRoot, relativePath, workbenchPath);
 
-    await vscode.commands.executeCommand(COMMANDS.disable);
-
-    const cleanedWorkbench = fs.readFileSync(workbenchPath, 'utf-8');
+    await config.update('glass.enabled', true, vscode.ConfigurationTarget.Global);
+    await vscode.commands.executeCommand(COMMANDS.repairWorkbench);
+    patched = read(workbenchPath);
     assert.ok(
-      !hasWoodfishPayload(cleanedWorkbench),
-      'Disable command left a Woodfish payload behind'
+      patched.includes('backdrop-filter: var(--woodfish-glass-filter)'),
+      'Glass CSS missing'
     );
-  } finally {
-    try {
-      await overlayConfig.update(
-        'overlay.enabled',
-        originalGlobalOverlayEnabled,
-        vscode.ConfigurationTarget.Global
-      );
-    } finally {
-      try {
-        await workbenchConfig.update(
-          'colorTheme',
-          originalGlobalTheme,
-          vscode.ConfigurationTarget.Global
-        );
-      } finally {
-        try {
-          fs.writeFileSync(workbenchPath, originalWorkbench, 'utf-8');
-        } finally {
-          restoreBackupSnapshot(backupPath, backupSnapshot);
-        }
-      }
+    assertChecksumMatches(appRoot, relativePath, workbenchPath);
+
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+      await config.update('glass.nativeWindow.enabled', true, vscode.ConfigurationTarget.Global);
+      await vscode.commands.executeCommand(COMMANDS.repairWorkbench);
+      const main = read(nativePaths.mainPath);
+      assert.ok(main.startsWith(MAIN_HOOK_LINE), 'Native window hook line missing from main.js');
+      assert.strictEqual(main.slice(MAIN_HOOK_LINE.length), baseline.main);
+      assert.ok(fs.existsSync(nativePaths.hookPath), 'Native window hook module missing');
     }
+
+    await settle();
+    await vscode.commands.executeCommand(COMMANDS.completeUninstall, { skipConfirmation: true });
+    assertPristine('Complete uninstall');
+
+    // The vscode:uninstall hook must restore an installation on its own.
+    await vscode.commands.executeCommand(COMMANDS.enable);
+    await settle();
+    assert.ok(hasWoodfishPayload(read(workbenchPath)));
+    const failures = runUninstall(extension.extensionPath, process.execPath);
+    assert.strictEqual(failures, 0, 'Uninstall hook reported failures');
+    assertPristine('Uninstall hook');
+  } finally {
+    await config.update('overlay.enabled', false, vscode.ConfigurationTarget.Global);
+    for (const [index, key] of touchedKeys.entries()) {
+      await config.update(key, originalValues[index], vscode.ConfigurationTarget.Global);
+    }
+    await settle();
+    const report = cleanInstallation(appRoot);
+    console.log(
+      `[woodfish] final cleanup: overlay=${String(config.get('overlay.enabled'))} ${JSON.stringify(report)}`
+    );
   }
 }

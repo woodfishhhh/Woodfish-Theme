@@ -55,6 +55,12 @@ describe('pre-publish package hygiene', () => {
     expect(findForbiddenPackagePaths('README.en.md')).toEqual(['README.en.md']);
   });
 
+  it('never ships the install manifest written during development', () => {
+    expect(findForbiddenPackagePaths('.woodfish-installations.json')).toEqual([
+      '.woodfish-installations.json',
+    ]);
+  });
+
   it('keeps repository previews and unused artwork out of the extension package', () => {
     const packagePaths = [
       'assets/readme/hero.png',
@@ -64,6 +70,9 @@ describe('pre-publish package hygiene', () => {
       'images/img2.png',
       'images/icon.svg',
       'images/head.jpg',
+      'images/icon.jpg',
+      'docs/feedback/2026-10-27-refactor-input.md',
+      'docs/walkthrough/enable.md',
     ].join('\n');
 
     expect(findForbiddenPackagePaths(packagePaths)).toEqual([
@@ -73,6 +82,8 @@ describe('pre-publish package hygiene', () => {
       'images/img1.png',
       'images/img2.png',
       'images/icon.svg',
+      'images/head.jpg',
+      'docs/feedback/2026-10-27-refactor-input.md',
     ]);
   });
 
@@ -99,7 +110,8 @@ describe('pre-publish package hygiene', () => {
   it('requires the runtime entry, icon, theme definitions, and injectable CSS', () => {
     const packagePaths = [
       'out/extension.js',
-      'images/head.jpg',
+      'out/uninstall.js',
+      'images/icon.jpg',
       'THIRD_PARTY_NOTICES.md',
       'themes/bearded/Woodfish Dark.json',
       'themes/bearded/theme.meta.json',
@@ -114,6 +126,14 @@ describe('pre-publish package hygiene', () => {
       'themes/shared/overlay-bootstrap.js',
       'themes/shared/cursor-core.css',
       'themes/shared/cursor-glow.css',
+      'themes/shared/native-window-main.mjs',
+      'themes/black/Woodfish Black.json',
+      'themes/black/theme.meta.json',
+      'themes/neon/Woodfish Neon.json',
+      'themes/neon/theme.meta.json',
+      'themes/light/Woodfish Light.json',
+      'themes/light/theme.meta.json',
+      'docs/walkthrough/enable.md',
     ].join('\n');
 
     expect(findMissingRequiredPackagePaths(packagePaths)).toEqual([]);

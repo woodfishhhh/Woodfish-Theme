@@ -5,6 +5,7 @@ import {
   ThemeRuntimeSettings,
   normalizeRuntimeSettings,
 } from '../../types/features';
+import { buildGlassCss, buildNativeWindowCss } from './glass';
 import { buildUniversalOverlayCss, shouldInstallOverlayBootstrap } from './overlay';
 
 export type RuntimeCssAssets = {
@@ -13,6 +14,7 @@ export type RuntimeCssAssets = {
   activityBar: string;
   tabBar: string;
   overlayBootstrap: string;
+  nativeWindowHook: string;
   cursorCore: string;
   cursorGlow: string;
 };
@@ -214,6 +216,9 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
       )
     );
   }
+
+  parts.push(buildGlassCss(safeSettings.glass));
+  parts.push(buildNativeWindowCss(safeSettings.glass));
 
   return `${parts.filter((part) => part.length > 0).join('\n\n')}\n`;
 }

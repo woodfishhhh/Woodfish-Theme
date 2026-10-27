@@ -2,6 +2,7 @@ export type FeatureFlags = {
   syntaxGradient: boolean;
   glow: boolean;
   cursor: boolean;
+  glass: boolean;
 };
 
 export type RuntimeStatus = 'on' | 'paused' | 'off';
@@ -43,6 +44,64 @@ export type CursorSettings = {
   customRules: string[];
 };
 
+export const GLASS_TARGET_KEYS = [
+  'menu',
+  'hover',
+  'suggest',
+  'quickInput',
+  'notifications',
+  'editorWidget',
+  'dropdown',
+  'breadcrumbPicker',
+  'debugToolbar',
+  'stickyScroll',
+  'paneHeader',
+  'dialog',
+] as const;
+
+export type GlassTargetKey = (typeof GLASS_TARGET_KEYS)[number];
+
+export const GLASS_MODES = ['blur', 'acrylic'] as const;
+export type GlassMode = (typeof GLASS_MODES)[number];
+
+export const NATIVE_WINDOWS_MATERIALS = ['acrylic', 'mica', 'tabbed'] as const;
+export type NativeWindowsMaterial = (typeof NATIVE_WINDOWS_MATERIALS)[number];
+
+export const NATIVE_MAC_VIBRANCY = [
+  'under-window',
+  'sidebar',
+  'fullscreen-ui',
+  'hud',
+  'window',
+  'content',
+] as const;
+export type NativeMacVibrancy = (typeof NATIVE_MAC_VIBRANCY)[number];
+
+export type NativeWindowSettings = {
+  enabled: boolean;
+  windowsMaterial: NativeWindowsMaterial;
+  macVibrancy: NativeMacVibrancy;
+  opacity: number;
+};
+
+export type GlassSettings = {
+  enabled: boolean;
+  mode: GlassMode;
+  blur: number;
+  saturate: number;
+  opacity: number;
+  noise: number;
+  borderRadius: number;
+  targets: GlassTargetKey[];
+  animations: boolean;
+  reveal: boolean;
+  nativeWindow: NativeWindowSettings;
+};
+
+export type RuntimeOptions = {
+  fixChecksums: boolean;
+};
+
 export type CursorThemeDefaultKey = keyof Pick<
   CursorSettings,
   'animationDuration' | 'gradientStops' | 'borderRadius' | 'glowBlur' | 'glowOpacity'
@@ -57,6 +116,8 @@ export type ThemeRuntimeSettings = {
   syntaxGradient: SyntaxGradientSettings;
   glow: GlowSettings;
   cursor: CursorSettings;
+  glass: GlassSettings;
+  runtime: RuntimeOptions;
   explicitSettings?: ThemeRuntimeExplicitSettings;
 };
 
@@ -65,6 +126,10 @@ export type PartialRuntimeSettings = {
   syntaxGradient?: Partial<SyntaxGradientSettings>;
   glow?: Partial<GlowSettings>;
   cursor?: Partial<CursorSettings>;
+  glass?: Partial<Omit<GlassSettings, 'nativeWindow'>> & {
+    nativeWindow?: Partial<NativeWindowSettings>;
+  };
+  runtime?: Partial<RuntimeOptions>;
   explicitSettings?: Partial<ThemeRuntimeExplicitSettings>;
 };
 
@@ -112,6 +177,27 @@ export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
     glowBlur: 0,
     glowOpacity: 0.7,
     customRules: [],
+  },
+  glass: {
+    enabled: false,
+    mode: 'blur',
+    blur: 30,
+    saturate: 125,
+    opacity: 0.7,
+    noise: 0.02,
+    borderRadius: 0,
+    targets: [...GLASS_TARGET_KEYS],
+    animations: true,
+    reveal: true,
+    nativeWindow: {
+      enabled: false,
+      windowsMaterial: 'acrylic',
+      macVibrancy: 'under-window',
+      opacity: 0.78,
+    },
+  },
+  runtime: {
+    fixChecksums: true,
   },
 };
 
@@ -404,6 +490,24 @@ function sanitizeGradientStops(value: unknown, fallback: string[]): string[] {
   return stops.length >= 2 ? stops : [...fallback];
 }
 
+function sanitizeEnum<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
+  return typeof value === 'string' && (allowed as readonly string[]).includes(value)
+    ? (value as T)
+    : fallback;
+}
+
+function sanitizeGlassTargets(value: unknown, fallback: GlassTargetKey[]): GlassTargetKey[] {
+  if (!Array.isArray(value)) {
+    return [...fallback];
+  }
+  const allowed = GLASS_TARGET_KEYS as readonly string[];
+  const targets = value.filter(
+    (candidate): candidate is GlassTargetKey =>
+      typeof candidate === 'string' && allowed.includes(candidate)
+  );
+  return [...new Set(targets)];
+}
+
 export function normalizeRuntimeSettings(
   partial: PartialRuntimeSettings = {}
 ): ThemeRuntimeSettings {
@@ -486,7 +590,45 @@ export function normalizeRuntimeSettings(
       ),
       customRules: sanitizeCustomRules(partial.cursor?.customRules),
     },
+    glass: normalizeGlassSettings(partial.glass),
+    runtime: {
+      fixChecksums: sanitizeBoolean(
+        partial.runtime?.fixChecksums,
+        DEFAULT_RUNTIME_SETTINGS.runtime.fixChecksums
+      ),
+    },
     ...(explicitSettings ? { explicitSettings } : {}),
+  };
+}
+
+function normalizeGlassSettings(partial: PartialRuntimeSettings['glass']): GlassSettings {
+  const defaults = DEFAULT_RUNTIME_SETTINGS.glass;
+  const native = partial?.nativeWindow;
+  return {
+    enabled: sanitizeBoolean(partial?.enabled, defaults.enabled),
+    mode: sanitizeEnum(partial?.mode, GLASS_MODES, defaults.mode),
+    blur: sanitizeNumber(partial?.blur, defaults.blur, 0, 60),
+    saturate: sanitizeNumber(partial?.saturate, defaults.saturate, 100, 250),
+    opacity: sanitizeNumber(partial?.opacity, defaults.opacity, 0.15, 1),
+    noise: sanitizeNumber(partial?.noise, defaults.noise, 0, 0.2),
+    borderRadius: sanitizeNumber(partial?.borderRadius, defaults.borderRadius, 0, 16),
+    targets: sanitizeGlassTargets(partial?.targets, defaults.targets),
+    animations: sanitizeBoolean(partial?.animations, defaults.animations),
+    reveal: sanitizeBoolean(partial?.reveal, defaults.reveal),
+    nativeWindow: {
+      enabled: sanitizeBoolean(native?.enabled, defaults.nativeWindow.enabled),
+      windowsMaterial: sanitizeEnum(
+        native?.windowsMaterial,
+        NATIVE_WINDOWS_MATERIALS,
+        defaults.nativeWindow.windowsMaterial
+      ),
+      macVibrancy: sanitizeEnum(
+        native?.macVibrancy,
+        NATIVE_MAC_VIBRANCY,
+        defaults.nativeWindow.macVibrancy
+      ),
+      opacity: sanitizeNumber(native?.opacity, defaults.nativeWindow.opacity, 0.3, 1),
+    },
   };
 }
 
@@ -495,5 +637,6 @@ export function featureFlagsFromSettings(settings: ThemeRuntimeSettings): Featur
     syntaxGradient: settings.syntaxGradient.enabled,
     glow: settings.glow.enabled,
     cursor: settings.cursor.enabled,
+    glass: settings.glass.enabled,
   };
 }

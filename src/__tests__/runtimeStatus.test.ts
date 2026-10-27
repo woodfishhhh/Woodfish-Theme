@@ -10,6 +10,7 @@ describe('runtime status detection', () => {
         syntaxGradient: true,
         glow: true,
         cursor: true,
+        glass: false,
       },
     });
 
@@ -27,6 +28,7 @@ describe('runtime status detection', () => {
         syntaxGradient: true,
         glow: true,
         cursor: true,
+        glass: false,
       },
     });
 
@@ -44,6 +46,7 @@ describe('runtime status detection', () => {
         syntaxGradient: true,
         glow: false,
         cursor: true,
+        glass: false,
       },
     });
 
@@ -61,6 +64,7 @@ describe('runtime status detection', () => {
         syntaxGradient: true,
         glow: true,
         cursor: true,
+        glass: false,
       },
     });
 
@@ -78,6 +82,7 @@ describe('runtime status detection', () => {
         syntaxGradient: false,
         glow: false,
         cursor: false,
+        glass: false,
       },
     });
 
@@ -93,6 +98,7 @@ describe('runtime status detection', () => {
         syntaxGradient: true,
         glow: true,
         cursor: true,
+        glass: false,
       },
     });
 

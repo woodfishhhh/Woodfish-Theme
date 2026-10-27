@@ -54,6 +54,12 @@ export class FeatureStateController {
         gradientStops: [...this.settings.cursor.gradientStops],
         customRules: [...this.settings.cursor.customRules],
       },
+      glass: {
+        ...this.settings.glass,
+        targets: [...this.settings.glass.targets],
+        nativeWindow: { ...this.settings.glass.nativeWindow },
+      },
+      runtime: { ...this.settings.runtime },
       ...(this.settings.explicitSettings
         ? {
             explicitSettings: {

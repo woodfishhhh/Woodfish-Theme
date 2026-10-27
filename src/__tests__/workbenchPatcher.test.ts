@@ -38,6 +38,20 @@ describe('workbench patcher', () => {
     expect(hasWoodfishPayload(restored)).toBe(false);
   });
 
+  it('restores real VS Code documents byte for byte and leaves untouched ones alone', () => {
+    const vscodeHtml =
+      '<!DOCTYPE html>\n<html>\n\t<body aria-label="">\n\t</body>\n\n\n\t<script src="./workbench.js" type="module"></script>\n</html>\n';
+
+    expect(removeWorkbenchPayload(vscodeHtml)).toBe(vscodeHtml);
+    expect(removeKnownLegacyWoodfishPayloads(vscodeHtml).html).toBe(vscodeHtml);
+
+    const patched = injectWorkbenchPayload(vscodeHtml, '<style></style>');
+    expect(removeWorkbenchPayload(patched)).toBe(vscodeHtml);
+    expect(removeWorkbenchPayload(injectWorkbenchPayload(patched, '<style>2</style>'))).toBe(
+      vscodeHtml
+    );
+  });
+
   it('recognizes and removes only known legacy Woodfish payload fragments', () => {
     const legacyFragment =
       '<style id="legacy-woodfish">@import url("file:///C:/Users/woodfish/.vscode/extensions/zhongjun.woodfish-theme/themes/Bearded Theme/glow-effects.css");</style>';

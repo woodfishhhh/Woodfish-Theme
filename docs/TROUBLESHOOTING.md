@@ -36,7 +36,25 @@ Woodfish validates custom CSS before adding it to the runtime payload.
 - **Check Workspace Trust**: Custom rule arrays and cursor gradient stops are restricted while the workspace is untrusted.
 
 ### Issue: Animations are disabled
-Woodfish respects the operating system's reduced-motion preference. When reduced motion is enabled, continuous cursor and tab animations are disabled while the static styling remains visible.
+Woodfish respects the operating system's reduced-motion preference and `workbench.reduceMotion`. When reduced motion is enabled, continuous cursor and tab animations are disabled while the static styling remains visible.
+
+### Issue: “Permission denied” (没有权限写入)
+Woodfish has to write into the editor's installation folder.
+- **macOS, started from a terminal**: launching with `code .` or `cursor .` makes macOS attribute the write to the terminal, which usually lacks “App Management”. Quit the editor completely, open it from the Dock, then run `Woodfish Theme: 修复 Woodfish 注入`.
+- **macOS, otherwise**: allow the editor under System Settings → Privacy & Security → App Management. If it runs from Downloads (App Translocation), move it to `/Applications` first.
+- **Windows**: installs under `Program Files` need the editor to run once as administrator; the user installer avoids this.
+- **Linux**: Snap and Flatpak installs are read-only. Use the official `.deb`, `.rpm` or `.tar.gz`, or `chown` the `resources/app/out` folder to your user.
+
+### Issue: “Your installation appears to be corrupt”
+Woodfish updates the matching checksum in `product.json` (`woodfishTheme.runtime.fixChecksums`), but the editor only reads checksums at startup. The notice therefore keeps appearing until the editor is fully quit after any change to the effects; reloading the window is not enough.
+
+### Issue: Frosted glass does not appear
+- Run `Woodfish Theme: 开启/关闭 Woodfish 毛玻璃` and reload the window.
+- High-contrast themes and the OS “Reduce transparency” setting turn glass off on purpose.
+- The system-wide transparent window is experimental, macOS / Windows 11 only, and needs a full restart; re-enable it after every editor update.
+
+### Issue: Using Cursor, Kiro, Windsurf, Trae or VSCodium
+Install Woodfish from the editor's own extension panel (it is published on Open VSX). Everything else works as in VS Code; prompts show your editor's name.
 
 ---
 
@@ -64,8 +82,8 @@ If the basic checks don't solve your problem:
 ## Advanced Troubleshooting
 
 ### Manual Runtime Cleanup
-If you've uninstalled the extension but effects still persist:
-1. Run `Woodfish Theme: 彻底停用 Woodfish 叠层` before uninstalling.
+Uninstalling Woodfish restores `workbench.html`, the checksum and the native window hook the next time the editor fully restarts. If effects still persist:
+1. Reinstall Woodfish, run `Woodfish Theme: 彻底停用 Woodfish 叠层`, then uninstall again.
 2. If effects still remain, inspect your VS Code installation for other injection-based extensions that may still patch the same `workbench.html`.
 3. Remember that Woodfish only auto-takes over known legacy Woodfish payloads; unknown third-party payloads must be cleaned by their own source extension.
 
@@ -83,8 +101,4 @@ If settings are corrupted:
 
 If you're still stuck:
 - **GitHub Issues**: Search for similar problems or open a new one at [GitHub Issues](https://github.com/woodfishhhh/Woodfish-Theme/issues).
-- **Information to include**:
-  - VS Code version
-  - OS version
-  - List of installed injection-related extensions
-  - Logs from the `Woodfish Theme` output channel.
+- **Information to include**: run `Woodfish Theme: 生成 Woodfish 诊断信息`. It copies the editor name and version, OS, install path, write permissions, injection state and recent `Woodfish Theme` log lines to the clipboard, ready to paste into the issue.

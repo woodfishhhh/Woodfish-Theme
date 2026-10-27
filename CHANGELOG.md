@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+## [7.0.0] - 2026-10-27
+
+### 新功能
+
+- 支持 Cursor、Kiro、Windsurf / Devin、Trae、VSCodium 等 VS Code 衍生编辑器，在 Cursor 3.27 与 VSCodium 1.143 中实测注入、渐变、发光、光标与毛玻璃；提示信息显示当前编辑器名称
+- 重新加入毛玻璃：菜单、悬浮提示、补全列表、命令面板、通知、查找框等 12 类浮层，可选 `blur` 或 SVG 亚克力质感，带 Reveal 光效与入场动画；底色取自当前主题，VS Code 1.143 起与原生毛玻璃协同，并遵循“降低透明度”
+- 新增系统级透明窗口（实验）：macOS vibrancy、Windows 11 亚克力 / 云母 / 标签式云母
+- 新增 `Woodfish Black`（纯黑）、`Woodfish Neon`（赛博朋克）、`Woodfish Light`（浅色，#16）三套主题，由生成脚本统一产出并校验对比度
+- 新增 6 套效果预设与“保存为预设”，新增 8 套彩色光标配色与自定义颜色
+- 新增“生成 Woodfish 诊断信息”“打开 Woodfish 设置”命令；功能菜单按分组重排
+- 新增首次安装引导（欢迎页 Walkthrough）
+- 状态栏新增 `F` 标记表示毛玻璃已开启
+
+### 修复
+
+- 卸载扩展后自动还原 `workbench.html`、校验和与系统级窗口钩子，不再残留光标和发光（#29、#11、#9、#5）
+- 声明 `extensionKind: ui`，修复 Remote SSH / WSL / 容器中“找不到 workbench.html”的问题
+- 写入失败时按系统给出中文处理办法，覆盖 macOS“App 管理”与从终端启动、AppTranslocation、Windows Program Files、Linux Snap / Flatpak 等情况
+- 注入后同步 `product.json` 校验和，避免“安装似乎损坏”提示；仍出现时说明需完全退出编辑器
+- 区分“重新加载窗口”和“完全退出重开”两类提示，需要重启进程的改动（系统级窗口）明确要求完全退出（#14）
+- 修复“彻底停用”与后台同步并发时注入被重新写回的问题
+- 修复系统级窗口钩子文件丢失后启动时不会自动补装的问题
+- 光标、标签栏动画同时遵循 `workbench.reduceMotion`
+- 渐变与发光都关闭时，运行时不再处理代码 token
+- 其他扩展用行内装饰设置的文字颜色（如 Minecraft Color Highlighter）不再被渐变覆盖（#15）
+- 修复 JetBrains Mono、Cascadia 等字体的斜体与连字在渐变下被裁切的问题
+
+### 工程
+
+- 发布脚本支持同时发布到 Open VSX（令牌从环境变量 `OVSX_PAT` 读取）
+- 扩展入口改为 esbuild 打包，VSIX 约 130 KB；开发时写入的本机安装记录不会再被打包
+- 集成测试适配 VS Code 1.110 起的目录调整
+
 ## [6.0.0-beta.1] - 2026-07-31
 
 - 将 Woodfish 从内置主题专用特效改为默认开启的通用叠层，切换到任意 VS Code 颜色主题后仍继续工作

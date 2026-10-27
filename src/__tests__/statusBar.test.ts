@@ -39,6 +39,7 @@ describe('status bar runtime snapshot rendering', () => {
         syntaxGradient: true,
         glow: true,
         cursor: true,
+        glass: false,
       },
       {
         state: 'on',
@@ -65,6 +66,7 @@ describe('status bar runtime snapshot rendering', () => {
         syntaxGradient: true,
         glow: true,
         cursor: false,
+        glass: false,
       },
       {
         state: 'paused',
@@ -88,6 +90,7 @@ describe('status bar runtime snapshot rendering', () => {
         syntaxGradient: true,
         glow: true,
         cursor: true,
+        glass: false,
       },
       {
         state: 'off',

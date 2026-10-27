@@ -84,6 +84,11 @@ export function removeKnownLegacyWoodfishPayloads(
   const removed = findKnownLegacyWoodfishPayloads(htmlContent);
   let html = htmlContent;
 
+  if (removed.length === 0) {
+    // Never rewrite a document Woodfish has not touched (keeps VS Code's checksum valid).
+    return { html: htmlContent, removed };
+  }
+
   for (const match of removed) {
     html = html.replace(match.fragment, '');
   }
@@ -99,12 +104,23 @@ export function hasWoodfishPayload(htmlContent: string): boolean {
   return WOODFISH_BLOCK_PATTERN.test(htmlContent);
 }
 
+const BLOCK_SOURCE = `${WOODFISH_MARKER_START}[\\s\\S]*?${WOODFISH_MARKER_END}`;
+const BLOCK_WITH_TRAILING_NEWLINE = new RegExp(`${BLOCK_SOURCE}\\r?\\n`, 'g');
+const BLOCK_WITH_LEADING_NEWLINE = new RegExp(`\\r?\\n?${BLOCK_SOURCE}`, 'g');
+
+/**
+ * Inverse of {@link injectWorkbenchPayload}: removes exactly the block and the
+ * newline the injector added, so an untouched document is returned unchanged and
+ * a patched one is restored byte for byte.
+ */
 export function removeWorkbenchPayload(htmlContent: string): string {
-  WOODFISH_BLOCK_PATTERN.lastIndex = 0;
+  if (!hasWoodfishPayload(htmlContent)) {
+    return htmlContent;
+  }
+
   return htmlContent
-    .replace(WOODFISH_BLOCK_PATTERN, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .replace(/\n<\/html>/g, '</html>');
+    .replace(BLOCK_WITH_TRAILING_NEWLINE, '')
+    .replace(BLOCK_WITH_LEADING_NEWLINE, '');
 }
 
 export function injectWorkbenchPayload(htmlContent: string, payload: string): string {

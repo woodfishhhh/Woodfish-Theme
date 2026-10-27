@@ -14,6 +14,7 @@ describe('runtime payload builder', () => {
     themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
     tabBar: '.tab { color: blue; }',
+    nativeWindowHook: '',
     overlayBootstrap: '(() => { document.documentElement.dataset.woodfishOverlay = "active"; })();',
     cursorCore:
       'div.cursor { animation: 30s linear infinite alternate bp-animation !important; border-radius: 2px !important; }',
@@ -32,6 +33,7 @@ describe('runtime payload builder', () => {
     themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
     tabBar: '.tab { color: blue; }',
+    nativeWindowHook: '',
     overlayBootstrap: fs.readFileSync(
       path.resolve(__dirname, '../../themes/shared/overlay-bootstrap.js'),
       'utf-8'
@@ -111,7 +113,15 @@ describe('runtime payload builder', () => {
   });
 
   it('exposes the expected defaults for an enabled integrated theme', () => {
-    expect((DEFAULT_RUNTIME_SETTINGS as Record<string, unknown>).runtime).toBeUndefined();
+    expect(DEFAULT_RUNTIME_SETTINGS.runtime).toEqual({ fixChecksums: true });
+    expect(DEFAULT_RUNTIME_SETTINGS.glass).toMatchObject({
+      enabled: false,
+      mode: 'blur',
+      blur: 30,
+      saturate: 125,
+      opacity: 0.7,
+      borderRadius: 0,
+    });
     expect(DEFAULT_RUNTIME_SETTINGS.overlay).toEqual({
       enabled: true,
       hueShift: 24,
@@ -352,6 +362,7 @@ describe('runtime payload builder', () => {
       {
         activityBar: '.activitybar .badge .badge-content { color: red; }',
         tabBar: '.tab { color: blue; }',
+        nativeWindowHook: '',
         overlayBootstrap:
           '(() => { document.documentElement.dataset.woodfishOverlay = "active"; })();',
         cursorCore: 'div.cursor { border-radius: 2px !important; }',

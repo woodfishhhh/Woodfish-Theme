@@ -49,3 +49,6 @@ coverage/
 .omx/
 .worktrees/
 .superpowers/brainstorm/**/.server-*
+
+# Woodfish 开发模式下写入的本机安装记录
+.woodfish-installations.json

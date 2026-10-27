@@ -66,7 +66,10 @@ describe('featureFlags config access', () => {
       glowBlur: false,
       glowOpacity: false,
     });
-    expect((settings as Record<string, unknown>).runtime).toBeUndefined();
+    expect(settings.runtime).toEqual({ fixChecksums: true });
+    expect(settings.glass.enabled).toBe(false);
+    expect(settings.glass.mode).toBe('blur');
+    expect(settings.glass.nativeWindow.enabled).toBe(false);
     expect(getConfigurationMock).toHaveBeenCalledWith();
     expect(configuration.get).toHaveBeenCalledWith('woodfishTheme.glow.enabled', true);
     expect(configuration.get).not.toHaveBeenCalledWith('glow.enabled', true);

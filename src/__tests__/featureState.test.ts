@@ -22,6 +22,13 @@ describe('FeatureStateController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockReadRuntimeSettings.mockReturnValue({
+      overlay: { ...DEFAULT_RUNTIME_SETTINGS.overlay },
+      glass: {
+        ...DEFAULT_RUNTIME_SETTINGS.glass,
+        targets: [...DEFAULT_RUNTIME_SETTINGS.glass.targets],
+        nativeWindow: { ...DEFAULT_RUNTIME_SETTINGS.glass.nativeWindow },
+      },
+      runtime: { ...DEFAULT_RUNTIME_SETTINGS.runtime },
       syntaxGradient: {
         ...DEFAULT_RUNTIME_SETTINGS.syntaxGradient,
         customRules: [],
@@ -46,6 +53,7 @@ describe('FeatureStateController', () => {
       syntaxGradient: true,
       glow: true,
       cursor: true,
+      glass: false,
     });
 
     controller.refreshFromConfig();

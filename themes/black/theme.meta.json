@@ -1,0 +1,27 @@
+{
+  "label": "Woodfish Black",
+  "slug": "black",
+  "activityBadgeGradient": "linear-gradient(45deg, #EACD61, #EA618E)",
+  "activityBadgeTextColor": "#141414",
+  "tabBorderGradient": "linear-gradient(to right, #EACD61, #EA618E, #3CEC85, #61AFEA)",
+  "runtime": {
+    "activityBadgeShadow": "0 0 10px rgb(234 97 142 / 35%)",
+    "tabBorderShadow": "0 0 8px rgb(97 175 234 / 30%)",
+    "tabBorderAnimationDuration": "4s",
+    "cursorDefaults": {
+      "animationDuration": 8,
+      "gradientStops": [
+        "#EACD61",
+        "#EA618E",
+        "#B78AFF",
+        "#61AFEA",
+        "#22ECDB",
+        "#3CEC85",
+        "#EACD61"
+      ],
+      "borderRadius": 2,
+      "glowBlur": 0,
+      "glowOpacity": 0.7
+    }
+  }
+}

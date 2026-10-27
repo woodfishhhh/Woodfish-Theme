@@ -11,7 +11,10 @@ AGENTS.md
 .superpowers/**
 .worktrees/**
 
-# 构建输出
+# 构建输出（只发布 esbuild 打包后的两个入口）
+out/**
+!out/extension.js
+!out/uninstall.js
 dist/**
 build/**
 out/integration/**
@@ -31,8 +34,9 @@ vsc-extension-quickstart.md
 eslint.config.mjs
 jest.config.js
 plan.md
-docs/CHANGELOG.md
-docs/CONTRIBUTING.md
+docs/**
+!docs/walkthrough/**
+!docs/TROUBLESHOOTING.md
 
 # 旧版入口备份（不参与打包）
 extension.legacy.js
@@ -61,6 +65,7 @@ assets/readme/**
 images/img1.png
 images/img2.png
 images/icon.svg
+images/head.jpg
 
 # 测试CSS文件
 themes/woodfish-theme-test.css
@@ -69,3 +74,6 @@ themes/README.md
 # Git相关
 .git/**
 .github/**
+
+# 开发模式下扩展写入的本机安装记录
+.woodfish-installations.json

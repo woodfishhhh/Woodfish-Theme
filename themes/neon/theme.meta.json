@@ -1,0 +1,26 @@
+{
+  "label": "Woodfish Neon",
+  "slug": "neon",
+  "activityBadgeGradient": "linear-gradient(45deg, #FF2E97, #00E5FF)",
+  "activityBadgeTextColor": "#0D0B1E",
+  "tabBorderGradient": "linear-gradient(to right, #FF2E97, #B967FF, #00E5FF, #01FFC3)",
+  "runtime": {
+    "activityBadgeShadow": "0 0 12px rgb(255 46 151 / 45%)",
+    "tabBorderShadow": "0 0 10px rgb(0 229 255 / 40%)",
+    "tabBorderAnimationDuration": "3s",
+    "cursorDefaults": {
+      "animationDuration": 6,
+      "gradientStops": [
+        "#FF2E97",
+        "#B967FF",
+        "#00E5FF",
+        "#01FFC3",
+        "#FFE66D",
+        "#FF2E97"
+      ],
+      "borderRadius": 2,
+      "glowBlur": 0,
+      "glowOpacity": 0.8
+    }
+  }
+}

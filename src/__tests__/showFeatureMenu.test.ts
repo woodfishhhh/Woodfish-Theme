@@ -14,9 +14,18 @@ jest.mock(
       showQuickPick: jest.fn().mockResolvedValue(undefined),
       showErrorMessage: jest.fn(),
     },
+    QuickPickItemKind: {
+      Separator: -1,
+      Default: 0,
+    },
   }),
   { virtual: true }
 );
+
+jest.mock('../config/featureFlags', () => {
+  const { DEFAULT_RUNTIME_SETTINGS } = jest.requireActual('../types/features');
+  return { readRuntimeSettings: jest.fn(() => DEFAULT_RUNTIME_SETTINGS) };
+});
 
 import * as vscode from 'vscode';
 import { registerShowFeatureMenuCommand } from '../commands/showFeatureMenu';
@@ -27,8 +36,13 @@ import type { RuntimeStatusSnapshot } from '../types/features';
 type MenuItem = {
   label: string;
   description?: string;
-  command: string;
+  command?: string;
+  kind?: number;
 };
+
+function actionable(items: MenuItem[]): MenuItem[] {
+  return items.filter((item) => item.kind !== -1);
+}
 
 describe('showFeatureMenu command', () => {
   const showQuickPickMock = vscode.window.showQuickPick as jest.Mock;
@@ -40,6 +54,7 @@ describe('showFeatureMenu command', () => {
         syntaxGradient: true,
         glow: false,
         cursor: true,
+        glass: false,
       }),
     },
     runtimeService: {
@@ -63,30 +78,28 @@ describe('showFeatureMenu command', () => {
 
     await registeredHandler?.();
 
-    const items = showQuickPickMock.mock.calls[0]?.[0] as MenuItem[];
-    expect(items).toBeDefined();
+    const items = actionable(showQuickPickMock.mock.calls[0]?.[0] as MenuItem[]);
+    expect(items.length).toBeGreaterThan(0);
+    const nativeSupported = process.platform === 'darwin' || process.platform === 'win32';
     expect(items.map((item) => item.command)).toEqual([
       COMMANDS.enable,
       COMMANDS.disable,
       COMMANDS.toggleSyntaxGradient,
       COMMANDS.toggleGlow,
-      COMMANDS.autoConfigureRainbowCursor,
       COMMANDS.toggleRainbowCursor,
+      COMMANDS.pickCursorPalette,
+      COMMANDS.toggleGlass,
+      ...(nativeSupported ? [COMMANDS.toggleNativeWindow] : []),
+      COMMANDS.applyPreset,
+      COMMANDS.openSettings,
       COMMANDS.repairWorkbench,
+      COMMANDS.showDiagnostics,
       COMMANDS.completeUninstall,
       COMMANDS.reloadWindow,
     ]);
-    expect(items.map((item) => item.label)).toEqual([
-      expect.stringContaining('开启 Woodfish 通用叠层'),
-      expect.stringContaining('关闭 Woodfish 通用叠层'),
-      expect.stringContaining('开启/关闭 Woodfish 彩色字体'),
-      expect.stringContaining('开启/关闭 Woodfish 发光字体'),
-      expect.stringContaining('开启 Woodfish 彩色光标'),
-      expect.stringContaining('开启/关闭彩色光标'),
-      expect.stringContaining('修复 Woodfish 注入'),
-      expect.stringContaining('彻底停用 Woodfish 叠层'),
-      expect.stringContaining('Reload Window'),
-    ]);
+    expect(items.find((item) => item.command === COMMANDS.completeUninstall)?.label).toContain(
+      '彻底停用 Woodfish 叠层'
+    );
     expect(items[0]?.description).toContain('Woodfish Dracula');
     expect(items[1]?.description).toContain('移除叠层但保留各项参数');
   });
@@ -107,7 +120,7 @@ describe('showFeatureMenu command', () => {
 
     await registeredHandler?.();
 
-    const items = showQuickPickMock.mock.calls[0]?.[0] as MenuItem[];
+    const items = actionable(showQuickPickMock.mock.calls[0]?.[0] as MenuItem[]);
     expect(items[0]?.description).toContain('在当前主题 One Dark Pro 上启用叠层');
   });
 

@@ -27,6 +27,13 @@ class FakeElement {
     return false;
   }
 
+  public removeAttribute(name: string): void {
+    const key = name
+      .replace(/^data-/, '')
+      .replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
+    delete this.dataset[key];
+  }
+
   public querySelectorAll(_selector: string): FakeElement[] {
     return [];
   }
@@ -35,10 +42,12 @@ class FakeElement {
 class FakeToken extends FakeElement {
   public constructor(
     public readonly cssColor: string,
-    text: string
+    text: string,
+    className = 'mtk1'
   ) {
     super();
     this.textContent = text;
+    this.className = className;
   }
 
   public override matches(selector: string): boolean {
@@ -110,7 +119,9 @@ describe('universal token overlay', () => {
   it('derives a visible gradient and glow variables for neutral white tokens', () => {
     const neutralToken = new FakeToken('rgb(255, 255, 255)', 'method');
     const punctuationToken = new FakeToken('rgb(255, 255, 255)', '{');
-    const tokens = [neutralToken, punctuationToken];
+    const bracketToken = new FakeToken('rgb(255, 215, 0)', '(', 'mtk3 bracket-highlighting-0');
+    const decoratedToken = new FakeToken('rgb(255, 85, 85)', '§cRed', 'mtk5 ced-1-3');
+    const tokens = [neutralToken, punctuationToken, bracketToken, decoratedToken];
     const viewLines = new FakeViewLines(tokens);
     const documentElement = new FakeElement();
     const body = new FakeElement();
@@ -169,6 +180,10 @@ describe('universal token overlay', () => {
     );
     expect(neutralToken.style.getPropertyValue('--woodfish-overlay-glow-near')).toContain('0.58');
     expect(punctuationToken.dataset.woodfishPunctuation).toBe('true');
+    expect(bracketToken.dataset.woodfishOverlayToken).toBe('true');
+    // Text colored by another extension's inline decoration keeps its exact color (#15).
+    expect(decoratedToken.dataset.woodfishOverlayToken).toBeUndefined();
+    expect(decoratedToken.style.getPropertyValue('--woodfish-overlay-gradient-base')).toBe('');
     expect(documentElement.dataset.woodfishOverlay).toBe('active');
   });
 

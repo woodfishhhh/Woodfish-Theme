@@ -95,6 +95,42 @@ function packageExtension(version, isPreRelease) {
   }
 }
 
+// Cursor、Kiro、Windsurf、VSCodium 等衍生编辑器从 Open VSX 安装扩展
+function buildOvsxArgs(packagePath, { isPreRelease = false } = {}) {
+  return ['--yes', 'ovsx@1', 'publish', packagePath, ...(isPreRelease ? ['--pre-release'] : [])];
+}
+
+function publishToOpenVsx(packagePath, isPreRelease, readline, done) {
+  if (!process.env.OVSX_PAT) {
+    console.log(
+      '⏸️  未设置 OVSX_PAT，跳过 Open VSX 发布（Cursor / Kiro / Windsurf / VSCodium 用户将无法在扩展面板中搜到新版本）'
+    );
+    done();
+    return;
+  }
+
+  readline.question('是否同时发布到 Open VSX？(y/N): ', (answer) => {
+    if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+      try {
+        // ovsx 直接从环境变量 OVSX_PAT 读取令牌，不出现在命令行参数里
+        execFileSync(
+          process.platform === 'win32' ? 'npx.cmd' : 'npx',
+          buildOvsxArgs(packagePath, { isPreRelease }),
+          { stdio: 'inherit', shell: process.platform === 'win32' }
+        );
+        console.log('🎉 发布到 Open VSX 成功！');
+      } catch (error) {
+        console.error('❌ Open VSX 发布失败:', error.message);
+        console.log('💡 请确认 OVSX_PAT 有效，且 open-vsx.org 上已创建 publisher 对应的 namespace');
+        process.exitCode = 1;
+      }
+    } else {
+      console.log('⏸️  跳过 Open VSX 发布');
+    }
+    done();
+  });
+}
+
 // 发布到市场
 function publishToMarketplace(version, packagePath, isPreRelease) {
   console.log('🌐 准备发布到VSCode市场...');
@@ -128,17 +164,23 @@ function publishToMarketplace(version, packagePath, isPreRelease) {
     } else {
       console.log('⏸️  跳过市场发布');
     }
-    readline.close();
 
-    // 提示GitHub发布
-    console.log('\n📋 GitHub发布清单:');
-    console.log('1. git add .');
-    console.log('2. git commit -m "Release v' + version + '"');
-    console.log('3. git tag v' + version);
-    console.log('4. git push origin main --tags');
-    console.log('5. 在GitHub上创建Release并上传.vsix文件');
-    console.log('6. Release notes 中注明 integrated runtime 已取代第三方 CSS Loader 依赖');
+    publishToOpenVsx(packagePath, isPreRelease, readline, () => {
+      readline.close();
+      printReleaseChecklist(version);
+    });
   });
+}
+
+function printReleaseChecklist(version) {
+  // 提示GitHub发布
+  console.log('\n📋 GitHub发布清单:');
+  console.log('1. git add .');
+  console.log('2. git commit -m "Release v' + version + '"');
+  console.log('3. git tag v' + version);
+  console.log('4. git push origin main --tags');
+  console.log('5. 在GitHub上创建Release并上传.vsix文件');
+  console.log('6. Release notes 中注明 integrated runtime 已取代第三方 CSS Loader 依赖');
 }
 
 // 主函数
@@ -164,4 +206,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { buildVsceArgs, getPackageOutputPath, main };
+module.exports = { buildOvsxArgs, buildVsceArgs, getPackageOutputPath, main };

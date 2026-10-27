@@ -5,6 +5,7 @@ export const FEATURE_SETTING_KEYS = {
   syntaxGradient: 'syntaxGradient.enabled',
   glow: 'glow.enabled',
   cursor: 'cursor.enabled',
+  glass: 'glass.enabled',
 } as const;
 
 export const OVERLAY_SETTING_KEYS = {
@@ -32,4 +33,28 @@ export const CURSOR_SETTING_KEYS = {
   glowBlur: 'cursor.glowBlur',
   glowOpacity: 'cursor.glowOpacity',
   customRules: 'cursor.customRules',
+} as const;
+
+export const GLASS_SETTING_KEYS = {
+  mode: 'glass.mode',
+  blur: 'glass.blur',
+  saturate: 'glass.saturate',
+  opacity: 'glass.opacity',
+  noise: 'glass.noise',
+  borderRadius: 'glass.borderRadius',
+  targets: 'glass.targets',
+  animations: 'glass.animations',
+  reveal: 'glass.reveal',
+  nativeWindowEnabled: 'glass.nativeWindow.enabled',
+  nativeWindowWindowsMaterial: 'glass.nativeWindow.windowsMaterial',
+  nativeWindowMacVibrancy: 'glass.nativeWindow.macVibrancy',
+  nativeWindowOpacity: 'glass.nativeWindow.opacity',
+} as const;
+
+export const RUNTIME_SETTING_KEYS = {
+  fixChecksums: 'runtime.fixChecksums',
+} as const;
+
+export const PRESET_SETTING_KEYS = {
+  custom: 'presets.custom',
 } as const;

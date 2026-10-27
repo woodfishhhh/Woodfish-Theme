@@ -24,6 +24,9 @@ export class ThemeStatusBar {
     if (features.cursor) {
       segments.push('C');
     }
+    if (features.glass) {
+      segments.push('F');
+    }
 
     this.item.text = segments.join(' ');
     this.item.tooltip = [
@@ -32,6 +35,7 @@ export class ThemeStatusBar {
       `当前主题: ${runtime.activeTheme || '未检测到'}`,
       `payload: ${runtime.hasPayload ? 'present' : 'absent'}`,
       `特效: ${segments.slice(2).join(' ') || 'none'}`,
+      'A 彩色字体 · G 发光 · C 彩色光标 · F 毛玻璃',
     ].join('\n');
   }
 

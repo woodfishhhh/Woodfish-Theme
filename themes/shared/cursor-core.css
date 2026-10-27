@@ -43,6 +43,13 @@ div.cursor::before {
   }
 }
 
+.monaco-workbench.monaco-reduce-motion .monaco-editor .cursor::before {
+  height: 100% !important;
+  animation: none !important;
+  transform: translateY(0) !important;
+  will-change: auto !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .monaco-editor .cursor::before {
     height: 100% !important;

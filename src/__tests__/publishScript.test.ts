@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 type PublishScript = {
+  buildOvsxArgs: (packagePath: string, options?: { isPreRelease?: boolean }) => string[];
   buildVsceArgs: (
     command: string,
     options?: { isPreRelease?: boolean; packagePath?: string }
@@ -12,7 +13,7 @@ const publishScript = fs.readFileSync(
   path.resolve(__dirname, '..', '..', 'scripts', 'publish.js'),
   'utf8'
 );
-const { buildVsceArgs } = require(
+const { buildOvsxArgs, buildVsceArgs } = require(
   path.resolve(__dirname, '..', '..', 'scripts', 'publish.js')
 ) as PublishScript;
 
@@ -34,6 +35,20 @@ describe('publish script safety', () => {
     expect(publishScript).toContain("path.resolve('scripts', 'package.js')");
     expect(publishScript).toContain("'--packagePath'");
     expect(publishScript).toContain('process.exitCode = 1');
+  });
+
+  it('publishes the same VSIX to Open VSX without putting the token on the command line', () => {
+    const packagePath = path.resolve('woodfish-theme-7.0.0.vsix');
+
+    expect(buildOvsxArgs(packagePath, { isPreRelease: true })).toEqual([
+      '--yes',
+      'ovsx@1',
+      'publish',
+      packagePath,
+      '--pre-release',
+    ]);
+    expect(buildOvsxArgs(packagePath).join(' ')).not.toMatch(/--pat|-p\b|OVSX_PAT/);
+    expect(publishScript).toContain("readline.question('是否同时发布到 Open VSX？(y/N): '");
   });
 
   it('publishes the same pre-release VSIX that passed the package gate', () => {

@@ -8,5 +8,13 @@ export const COMMANDS = {
   showFeatureMenu: 'woodfish-theme.showFeatureMenu',
   completeUninstall: 'woodfish-theme.completeUninstall',
   repairWorkbench: 'woodfish-theme.repairWorkbench',
+  toggleGlass: 'woodfish-theme.toggleGlass',
+  toggleNativeWindow: 'woodfish-theme.toggleNativeWindow',
+  applyPreset: 'woodfish-theme.applyPreset',
+  savePreset: 'woodfish-theme.savePreset',
+  pickCursorPalette: 'woodfish-theme.pickCursorPalette',
+  showDiagnostics: 'woodfish-theme.showDiagnostics',
+  openSettings: 'woodfish-theme.openSettings',
   reloadWindow: 'workbench.action.reloadWindow',
+  vscodeOpenSettings: 'workbench.action.openSettings',
 } as const;

@@ -3,8 +3,10 @@ import {
   CONFIG_SECTION,
   CURSOR_SETTING_KEYS,
   FEATURE_SETTING_KEYS,
+  GLASS_SETTING_KEYS,
   GLOW_SETTING_KEYS,
   OVERLAY_SETTING_KEYS,
+  RUNTIME_SETTING_KEYS,
   SYNTAX_SETTING_KEYS,
   WORKBENCH_SECTION,
 } from '../constants/config';
@@ -111,6 +113,48 @@ export function readRuntimeSettings(): ThemeRuntimeSettings {
         DEFAULT_RUNTIME_SETTINGS.cursor.customRules
       ),
     },
+    glass: {
+      enabled: readSetting(FEATURE_SETTING_KEYS.glass, DEFAULT_RUNTIME_SETTINGS.glass.enabled),
+      mode: readSetting(GLASS_SETTING_KEYS.mode, DEFAULT_RUNTIME_SETTINGS.glass.mode),
+      blur: readSetting(GLASS_SETTING_KEYS.blur, DEFAULT_RUNTIME_SETTINGS.glass.blur),
+      saturate: readSetting(GLASS_SETTING_KEYS.saturate, DEFAULT_RUNTIME_SETTINGS.glass.saturate),
+      opacity: readSetting(GLASS_SETTING_KEYS.opacity, DEFAULT_RUNTIME_SETTINGS.glass.opacity),
+      noise: readSetting(GLASS_SETTING_KEYS.noise, DEFAULT_RUNTIME_SETTINGS.glass.noise),
+      borderRadius: readSetting(
+        GLASS_SETTING_KEYS.borderRadius,
+        DEFAULT_RUNTIME_SETTINGS.glass.borderRadius
+      ),
+      targets: readSetting(GLASS_SETTING_KEYS.targets, DEFAULT_RUNTIME_SETTINGS.glass.targets),
+      animations: readSetting(
+        GLASS_SETTING_KEYS.animations,
+        DEFAULT_RUNTIME_SETTINGS.glass.animations
+      ),
+      reveal: readSetting(GLASS_SETTING_KEYS.reveal, DEFAULT_RUNTIME_SETTINGS.glass.reveal),
+      nativeWindow: {
+        enabled: readSetting(
+          GLASS_SETTING_KEYS.nativeWindowEnabled,
+          DEFAULT_RUNTIME_SETTINGS.glass.nativeWindow.enabled
+        ),
+        windowsMaterial: readSetting(
+          GLASS_SETTING_KEYS.nativeWindowWindowsMaterial,
+          DEFAULT_RUNTIME_SETTINGS.glass.nativeWindow.windowsMaterial
+        ),
+        macVibrancy: readSetting(
+          GLASS_SETTING_KEYS.nativeWindowMacVibrancy,
+          DEFAULT_RUNTIME_SETTINGS.glass.nativeWindow.macVibrancy
+        ),
+        opacity: readSetting(
+          GLASS_SETTING_KEYS.nativeWindowOpacity,
+          DEFAULT_RUNTIME_SETTINGS.glass.nativeWindow.opacity
+        ),
+      },
+    },
+    runtime: {
+      fixChecksums: readSetting(
+        RUNTIME_SETTING_KEYS.fixChecksums,
+        DEFAULT_RUNTIME_SETTINGS.runtime.fixChecksums
+      ),
+    },
     explicitSettings: {
       cursor: {
         animationDuration: isExplicitSetting(CURSOR_SETTING_KEYS.animationDuration),
@@ -152,30 +196,11 @@ export function readCurrentColorTheme(): string {
 }
 
 export function onThemeSettingsChanged(handler: () => void): vscode.Disposable {
-  const watchedPaths = [
-    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.enabled}`,
-    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.hueShift}`,
-    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.lightnessDelta}`,
-    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.neutralChroma}`,
-    `${CONFIG_SECTION}.${OVERLAY_SETTING_KEYS.angle}`,
-    `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.syntaxGradient}`,
-    `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.glow}`,
-    `${CONFIG_SECTION}.${FEATURE_SETTING_KEYS.cursor}`,
-    `${CONFIG_SECTION}.${SYNTAX_SETTING_KEYS.customRules}`,
-    `${CONFIG_SECTION}.${GLOW_SETTING_KEYS.intensity}`,
-    `${CONFIG_SECTION}.${GLOW_SETTING_KEYS.customRules}`,
-    `${CONFIG_SECTION}.${CURSOR_SETTING_KEYS.animationDuration}`,
-    `${CONFIG_SECTION}.${CURSOR_SETTING_KEYS.gradientStops}`,
-    `${CONFIG_SECTION}.${CURSOR_SETTING_KEYS.borderRadius}`,
-    `${CONFIG_SECTION}.${CURSOR_SETTING_KEYS.glow}`,
-    `${CONFIG_SECTION}.${CURSOR_SETTING_KEYS.glowBlur}`,
-    `${CONFIG_SECTION}.${CURSOR_SETTING_KEYS.glowOpacity}`,
-    `${CONFIG_SECTION}.${CURSOR_SETTING_KEYS.customRules}`,
-    `${WORKBENCH_SECTION}.colorTheme`,
-  ];
-
   return vscode.workspace.onDidChangeConfiguration((event) => {
-    if (watchedPaths.some((path) => event.affectsConfiguration(path))) {
+    if (
+      event.affectsConfiguration(CONFIG_SECTION) ||
+      event.affectsConfiguration(`${WORKBENCH_SECTION}.colorTheme`)
+    ) {
       handler();
     }
   });
