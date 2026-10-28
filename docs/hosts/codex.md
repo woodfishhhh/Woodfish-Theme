@@ -30,6 +30,10 @@
 
 Codex 界面的外观设置确实保存在 Windows 的 `~/.codex/config.toml`，重启后生效（启动后 5 秒内）。之前改了不生效，是因为缺少 **`accentSource = "custom"`**：缺了这个键，Codex 会把强调色当作 ChatGPT 账号同步的颜色，用账号颜色替换掉。在 Codex 设置页里手动改一次强调色，它自己就会写入 `accent` 和 `accentSource = "custom"`。Woodfish 的原生配色因此总是同时写这两个键。
 
+深色和浅色各有一张表（`appearanceDarkChromeTheme` / `appearanceLightChromeTheme`），互不影响；`desktop.appearanceTheme`（`system` / `light` / `dark`）决定当前使用哪一张。深色表同样需要 `accentSource = "custom"`：缺了它，实测深色主题会显示账号同步的颜色（本机是绿色 `#53b559`）。
+
+截图验证深色效果时要用系统级截屏：Codex 的侧栏和窗口外框是半透明的，会透出 Windows 11 的 Mica 材质，而 CDP 的 `Page.captureScreenshot` 会把这些透明区域画成白色。
+
 （排查过程中确认过：界面不读 WSL 里的 `~/.codex/config.toml`；`desktop.sansFontSize` 这个键名不对，所以那次对照实验没有参考价值。）
 
 app-server 接口本身可用：守护进程监听 `~/.codex/app-server-control/app-server-control.sock`，协议是 Unix 套接字上的 WebSocket，每帧一条 JSON-RPC 消息（不带 `"jsonrpc"` 字段），先发 `initialize`（`clientInfo.name` 和 `version` 必填），再发 `initialized`。Windows 上 Node 不能直接连 AF_UNIX，需要通过 `codex stdio-to-uds <socket>` 中转。写入后不会通知其他客户端。

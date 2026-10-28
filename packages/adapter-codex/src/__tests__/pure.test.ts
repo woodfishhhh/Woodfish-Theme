@@ -126,6 +126,17 @@ describe('buildCodexCss', () => {
     ).not.toContain('data-theme="light"');
   });
 
+  it('gives the finer highlight.js classes their own palette role inside code blocks', () => {
+    const neon = findCodexPalette('neon');
+    const css = buildCodexCss(normalizeCodexSettings({ palette: { dark: 'neon' } })).palette;
+    expect(css).toContain(
+      `[data-theme="dark"] [data-code-block-source="true"] .hljs-title.function_ {
+  color: ${neon.tokens.function};`
+    );
+    expect(css).toContain(`[data-theme="dark"] [data-code-block-source="true"] .hljs-params {`);
+    expect(css).not.toContain('[data-theme="light"] [data-code-block-source');
+  });
+
   it('maps every Codex syntax slot from the palette', () => {
     const variables = buildPaletteVariables(findCodexPalette('black'));
     for (const slot of [

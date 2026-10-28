@@ -176,6 +176,46 @@ describe('run', () => {
     expect(fs.readFileSync(paths.codexConfig, 'utf8')).toBe('model = "gpt-6"\n');
   });
 
+  it('applies dark and light palettes plus the appearance in one command', async () => {
+    fs.mkdirSync(paths.codexHome, { recursive: true });
+    fs.writeFileSync(paths.codexConfig, 'model = "gpt-6"\n');
+    const io = memoryIo();
+    expect(
+      await run(
+        ['codex', 'theme', 'apply', '--dark', 'neon', '--light', 'light', '--appearance', 'dark'],
+        { io, context: { paths } }
+      )
+    ).toBe(0);
+    const parsed = parse(fs.readFileSync(paths.codexConfig, 'utf8')) as {
+      desktop: {
+        appearanceTheme: string;
+        appearanceDarkChromeTheme: { accent: string };
+        appearanceLightChromeTheme: { accent: string };
+      };
+    };
+    expect(parsed.desktop.appearanceTheme).toBe('dark');
+    expect(parsed.desktop.appearanceDarkChromeTheme.accent).toBe('#ff2e97');
+    expect(parsed.desktop.appearanceLightChromeTheme.accent).toBe('#1f5fbf');
+    expect(await run(['codex', 'theme', 'restore'], { io, context: { paths } })).toBe(0);
+    expect(fs.readFileSync(paths.codexConfig, 'utf8')).toBe('model = "gpt-6"\n');
+  });
+
+  it('rejects palettes used for the wrong mode and unknown appearances', async () => {
+    const io = memoryIo();
+    expect(
+      await run(['codex', 'theme', 'apply', '--dark', 'light'], { io, context: { paths } })
+    ).toBe(2);
+    expect(
+      await run(['codex', 'theme', 'apply', '--palette', 'neon', '--dark', 'black'], {
+        io,
+        context: { paths },
+      })
+    ).toBe(2);
+    expect(
+      await run(['codex', 'theme', 'apply', '--appearance', 'dim'], { io, context: { paths } })
+    ).toBe(2);
+  });
+
   it('saves settings through --set and normalizes them', async () => {
     const io = memoryIo();
     expect(

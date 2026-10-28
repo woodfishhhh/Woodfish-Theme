@@ -8,7 +8,7 @@ Woodfish 不修改 Codex 的安装文件。商店版的安装目录是只读的�
 
 | 方式 | 能做什么 | 是否开调试端口 | 何时生效 |
 | --- | --- | --- | --- |
-| **原生配色** `theme apply` | 把 Woodfish Light / Black / Neon 写进 Codex 官方的主题设置（强调色、文字、背景、对比度、diff 颜色），Codex 会据此重新生成整套界面色阶 | 否 | 重启 Codex 后 |
+| **原生配色** `theme apply` | 把 Woodfish 配色写进 Codex 官方的主题设置（强调色、文字、背景、对比度、diff 颜色），Codex 会据此重新生成整套界面色阶。深色（Black / Neon）和浅色（Light）可以同时设置，也能切换 Codex 的外观模式 | 否 | 重启 Codex 后几秒内 |
 | **注入效果** `launch` | 代码块 OKLCH 渐变与发光、菜单与浮层毛玻璃、强调色光晕、彩色光标，可选正文渐变，也能临时覆盖配色 | 是，仅本机 | 立即生效，设置改动约 1 秒内同步 |
 | **Codex++ 用户脚本** `install-userscript` | 与注入效果相同，由 Codex++ 加载 | 由 Codex++ 决定 | 在 Codex++ 中重新加载脚本后 |
 
@@ -30,8 +30,9 @@ npm run woodfish -- codex status
 
 ```bash
 # 原生配色（不开端口）
-woodfish codex theme apply --palette neon --restart
-woodfish codex theme restore
+woodfish codex theme apply --dark neon --light light --restart     # 深色、浅色各一套
+woodfish codex theme apply --dark black --appearance dark --restart  # 并把 Codex 固定为深色
+woodfish codex theme restore                                         # 撤销全部（也可 --mode dark）
 
 # 注入效果
 woodfish codex launch                      # 首次运行会说明风险并请你确认
@@ -59,6 +60,13 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 | `caret.*` | 开 | `animationDuration`、`gradientStops` |
 | `bodyText.enabled` | 关 | 助手回复正文渐变 |
 | `customCss` | `[]` | 追加的 CSS，会经过安全过滤 |
+
+## 深色模式
+
+- 深色配色有 Black（纯黑）和 Neon（赛博朋克），浅色是 Light。`--palette` 会按配色自动选择模式；`--dark` / `--light` 则显式指定，并检查配色和模式是否匹配。
+- Codex 设成“跟随系统”时，深色配色只在系统切到深色后出现。`theme apply` 会在配色暂时看不到时提示；`--appearance dark` 可以直接把 Codex 固定为深色，并且能随 `theme restore` 一起撤销。
+- 注入的配色按 `[data-theme="dark"]` / `[data-theme="light"]` 分别生效，所以 `palette.dark` 和 `palette.light` 可以同时设置，Codex 切换外观时实时跟随。深色下代码发光保持完整强度，浅色下会自动减弱，避免发虚。
+- Codex 原本只给代码高亮 8 个颜色槽位，注入时会按 highlight.js 的细分类名补齐函数、类型、参数、属性等颜色，让深色配色的完整色板都能显示。
 
 ## 注入是怎么做的
 

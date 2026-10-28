@@ -3,7 +3,9 @@ import * as os from 'os';
 import * as path from 'path';
 import { findCodexPalette } from '@woodfish/adapter-codex';
 import {
+  applyAppearance,
   applyNativeTheme,
+  listNativeThemeManifests,
   readNativeThemeManifest,
   restoreNativeTheme,
 } from '../codex/nativeTheme';
@@ -16,6 +18,21 @@ const ORIGINAL = [
   '',
   '[desktop]',
   'appearanceTheme = "system"',
+  '',
+  '[desktop.appearanceLightChromeTheme]',
+  'accent = "#007acc"',
+  'contrast = 45',
+  'ink = "#000000"',
+  'opaqueWindows = false',
+  'surface = "#ffffff"',
+  '',
+  '[desktop.appearanceLightChromeTheme.fonts]',
+  'ui = "Inter"',
+  '',
+  '[desktop.appearanceLightChromeTheme.semanticColors]',
+  'diffAdded = "#008000"',
+  'diffRemoved = "#ee0000"',
+  'skill = "#0000ff"',
   '',
   '[desktop.appearanceDarkChromeTheme]',
   'accent = "#339cff" # mine',
@@ -32,6 +49,9 @@ const ORIGINAL = [
   'skill = "#ad7bf9"',
   '',
 ].join('\n');
+
+const DARK = ['desktop', 'appearanceDarkChromeTheme'];
+const LIGHT = ['desktop', 'appearanceLightChromeTheme'];
 
 let sandbox: string;
 let paths: ReturnType<typeof resolvePaths>;
@@ -54,28 +74,63 @@ function config(): string {
   return fs.readFileSync(paths.codexConfig, 'utf8');
 }
 
+function value(table: string[], key: string): unknown {
+  return readTomlValue(parseToml(config()), table, key);
+}
+
 describe('native theme', () => {
-  it('writes the palette into the matching chrome theme and restores exact bytes', () => {
+  it('writes a dark palette with a custom accent source and restores exact bytes', () => {
     fs.writeFileSync(paths.codexConfig, ORIGINAL);
     const neon = findCodexPalette('neon');
     const result = applyNativeTheme(paths, 'neon');
-    expect(result.mode).toBe('dark');
-    const parsed = parseToml(config());
-    const table = ['desktop', 'appearanceDarkChromeTheme'];
-    expect(readTomlValue(parsed, table, 'accent')).toBe(neon.ui.accent.toLowerCase());
-    expect(readTomlValue(parsed, table, 'surface')).toBe(neon.ui.bg.toLowerCase());
-    expect(readTomlValue(parsed, table, 'accentSource')).toBe('custom');
-    expect(readTomlValue(parsed, [...table, 'semanticColors'], 'skill')).toBe(
-      neon.ui.accent2.toLowerCase()
-    );
+    expect(result.id).toBe('dark');
+    expect(value(DARK, 'accent')).toBe(neon.ui.accent.toLowerCase());
+    expect(value(DARK, 'accentSource')).toBe('custom');
+    expect(value(DARK, 'surface')).toBe(neon.ui.bg.toLowerCase());
+    expect(value([...DARK, 'semanticColors'], 'skill')).toBe(neon.ui.accent2.toLowerCase());
+    expect(value(LIGHT, 'accent')).toBe('#007acc');
     expect(config()).toContain('# mine');
-    expect(readTomlValue(parsed, ['desktop'], 'appearanceTheme')).toBe('system');
-    expect(readNativeThemeManifest(paths)?.palette).toBe('neon');
+    expect(readNativeThemeManifest(paths, 'dark')?.value).toBe('neon');
 
-    expect(restoreNativeTheme(paths)).toBe('restored-exact');
+    expect(restoreNativeTheme(paths).restored).toEqual([{ id: 'dark', outcome: 'restored-exact' }]);
     expect(config()).toBe(ORIGINAL);
-    expect(readNativeThemeManifest(paths)).toBeUndefined();
-    expect(restoreNativeTheme(paths)).toBe('nothing-to-restore');
+    expect(listNativeThemeManifests(paths)).toEqual([]);
+    expect(restoreNativeTheme(paths).restored).toEqual([]);
+  });
+
+  it('keeps dark and light palettes side by side and undoes both byte for byte', () => {
+    fs.writeFileSync(paths.codexConfig, ORIGINAL);
+    applyNativeTheme(paths, 'neon');
+    applyNativeTheme(paths, 'light');
+    applyAppearance(paths, 'dark');
+    expect(value(DARK, 'accent')).toBe(findCodexPalette('neon').ui.accent.toLowerCase());
+    expect(value(LIGHT, 'accent')).toBe(findCodexPalette('light').ui.accent.toLowerCase());
+    expect(value(['desktop'], 'appearanceTheme')).toBe('dark');
+    expect(listNativeThemeManifests(paths).map((manifest) => manifest.id)).toEqual([
+      'appearance',
+      'light',
+      'dark',
+    ]);
+
+    const { restored } = restoreNativeTheme(paths);
+    expect(restored.map((entry) => entry.outcome)).toEqual([
+      'restored-exact',
+      'restored-exact',
+      'restored-exact',
+    ]);
+    expect(config()).toBe(ORIGINAL);
+  });
+
+  it('restores a single mode and leaves the other applied', () => {
+    fs.writeFileSync(paths.codexConfig, ORIGINAL);
+    applyNativeTheme(paths, 'black');
+    applyNativeTheme(paths, 'light');
+    restoreNativeTheme(paths, ['dark']);
+    expect(value(DARK, 'accent')).toBe('#339cff');
+    expect(value(DARK, 'accentSource')).toBeUndefined();
+    expect(value(LIGHT, 'accent')).toBe(findCodexPalette('light').ui.accent.toLowerCase());
+    restoreNativeTheme(paths);
+    expect(parseToml(config())).toEqual(parseToml(ORIGINAL));
   });
 
   it('reverts only managed keys when Codex changed the file afterwards', () => {
@@ -83,36 +138,33 @@ describe('native theme', () => {
     applyNativeTheme(paths, 'black');
     fs.writeFileSync(paths.codexConfig, config().replace('model = "gpt-6"', 'model = "gpt-7"'));
 
-    expect(restoreNativeTheme(paths)).toBe('restored-keys');
+    expect(restoreNativeTheme(paths).restored).toEqual([{ id: 'dark', outcome: 'restored-keys' }]);
     expect(config()).toBe(ORIGINAL.replace('model = "gpt-6"', 'model = "gpt-7"'));
   });
 
   it('creates and later removes the theme tables when they did not exist', () => {
-    const minimal = 'model = "gpt-6"\n';
-    fs.writeFileSync(paths.codexConfig, minimal);
+    fs.writeFileSync(paths.codexConfig, 'model = "gpt-6"\n');
     applyNativeTheme(paths, 'light');
-    const parsed = parseToml(config());
-    const table = ['desktop', 'appearanceLightChromeTheme'];
-    expect(readTomlValue(parsed, table, 'contrast')).toBe(45);
-    expect(readTomlValue(parsed, table, 'fonts')).toEqual({});
+    expect(value(LIGHT, 'contrast')).toBe(45);
+    expect(value(LIGHT, 'fonts')).toEqual({});
     fs.appendFileSync(paths.codexConfig, '\n[extra]\nvalue = 1\n');
 
-    expect(restoreNativeTheme(paths)).toBe('restored-keys');
+    restoreNativeTheme(paths);
     expect(parseToml(config())).toEqual({ model: 'gpt-6', extra: { value: 1 } });
   });
 
   it('creates the config file when missing and deletes it on exact restore', () => {
     applyNativeTheme(paths, 'neon');
     expect(fs.existsSync(paths.codexConfig)).toBe(true);
-    expect(restoreNativeTheme(paths)).toBe('restored-exact');
+    restoreNativeTheme(paths);
     expect(fs.existsSync(paths.codexConfig)).toBe(false);
   });
 
-  it('re-applying another palette first restores the previous one', () => {
+  it('re-applying a mode first restores that mode only', () => {
     fs.writeFileSync(paths.codexConfig, ORIGINAL);
     applyNativeTheme(paths, 'neon');
     applyNativeTheme(paths, 'black');
-    expect(readNativeThemeManifest(paths)?.sha256Before).toBe(sha256(ORIGINAL));
+    expect(readNativeThemeManifest(paths, 'dark')?.sha256Before).toBe(sha256(ORIGINAL));
     restoreNativeTheme(paths);
     expect(config()).toBe(ORIGINAL);
   });
@@ -121,6 +173,6 @@ describe('native theme', () => {
     fs.writeFileSync(paths.codexConfig, 'broken = = 1');
     expect(() => applyNativeTheme(paths, 'neon')).toThrow('无法解析');
     expect(config()).toBe('broken = = 1');
-    expect(readNativeThemeManifest(paths)).toBeUndefined();
+    expect(listNativeThemeManifests(paths)).toEqual([]);
   });
 });

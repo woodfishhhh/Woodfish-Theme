@@ -21,17 +21,19 @@ import {
 import { resolvePaths } from './paths';
 import { currentPlatform } from './platform';
 
-const VALUE_FLAGS = new Set(['palette', 'port', 'set']);
+const VALUE_FLAGS = new Set(['palette', 'dark', 'light', 'appearance', 'mode', 'port', 'set']);
 
 export const HELP = `Woodfish 桌面工具
 
 用法：woodfish codex <命令> [选项]
 
 配色（不开调试端口）
-  theme apply --palette <light|black|neon> [--restart]
-                         把 Woodfish 配色写入 Codex 官方主题设置（自动备份）
-  theme restore [--restart]
-                         撤销上次写入的配色
+  theme apply [--dark <black|neon>] [--light light] [--appearance <system|light|dark>]
+              [--palette <名称>] [--restart]
+                         把 Woodfish 配色写入 Codex 官方主题设置（自动备份）；
+                         深色与浅色可同时设置，--appearance 切换 Codex 外观
+  theme restore [--mode <dark|light|appearance>] [--restart]
+                         撤销写入的配色与外观（默认全部）
 
 注入效果（代码渐变、发光、毛玻璃、强调色、彩色光标）
   launch [--yes] [--accept-risk]
@@ -102,13 +104,21 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
     switch (command) {
       case 'theme':
         if (subcommand === 'apply') {
-          return await themeApplyCommand(context, stringFlag(args, 'palette'), {
+          return await themeApplyCommand(context, {
+            palette: stringFlag(args, 'palette'),
+            dark: stringFlag(args, 'dark'),
+            light: stringFlag(args, 'light'),
+            appearance: stringFlag(args, 'appearance'),
             restart,
             assumeYes,
           });
         }
         if (subcommand === 'restore') {
-          return await themeRestoreCommand(context, { restart, assumeYes });
+          return await themeRestoreCommand(context, {
+            mode: stringFlag(args, 'mode'),
+            restart,
+            assumeYes,
+          });
         }
         throw new CommandError('用法：woodfish codex theme apply|restore', EXIT.usage);
       case 'launch':

@@ -164,6 +164,20 @@ describe('editToml', () => {
     ).toThrow('不支持的字符');
   });
 
+  it('adds a header for a parent table that only exists through sub-tables', () => {
+    const text = '[desktop.appearanceDarkChromeTheme]\naccent = "#339cff"\n';
+    const result = editToml(text, {
+      ensureTables: [['desktop']],
+      sets: [{ table: ['desktop'], key: 'appearanceTheme', value: 'dark' }],
+    });
+    expect(result.text).toBe(`${text}\n[desktop]\nappearanceTheme = "dark"\n`);
+    expect(() =>
+      editToml('desktop.appearanceTheme = "light"\n', {
+        sets: [{ table: ['desktop'], key: 'appearanceTheme', value: 'dark' }],
+      })
+    ).toThrow('点号键');
+  });
+
   it('handles quoted table headers and keys', () => {
     const text = '["desktop".\'appearanceDarkChromeTheme\']\n"accent" = "#339cff"\n';
     const result = editToml(text, { sets: [{ table: DARK, key: 'accent', value: '#ff2e97' }] });

@@ -416,10 +416,22 @@ export function editToml(
     if (sections.length > 1) {
       throw new TomlEditError(`${tableLabel(table)} 出现了多次，未做修改`);
     }
-    if (
-      sections.length === 0 &&
-      readTomlValue(before, table.slice(0, -1), table[table.length - 1]) !== undefined
-    ) {
+    const existing = readTomlValue(before, table.slice(0, -1), table[table.length - 1]);
+    // A table that only exists implicitly through `[table.child]` headers may still get its
+    // own `[table]` header later in the file; anything else means inline or dotted keys.
+    const implicitOnly =
+      existing !== null &&
+      typeof existing === 'object' &&
+      Object.keys(existing).every((key) =>
+        document.sections.some(
+          (section) =>
+            section.path !== null &&
+            section.path.length > table.length &&
+            table.every((part, index) => section.path?.[index] === part) &&
+            section.path[table.length] === key
+        )
+      );
+    if (sections.length === 0 && existing !== undefined && !implicitOnly) {
       throw new TomlEditError(
         `${tableLabel(table)} 使用内联表或点号键定义，Woodfish 不会改写这种写法，请手动修改`
       );

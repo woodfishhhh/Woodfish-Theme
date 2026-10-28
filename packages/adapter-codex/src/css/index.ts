@@ -34,7 +34,7 @@ export function buildCodexCss(settings: CodexSettings): Record<CodexStyleName, s
   };
 }
 
-export { buildPaletteCss, buildPaletteVariables } from './palette';
+export { buildHljsRoleCss, buildPaletteCss, buildPaletteVariables } from './palette';
 export {
   buildAccentCss,
   buildBodyTextCss,

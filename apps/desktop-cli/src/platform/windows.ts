@@ -181,9 +181,10 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
       if (!state.main) {
         return;
       }
-      // taskkill reports failure when some child already exited; whether Codex is really gone
-      // is checked by the caller, which waits for the main process to disappear.
-      runner(`& taskkill.exe /PID ${state.main.pid} /T /F 2>&1 | Out-Null; exit 0`);
+      // taskkill reports failure when some child already exited. Run it through cmd.exe so
+      // Windows PowerShell 5.1 (ErrorActionPreference Stop) never sees its stderr; whether
+      // Codex is really gone is checked by the caller, which waits for the main process.
+      runner(`& cmd.exe /d /c "taskkill /PID ${state.main.pid} /T /F >nul 2>nul"; exit 0`);
     },
 
     isElevated(): boolean {

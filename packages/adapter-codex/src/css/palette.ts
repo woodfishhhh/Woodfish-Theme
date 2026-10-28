@@ -1,4 +1,4 @@
-import { WoodfishPalette } from '@woodfish/theme-core';
+import { PaletteTokenRole, WoodfishPalette } from '@woodfish/theme-core';
 import { CodexPaletteSlug, CodexSettings, findCodexPalette } from '../settings';
 
 function mix(color: string, percent: number, base = 'transparent'): string {
@@ -95,6 +95,43 @@ function block(selector: string, variables: Record<string, string>): string {
   return [`${selector} {`, ...lines, '}'].join('\n');
 }
 
+/**
+ * Codex colors highlight.js output through only eight syntax slots (functions, types and
+ * variables all share one). These rules give the finer hljs classes their own palette
+ * role inside code blocks, so a palette's full token set shows up.
+ */
+const HLJS_ROLES: ReadonlyArray<readonly [PaletteTokenRole, readonly string[]]> = [
+  ['keyword', ['.hljs-keyword', '.hljs-doctag']],
+  ['function', ['.hljs-title.function_']],
+  ['type', ['.hljs-title.class_', '.hljs-type', '.hljs-built_in']],
+  ['parameter', ['.hljs-params']],
+  ['property', ['.hljs-property', '.hljs-attr']],
+  ['variable', ['.hljs-variable', '.hljs-template-variable', '.hljs-subst']],
+  ['self', ['.hljs-variable.language_']],
+  ['number', ['.hljs-number', '.hljs-literal']],
+  ['string', ['.hljs-string', '.hljs-addition']],
+  ['regexp', ['.hljs-regexp']],
+  ['escape', ['.hljs-char.escape_']],
+  ['decorator', ['.hljs-meta']],
+  ['tag', ['.hljs-tag', '.hljs-name', '.hljs-selector-tag']],
+  ['attribute', ['.hljs-attribute', '.hljs-selector-attr', '.hljs-selector-class']],
+  ['operator', ['.hljs-operator']],
+  ['punctuation', ['.hljs-punctuation']],
+  ['comment', ['.hljs-comment', '.hljs-quote']],
+  ['invalid', ['.hljs-deletion']],
+];
+
+export function buildHljsRoleCss(palette: WoodfishPalette, mode: 'dark' | 'light'): string {
+  const scope = `[data-theme="${mode}"] [data-code-block-source="true"]`;
+  return HLJS_ROLES.map(([role, classes]) =>
+    [
+      `${classes.map((name) => `${scope} ${name}`).join(',\n')} {`,
+      `  color: ${palette.tokens[role]};`,
+      '}',
+    ].join('\n')
+  ).join('\n');
+}
+
 /** Palette overrides for each Codex appearance mode that has a palette selected. */
 export function buildPaletteCss(palette: CodexSettings['palette']): string {
   const modes: Array<['dark' | 'light', CodexPaletteSlug | null]> = [
@@ -103,8 +140,12 @@ export function buildPaletteCss(palette: CodexSettings['palette']): string {
   ];
   return modes
     .filter((entry): entry is ['dark' | 'light', CodexPaletteSlug] => entry[1] !== null)
-    .map(([mode, slug]) =>
-      block(`[data-theme="${mode}"]`, buildPaletteVariables(findCodexPalette(slug)))
-    )
+    .map(([mode, slug]) => {
+      const woodfish = findCodexPalette(slug);
+      return [
+        block(`[data-theme="${mode}"]`, buildPaletteVariables(woodfish)),
+        buildHljsRoleCss(woodfish, mode),
+      ].join('\n\n');
+    })
     .join('\n\n');
 }

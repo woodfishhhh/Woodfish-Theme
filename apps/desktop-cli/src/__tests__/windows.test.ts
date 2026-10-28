@@ -1,3 +1,4 @@
+import { spawn } from 'child_process';
 import { decodeCommand } from './helpers/powershell';
 import {
   encodeCommand,
@@ -136,7 +137,7 @@ describe('stopping', () => {
       processCount: 3,
       debugPort: null,
     });
-    expect(scripts[0]).toContain('taskkill.exe /PID 42 /T /F');
+    expect(scripts[0]).toContain('cmd.exe /d /c "taskkill /PID 42 /T /F >nul 2>nul"');
     expect(scripts[0]).toContain('exit 0');
   });
 });
@@ -236,5 +237,21 @@ onWindows('generated PowerShell is syntactically valid', () => {
         errors: [],
       });
     }
+  });
+});
+
+onWindows('stopping a real process tree', () => {
+  it('ends the tree without a terminating error, even when run twice', async () => {
+    const child = spawn('cmd.exe', ['/d', '/c', 'ping -n 30 127.0.0.1 >nul'], {
+      windowsHide: true,
+      stdio: 'ignore',
+    });
+    const pid = child.pid ?? 0;
+    const exited = new Promise<void>((resolve) => child.once('exit', () => resolve()));
+    const platform = createWindowsPlatform({ runtimeDir: String.raw`C:\tmp` });
+    const state = { main: { pid, commandLine: '' }, processCount: 2, debugPort: null };
+    expect(() => platform.stop(installation, state)).not.toThrow();
+    await exited;
+    expect(() => platform.stop(installation, state)).not.toThrow();
   });
 });

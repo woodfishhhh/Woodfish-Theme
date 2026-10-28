@@ -2,18 +2,27 @@ import * as fs from 'fs';
 import {
   CODEX_PALETTE_SLUGS,
   CODEX_SELECTORS,
+  ChromeThemeMode,
   CodexPaletteSlug,
   TESTED_CODEX_VERSIONS,
+  findCodexPalette,
   normalizeCodexSettings,
+  paletteMode,
 } from '@woodfish/adapter-codex';
 import { mergeSettings, parseSetting } from '../cli/args';
 import { RISK_TEXT_SHA256 } from '../cli/consent';
 import { isDebugPortAlive } from '../cdp/http';
 import {
+  CODEX_APPEARANCES,
+  CodexAppearance,
+  MANAGED_CHANGE_IDS,
+  ManagedChangeId,
+  applyAppearance,
   applyNativeTheme,
-  readNativeThemeManifest,
+  listNativeThemeManifests,
   restoreNativeTheme,
 } from '../codex/nativeTheme';
+import { parseToml, readTomlValue } from '../codex/tomlEdit';
 import {
   installUserScript,
   isCodexPlusInstalled,
@@ -25,30 +34,112 @@ import { loadSettings, loadWatcherState, saveSettings } from '../store';
 import { CommandContext, CommandError, EXIT, isProcessAlive } from './context';
 import { readOverlayStates, restartForNativeTheme, stopInjectCommand } from './inject';
 
-function requirePalette(value: string | undefined): CodexPaletteSlug {
-  if (!value || !(CODEX_PALETTE_SLUGS as readonly string[]).includes(value)) {
-    throw new CommandError(
-      `请用 --palette 指定配色：${CODEX_PALETTE_SLUGS.join(' / ')}`,
-      EXIT.usage
-    );
+function parsePalette(value: string | undefined, flag: string): CodexPaletteSlug | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!(CODEX_PALETTE_SLUGS as readonly string[]).includes(value)) {
+    throw new CommandError(`${flag} 只能是：${CODEX_PALETTE_SLUGS.join(' / ')}`, EXIT.usage);
   }
   return value as CodexPaletteSlug;
 }
 
-/** `woodfish codex theme apply --palette <slug>`: official chrome theme, no port. */
+function parseAppearance(value: string | undefined): CodexAppearance | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!(CODEX_APPEARANCES as readonly string[]).includes(value)) {
+    throw new CommandError(`--appearance 只能是：${CODEX_APPEARANCES.join(' / ')}`, EXIT.usage);
+  }
+  return value as CodexAppearance;
+}
+
+const MODE_LABELS: Readonly<Record<ManagedChangeId, string>> = {
+  dark: '深色主题',
+  light: '浅色主题',
+  appearance: '外观模式',
+};
+
+const APPEARANCE_LABELS: Readonly<Record<CodexAppearance, string>> = {
+  system: '跟随系统',
+  light: '浅色',
+  dark: '深色',
+};
+
+export interface ThemeApplyOptions {
+  /** A palette for its own mode (Light → light, Black/Neon → dark). */
+  palette?: string;
+  /** Explicit palettes per mode; each must be designed for that mode. */
+  dark?: string;
+  light?: string;
+  appearance?: string;
+  restart: boolean;
+  assumeYes: boolean;
+}
+
+/**
+ * `woodfish codex theme apply`: official chrome theme(s) and optionally the appearance
+ * mode, written to config.toml with backups. Never opens a debugging port.
+ */
 export async function themeApplyCommand(
   context: CommandContext,
-  palette: string | undefined,
-  options: { restart: boolean; assumeYes: boolean }
+  options: ThemeApplyOptions
 ): Promise<number> {
-  const slug = requirePalette(palette);
-  const result = applyNativeTheme(context.paths, slug);
-  const modeLabel = result.mode === 'dark' ? '深色' : '浅色';
-  context.io.out(
-    result.changed
-      ? `已把 Woodfish ${slug} 写入 Codex 的${modeLabel}主题（已备份原配置）。`
-      : `Codex 的${modeLabel}主题已经是 Woodfish ${slug}。`
-  );
+  const requested = [
+    parsePalette(options.palette, '--palette'),
+    parsePalette(options.dark, '--dark'),
+    parsePalette(options.light, '--light'),
+  ];
+  const appearance = parseAppearance(options.appearance);
+  const slugs = [...new Set(requested.filter((slug): slug is CodexPaletteSlug => !!slug))];
+  if (slugs.length === 0 && !appearance) {
+    throw new CommandError(
+      `请指定配色或外观：--palette / --dark / --light <${CODEX_PALETTE_SLUGS.join('|')}>，--appearance <${CODEX_APPEARANCES.join('|')}>`,
+      EXIT.usage
+    );
+  }
+  const expected: Array<[string | undefined, ChromeThemeMode]> = [
+    [options.dark, 'dark'],
+    [options.light, 'light'],
+  ];
+  for (const [value, mode] of expected) {
+    if (value && paletteMode(findCodexPalette(value as CodexPaletteSlug)) !== mode) {
+      throw new CommandError(
+        `${value} 是${mode === 'dark' ? '浅色' : '深色'}配色，不能用于${MODE_LABELS[mode]}`,
+        EXIT.usage
+      );
+    }
+  }
+  const modes = slugs.map((slug) => paletteMode(findCodexPalette(slug)));
+  if (new Set(modes).size !== modes.length) {
+    throw new CommandError('同一种外观模式只能指定一套配色', EXIT.usage);
+  }
+
+  for (const slug of slugs) {
+    const result = applyNativeTheme(context.paths, slug);
+    context.io.out(
+      result.changed
+        ? `已把 Woodfish ${slug} 写入 Codex 的${MODE_LABELS[result.id]}（已备份原配置）。`
+        : `Codex 的${MODE_LABELS[result.id]}已经是 Woodfish ${slug}。`
+    );
+  }
+  if (appearance) {
+    applyAppearance(context.paths, appearance);
+    context.io.out(`已把 Codex 外观设为${APPEARANCE_LABELS[appearance]}。`);
+  } else if (slugs.length > 0) {
+    const current = readTomlValue(
+      parseToml(fs.readFileSync(context.paths.codexConfig, 'utf8')),
+      ['desktop'],
+      'appearanceTheme'
+    );
+    const shown = current === 'light' || current === 'dark' ? current : 'system';
+    const inactive = modes.filter((mode) => shown !== 'system' && shown !== mode);
+    if (inactive.length > 0) {
+      context.io.out(
+        `提示：Codex 当前固定为${APPEARANCE_LABELS[shown]}外观，${inactive.map((mode) => MODE_LABELS[mode]).join('、')}暂时看不到；可加 --appearance ${inactive[0]} 或 --appearance system。`
+      );
+    }
+  }
   context.io.out('撤销：woodfish codex theme restore');
   if (options.restart || options.assumeYes) {
     await restartForNativeTheme(context, options.assumeYes);
@@ -58,20 +149,28 @@ export async function themeApplyCommand(
   return EXIT.ok;
 }
 
-/** `woodfish codex theme restore`. */
+/** `woodfish codex theme restore [--mode dark|light|appearance]`. */
 export async function themeRestoreCommand(
   context: CommandContext,
-  options: { restart: boolean; assumeYes: boolean }
+  options: { mode?: string; restart: boolean; assumeYes: boolean }
 ): Promise<number> {
-  const outcome = restoreNativeTheme(context.paths);
-  const messages = {
-    'nothing-to-restore': '没有需要恢复的配色。',
-    'restored-exact': '已把 config.toml 恢复为修改前的原样。',
-    'restored-keys':
-      'config.toml 在应用配色后被 Codex 改动过，已只恢复 Woodfish 修改的键，其余改动保留。',
-  } as const;
-  context.io.out(messages[outcome]);
-  if (outcome !== 'nothing-to-restore' && (options.restart || options.assumeYes)) {
+  if (options.mode && !(MANAGED_CHANGE_IDS as readonly string[]).includes(options.mode)) {
+    throw new CommandError(`--mode 只能是：${MANAGED_CHANGE_IDS.join(' / ')}`, EXIT.usage);
+  }
+  const ids = options.mode ? [options.mode as ManagedChangeId] : MANAGED_CHANGE_IDS;
+  const { restored } = restoreNativeTheme(context.paths, ids);
+  if (restored.length === 0) {
+    context.io.out('没有需要恢复的配色。');
+    return EXIT.ok;
+  }
+  for (const { id, outcome } of restored) {
+    context.io.out(
+      outcome === 'restored-exact'
+        ? `已恢复${MODE_LABELS[id]}（config.toml 回到修改前的原样）。`
+        : `已恢复${MODE_LABELS[id]}：config.toml 期间被 Codex 改动过，只还原了 Woodfish 修改的键，其余改动保留。`
+    );
+  }
+  if (options.restart || options.assumeYes) {
     await restartForNativeTheme(context, options.assumeYes);
   }
   return EXIT.ok;
@@ -168,7 +267,7 @@ interface StatusReport {
   debugPort: number | null;
   debugPortAlive: boolean;
   watcher: { pid: number; port: number; alive: boolean } | null;
-  nativeTheme: { palette: string; mode: string; appliedAt: string } | null;
+  nativeTheme: Array<{ id: ManagedChangeId; value: string; appliedAt: string }>;
   userScript: boolean;
   consent: boolean;
 }
@@ -178,7 +277,7 @@ async function collectStatus(context: CommandContext): Promise<StatusReport> {
   const installation = platform.discover();
   const state = installation ? platform.inspect(installation) : null;
   const watcher = loadWatcherState(context.paths);
-  const manifest = readNativeThemeManifest(context.paths);
+  const manifests = listNativeThemeManifests(context.paths);
   const port = state?.debugPort ?? null;
   return {
     installation: installation
@@ -192,9 +291,11 @@ async function collectStatus(context: CommandContext): Promise<StatusReport> {
     debugPort: port,
     debugPortAlive: port ? await isDebugPortAlive(port, context.fetchImpl) : false,
     watcher: watcher ? { ...watcher, alive: isProcessAlive(watcher.pid) } : null,
-    nativeTheme: manifest
-      ? { palette: manifest.palette, mode: manifest.mode, appliedAt: manifest.appliedAt }
-      : null,
+    nativeTheme: manifests.map((manifest) => ({
+      id: manifest.id,
+      value: manifest.value,
+      appliedAt: manifest.appliedAt,
+    })),
     userScript: isUserScriptInstalled(context.paths),
     consent: loadSettings(context.paths).consent?.riskTextSha256 === RISK_TEXT_SHA256,
   };
@@ -213,7 +314,11 @@ function printStatus(context: CommandContext, status: StatusReport): void {
   );
   io.out(`注入：${status.watcher?.alive ? `监视进程 ${status.watcher.pid} 运行中` : '未运行'}`);
   io.out(
-    `原生配色：${status.nativeTheme ? `${status.nativeTheme.palette}（${status.nativeTheme.mode === 'dark' ? '深色' : '浅色'}）` : '未应用'}`
+    `原生配色：${
+      status.nativeTheme.length > 0
+        ? status.nativeTheme.map((entry) => `${MODE_LABELS[entry.id]} ${entry.value}`).join('，')
+        : '未应用'
+    }`
   );
   io.out(`Codex++ 用户脚本：${status.userScript ? '已安装' : '未安装'}`);
 }

@@ -24,6 +24,7 @@ export {
   buildCodeCss,
   buildCodexCss,
   buildGlassCss,
+  buildHljsRoleCss,
   buildPaletteCss,
   buildPaletteVariables,
 } from './css';
