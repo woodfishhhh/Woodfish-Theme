@@ -52,3 +52,10 @@ coverage/
 
 # Woodfish 开发模式下写入的本机安装记录
 .woodfish-installations.json
+
+# TypeScript project-reference build info
+*.tsbuildinfo
+
+# 打包时从仓库根目录临时复制到扩展目录的文件
+apps/vscode-extension/README.md
+apps/vscode-extension/LICENSE

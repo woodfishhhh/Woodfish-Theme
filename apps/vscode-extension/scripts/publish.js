@@ -1,0 +1,213 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const { execFileSync, execSync } = require('child_process');
+
+const { EXTENSION_ROOT, REPO_ROOT, VSCE_ENTRY: VSCE_ENTRY_ABSOLUTE } = require('./paths');
+
+// 检查必要文件
+function checkRequiredFiles() {
+  const requiredFiles = [
+    'package.json',
+    path.join(REPO_ROOT, 'README.md'),
+    path.join(REPO_ROOT, 'LICENSE'),
+    'themes/bearded/Woodfish Dark.json',
+    'themes/dracula/Woodfish Dracula.json',
+    'out/extension.js',
+  ];
+
+  console.log('📋 检查必要文件...');
+  for (const file of requiredFiles) {
+    if (!fs.existsSync(file)) {
+      console.error(`❌ 缺少必要文件: ${file}`);
+      process.exit(1);
+    }
+  }
+  console.log('✅ 所有必要文件检查通过');
+}
+
+// 更新版本号
+function updateVersion() {
+  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  console.log(`📦 当前版本: ${packageJson.version}`);
+
+  // 这里可以根据需要自动递增版本号
+  // 暂时保持当前版本
+  return packageJson.version;
+}
+
+function buildVsceArgs(command, { isPreRelease = false, packagePath } = {}) {
+  const args = [command];
+
+  if (isPreRelease) {
+    args.push('--pre-release');
+  }
+  if (packagePath) {
+    args.push('--packagePath', packagePath);
+  }
+
+  return args;
+}
+
+function getPackageOutputPath(version) {
+  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  return path.resolve(`${packageJson.name}-${version}.vsix`);
+}
+
+// 运行测试
+function runCommand(command, description) {
+  console.log(`${description}...`);
+  execSync(command, { stdio: 'inherit' });
+}
+
+function runVerification() {
+  console.log('🧪 运行发布前验证...');
+  runCommand('npm run verify -w @woodfish/theme-core', '🧩 共享主题核心检查');
+  runCommand('npm run compile', '🔨 TypeScript 编译');
+  runCommand('npm run themes:check', '🎨 生成主题一致性检查');
+  runCommand('npm run runtime:check', '🧱 渲染端脚本一致性检查');
+  runCommand('npm run format:check', '🎨 Prettier 检查');
+  runCommand('npm run lint', '🧹 ESLint 检查');
+  runCommand('npm test -- --runInBand', '✅ Jest 测试');
+  const integrationCommand =
+    process.platform === 'linux' && !process.env.DISPLAY
+      ? 'xvfb-run -a npm run test:integration'
+      : 'npm run test:integration';
+  runCommand(integrationCommand, '🧭 VS Code 集成测试');
+  runCommand('node scripts/pre-publish-check.js', '🔍 发布前检查');
+}
+
+// 打包扩展
+function packageExtension(version, isPreRelease) {
+  console.log('📦 打包扩展...');
+  try {
+    const packagePath = getPackageOutputPath(version);
+    const args = isPreRelease ? ['--pre-release'] : [];
+    args.push('--out', packagePath);
+    const packageScript = path.resolve('scripts', 'package.js');
+    execFileSync(process.execPath, [packageScript, ...args], {
+      stdio: 'inherit',
+    });
+    console.log('✅ 扩展打包完成');
+    return packagePath;
+  } catch (error) {
+    console.error('❌ 打包失败:', error.message);
+    process.exit(1);
+  }
+}
+
+// Cursor、Kiro、Windsurf、VSCodium 等衍生编辑器从 Open VSX 安装扩展
+function buildOvsxArgs(packagePath, { isPreRelease = false } = {}) {
+  return ['--yes', 'ovsx@1', 'publish', packagePath, ...(isPreRelease ? ['--pre-release'] : [])];
+}
+
+function publishToOpenVsx(packagePath, isPreRelease, readline, done) {
+  if (!process.env.OVSX_PAT) {
+    console.log(
+      '⏸️  未设置 OVSX_PAT，跳过 Open VSX 发布（Cursor / Kiro / Windsurf / VSCodium 用户将无法在扩展面板中搜到新版本）'
+    );
+    done();
+    return;
+  }
+
+  readline.question('是否同时发布到 Open VSX？(y/N): ', (answer) => {
+    if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+      try {
+        // ovsx 直接从环境变量 OVSX_PAT 读取令牌，不出现在命令行参数里
+        execFileSync(
+          process.platform === 'win32' ? 'npx.cmd' : 'npx',
+          buildOvsxArgs(packagePath, { isPreRelease }),
+          { stdio: 'inherit', shell: process.platform === 'win32' }
+        );
+        console.log('🎉 发布到 Open VSX 成功！');
+      } catch (error) {
+        console.error('❌ Open VSX 发布失败:', error.message);
+        console.log('💡 请确认 OVSX_PAT 有效，且 open-vsx.org 上已创建 publisher 对应的 namespace');
+        process.exitCode = 1;
+      }
+    } else {
+      console.log('⏸️  跳过 Open VSX 发布');
+    }
+    done();
+  });
+}
+
+// 发布到市场
+function publishToMarketplace(version, packagePath, isPreRelease) {
+  console.log('🌐 准备发布到VSCode市场...');
+  if (isPreRelease) {
+    console.log('ℹ️  本次将按 VS Code Marketplace 预发布版本渠道发布');
+  }
+  console.log('ℹ️  注意：将使用您本地环境配置的 VSCode 发布令牌 (通过 vsce login 设置)');
+  console.log('    如果您未在本地登录，发布可能会失败。脚本不会保存或读取任何令牌文件。');
+
+  const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  readline.question('是否继续发布到市场？(y/N): ', (answer) => {
+    if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+      try {
+        execFileSync(
+          process.execPath,
+          [VSCE_ENTRY_ABSOLUTE, ...buildVsceArgs('publish', { isPreRelease, packagePath })],
+          { stdio: 'inherit' }
+        );
+        console.log('🎉 发布到VSCode市场成功！');
+      } catch (error) {
+        console.error('❌ 发布失败:', error.message);
+        console.log('💡 请检查发布令牌和网络连接');
+        process.exitCode = 1;
+        readline.close();
+        return;
+      }
+    } else {
+      console.log('⏸️  跳过市场发布');
+    }
+
+    publishToOpenVsx(packagePath, isPreRelease, readline, () => {
+      readline.close();
+      printReleaseChecklist(version);
+    });
+  });
+}
+
+function printReleaseChecklist(version) {
+  // 提示GitHub发布
+  console.log('\n📋 GitHub发布清单:');
+  console.log('1. git add .');
+  console.log('2. git commit -m "Release v' + version + '"');
+  console.log('3. git tag v' + version);
+  console.log('4. git push origin main --tags');
+  console.log('5. 在GitHub上创建Release并上传.vsix文件');
+  console.log('6. Release notes 中注明 integrated runtime 已取代第三方 CSS Loader 依赖');
+}
+
+// 主函数
+function main(args = process.argv.slice(2)) {
+  try {
+    // 下面的相对路径都以扩展目录为准，从仓库根目录直接运行脚本时也一样
+    process.chdir(EXTENSION_ROOT);
+    console.log('🚀 Woodfish Theme 发布脚本');
+    console.log('================================');
+
+    const isPreRelease = args.includes('--pre-release');
+    checkRequiredFiles();
+    const version = updateVersion();
+    runVerification();
+    const packagePath = packageExtension(version, isPreRelease);
+    publishToMarketplace(version, packagePath, isPreRelease);
+  } catch (error) {
+    console.error('❌ 发布过程中出现错误:', error.message);
+    process.exit(1);
+  }
+}
+
+// 运行脚本
+if (require.main === module) {
+  main();
+}
+
+module.exports = { buildOvsxArgs, buildVsceArgs, getPackageOutputPath, main };

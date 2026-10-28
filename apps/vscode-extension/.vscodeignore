@@ -1,0 +1,58 @@
+# 开发文件
+.vscode/**
+.vscode-test/**
+node_modules/**
+src/**
+browser/**
+scripts/**
+AGENTS.md
+**/AGENTS.md
+.codebuddy/**
+.omx/**
+.superpowers/**
+.worktrees/**
+
+# 构建输出（只发布 esbuild 打包后的两个入口）
+out/**
+!out/extension.js
+!out/uninstall.js
+dist/**
+build/**
+out/integration/**
+
+# 测试文件
+test/**
+**/*.test.js
+coverage/**
+.nyc_output/**
+
+# 配置文件
+.gitignore
+.env*
+tsconfig*.json
+**/tsconfig*.json
+**/.eslintrc.json
+vsc-extension-quickstart.md
+eslint.config.mjs
+jest.config.js
+plan.md
+docs/**
+!docs/walkthrough/**
+!docs/TROUBLESHOOTING.md
+
+# 源码文件
+**/*.ts
+**/*.map
+*.tsbuildinfo
+
+# 临时文件
+**/*.vsix
+**/*.log
+**/*.tmp
+
+# 文档草稿（README.md 由打包脚本从仓库根目录临时复制进来）
+**/README.md
+!README.md
+
+# 开发模式下扩展写入的本机安装记录
+.woodfish-installations.json

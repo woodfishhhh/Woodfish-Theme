@@ -25,8 +25,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile
+      - name: Compile all workspaces
         run: npm run compile
+
+      - name: Check generated themes and renderer scripts
+        run: |
+          npm run themes:check
+          npm run runtime:check
 
       - name: Check formatting
         run: npm run format:check
@@ -34,14 +39,28 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
+      - name: Test all workspaces
         run: npm test -- --runInBand
 
-      - name: Run integration tests
+      - name: Run VS Code integration tests
         run: xvfb-run -a npm run test:integration
 
       - name: Check release package hygiene
         run: npm run pre-publish
 
-      - name: Package extension
-        run: npm run package
+      - name: Package VS Code extension
+        run: npm run package -- --out "$GITHUB_WORKSPACE/dist/"
+
+      - name: Check the VSIX is self-contained
+        run: |
+          set -euo pipefail
+          SANDBOX="$(mktemp -d)"
+          unzip -q dist/*.vsix -d "$SANDBOX"
+          cd "$SANDBOX/extension"
+          test -f out/extension.js && test -f out/uninstall.js && test -f readme.md
+          test ! -d node_modules
+          # Workspace packages must be bundled, never required at runtime.
+          if grep -l "@woodfish/" out/*.js themes/shared/*.js; then
+            echo "VSIX still references a workspace package" >&2
+            exit 1
+          fi

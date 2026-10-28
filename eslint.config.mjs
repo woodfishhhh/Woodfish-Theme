@@ -3,29 +3,24 @@ import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
+import globals from 'globals';
+
+const SOURCE_FILES = ['apps/*/src/**/*.ts', 'apps/*/browser/**/*.ts', 'packages/*/src/**/*.ts'];
+const TEST_FILES = ['apps/*/src/__tests__/**/*.ts', 'packages/*/src/__tests__/**/*.ts'];
 
 export default [
   js.configs.recommended,
   {
-    files: ['src/**/*.ts'],
-    ignores: ['src/__tests__/**/*'],
+    files: SOURCE_FILES,
+    ignores: TEST_FILES,
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        // Each file is checked with its nearest tsconfig.json (core, extension, browser).
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
         ecmaVersion: 2022,
         sourceType: 'module',
-      },
-      globals: {
-        console: 'readonly',
-        setTimeout: 'readonly',
-        require: 'readonly',
-        module: 'readonly',
-        exports: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        process: 'readonly',
-        Buffer: 'readonly',
       },
     },
     plugins: {
@@ -43,24 +38,41 @@ export default [
     },
   },
   {
-    files: ['src/__tests__/**/*.ts'],
+    files: ['apps/vscode-extension/src/**/*.ts'],
+    ignores: TEST_FILES,
     languageOptions: {
       globals: {
-        describe: 'readonly',
-        it: 'readonly',
-        expect: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-        jest: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        require: 'readonly',
+        module: 'readonly',
+        exports: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
       },
-    },
-    rules: {
-      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
   {
-    ignores: ['out/', 'node_modules/', '*.js', 'src/__tests__/**/*'],
+    // Workbench renderer scripts run in the browser.
+    files: ['apps/*/browser/**/*.ts'],
+    languageOptions: {
+      globals: globals.browser,
+    },
+  },
+  {
+    // The shared core is host-agnostic: no Node, DOM or VS Code globals.
+    files: ['packages/theme-core/src/**/*.ts'],
+    ignores: TEST_FILES,
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: ['vscode', 'electron', 'node:*', 'fs', 'path'] },
+      ],
+    },
+  },
+  {
+    ignores: ['**/out/', '**/node_modules/', '**/*.js', ...TEST_FILES],
   },
 ];

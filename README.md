@@ -6,7 +6,7 @@
   <a href="https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme"><img src="https://img.shields.io/visual-studio-marketplace/v/zhongjun.woodfish-theme?style=flat-square&label=Marketplace&color=69C3FF" alt="VS Code Marketplace version"></a>
   <a href="https://open-vsx.org/extension/zhongjun/woodfish-theme"><img src="https://img.shields.io/open-vsx/v/zhongjun/woodfish-theme?style=flat-square&label=Open%20VSX&color=C160EF" alt="Open VSX version"></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme"><img src="https://img.shields.io/visual-studio-marketplace/d/zhongjun.woodfish-theme?style=flat-square&label=Downloads&color=22ECDB" alt="VS Code Marketplace downloads"></a>
-  <a href="./THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/license-MIT%20%2B%20GPL--3.0-EACD61?style=flat-square" alt="MIT and GPL-3.0 licensing"></a>
+  <a href="./apps/vscode-extension/THIRD_PARTY_NOTICES.md"><img src="https://img.shields.io/badge/license-MIT%20%2B%20GPL--3.0-EACD61?style=flat-square" alt="MIT and GPL-3.0 licensing"></a>
   <a href="https://code.visualstudio.com/"><img src="https://img.shields.io/badge/VS%20Code-%5E1.74.0-B78AFF?style=flat-square" alt="Requires VS Code 1.74 or newer"></a>
 </p>
 
@@ -14,7 +14,7 @@
   中文 · <a href="https://github.com/woodfishhhh/Woodfish-Theme/blob/HEAD/README.en.md">English</a> ·
   <a href="https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme">VS Code 安装</a> ·
   <a href="https://open-vsx.org/extension/zhongjun/woodfish-theme">Cursor / Kiro / Trae 安装</a> ·
-  <a href="./docs/TROUBLESHOOTING.md">故障排查</a>
+  <a href="./apps/vscode-extension/docs/TROUBLESHOOTING.md">故障排查</a>
 </p>
 
 Woodfish Theme 是一层叠在任意颜色主题上的视觉效果：它保留你正在用的配色，为代码文字自动计算 OKLCH 渐变和发光，再加上彩虹光标和毛玻璃。VS Code、Cursor、Kiro、Windsurf、Trae、VSCodium 都能用。
@@ -233,7 +233,7 @@ Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地
 
 **提 issue**
 
-运行 `生成 Woodfish 诊断信息`，内容会复制到剪贴板，直接粘贴到 [issue](https://github.com/woodfishhhh/Woodfish-Theme/issues) 里。更多排查步骤见 [故障排查指南](./docs/TROUBLESHOOTING.md)。
+运行 `生成 Woodfish 诊断信息`，内容会复制到剪贴板，直接粘贴到 [issue](https://github.com/woodfishhhh/Woodfish-Theme/issues) 里。更多排查步骤见 [故障排查指南](./apps/vscode-extension/docs/TROUBLESHOOTING.md)。
 
 ## 已知限制
 
@@ -255,11 +255,13 @@ npm run verify
 npm run package
 ```
 
-`npm run test:integration` 会启动隔离的 VS Code 扩展宿主，验证开启、关闭和工作台恢复。扩展入口是 `src/extension.ts`；主题由 `scripts/generate-themes.js` 生成（`npm run themes:generate`），共享运行时资源在 `themes/shared/`。发布到 Open VSX 需要先设置环境变量 `OVSX_PAT`。
+仓库是 npm workspaces monorepo，以上命令都在根目录运行。VS Code 扩展位于 `apps/vscode-extension/`，与宿主无关的颜色算法、渐变计算、调色板和效果参数位于 `packages/theme-core/`，结构与边界见 [仓库结构](./docs/ARCHITECTURE.md)。
+
+`npm run test:integration` 会启动隔离的 VS Code 扩展宿主，验证开启、关闭和工作台恢复。扩展入口是 `apps/vscode-extension/src/extension.ts`；主题由 `apps/vscode-extension/scripts/generate-themes.js` 生成（`npm run themes:generate`），渲染端脚本源码在 `apps/vscode-extension/browser/`（`npm run runtime:build`），注入用 CSS 在 `apps/vscode-extension/themes/shared/`。发布到 Open VSX 需要先设置环境变量 `OVSX_PAT`。
 
 ## 项目信息
 
-- [更新日志](./CHANGELOG.md)
+- [更新日志](./apps/vscode-extension/CHANGELOG.md)
 - [参与贡献](./docs/CONTRIBUTING.md)
 - [提交问题](https://github.com/woodfishhhh/Woodfish-Theme/issues)
-- [许可与第三方主题声明](./THIRD_PARTY_NOTICES.md)
+- [许可与第三方主题声明](./apps/vscode-extension/THIRD_PARTY_NOTICES.md)
