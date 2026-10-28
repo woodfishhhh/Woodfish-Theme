@@ -99,6 +99,8 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 2. 后台监视进程（`woodfish codex watch`）连接调试端口，把样式注入主窗口，并在页面刷新、新开窗口、设置变化时重新注入。这类注入只在调试连接保持期间有效，所以监视进程必须一直运行。
 3. Codex 的主题变量都定义在 CSS 的 `@layer theme` 中。Woodfish 注入的样式不带 layer，优先级天然更高，不需要 `!important`。
 
+`theme apply --restart` 和 `theme restore --restart` 重启 Codex 时，如果注入效果正开着，Codex 会带着效果重新启动。
+
 已知限制：关闭 Codex 窗口只会把它缩到托盘，所以重启 Codex 时需要结束它的全部进程。Woodfish 会先征求你的同意；正在运行的任务可能因此中断。
 
 ## 安全

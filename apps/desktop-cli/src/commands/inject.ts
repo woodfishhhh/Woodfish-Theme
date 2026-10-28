@@ -326,7 +326,10 @@ export async function relaunchNormalCommand(
   return EXIT.ok;
 }
 
-/** Restarts Codex normally if it is running (used after native theme changes). */
+/**
+ * Restarts Codex if it is running (used after native theme changes). When the effects
+ * are injected, Codex comes back with them; otherwise it restarts without a port.
+ */
 export async function restartForNativeTheme(
   context: CommandContext,
   assumeYes: boolean
@@ -341,13 +344,21 @@ export async function restartForNativeTheme(
     context.io.out('下次启动 Codex 时生效。');
     return;
   }
-  if (await stopCodex(context, platform, installation, state, assumeYes, '为让配色生效，')) {
-    stopWatcher(context);
-    platform.launchNormal(installation);
-    context.io.out('已重启 Codex，配色会在启动后十几秒内加载。');
-  } else {
+  const watcher = loadWatcherState(context.paths);
+  const injected = Boolean(watcher && isProcessAlive(watcher.pid));
+  if (!(await stopCodex(context, platform, installation, state, assumeYes, '为让配色生效，'))) {
     context.io.out('配色将在 Codex 下次重启后生效。');
+    return;
   }
+  stopWatcher(context);
+  if (injected) {
+    // Consent was given when the effects were first injected; Codex is already stopped.
+    await launchCommand(context, { assumeYes: true, acceptRisk: false });
+    context.io.out('配色会在启动后十几秒内加载，Woodfish 效果保持开启。');
+    return;
+  }
+  platform.launchNormal(installation);
+  context.io.out('已重启 Codex，配色会在启动后十几秒内加载。');
 }
 
 export { stopWatcher };
