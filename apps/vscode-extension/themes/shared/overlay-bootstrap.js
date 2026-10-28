@@ -266,7 +266,8 @@
         tokenState.delete(token);
         return;
       }
-      const cssColor = getComputedStyle(token).color;
+      const computed = getComputedStyle(token).color;
+      const cssColor = options.mapColor ? options.mapColor(computed, token) : computed;
       const punctuation = isPunctuationOnly(token.textContent || "");
       const previous = tokenState.get(token);
       if (previous && previous.profileVersion === profileVersion && previous.cssColor === cssColor && previous.punctuation === punctuation) {
@@ -319,6 +320,12 @@
       if (node.nodeType === Node.TEXT_NODE) {
         const token = node.parentElement && node.parentElement.closest(tokenSelector);
         if (token) {
+          queueToken(token);
+        }
+        return;
+      }
+      if (typeof ShadowRoot !== "undefined" && node instanceof ShadowRoot) {
+        for (const token of node.querySelectorAll(tokenSelector)) {
           queueToken(token);
         }
         return;
@@ -481,6 +488,11 @@
       update: (params) => {
         settings = { ...params };
         refreshProfile();
+      },
+      observeRoot: (root) => {
+        if (!disposed) {
+          attachViewLines(root);
+        }
       },
       dispose: () => {
         if (disposed) {

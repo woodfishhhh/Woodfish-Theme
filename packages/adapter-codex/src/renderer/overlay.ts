@@ -8,7 +8,7 @@ import {
   startTextGradientEngine,
   uninstallController,
 } from '@woodfish/renderer-runtime';
-import { CODEX_STYLE_NAMES, buildCodexCss } from '../css';
+import { CODEX_STYLE_NAMES, buildCodexCss, buildDiffCss } from '../css';
 import { SETTINGS_PANEL_CSS } from '../css/settingsPanel';
 import {
   CODEX_ADAPTER_VERSION,
@@ -34,8 +34,10 @@ import {
   CodexSettings,
   CodexSettingsPatch,
   applyCodexSettingsPatch,
+  findCodexPalette,
   normalizeCodexSettings,
 } from '../settings';
+import { DIFF_TOKEN_SELECTOR, isDiffToken, mapDiffColor, startDiffDecorator } from './diffs';
 import { startSettingsPanel } from './settingsPanel';
 
 /** How many elements each selector group matches right now. */
@@ -96,12 +98,16 @@ function startEngine(
   tokenSelector: string,
   rootSelector: string,
   settings: CodexSettings,
-  acceptToken?: (token: HTMLElement) => boolean
+  extra: {
+    acceptToken?: (token: HTMLElement) => boolean;
+    mapColor?: (cssColor: string) => string;
+  } = {}
 ): TextGradientEngine {
   return startTextGradientEngine({
     tokenSelector,
     rootSelector,
-    acceptToken,
+    acceptToken: extra.acceptToken,
+    mapColor: extra.mapColor,
     params: {
       hueShift: settings.codeGradient.hueShift,
       lightnessDelta: settings.codeGradient.lightnessDelta,
@@ -183,6 +189,17 @@ export function startCodexOverlay(
   const styles = createStyles(source);
   let codeEngine: TextGradientEngine | null = null;
   let bodyEngine: TextGradientEngine | null = null;
+  let diffEngine: TextGradientEngine | null = null;
+  const diffs = startDiffDecorator(
+    source === 'userscript' ? { [CODEX_PLUS_NODE_ATTRIBUTE]: 'woodfish' } : {}
+  );
+
+  /** Diffs take the palette of the appearance mode Codex is in, if one is selected. */
+  function diffColor(cssColor: string): string {
+    const mode = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    const slug = settings.palette[mode];
+    return mapDiffColor(cssColor, slug ? findCodexPalette(slug) : null);
+  }
   let degradedTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
   let degradedChecks = 0;
   let disposed = false;
@@ -194,17 +211,34 @@ export function startCodexOverlay(
     for (const name of CODEX_STYLE_NAMES) {
       styles.upsert(name, css[name]);
     }
+    diffs.setCss(buildDiffCss(settings));
   }
 
   function applyEngines(): void {
     const wantCode = settings.codeGradient.enabled || settings.codeGlow.enabled;
     if (wantCode && !codeEngine) {
-      codeEngine = startEngine(CODE_TOKEN_SELECTOR, CODE_ROOT_SELECTOR, settings, outsideComposer);
+      codeEngine = startEngine(CODE_TOKEN_SELECTOR, CODE_ROOT_SELECTOR, settings, {
+        acceptToken: outsideComposer,
+      });
+      diffEngine = startEngine(
+        DIFF_TOKEN_SELECTOR,
+        CODEX_SELECTORS.diff.selectors.join(', '),
+        settings,
+        {
+          acceptToken: isDiffToken,
+          mapColor: diffColor,
+        }
+      );
+      diffs.setEngine(diffEngine);
     } else if (wantCode && codeEngine) {
       codeEngine.update(settings.codeGradient);
+      diffEngine?.update(settings.codeGradient);
     } else if (!wantCode && codeEngine) {
       codeEngine.dispose();
       codeEngine = null;
+      diffEngine?.dispose();
+      diffEngine = null;
+      diffs.setEngine(null);
     }
 
     if (settings.bodyText.enabled && !bodyEngine) {
@@ -265,6 +299,8 @@ export function startCodexOverlay(
           }
         },
         (): void => panel?.dispose(),
+        (): void => diffs.dispose(),
+        (): void => diffEngine?.dispose(),
         (): void => codeEngine?.dispose(),
         (): void => bodyEngine?.dispose(),
         (): void => clearTextGradientMarks(),
@@ -285,6 +321,7 @@ export function startCodexOverlay(
       }
       codeEngine = null;
       bodyEngine = null;
+      diffEngine = null;
       uninstallController(CODEX_CONTROLLER_KEY, controller);
     },
   };

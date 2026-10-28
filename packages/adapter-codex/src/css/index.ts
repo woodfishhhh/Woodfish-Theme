@@ -40,5 +40,6 @@ export {
   buildBodyTextCss,
   buildCaretCss,
   buildCodeCss,
+  buildDiffCss,
   buildGlassCss,
 } from './effects';

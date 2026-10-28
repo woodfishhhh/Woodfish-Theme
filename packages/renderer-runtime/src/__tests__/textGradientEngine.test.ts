@@ -19,7 +19,12 @@ function mountCode(colors: string[]): HTMLElement {
   return root;
 }
 
-function startEngine(options: { acceptToken?: (token: HTMLElement) => boolean } = {}) {
+function startEngine(
+  options: {
+    acceptToken?: (token: HTMLElement) => boolean;
+    mapColor?: (cssColor: string, token: HTMLElement) => string;
+  } = {}
+) {
   return startTextGradientEngine({
     tokenSelector: '.code-root span.tok',
     rootSelector: '.code-root',
@@ -65,6 +70,43 @@ describe('startTextGradientEngine', () => {
     expect(cyan.dataset.woodfishNeutral).toBe('false');
     expect(punctuation.dataset.woodfishPunctuation).toBe('true');
     expect(document.documentElement.dataset.woodfishOverlayProfile).toMatch(/^h-?\d+\.\d$/);
+    engine.dispose();
+  });
+
+  it('derives the gradient from mapColor when given', () => {
+    const root = mountCode(['rgb(255, 121, 198)']);
+    const engine = startEngine({ mapColor: () => 'rgb(80, 250, 123)' });
+    jest.runOnlyPendingTimers();
+    jest.runOnlyPendingTimers();
+    expect(root.querySelector('span')?.style.getPropertyValue(TOKEN_VARIABLES.gradientBase)).toBe(
+      'rgba(80, 250, 123, 1)'
+    );
+    engine.dispose();
+  });
+
+  it('paints and watches shadow roots handed to observeRoot', async () => {
+    const shadowHost = document.createElement('woodfish-viewer');
+    document.body.append(shadowHost);
+    const shadow = shadowHost.attachShadow({ mode: 'open' });
+    shadow.innerHTML =
+      '<div class="code-root"><span class="tok" style="color: rgb(255, 121, 198)">a</span></div>';
+    const engine = startEngine();
+    engine.observeRoot(shadow);
+    jest.runOnlyPendingTimers();
+    jest.runOnlyPendingTimers();
+    expect(shadow.querySelector('span')?.getAttribute(TOKEN_MARKER_ATTRIBUTE)).toBe('true');
+
+    const added = document.createElement('span');
+    added.className = 'tok';
+    added.style.color = 'rgb(139, 233, 253)';
+    added.textContent = 'b';
+    shadow.querySelector('.code-root')?.append(added);
+    await Promise.resolve();
+    jest.runOnlyPendingTimers();
+    expect(added.getAttribute(TOKEN_MARKER_ATTRIBUTE)).toBe('true');
+
+    clearTextGradientMarks(shadow);
+    expect(shadow.querySelectorAll(`[${TOKEN_MARKER_ATTRIBUTE}]`)).toHaveLength(0);
     engine.dispose();
   });
 

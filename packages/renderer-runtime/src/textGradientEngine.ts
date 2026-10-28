@@ -27,6 +27,11 @@ export interface TextGradientEngineOptions {
   rootSelector: string;
   /** Return false to leave a token untouched (and clear any previous Woodfish styling). */
   acceptToken?: (token: HTMLElement) => boolean;
+  /**
+   * Replaces a token's computed color before the gradient is derived from it, e.g. to
+   * recolor output whose colors are fixed inline by the host into a palette.
+   */
+  mapColor?: (cssColor: string, token: HTMLElement) => string;
   params: TextGradientParams;
   /** CSS variables on `<html>`/`<body>` holding host accent colors; used as anchor hue fallback. */
   accentVariables: readonly string[];
@@ -43,6 +48,11 @@ export interface TextGradientEngine {
   refresh: () => void;
   /** Applies new tunables to every token. */
   update: (params: TextGradientParams) => void;
+  /**
+   * Watches a root the engine cannot discover by `rootSelector`, such as an open shadow
+   * root. It is dropped automatically once disconnected.
+   */
+  observeRoot: (root: Element | ShadowRoot) => void;
   dispose: () => void;
 }
 
@@ -81,7 +91,7 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
     { profileVersion: number; cssColor: string; punctuation: boolean }
   >();
   const colorCache = new Map<string, TokenGradientColors | null>();
-  const viewLineObservers = new Map<Element, MutationObserver>();
+  const viewLineObservers = new Map<Element | ShadowRoot, MutationObserver>();
   let anchorHue = DEFAULT_ANCHOR_HUE;
   let profileVersion = 0;
   let frameId = 0;
@@ -120,7 +130,8 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
       return;
     }
 
-    const cssColor = getComputedStyle(token).color;
+    const computed = getComputedStyle(token).color;
+    const cssColor = options.mapColor ? options.mapColor(computed, token) : computed;
     const punctuation = isPunctuationOnly(token.textContent || '');
     const previous = tokenState.get(token);
     if (
@@ -188,6 +199,12 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
       }
       return;
     }
+    if (typeof ShadowRoot !== 'undefined' && node instanceof ShadowRoot) {
+      for (const token of node.querySelectorAll<HTMLElement>(tokenSelector)) {
+        queueToken(token);
+      }
+      return;
+    }
     if (!(node instanceof Element)) {
       return;
     }
@@ -199,7 +216,7 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
     }
   }
 
-  function attachViewLines(root: Element): void {
+  function attachViewLines(root: Element | ShadowRoot): void {
     if (viewLineObservers.has(root)) {
       return;
     }
@@ -367,6 +384,11 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
     update: (params: TextGradientParams): void => {
       settings = { ...params };
       refreshProfile();
+    },
+    observeRoot: (root: Element | ShadowRoot): void => {
+      if (!disposed) {
+        attachViewLines(root);
+      }
     },
     dispose: (): void => {
       if (disposed) {

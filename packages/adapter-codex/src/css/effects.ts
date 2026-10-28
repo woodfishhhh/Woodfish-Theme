@@ -62,6 +62,42 @@ export function buildCodeCss(settings: CodexSettings): string {
 }
 
 /**
+ * Gradient and glow for diff tokens. Codex's diff viewer renders into a shadow root,
+ * which page styles cannot reach, so this sheet is mounted inside each one. Its colors
+ * are fixed inline per token; the engine maps them into the palette and the text takes
+ * the mapped color even when the gradient is off. Custom properties such as the angle
+ * inherit into the shadow tree.
+ */
+export function buildDiffCss(settings: CodexSettings): string {
+  if (!settings.codeGradient.enabled && !settings.codeGlow.enabled) {
+    return '';
+  }
+  const tokens = `[data-diff] ${PAINTED_TOKEN_SELECTOR}`;
+  const declarations = ['  color: var(--woodfish-overlay-gradient-base) !important;'];
+  if (settings.codeGradient.enabled) {
+    declarations.push(...buildGradientDeclarations(ANGLE_VARIABLE));
+  }
+  if (settings.codeGlow.enabled) {
+    declarations.push(...buildGlowDeclarations(settings.codeGlow.intensity));
+  }
+  const parts = [rule(tokens, declarations)];
+  if (settings.codeGlow.enabled) {
+    const intensity = settings.codeGlow.intensity;
+    parts.push(
+      rule(
+        `${tokens}[data-woodfish-punctuation="true"]`,
+        buildPunctuationGlowDeclarations(intensity)
+      ),
+      rule(`:host-context([data-theme="light"]) ${tokens}`, [
+        '  text-shadow:',
+        `    0 0 ${scaleGlowRadius(2, intensity)} var(--woodfish-overlay-glow-mid) !important;`,
+      ])
+    );
+  }
+  return parts.join('\n\n');
+}
+
+/**
  * Frosted glass for menus, popovers and dialogs only. Main surfaces are left alone so
  * Codex's own Windows 11 Mica backdrop keeps working.
  */
