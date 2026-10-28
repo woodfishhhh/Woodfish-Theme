@@ -656,6 +656,7 @@
     "@types/vscode": "1.74.0",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
+    "@woodfish/renderer-runtime": "0.1.0",
     "@woodfish/theme-core": "0.1.0"
   },
   "repository": {

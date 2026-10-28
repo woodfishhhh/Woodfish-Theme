@@ -7,6 +7,7 @@ module.exports = {
   // Tests run against workspace package sources, so they never depend on a stale build.
   moduleNameMapper: {
     '^@woodfish/theme-core$': '<rootDir>/../../packages/theme-core/src/index.ts',
+    '^@woodfish/renderer-runtime$': '<rootDir>/../../packages/renderer-runtime/src/index.ts',
   },
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts'],
   coverageDirectory: 'coverage',

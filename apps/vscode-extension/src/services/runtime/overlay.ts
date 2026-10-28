@@ -1,14 +1,14 @@
+import {
+  PAINTED_TOKEN_SELECTOR,
+  buildGlowDeclarations,
+  buildGradientDeclarations,
+  buildPunctuationGlowDeclarations,
+  formatCssNumber,
+  scaleGlowRadius,
+} from '@woodfish/renderer-runtime';
 import { ThemeRuntimeSettings, normalizeRuntimeSettings } from '../../types/features';
 
-const OVERLAY_TOKEN_SELECTOR = '[data-woodfish-overlay-token="true"]';
-
-function formatCssNumber(value: number): string {
-  return Number(value.toFixed(4)).toString();
-}
-
-function scaleGlowRadius(radius: number, intensity: number): string {
-  return `${formatCssNumber(Math.max(0.5, radius * intensity))}px`;
-}
+const OVERLAY_TOKEN_SELECTOR = PAINTED_TOKEN_SELECTOR;
 
 function buildOverlayVariables(settings: ThemeRuntimeSettings): string {
   return [
@@ -20,46 +20,6 @@ function buildOverlayVariables(settings: ThemeRuntimeSettings): string {
     `  --woodfish-overlay-tokens: ${settings.syntaxGradient.enabled || settings.glow.enabled ? 1 : 0};`,
     '}',
   ].join('\n');
-}
-
-function buildGradientDeclarations(): string[] {
-  return [
-    '  background-image: linear-gradient(',
-    '    var(--woodfish-overlay-angle),',
-    '    var(--woodfish-overlay-gradient-light) 0%,',
-    '    var(--woodfish-overlay-gradient-base) 50%,',
-    '    var(--woodfish-overlay-gradient-dark) 100%',
-    '  ) !important;',
-    '  background-clip: text !important;',
-    '  -webkit-background-clip: text !important;',
-    '  -webkit-text-fill-color: transparent !important;',
-    '  background-repeat: no-repeat !important;',
-    '  background-size: 100% 100% !important;',
-    '  background-position: center !important;',
-    // `background-clip: text` only paints inside the span box; italic or wide glyphs
-    // (JetBrains Mono, Cascadia, ligatures) overhang it and were clipped. Padding
-    // extends the painted area, the negative margin keeps Monaco's layout unchanged.
-    '  padding-inline: 0.12em !important;',
-    '  margin-inline: -0.12em !important;',
-    '  padding-block: 0.08em !important;',
-  ];
-}
-
-function buildGlowDeclarations(intensity: number): string[] {
-  return [
-    '  text-shadow:',
-    `    0 0 ${scaleGlowRadius(4, intensity)} var(--woodfish-overlay-glow-near),`,
-    `    0 0 ${scaleGlowRadius(10, intensity)} var(--woodfish-overlay-glow-mid),`,
-    `    0 0 ${scaleGlowRadius(20, intensity)} var(--woodfish-overlay-glow-far) !important;`,
-  ];
-}
-
-function buildPunctuationGlowDeclarations(intensity: number): string[] {
-  return [
-    '  text-shadow:',
-    `    0 0 ${scaleGlowRadius(2, intensity)} var(--woodfish-overlay-punctuation-glow-near),`,
-    `    0 0 ${scaleGlowRadius(6, intensity)} var(--woodfish-overlay-punctuation-glow-far) !important;`,
-  ];
 }
 
 export function buildUniversalOverlayCss(settings: ThemeRuntimeSettings): string {

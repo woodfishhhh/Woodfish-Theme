@@ -206,56 +206,28 @@
     borderRadius: 0
   });
 
-  // browser/overlay-bootstrap.ts
-  var VERSION = "7.0.0";
-  var TOKEN_SELECTOR = '.monaco-editor .view-lines span[class*="mtk"]:not(.cursor):not(.colorpicker-color-decoration)';
-  var VIEW_LINES_SELECTOR = ".monaco-editor .view-lines";
-  var MAX_TOKENS_PER_FRAME = 600;
-  var THEME_POLL_INTERVAL_MS = 1200;
-  var ACCENT_VARIABLES = [
-    "--vscode-activityBarBadge-background",
-    "--vscode-editorCursor-foreground",
-    "--vscode-focusBorder",
-    "--vscode-textLink-foreground"
-  ];
-  var controllerHost = globalThis;
-  var previousController = controllerHost.__woodfishOverlayController;
-  if (previousController && typeof previousController.dispose === "function") {
-    previousController.dispose();
-  }
-  var OWN_TOKEN_CLASS = /^(?:mtk\w*|bracket-highlighting-\d+)$/;
-  function hasForeignDecoration(token) {
-    const className = token.className;
-    if (typeof className !== "string") {
-      return false;
-    }
-    return className.split(/\s+/).some((name) => name.length > 0 && !OWN_TOKEN_CLASS.test(name));
-  }
-  function readNumberVariable(name, fallback) {
-    const value = Number.parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue(name)
-    );
-    return Number.isFinite(value) ? value : fallback;
-  }
-  function readStringVariable(name) {
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  }
-  var disposers = [];
-  function startTokens() {
-    if (readNumberVariable("--woodfish-overlay-tokens", 1) !== 1) {
-      return;
-    }
-    const settings = {
-      hueShift: readNumberVariable("--woodfish-overlay-hue-shift", DEFAULT_TEXT_GRADIENT.hueShift),
-      lightnessDelta: readNumberVariable(
-        "--woodfish-overlay-lightness-delta",
-        DEFAULT_TEXT_GRADIENT.lightnessDelta
-      ),
-      neutralChroma: readNumberVariable(
-        "--woodfish-overlay-neutral-chroma",
-        DEFAULT_TEXT_GRADIENT.neutralChroma
-      )
-    };
+  // ../../packages/renderer-runtime/src/textGradientEngine.ts
+  var TOKEN_MARKER_ATTRIBUTE = "data-woodfish-overlay-token";
+  var TOKEN_VARIABLES = {
+    gradientLight: "--woodfish-overlay-gradient-light",
+    gradientBase: "--woodfish-overlay-gradient-base",
+    gradientDark: "--woodfish-overlay-gradient-dark",
+    glowNear: "--woodfish-overlay-glow-near",
+    glowMid: "--woodfish-overlay-glow-mid",
+    glowFar: "--woodfish-overlay-glow-far",
+    punctuationGlowNear: "--woodfish-overlay-punctuation-glow-near",
+    punctuationGlowFar: "--woodfish-overlay-punctuation-glow-far"
+  };
+  var DEFAULT_POLL_INTERVAL_MS = 1200;
+  var DEFAULT_MAX_TOKENS_PER_FRAME = 600;
+  var PALETTE_SIGNATURE_LIMIT = 24;
+  function startTextGradientEngine(options) {
+    const tokenSelector = options.tokenSelector;
+    const rootSelector = options.rootSelector;
+    const acceptToken = options.acceptToken ?? (() => true);
+    const MAX_TOKENS_PER_FRAME2 = options.maxTokensPerFrame ?? DEFAULT_MAX_TOKENS_PER_FRAME;
+    const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
+    let settings = { ...options.params };
     const pendingTokens = /* @__PURE__ */ new Set();
     const tokenState = /* @__PURE__ */ new WeakMap();
     const colorCache = /* @__PURE__ */ new Map();
@@ -263,8 +235,9 @@
     let anchorHue = DEFAULT_ANCHOR_HUE;
     let profileVersion = 0;
     let frameId = 0;
-    let profileRefreshTimer = 0;
+    let profileRefreshTimer = null;
     let hasTokenPalette = false;
+    let disposed = false;
     function deriveTokenColors(cssColor, punctuation) {
       const cacheKey = [
         cssColor,
@@ -288,8 +261,8 @@
       if (!token.isConnected) {
         return;
       }
-      if (hasForeignDecoration(token)) {
-        token.removeAttribute("data-woodfish-overlay-token");
+      if (!acceptToken(token)) {
+        token.removeAttribute(TOKEN_MARKER_ATTRIBUTE);
         tokenState.delete(token);
         return;
       }
@@ -301,17 +274,17 @@
       }
       const colors = deriveTokenColors(cssColor, punctuation);
       if (!colors) {
-        token.removeAttribute("data-woodfish-overlay-token");
+        token.removeAttribute(TOKEN_MARKER_ATTRIBUTE);
         return;
       }
-      token.style.setProperty("--woodfish-overlay-gradient-light", colors.light);
-      token.style.setProperty("--woodfish-overlay-gradient-base", colors.base);
-      token.style.setProperty("--woodfish-overlay-gradient-dark", colors.dark);
-      token.style.setProperty("--woodfish-overlay-glow-near", colors.glowNear);
-      token.style.setProperty("--woodfish-overlay-glow-mid", colors.glowMid);
-      token.style.setProperty("--woodfish-overlay-glow-far", colors.glowFar);
-      token.style.setProperty("--woodfish-overlay-punctuation-glow-near", colors.punctuationNear);
-      token.style.setProperty("--woodfish-overlay-punctuation-glow-far", colors.punctuationFar);
+      token.style.setProperty(TOKEN_VARIABLES.gradientLight, colors.light);
+      token.style.setProperty(TOKEN_VARIABLES.gradientBase, colors.base);
+      token.style.setProperty(TOKEN_VARIABLES.gradientDark, colors.dark);
+      token.style.setProperty(TOKEN_VARIABLES.glowNear, colors.glowNear);
+      token.style.setProperty(TOKEN_VARIABLES.glowMid, colors.glowMid);
+      token.style.setProperty(TOKEN_VARIABLES.glowFar, colors.glowFar);
+      token.style.setProperty(TOKEN_VARIABLES.punctuationGlowNear, colors.punctuationNear);
+      token.style.setProperty(TOKEN_VARIABLES.punctuationGlowFar, colors.punctuationFar);
       token.dataset.woodfishOverlayToken = "true";
       token.dataset.woodfishNeutral = colors.neutral ? "true" : "false";
       token.dataset.woodfishPunctuation = punctuation ? "true" : "false";
@@ -328,7 +301,7 @@
         pendingTokens.delete(token);
         applyToken(token);
         processed += 1;
-        if (processed >= MAX_TOKENS_PER_FRAME) {
+        if (processed >= MAX_TOKENS_PER_FRAME2) {
           break;
         }
       }
@@ -344,7 +317,7 @@
     }
     function queueTokensFromNode(node) {
       if (node.nodeType === Node.TEXT_NODE) {
-        const token = node.parentElement && node.parentElement.closest(TOKEN_SELECTOR);
+        const token = node.parentElement && node.parentElement.closest(tokenSelector);
         if (token) {
           queueToken(token);
         }
@@ -353,10 +326,10 @@
       if (!(node instanceof Element)) {
         return;
       }
-      if (node.matches(TOKEN_SELECTOR)) {
+      if (node.matches(tokenSelector)) {
         queueToken(node);
       }
-      for (const token of node.querySelectorAll(TOKEN_SELECTOR)) {
+      for (const token of node.querySelectorAll(tokenSelector)) {
         queueToken(token);
       }
     }
@@ -404,23 +377,23 @@
       if (!(node instanceof Element)) {
         return;
       }
-      if (node.matches(VIEW_LINES_SELECTOR)) {
+      if (node.matches(rootSelector)) {
         attachViewLines(node);
       }
-      for (const root of node.querySelectorAll(VIEW_LINES_SELECTOR)) {
+      for (const root of node.querySelectorAll(rootSelector)) {
         attachViewLines(root);
       }
     }
     function fallbackAccentHue() {
       const styles = [getComputedStyle(document.documentElement), getComputedStyle(document.body)];
       const accentColors = styles.flatMap(
-        (style) => ACCENT_VARIABLES.map((variableName) => style.getPropertyValue(variableName))
+        (style) => options.accentVariables.map((variableName) => style.getPropertyValue(variableName))
       );
       return pickAccentHue(accentColors) ?? DEFAULT_ANCHOR_HUE;
     }
     function resolveAnchorHue() {
       const tokenColors = [];
-      for (const token of document.querySelectorAll(TOKEN_SELECTOR)) {
+      for (const token of document.querySelectorAll(tokenSelector)) {
         const text = (token.textContent || "").replace(/\u00a0/g, " ").trim();
         if (!text || isPunctuationOnly(text)) {
           continue;
@@ -432,9 +405,12 @@
       return paletteHue ?? fallbackAccentHue();
     }
     function refreshProfile() {
-      if (profileRefreshTimer !== 0) {
+      if (disposed) {
+        return;
+      }
+      if (profileRefreshTimer !== null) {
         globalThis.clearTimeout(profileRefreshTimer);
-        profileRefreshTimer = 0;
+        profileRefreshTimer = null;
       }
       anchorHue = resolveAnchorHue();
       profileVersion += 1;
@@ -446,38 +422,27 @@
       document.documentElement.dataset.woodfishOverlayProfile = `h${anchorHue.toFixed(1)}`;
     }
     function scheduleProfileRefresh() {
-      if (profileRefreshTimer !== 0) {
+      if (profileRefreshTimer !== null) {
         return;
       }
       profileRefreshTimer = globalThis.setTimeout(refreshProfile, 60);
     }
     function tokenPaletteSignature() {
       const palette = /* @__PURE__ */ new Map();
-      for (const token of document.querySelectorAll(TOKEN_SELECTOR)) {
+      for (const token of document.querySelectorAll(tokenSelector)) {
         const className = token.className;
         if (typeof className !== "string" || palette.has(className)) {
           continue;
         }
         palette.set(className, getComputedStyle(token).color);
-        if (palette.size >= 24) {
+        if (palette.size >= PALETTE_SIGNATURE_LIMIT) {
           break;
         }
       }
       return [...palette.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([className, color]) => `${className}:${color}`).join(",");
     }
-    function themeSignature() {
-      const rootStyle = getComputedStyle(document.documentElement);
-      const bodyStyle = getComputedStyle(document.body);
-      return [
-        rootStyle.getPropertyValue("--vscode-editor-background"),
-        rootStyle.getPropertyValue("--vscode-editor-foreground"),
-        rootStyle.getPropertyValue("--vscode-activityBarBadge-background"),
-        bodyStyle.getPropertyValue("--vscode-editor-background"),
-        document.documentElement.className,
-        document.body.className,
-        tokenPaletteSignature()
-      ].join("|");
-    }
+    const signatureHelpers = { tokenPaletteSignature };
+    const themeSignature = () => options.themeSignature(signatureHelpers);
     const discoveryObserver = new MutationObserver((records) => {
       for (const record of records) {
         for (const node of record.addedNodes) {
@@ -486,20 +451,21 @@
       }
     });
     discoveryObserver.observe(document.body, { childList: true, subtree: true });
-    for (const root of document.querySelectorAll(VIEW_LINES_SELECTOR)) {
+    for (const root of document.querySelectorAll(rootSelector)) {
       attachViewLines(root);
     }
     let lastThemeSignature = themeSignature();
     const themeObserver = new MutationObserver(() => {
       scheduleProfileRefresh();
     });
+    const themeAttributeFilter = [...options.themeAttributes];
     themeObserver.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class", "data-color-theme"]
+      attributeFilter: themeAttributeFilter
     });
     themeObserver.observe(document.body, {
       attributes: true,
-      attributeFilter: ["class", "data-color-theme"]
+      attributeFilter: themeAttributeFilter
     });
     const themeInterval = globalThis.setInterval(() => {
       pruneViewLines();
@@ -508,26 +474,108 @@
         lastThemeSignature = nextSignature;
         scheduleProfileRefresh();
       }
-    }, THEME_POLL_INTERVAL_MS);
+    }, pollIntervalMs);
     refreshProfile();
-    disposers.push(() => {
-      discoveryObserver.disconnect();
-      themeObserver.disconnect();
-      for (const observer of viewLineObservers.values()) {
-        observer.disconnect();
+    return {
+      refresh: refreshProfile,
+      update: (params) => {
+        settings = { ...params };
+        refreshProfile();
+      },
+      dispose: () => {
+        if (disposed) {
+          return;
+        }
+        disposed = true;
+        discoveryObserver.disconnect();
+        themeObserver.disconnect();
+        for (const observer of viewLineObservers.values()) {
+          observer.disconnect();
+        }
+        viewLineObservers.clear();
+        globalThis.clearInterval(themeInterval);
+        if (profileRefreshTimer !== null) {
+          globalThis.clearTimeout(profileRefreshTimer);
+        }
+        if (frameId !== 0) {
+          cancelAnimationFrame(frameId);
+        }
+        delete document.documentElement.dataset.woodfishOverlayProfile;
       }
-      viewLineObservers.clear();
-      globalThis.clearInterval(themeInterval);
-      if (profileRefreshTimer !== 0) {
-        globalThis.clearTimeout(profileRefreshTimer);
-      }
-      if (frameId !== 0) {
-        cancelAnimationFrame(frameId);
-      }
-      delete document.documentElement.dataset.woodfishOverlayProfile;
-    });
-    return refreshProfile;
+    };
   }
+
+  // ../../packages/renderer-runtime/src/disposers.ts
+  function createDisposerRegistry() {
+    const disposers2 = [];
+    return {
+      add(disposer) {
+        disposers2.push(disposer);
+      },
+      disposeAll() {
+        for (const dispose of disposers2.splice(0)) {
+          try {
+            dispose();
+          } catch {
+          }
+        }
+      },
+      get size() {
+        return disposers2.length;
+      }
+    };
+  }
+
+  // ../../packages/renderer-runtime/src/controller.ts
+  function host() {
+    return globalThis;
+  }
+  function readController(key) {
+    const value = host()[key];
+    return value !== null && typeof value === "object" ? value : void 0;
+  }
+  function disposeController(key) {
+    const previous = readController(key);
+    if (previous && typeof previous.dispose === "function") {
+      previous.dispose();
+    }
+  }
+  function installController(key, controller) {
+    host()[key] = controller;
+    return controller;
+  }
+
+  // ../../packages/renderer-runtime/src/cssVariables.ts
+  function readNumberVariable(name, fallback) {
+    const value = Number.parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue(name)
+    );
+    return Number.isFinite(value) ? value : fallback;
+  }
+  function readStringVariable(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  // ../../packages/renderer-runtime/src/steps.ts
+  function runSteps(steps, onError) {
+    let refresh = () => void 0;
+    const failures = [];
+    steps.forEach((step, index) => {
+      try {
+        const result = step();
+        if (typeof result === "function") {
+          refresh = result;
+        }
+      } catch (error) {
+        const failure = { index, error };
+        failures.push(failure);
+        onError(failure);
+      }
+    });
+    return { refresh, failures };
+  }
+
+  // ../../packages/renderer-runtime/src/acrylic.ts
   var SVG_NAMESPACE = "http://www.w3.org/2000/svg";
   var ACRYLIC_FILTER_ID = "woodfish-acrylic";
   function svgElement(name, attributes) {
@@ -537,17 +585,15 @@
     }
     return element;
   }
-  function startAcrylicFilter() {
-    if (readStringVariable("--woodfish-glass-mode") !== "acrylic") {
-      return;
-    }
-    const blur = Math.max(0, readNumberVariable("--woodfish-glass-blur", DEFAULT_GLASS.blur));
-    const host = svgElement("svg", {
+  function mountAcrylicFilter(options) {
+    const blur = Math.max(0, options.blur);
+    const host2 = svgElement("svg", {
       width: 0,
       height: 0,
       "aria-hidden": "true",
       "data-woodfish-theme": "acrylic",
-      style: "position:absolute;width:0;height:0;pointer-events:none"
+      style: "position:absolute;width:0;height:0;pointer-events:none",
+      ...options.nodeAttributes ?? {}
     });
     const filter = svgElement("filter", {
       id: ACRYLIC_FILTER_ID,
@@ -580,25 +626,15 @@
       svgElement("feBlend", { in: "grain", in2: "blur", mode: "overlay" })
     );
     const definitions = svgElement("defs", {});
-    host.append(definitions);
+    host2.append(definitions);
     definitions.append(filter);
-    document.body.append(host);
-    disposers.push(() => host.remove());
+    document.body.append(host2);
+    return () => host2.remove();
   }
-  var REVEAL_TARGETS = [
-    ".monaco-list-row",
-    ".action-menu-item",
-    ".monaco-button",
-    ".tabs-container > .tab",
-    ".statusbar-item",
-    ".activitybar .action-item",
-    ".composite-bar .action-item",
-    ".pane-header"
-  ].join(",");
-  function startReveal() {
-    if (readNumberVariable("--woodfish-reveal-enabled", 0) !== 1) {
-      return;
-    }
+
+  // ../../packages/renderer-runtime/src/reveal.ts
+  function startReveal(options) {
+    const targetSelector = options.targets.join(",");
     let current = null;
     let pending = null;
     let frame = 0;
@@ -617,7 +653,7 @@
       }
       const { target, x, y } = pending;
       pending = null;
-      const element = target instanceof Element ? target.closest(REVEAL_TARGETS) : null;
+      const element = target instanceof Element ? target.closest(targetSelector) : null;
       if (element !== current) {
         clear();
         current = element;
@@ -643,48 +679,125 @@
     }
     document.addEventListener("pointermove", onPointerMove, { passive: true, capture: true });
     document.documentElement.addEventListener("pointerleave", onPointerLeave, { passive: true });
-    disposers.push(() => {
+    return () => {
       document.removeEventListener("pointermove", onPointerMove, { capture: true });
       document.documentElement.removeEventListener("pointerleave", onPointerLeave);
       if (frame !== 0) {
         cancelAnimationFrame(frame);
       }
       clear();
+    };
+  }
+
+  // browser/overlay-bootstrap.ts
+  var VERSION = "7.0.0";
+  var CONTROLLER_KEY = "__woodfishOverlayController";
+  var TOKEN_SELECTOR = '.monaco-editor .view-lines span[class*="mtk"]:not(.cursor):not(.colorpicker-color-decoration)';
+  var VIEW_LINES_SELECTOR = ".monaco-editor .view-lines";
+  var MAX_TOKENS_PER_FRAME = 600;
+  var THEME_POLL_INTERVAL_MS = 1200;
+  var ACCENT_VARIABLES = [
+    "--vscode-activityBarBadge-background",
+    "--vscode-editorCursor-foreground",
+    "--vscode-focusBorder",
+    "--vscode-textLink-foreground"
+  ];
+  var REVEAL_TARGETS = [
+    ".monaco-list-row",
+    ".action-menu-item",
+    ".monaco-button",
+    ".tabs-container > .tab",
+    ".statusbar-item",
+    ".activitybar .action-item",
+    ".composite-bar .action-item",
+    ".pane-header"
+  ];
+  disposeController(CONTROLLER_KEY);
+  var OWN_TOKEN_CLASS = /^(?:mtk\w*|bracket-highlighting-\d+)$/;
+  function hasForeignDecoration(token) {
+    const className = token.className;
+    if (typeof className !== "string") {
+      return false;
+    }
+    return className.split(/\s+/).some((name) => name.length > 0 && !OWN_TOKEN_CLASS.test(name));
+  }
+  var disposers = createDisposerRegistry();
+  function startTokens() {
+    if (readNumberVariable("--woodfish-overlay-tokens", 1) !== 1) {
+      return;
+    }
+    const engine = startTextGradientEngine({
+      tokenSelector: TOKEN_SELECTOR,
+      rootSelector: VIEW_LINES_SELECTOR,
+      acceptToken: (token) => !hasForeignDecoration(token),
+      params: {
+        hueShift: readNumberVariable("--woodfish-overlay-hue-shift", DEFAULT_TEXT_GRADIENT.hueShift),
+        lightnessDelta: readNumberVariable(
+          "--woodfish-overlay-lightness-delta",
+          DEFAULT_TEXT_GRADIENT.lightnessDelta
+        ),
+        neutralChroma: readNumberVariable(
+          "--woodfish-overlay-neutral-chroma",
+          DEFAULT_TEXT_GRADIENT.neutralChroma
+        )
+      },
+      accentVariables: ACCENT_VARIABLES,
+      themeAttributes: ["class", "data-color-theme"],
+      themeSignature: ({ tokenPaletteSignature }) => {
+        const rootStyle = getComputedStyle(document.documentElement);
+        const bodyStyle = getComputedStyle(document.body);
+        return [
+          rootStyle.getPropertyValue("--vscode-editor-background"),
+          rootStyle.getPropertyValue("--vscode-editor-foreground"),
+          rootStyle.getPropertyValue("--vscode-activityBarBadge-background"),
+          bodyStyle.getPropertyValue("--vscode-editor-background"),
+          document.documentElement.className,
+          document.body.className,
+          tokenPaletteSignature()
+        ].join("|");
+      },
+      pollIntervalMs: THEME_POLL_INTERVAL_MS,
+      maxTokensPerFrame: MAX_TOKENS_PER_FRAME
     });
+    disposers.add(() => engine.dispose());
+    return engine.refresh;
+  }
+  function startAcrylicFilter() {
+    if (readStringVariable("--woodfish-glass-mode") !== "acrylic") {
+      return;
+    }
+    disposers.add(
+      mountAcrylicFilter({
+        blur: readNumberVariable("--woodfish-glass-blur", DEFAULT_GLASS.blur)
+      })
+    );
+  }
+  function startRevealHighlight() {
+    if (readNumberVariable("--woodfish-reveal-enabled", 0) !== 1) {
+      return;
+    }
+    disposers.add(startReveal({ targets: REVEAL_TARGETS }));
   }
   function start() {
     if (!document.body) {
       globalThis.setTimeout(start, 0);
       return;
     }
-    const steps = [startTokens, startAcrylicFilter, startReveal];
-    let refresh = () => void 0;
-    for (const step of steps) {
-      try {
-        const result = step();
-        if (typeof result === "function") {
-          refresh = result;
-        }
-      } catch (error) {
-        console.warn("[Woodfish] overlay step failed", error);
-      }
-    }
+    const { refresh } = runSteps(
+      [startTokens, startAcrylicFilter, startRevealHighlight],
+      (failure) => console.warn("[Woodfish] overlay step failed", failure.error)
+    );
     document.documentElement.dataset.woodfishOverlay = "active";
     document.documentElement.dataset.woodfishOverlayVersion = VERSION;
-    controllerHost.__woodfishOverlayController = {
+    installController(CONTROLLER_KEY, {
       version: VERSION,
       refresh,
       dispose() {
-        for (const dispose of disposers.splice(0)) {
-          try {
-            dispose();
-          } catch {
-          }
-        }
+        disposers.disposeAll();
         delete document.documentElement.dataset.woodfishOverlay;
         delete document.documentElement.dataset.woodfishOverlayVersion;
       }
-    };
+    });
   }
   start();
 })();

@@ -1,0 +1,36 @@
+{
+  "name": "@woodfish/renderer-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Woodfish renderer-side runtime: text gradient engine, style and lifecycle helpers for any Chromium host page.",
+  "license": "MIT",
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/index.d.ts",
+      "source": "./src/index.ts",
+      "default": "./out/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "out",
+    "src",
+    "!**/__tests__"
+  ],
+  "sideEffects": false,
+  "dependencies": {
+    "@woodfish/theme-core": "0.1.0"
+  },
+  "scripts": {
+    "compile": "tsc -b && tsc -p tsconfig.test.json",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "lint": "eslint src",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "verify": "npm run compile && npm run format:check && npm run lint && npm test"
+  }
+}
