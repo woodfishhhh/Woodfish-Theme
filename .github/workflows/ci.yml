@@ -32,6 +32,7 @@ jobs:
         run: |
           npm run themes:check
           npm run runtime:check
+          npm run codex:check
 
       - name: Check formatting
         run: npm run format:check
@@ -64,3 +65,34 @@ jobs:
             echo "VSIX still references a workspace package" >&2
             exit 1
           fi
+
+  desktop-windows:
+    # The Codex adapter targets the Windows Store app; PowerShell scripts are parsed here.
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and test the desktop CLI and shared packages
+        run: |
+          npm run compile -w @woodfish/theme-core
+          npm run compile -w @woodfish/renderer-runtime
+          npm run compile -w @woodfish/adapter-codex
+          npm run compile -w @woodfish/desktop-cli
+          npm run codex:check
+          npm test -w @woodfish/adapter-codex -- --runInBand
+          npm test -w @woodfish/desktop-cli -- --runInBand
+
+      - name: Smoke-test the bundled CLI
+        run: node apps/desktop-cli/out/woodfish.js help

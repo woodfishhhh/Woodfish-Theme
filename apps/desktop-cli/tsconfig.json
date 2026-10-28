@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "out/tsc",
+    "noEmit": false,
+    "types": ["node", "jest"]
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../../packages/theme-core" },
+    { "path": "../../packages/renderer-runtime" },
+    { "path": "../../packages/adapter-codex" }
+  ]
+}

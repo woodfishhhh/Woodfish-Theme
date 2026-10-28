@@ -34,6 +34,8 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // TypeScript already resolves identifiers, including type namespaces such as NodeJS.
+      'no-undef': 'off',
       'prettier/prettier': 'error',
     },
   },
@@ -55,15 +57,31 @@ export default [
     },
   },
   {
-    // Workbench renderer scripts run in the browser.
-    files: ['apps/*/browser/**/*.ts'],
+    // The desktop CLI is a Node.js 22 program.
+    files: ['apps/desktop-cli/src/**/*.ts'],
+    ignores: TEST_FILES,
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    // Renderer code runs in host pages (VS Code workbench, Codex app).
+    files: [
+      'apps/*/browser/**/*.ts',
+      'packages/renderer-runtime/src/**/*.ts',
+      'packages/adapter-codex/src/renderer/**/*.ts',
+    ],
     languageOptions: {
       globals: globals.browser,
     },
   },
   {
-    // The shared core is host-agnostic: no Node, DOM or VS Code globals.
-    files: ['packages/theme-core/src/**/*.ts'],
+    // Shared packages are host-agnostic: no Node, Electron or VS Code imports.
+    files: [
+      'packages/theme-core/src/**/*.ts',
+      'packages/renderer-runtime/src/**/*.ts',
+      'packages/adapter-codex/src/**/*.ts',
+    ],
     ignores: TEST_FILES,
     rules: {
       'no-restricted-imports': [

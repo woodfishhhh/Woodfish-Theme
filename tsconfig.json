@@ -1,4 +1,10 @@
 {
   "files": [],
-  "references": [{ "path": "./packages/theme-core" }, { "path": "./apps/vscode-extension" }]
+  "references": [
+    { "path": "./packages/theme-core" },
+    { "path": "./packages/renderer-runtime" },
+    { "path": "./packages/adapter-codex" },
+    { "path": "./apps/vscode-extension" },
+    { "path": "./apps/desktop-cli" }
+  ]
 }

@@ -242,6 +242,15 @@ Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地
 - **JetBrains 系列（如 CLion）、Visual Studio**：它们不是基于 VS Code 的，Woodfish 无法支持。
 - **截图类扩展（如 CodeSnap）**：截图里不会带上 Woodfish 的效果。
 
+## Codex 桌面端
+
+Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和效果。它不修改 Codex 的安装文件，有两种方式：
+
+- **原生配色**：`woodfish codex theme apply --palette neon`，写入 Codex 官方的主题设置，不开任何端口。
+- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕和彩色光标。需要以本机调试端口启动 Codex，首次使用前会说明风险。
+
+已经在用 Codex++ 的话，也可以运行 `woodfish codex install-userscript`，以用户脚本的形式加载。详见 [Woodfish 桌面工具](./apps/desktop-cli/README.md)。
+
 ## 本地开发
 
 ```bash

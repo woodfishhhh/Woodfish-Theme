@@ -1,0 +1,37 @@
+{
+  "name": "@woodfish/desktop-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Woodfish 桌面应用工具：为 Codex 桌面端应用原生配色、注入渐变与毛玻璃效果，以及安装 Codex++ 用户脚本。",
+  "license": "MIT",
+  "bin": {
+    "woodfish": "./out/woodfish.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "compile": "tsc -b && node scripts/build.js",
+    "build": "node scripts/build.js",
+    "codex:build": "node scripts/build.js --assets",
+    "codex:check": "node scripts/build.js --check",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "lint": "eslint src",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "verify": "npm run compile && npm run codex:check && npm run format:check && npm run lint && npm test"
+  },
+  "dependencies": {
+    "smol-toml": "^1.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.5.13",
+    "@woodfish/adapter-codex": "0.1.0",
+    "@woodfish/renderer-runtime": "0.1.0",
+    "@woodfish/theme-core": "0.1.0",
+    "ws": "^8.18.0"
+  }
+}
