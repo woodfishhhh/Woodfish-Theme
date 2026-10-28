@@ -37,6 +37,8 @@ export type { NumericRange } from './effects/sanitize';
 
 export * from './palettes/types';
 export { ORIGINAL_PALETTES } from './palettes/originals';
+export { PORTED_PALETTES } from './palettes/ported';
+export { WOODFISH_PALETTES } from './palettes/all';
 export {
   MIN_COMMENT_CONTRAST,
   MIN_KEYWORD_VARIABLE_HUE_DISTANCE,

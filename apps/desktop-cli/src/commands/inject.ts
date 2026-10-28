@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import * as fs from 'fs';
+import { applyCodexSettingsPatch } from '@woodfish/adapter-codex';
 import { RISK_TEXT, RISK_TEXT_SHA256 } from '../cli/consent';
 import { confirm } from '../cli/io';
 import { fetchTargets, isDebugPortAlive } from '../cdp/http';
@@ -258,6 +259,13 @@ export async function watchCommand(context: CommandContext, port: number): Promi
     bundle: loadOverlayBundle(),
     loadSettings: () => loadSettings(context.paths).codex,
     watchSettings: watchFile(context.paths.settingsFile),
+    saveSettingsPatch: (patch: unknown): void => {
+      const stored = loadSettings(context.paths);
+      saveSettings(context.paths, {
+        ...stored,
+        codex: applyCodexSettingsPatch(stored.codex, patch),
+      });
+    },
     log,
     fetchImpl: context.fetchImpl,
   });

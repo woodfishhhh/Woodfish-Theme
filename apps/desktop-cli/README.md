@@ -8,11 +8,34 @@ Woodfish 不修改 Codex 的安装文件。商店版的安装目录是只读的�
 
 | 方式 | 能做什么 | 是否开调试端口 | 何时生效 |
 | --- | --- | --- | --- |
-| **原生配色** `theme apply` | 把 Woodfish 配色写进 Codex 官方的主题设置（强调色、文字、背景、对比度、diff 颜色），Codex 会据此重新生成整套界面色阶。深色（Black / Neon）和浅色（Light）可以同时设置，也能切换 Codex 的外观模式 | 否 | 重启 Codex 后几秒内 |
+| **原生配色** `theme apply` | 把 Woodfish 配色写进 Codex 官方的主题设置（强调色、文字、背景、对比度、diff 颜色），Codex 会据此重新生成整套界面色阶。深色（Dark / Dracula / Black / Neon）和浅色（Light）可以同时设置，也能切换 Codex 的外观模式 | 否 | 重启 Codex 后几秒内 |
 | **注入效果** `launch` | 代码块 OKLCH 渐变与发光、菜单与浮层毛玻璃、强调色光晕、彩色光标，可选正文渐变，也能临时覆盖配色 | 是，仅本机 | 立即生效，设置改动约 1 秒内同步 |
 | **Codex++ 用户脚本** `install-userscript` | 与注入效果相同，由 Codex++ 加载 | 由 Codex++ 决定 | 在 Codex++ 中重新加载脚本后 |
 
 原生配色和注入效果可以同时使用。
+
+## 主题
+
+VS Code 扩展里的 5 套主题都能用在 Codex 上：
+
+| 主题 | 外观 | 来源 |
+| --- | --- | --- |
+| Woodfish Dark | 深色 | Bearded Theme Arc（GPL-3.0） |
+| Woodfish Dracula | 深色 | Dracula 官方主题（MIT） |
+| Woodfish Black | 深色 | Woodfish 原创 |
+| Woodfish Neon | 深色 | Woodfish 原创 |
+| Woodfish Light | 浅色 | Woodfish 原创 |
+
+Dark 和 Dracula 的配色由 `apps/vscode-extension/scripts/port-palettes.js` 直接从扩展附带的主题文件读出，和 VS Code 里看到的一致。
+
+## 在 Codex 里设置
+
+注入效果开启后，打开 Codex 的 **设置 → 外观**，“视觉风格”下面会多出 **Woodfish** 一节：
+
+- **深色主题 / 浅色主题**：点预览卡切换，“Codex 默认”表示保留 Codex 自己的配色。整个界面立刻换色，所有 Codex 窗口同步。
+- **效果开关**：代码渐变、代码发光、毛玻璃浮层、强调色点缀、彩色光标、回复正文渐变。
+
+改动由后台监视进程保存到 Woodfish 的设置文件，和 `woodfish codex settings` 改的是同一份。页面只能改主题和开关，模糊半径、渐变参数、自定义 CSS 等仍只能通过命令行修改。使用 Codex++ 用户脚本时，改动保存在 Codex 本机的 localStorage 中。
 
 ## 构建与运行
 
@@ -52,7 +75,8 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 
 | 设置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `palette.dark` / `palette.light` | `null` | `light`、`black`、`neon`；`null` 表示保留 Codex 自己的颜色 |
+| `palette.dark` | `null` | `dark`、`dracula`、`black`、`neon`；`null` 表示保留 Codex 自己的颜色 |
+| `palette.light` | `null` | `light`；`null` 表示保留 Codex 自己的颜色 |
 | `codeGradient.*` | 开 | `hueShift`、`lightnessDelta`、`neutralChroma`、`angle`，与 VS Code 扩展的参数一致 |
 | `codeGlow.*` | 开 | `intensity` |
 | `glass.*` | 开 | `blur`、`saturate`、`opacity`、`noise`、`borderRadius` |
@@ -63,7 +87,7 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 
 ## 深色模式
 
-- 深色配色有 Black（纯黑）和 Neon（赛博朋克），浅色是 Light。`--palette` 会按配色自动选择模式；`--dark` / `--light` 则显式指定，并检查配色和模式是否匹配。
+- 深色配色有 Dark（Bearded Arc 蓝灰）、Dracula、Black（纯黑）和 Neon（赛博朋克），浅色是 Light。`--palette` 会按配色自动选择模式；`--dark` / `--light` 则显式指定，并检查配色和模式是否匹配。
 - Codex 设成“跟随系统”时，深色配色只在系统切到深色后出现。`theme apply` 会在配色暂时看不到时提示；`--appearance dark` 可以直接把 Codex 固定为深色，并且能随 `theme restore` 一起撤销。
 - 注入的配色按 `[data-theme="dark"]` / `[data-theme="light"]` 分别生效，所以 `palette.dark` 和 `palette.light` 可以同时设置，Codex 切换外观时实时跟随。深色下代码发光保持完整强度，浅色下会自动减弱，避免发虚。
 - Codex 原本只给代码高亮 8 个颜色槽位，注入时会按 highlight.js 的细分类名补齐函数、类型、参数、属性等颜色，让深色配色的完整色板都能显示。

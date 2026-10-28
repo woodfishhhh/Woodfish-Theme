@@ -72,6 +72,7 @@ describe('startCodexOverlay', () => {
       'woodfish-codex-code',
       'woodfish-codex-glass',
       'woodfish-codex-palette',
+      'woodfish-codex-settings',
     ]);
     expect(document.querySelectorAll('[data-woodfish-overlay-token="true"]')).toHaveLength(2);
     expect(document.querySelector('p')?.hasAttribute('data-woodfish-overlay-token')).toBe(false);
@@ -117,12 +118,25 @@ describe('startCodexOverlay', () => {
     expect(controller()).toBeUndefined();
   });
 
-  it('reports always-present groups that are missing as degraded', () => {
+  it('re-checks a missing app shell until Codex has rendered it', () => {
+    const main = document.querySelector('main') as HTMLElement;
+    main.removeAttribute('data-app-shell-main-surface');
+    const overlay = startCodexOverlay({}, 'cdp');
+    jest.advanceTimersByTime(4000);
+    expect(overlay.degraded()).toEqual(['appShell']);
+    expect(document.documentElement.dataset.woodfishCodexDegraded).toBe('appShell');
+
+    main.setAttribute('data-app-shell-main-surface', '');
+    jest.advanceTimersByTime(5000);
+    expect(overlay.degraded()).toEqual([]);
+    expect(document.documentElement.dataset.woodfishCodexDegraded).toBeUndefined();
+  });
+
+  it('does not report the composer missing on pages without one', () => {
     document.querySelector('[data-codex-composer-root]')?.remove();
     const overlay = startCodexOverlay({}, 'cdp');
     jest.advanceTimersByTime(5000);
-    expect(overlay.degraded()).toEqual(['composer', 'composerEditor']);
-    expect(document.documentElement.dataset.woodfishCodexDegraded).toBe('composer,composerEditor');
+    expect(overlay.degraded()).toEqual([]);
   });
 
   it('tags user-script styles for Codex++', () => {

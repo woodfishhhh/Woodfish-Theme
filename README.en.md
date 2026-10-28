@@ -131,7 +131,7 @@ To restore everything, uninstall the extension and fully restart the editor, or 
 Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build) without modifying its installation:
 
 - **Native palette**: `woodfish codex theme apply --dark neon --light light` writes Codex's official theme settings (one palette per appearance mode) and opens no ports; `--appearance dark` pins Codex to dark mode.
-- **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow and a rainbow caret. Codex is started with a loopback-only debugging port, and the risks are explained before first use.
+- **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow and a rainbow caret. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Once it runs, Codex's own **Settings → Appearance → Woodfish** section switches between the Woodfish Dark, Dracula, Black, Neon and Light themes and toggles each effect.
 
 Codex++ users can run `woodfish codex install-userscript` instead. See [apps/desktop-cli/README.md](apps/desktop-cli/README.md) (Chinese).
 

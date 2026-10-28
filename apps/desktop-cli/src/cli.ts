@@ -28,7 +28,8 @@ export const HELP = `Woodfish 桌面工具
 用法：woodfish codex <命令> [选项]
 
 配色（不开调试端口）
-  theme apply [--dark <black|neon>] [--light light] [--appearance <system|light|dark>]
+  theme apply [--dark <dark|dracula|black|neon>] [--light light]
+              [--appearance <system|light|dark>]
               [--palette <名称>] [--restart]
                          把 Woodfish 配色写入 Codex 官方主题设置（自动备份）；
                          深色与浅色可同时设置，--appearance 切换 Codex 外观

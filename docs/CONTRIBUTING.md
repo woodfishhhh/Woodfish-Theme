@@ -73,7 +73,7 @@ code .
 如果您想改进主题设计：
 
 1. 主题 JSON、元数据和语法渐变分别位于 `apps/vscode-extension/themes/bearded/` 与 `apps/vscode-extension/themes/dracula/`
-2. Woodfish 原创调色板（Light / Black / Neon）定义在 `packages/theme-core/src/palettes/`，修改后运行 `npm run themes:generate` 重新生成主题 JSON
+2. Woodfish 原创调色板（Light / Black / Neon）定义在 `packages/theme-core/src/palettes/`，修改后运行 `npm run themes:generate` 重新生成主题 JSON；同一命令也会从 Woodfish Dark / Dracula 的主题文件重新生成 `palettes/ported.ts`
 3. 各主题共用的注入 CSS 位于 `apps/vscode-extension/themes/shared/`；渲染端脚本源码位于 `apps/vscode-extension/browser/`，修改后运行 `npm run runtime:build`
 4. 如涉及运行时拼装逻辑，同时检查 `apps/vscode-extension/src/services/runtime/assets.ts` 与 `apps/vscode-extension/src/services/runtime/payloadBuilder.ts`；颜色与渐变算法在 `packages/theme-core/src/`
 5. 至少在 `Woodfish Dark` 和 `Woodfish Dracula` 下验证启用、停用、主题切换与修复注入

@@ -6,7 +6,8 @@ import {
   CODEX_MAIN_WINDOW_URL,
   CodexOverlaySource,
 } from '../protocol';
-import { CodexOverlayController, startCodexOverlay } from './overlay';
+import { applyCodexSettingsPatch, normalizeCodexSettings } from '../settings';
+import { CodexOverlayController, readStoredPatch, startCodexOverlay } from './overlay';
 
 /** True only in the top-level Codex main window (not overlays, quick chat or iframes). */
 export function isCodexMainWindow(): boolean {
@@ -80,9 +81,15 @@ interface CodexPlusApi {
   onCleanup?: (cleanup: () => void) => void;
 }
 
-/** Entry used by the Codex++ user script, which bakes its settings in at install time. */
+/**
+ * Entry used by the Codex++ user script, which bakes its settings in at install time;
+ * changes made in the in-app panel since then come from localStorage.
+ */
 export function bootFromUserScript(settings: unknown): void {
-  bootCodexOverlay(settings, 'userscript');
+  bootCodexOverlay(
+    applyCodexSettingsPatch(normalizeCodexSettings(settings), readStoredPatch()),
+    'userscript'
+  );
   const api = (globalThis as unknown as { codexPlus?: CodexPlusApi }).codexPlus;
   if (api && typeof api.onCleanup === 'function') {
     api.onCleanup(() => {

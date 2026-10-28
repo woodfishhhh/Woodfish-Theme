@@ -31,9 +31,10 @@ export const CODEX_SELECTORS = {
     alwaysPresent: false,
     description: '当前会话',
   },
+  // The composer is absent on settings, plugin and other non-chat pages.
   composer: {
     selectors: ['[data-codex-composer-root]'],
-    alwaysPresent: true,
+    alwaysPresent: false,
     description: '输入框',
   },
   composerSurface: {
@@ -43,8 +44,14 @@ export const CODEX_SELECTORS = {
   },
   composerEditor: {
     selectors: ['[data-codex-composer-root] [contenteditable="true"]'],
-    alwaysPresent: true,
+    alwaysPresent: false,
     description: '输入框编辑区',
+  },
+  composerPrimaryButton: {
+    // Tailwind utility generated from the theme variable, not a hashed module class.
+    selectors: ['[data-codex-composer-root] .bg-composer-primary'],
+    alwaysPresent: false,
+    description: '发送按钮',
   },
   timeline: {
     selectors: ['[data-app-action-timeline-scroll]'],

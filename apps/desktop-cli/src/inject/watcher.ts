@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { CodexSettings } from '@woodfish/adapter-codex';
+import { CODEX_SETTINGS_BINDING, CodexSettings } from '@woodfish/adapter-codex';
 import { CdpConnection, CdpEvent, WebSocketConstructor, evaluate } from '../cdp/client';
 import { fetchVersion } from '../cdp/http';
 import { isMainWindowTarget, validateDebuggerUrl } from '../cdp/targets';
@@ -16,12 +16,20 @@ interface AttachedPage {
   scriptId: string | null;
 }
 
+/** A settings patch is a few hundred bytes; anything far larger is not from the panel. */
+const MAX_BINDING_PAYLOAD = 4096;
+
 export interface WatcherOptions {
   port: number;
   bundle: string;
   loadSettings: () => CodexSettings;
   /** Called with a callback to invoke when settings change; returns an unsubscribe. */
   watchSettings?: (onChange: () => void) => () => void;
+  /**
+   * Saves a change made in the in-app settings panel (parsed, still untrusted JSON).
+   * When given, every main window gets the settings binding.
+   */
+  saveSettingsPatch?: (patch: unknown) => void;
   log?: (message: string) => void;
   WebSocketCtor?: WebSocketConstructor;
   fetchImpl?: typeof fetch;
@@ -32,8 +40,8 @@ export interface WatcherOptions {
 export interface RunningWatcher {
   /** Number of main windows currently injected. */
   pages(): number;
-  /** Re-applies the current settings to every page. */
-  refresh(): Promise<void>;
+  /** Re-applies the current settings to every page; skipped when nothing changed. */
+  refresh(force?: boolean): Promise<void>;
   /** Removes the overlay from every page and closes the connection. */
   stop(): Promise<void>;
   /** Resolves when Codex closes the debugging connection. */
@@ -56,6 +64,25 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
   const attaching = new Set<string>();
   let script = buildInjectionScript(options.loadSettings(), options.bundle);
   let stopped = false;
+
+  /** Saves a panel change sent through the binding, then updates every window. */
+  function onSettingsBinding(payload: unknown): void {
+    if (!options.saveSettingsPatch || typeof payload !== 'string') {
+      return;
+    }
+    if (payload.length > MAX_BINDING_PAYLOAD) {
+      log('忽略过大的设置改动');
+      return;
+    }
+    try {
+      options.saveSettingsPatch(JSON.parse(payload));
+    } catch (error) {
+      log(`保存设置失败：${(error as Error).message}`);
+      return;
+    }
+    log('已保存设置面板中的改动');
+    void refresh();
+  }
 
   async function inject(targetId: string, page: AttachedPage): Promise<void> {
     if (page.scriptId) {
@@ -96,6 +123,10 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
       const page: AttachedPage = { sessionId, scriptId: null };
       pages.set(info.targetId, page);
       await connection.send('Page.enable', {}, sessionId);
+      if (options.saveSettingsPatch) {
+        // Bindings survive reloads; `Runtime.bindingCalled` arrives without Runtime.enable.
+        await connection.send('Runtime.addBinding', { name: CODEX_SETTINGS_BINDING }, sessionId);
+      }
       await inject(info.targetId, page);
     } catch (error) {
       pages.delete(info.targetId);
@@ -131,6 +162,12 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
     } else if (event.method === 'Target.detachedFromTarget') {
       const sessionId = String(event.params.sessionId);
       forget((_id, page) => page.sessionId === sessionId);
+    } else if (
+      event.method === 'Runtime.bindingCalled' &&
+      event.params.name === CODEX_SETTINGS_BINDING &&
+      [...pages.values()].some((page) => page.sessionId === event.sessionId)
+    ) {
+      onSettingsBinding(event.params.payload);
     } else if (event.method === 'Page.loadEventFired' && event.sessionId) {
       // The new-document script normally re-injects; verify and repair if it did not.
       const entry = [...pages.entries()].find(([, page]) => page.sessionId === event.sessionId);
@@ -168,8 +205,12 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
   }, options.healthIntervalMs ?? 15000);
   healthTimer.unref();
 
-  async function refresh(): Promise<void> {
-    script = buildInjectionScript(options.loadSettings(), options.bundle);
+  async function refresh(force = false): Promise<void> {
+    const next = buildInjectionScript(options.loadSettings(), options.bundle);
+    if (next === script && !force) {
+      return;
+    }
+    script = next;
     for (const [targetId, page] of pages) {
       await inject(targetId, page).catch((error: Error) =>
         log(`更新窗口 ${targetId} 失败：${error.message}`)

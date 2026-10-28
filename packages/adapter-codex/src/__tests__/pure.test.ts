@@ -1,12 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ORIGINAL_PALETTES, validatePalette } from '@woodfish/theme-core';
+import { ORIGINAL_PALETTES, WOODFISH_PALETTES, validatePalette } from '@woodfish/theme-core';
 import {
   CHROME_THEME_COLOR,
   CODEX_ADAPTER_VERSION,
+  CODEX_PALETTE_SLUGS,
   CODEX_SELECTORS,
   CODEX_STYLE_NAMES,
   DEFAULT_CODEX_SETTINGS,
+  applyCodexSettingsPatch,
   buildCodexCss,
   buildPaletteVariables,
   findCodexPalette,
@@ -49,9 +51,57 @@ describe('normalizeCodexSettings', () => {
     expect(settings.customCss).toEqual(['a { color: red }']);
   });
 
+  it('only puts a theme in the appearance mode it was made for', () => {
+    expect(normalizeCodexSettings({ palette: { dark: 'light', light: 'neon' } }).palette).toEqual({
+      dark: null,
+      light: null,
+    });
+    expect(
+      normalizeCodexSettings({ palette: { dark: 'dracula', light: 'light' } }).palette
+    ).toEqual({ dark: 'dracula', light: 'light' });
+  });
+
   it('treats garbage input as defaults', () => {
     for (const input of [null, 42, 'x', [], { palette: 'neon', glass: null }]) {
       expect(normalizeCodexSettings(input)).toEqual(normalizeCodexSettings());
+    }
+  });
+});
+
+describe('applyCodexSettingsPatch', () => {
+  const base = normalizeCodexSettings({
+    palette: { dark: 'neon' },
+    glass: { blur: 24 },
+    customCss: ['a { color: red }'],
+  });
+
+  it('changes themes and switches only', () => {
+    const next = applyCodexSettingsPatch(base, {
+      palette: { dark: 'dracula', light: 'light' },
+      glass: { enabled: false, blur: 2 },
+      bodyText: { enabled: true },
+      codeGradient: { hueShift: 90 },
+      customCss: ['b { color: blue }'],
+    });
+    expect(next.palette).toEqual({ dark: 'dracula', light: 'light' });
+    expect(next.glass.enabled).toBe(false);
+    expect(next.glass.blur).toBe(24);
+    expect(next.bodyText.enabled).toBe(true);
+    expect(next.codeGradient.hueShift).toBe(base.codeGradient.hueShift);
+    expect(next.customCss).toEqual(['a { color: red }']);
+    expect(base.palette.dark).toBe('neon');
+  });
+
+  it('clears a theme with null and ignores themes for the other mode or unknown ones', () => {
+    expect(applyCodexSettingsPatch(base, { palette: { dark: null } }).palette.dark).toBeNull();
+    for (const dark of ['light', 'solarized', 42, {}]) {
+      expect(applyCodexSettingsPatch(base, { palette: { dark } }).palette.dark).toBe('neon');
+    }
+  });
+
+  it('ignores garbage', () => {
+    for (const patch of [null, 'x', 42, [], { glass: { enabled: 'yes' } }]) {
+      expect(applyCodexSettingsPatch(base, patch)).toEqual(base);
     }
   });
 });
@@ -137,6 +187,37 @@ describe('buildCodexCss', () => {
     expect(css).not.toContain('[data-theme="light"] [data-code-block-source');
   });
 
+  it('covers the runtime theme variables Codex derives from its accent', () => {
+    const neon = findCodexPalette('neon');
+    const variables = buildPaletteVariables(neon);
+    for (const name of [
+      '--color-background-user-message',
+      '--color-text-user-message',
+      '--color-background-text-selection',
+      '--color-background-control-opaque',
+      '--color-background-panel',
+      '--color-background-composer-action-bar',
+      '--color-text-composer-primary',
+      '--codex-base-accent',
+      '--color-codex-terminal-ansi-bright-magenta',
+    ]) {
+      expect(variables[name]).toBeDefined();
+    }
+    expect(variables['--color-background-user-message']).toContain(neon.ui.accent);
+    expect(variables['--color-codex-terminal-ansi-red']).toBe(neon.ansi[1]);
+    expect(variables['--color-codex-terminal-ansi-bright-white']).toBe(neon.ansi[15]);
+    // Diff line backgrounds stay translucent, like Codex's own.
+    expect(variables['--app-color-editor-added']).toBe(
+      `color-mix(in oklab, ${neon.ui.success} 20%, transparent)`
+    );
+  });
+
+  it('tints the translucent window chrome only for modes with a palette', () => {
+    const css = buildCodexCss(normalizeCodexSettings({ palette: { dark: 'dracula' } })).palette;
+    expect(css).toContain('[data-theme="dark"] body {');
+    expect(css).not.toContain('[data-theme="light"] body');
+  });
+
   it('maps every Codex syntax slot from the palette', () => {
     const variables = buildPaletteVariables(findCodexPalette('black'));
     for (const slot of [
@@ -174,9 +255,18 @@ describe('buildCodexCss', () => {
 });
 
 describe('paletteToChromeTheme', () => {
-  it('produces values Codex accepts for every original palette', () => {
+  it('offers every Woodfish theme the VS Code extension ships', () => {
+    expect(CODEX_PALETTE_SLUGS).toEqual(['dark', 'dracula', 'black', 'neon', 'light']);
+    expect(WOODFISH_PALETTES.map((palette) => palette.slug).sort()).toEqual(
+      [...CODEX_PALETTE_SLUGS].sort()
+    );
+  });
+
+  it('produces values Codex accepts for every Woodfish palette', () => {
     for (const palette of ORIGINAL_PALETTES) {
       expect(validatePalette(palette)).toEqual([]);
+    }
+    for (const palette of WOODFISH_PALETTES) {
       const theme = paletteToChromeTheme(palette);
       for (const value of [
         theme.accent,

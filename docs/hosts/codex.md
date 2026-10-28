@@ -24,7 +24,8 @@
 | Origin | Node 22 自带的 WebSocket 能在 `--remote-allow-origins` 限制下正常连接 |
 | 注入脚本的生命周期 | `Page.addScriptToEvaluateOnNewDocument` **随注册它的 CDP 会话结束而失效**：会话还连着时刷新页面能看到标记，会话关闭后再刷新就没有了。所以需要常驻的监视进程 |
 | 刷新页面 | `Page.reload` / `location.reload()` 安全，界面几秒内恢复 |
-| `config.toml` 生效时机 | 直接改文件**不可靠**：设置由常驻的 app-server 守护进程（`~/.codex/packages/app-server-daemon/.../codex.exe app-server --listen unix://`，界面重启时不重启）读写并缓存，界面重启后拿到的仍是守护进程内存里的旧值。一次实测看到改动在重启后生效，后续多次复现都失败。Codex 运行期间也会自行改写这个文件（如 `service_tier`、模型计数） |
+| `config.toml` 生效时机 | Codex 重启后 5 秒内生效，前提是同时写入 `accentSource = "custom"`（见下一节）。Codex 运行期间也会自行改写这个文件（如 `service_tier`、模型计数），所以只能按键修改 |
+| CDP binding | `Runtime.addBinding` 注册的函数被页面调用时，即使没有 `Runtime.enable` 也会收到 `Runtime.bindingCalled`，监视进程因此不必接收页面的控制台输出 |
 
 ## 原生配色：设置来源
 
@@ -32,11 +33,21 @@ Codex 界面的外观设置确实保存在 Windows 的 `~/.codex/config.toml`，
 
 深色和浅色各有一张表（`appearanceDarkChromeTheme` / `appearanceLightChromeTheme`），互不影响；`desktop.appearanceTheme`（`system` / `light` / `dark`）决定当前使用哪一张。深色表同样需要 `accentSource = "custom"`：缺了它，实测深色主题会显示账号同步的颜色（本机是绿色 `#53b559`）。
 
-截图验证深色效果时要用系统级截屏：Codex 的侧栏和窗口外框是半透明的，会透出 Windows 11 的 Mica 材质，而 CDP 的 `Page.captureScreenshot` 会把这些透明区域画成白色。
+截图验证深色效果时不要用 CDP 的 `Page.captureScreenshot`：Codex 的侧栏和窗口外框是半透明的，会透出 Windows 11 的 Mica 材质，CDP 截图会把这些透明区域画成白色。用 `PrintWindow(hwnd, hdc, PW_RENDERFULLCONTENT)` 截取窗口本身即可，结果与屏幕上合成后的像素一致，而且窗口被其他程序挡住时也能截。窗口最小化时要先不激活地还原（`ShowWindow(SW_SHOWNOACTIVATE)`），等两秒左右让 Chromium 重绘。
 
 （排查过程中确认过：界面不读 WSL 里的 `~/.codex/config.toml`；`desktop.sansFontSize` 这个键名不对，所以那次对照实验没有参考价值。）
 
 app-server 接口本身可用：守护进程监听 `~/.codex/app-server-control/app-server-control.sock`，协议是 Unix 套接字上的 WebSocket，每帧一条 JSON-RPC 消息（不带 `"jsonrpc"` 字段），先发 `initialize`（`clientInfo.name` 和 `version` 必填），再发 `initialized`。Windows 上 Node 不能直接连 AF_UNIX，需要通过 `codex stdio-to-uds <socket>` 中转。写入后不会通知其他客户端。
+
+## 主题交换格式
+
+外观设置页的“复制主题”按钮会通过 Codex 自己的进程间通信写入剪贴板（不经过 `navigator.clipboard`），内容是：
+
+```text
+codex-theme-v1:{"codeThemeId":"codex","theme":{"accent":"#53b559","accentSource":"chatgpt","contrast":60,"fonts":{"code":null,"ui":null},"ink":"#ffffff","opaqueWindows":false,"semanticColors":{"diffAdded":"#40c977","diffRemoved":"#fa423e","skill":"#ad7bf9"},"surface":"#181818"},"variant":"dark"}
+```
+
+`theme` 就是 `config.toml` 里的 chrome theme 表，“导入主题”接受同样的字符串。深色代码主题只有“ChatGPT”（id 为 `codex`）和“Codex 主题”两个可选，所以 Woodfish 的语法配色只能靠注入。
 
 ## 渲染端结构
 
@@ -54,7 +65,10 @@ app-server 接口本身可用：守护进程监听 `~/.codex/app-server-control/
 - **助手回复**：`[data-markdown-text-style=assistant-message]`（CSS module 类名 `_MarkdownRoot_*`）、`[data-local-conversation-final-assistant=true]`。Codex++ 文档里提到的 `data-message-author-role` 和 `data-testid="conversation-turn"` 在这个版本中**不存在**。
 - **diff**：使用自定义元素 `<diffs-container>`，样式通过 `--diffs-*` 和 `--codex-diffs-*` 变量控制；`--color-codex-diff-added` / `--color-codex-diff-deleted` 用于增删背景。
 - **主强调色**：Codex 实际使用的主强调色是 `--app-color-accent-blue`（不论名字），配置里的 `accent` 会写到这里；`--app-color-icon-accent`、`--app-color-background-accent-*` 由它派生。发送按钮用 `--color-background-composer-primary`。
-- **灰阶**：大量语义色（按钮、气泡、分隔线）来自 Codex 根据 chrome theme 生成的 `--gray-*` / `--alpha-*` 灰阶，以及 `--lightningcss-light/dark` 开关。注入只覆盖主要表面、强调色、状态色和语法色；要让整套灰阶换色，需要用原生配色（`config.toml`）让 Codex 自己重新生成。
+- **运行时主题**：Codex 按 chrome theme 在运行时生成一个内联 `<style>`（同样在 `@layer theme` 中），为 `[data-theme="dark"]` / `[data-theme="light"]` 各定义一百多个变量：表面阶梯（`elevated-*`、`control-opaque`、`panel`、`composer-action-bar`）、用户气泡（`--color-background-user-message`）、选区（`--color-background-text-selection`）、发送按钮、`--codex-base-*` 等。`accentSource = "chatgpt"` 时，深色的用户气泡和选区会用账号强调色（本机是绿色 `#2c6732`）。Woodfish 注入的配色按深浅模式覆盖这整套变量，并把终端的 `--color-codex-terminal-ansi-*` 换成配色自带的 16 色。
+- **灰阶**：少数控件仍使用 Codex 由 chrome theme 生成的 `--gray-*` 灰阶，只有原生配色（`config.toml`）会让 Codex 重新生成它。
+- **窗口外框**：标题栏和左侧导航栏完全透明，直接露出 Mica；侧栏是 65% 的表面色叠在 Mica 上（`color-mix(var(--color-surface) 65%, transparent)`）。使用 Woodfish 配色时，`body` 叠一层 78% 的 `bgDeep`，让外框和页面同色，同时保留一点 Mica 的质感。
+- **设置页**：外观页的模式单选框是 `input[type=radio][name="appearance-theme"]`，`name` 不随语言变化，Woodfish 用它识别外观页，并把自己的设置区插在“视觉风格”一节之后。设置页的节、卡片、行都由 Tailwind 工具类组成，没有稳定的 `data-*`，所以设置区在挂载时复制现有元素的类名。原生开关开启时是 `bg-chart-blue`，关闭时是 `bg-text/10`。
 - **其他**：
   - 输入框：`[data-codex-composer-root]`，内部是 ProseMirror（`[contenteditable=true]`）。带圆角和背景的输入框本体是 `[data-composer-body]`（圆角 22px），外层根节点是直角
   - 纯文本代码块按行拆成多个不带类名的 `span`

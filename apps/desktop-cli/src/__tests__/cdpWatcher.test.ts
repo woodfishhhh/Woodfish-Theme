@@ -1,7 +1,11 @@
 import * as http from 'http';
 import { AddressInfo } from 'net';
 import { WebSocket, WebSocketServer } from 'ws';
-import { normalizeCodexSettings } from '@woodfish/adapter-codex';
+import {
+  CODEX_SETTINGS_BINDING,
+  applyCodexSettingsPatch,
+  normalizeCodexSettings,
+} from '@woodfish/adapter-codex';
 import { CdpConnection, WebSocketConstructor, evaluate } from '../cdp/client';
 import { fetchTargets, fetchVersion, isDebugPortAlive } from '../cdp/http';
 import { isMainWindowTarget, looksLikeCodexTargets, validateDebuggerUrl } from '../cdp/targets';
@@ -13,6 +17,7 @@ interface Page {
   type: string;
   scripts: Map<string, string>;
   evaluated: string[];
+  bindings?: string[];
   sessionId?: string;
 }
 
@@ -137,6 +142,14 @@ class FakeBrowser {
         const identifier = String(this.nextScript++);
         this.page(message.sessionId)?.scripts.set(identifier, String(message.params.source));
         reply({ identifier });
+        return;
+      }
+      case 'Runtime.addBinding': {
+        const page = this.page(message.sessionId);
+        if (page) {
+          page.bindings = [...(page.bindings ?? []), String(message.params.name)];
+        }
+        reply({});
         return;
       }
       case 'Page.removeScriptToEvaluateOnNewDocument':
@@ -290,6 +303,68 @@ describe('startWatcher', () => {
     await watcher.stop();
     expect(main.scripts.size).toBe(0);
     expect(main.evaluated.some((expression) => expression.includes('dispose()'))).toBe(true);
+  });
+
+  it('saves panel changes sent through the settings binding and updates every window', async () => {
+    let current = settings;
+    const patches: unknown[] = [];
+    const watcher = await startWatcher({
+      port: browser.port,
+      bundle: '/* bundle */',
+      loadSettings: () => current,
+      saveSettingsPatch: (patch) => {
+        patches.push(patch);
+        current = applyCodexSettingsPatch(current, patch);
+      },
+      WebSocketCtor,
+      healthIntervalMs: 60000,
+    });
+    const [main, avatar] = browser.pages;
+    expect(main.bindings).toEqual([CODEX_SETTINGS_BINDING]);
+    expect(avatar.bindings).toBeUndefined();
+
+    const call = (
+      payload: string,
+      name = CODEX_SETTINGS_BINDING,
+      sessionId = main.sessionId
+    ): void =>
+      browser.broadcast({ method: 'Runtime.bindingCalled', sessionId, params: { name, payload } });
+    call(JSON.stringify({ palette: { dark: 'dracula' } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(patches).toEqual([{ palette: { dark: 'dracula' } }]);
+    expect([...main.scripts.values()][0]).toContain('"dark":"dracula"');
+
+    // Other bindings, unknown sessions, oversized and malformed payloads are ignored.
+    call(JSON.stringify({ glass: { enabled: false } }), 'somethingElse');
+    call(JSON.stringify({ glass: { enabled: false } }), CODEX_SETTINGS_BINDING, 'session-unknown');
+    call(JSON.stringify({ customCss: ['x'.repeat(5000)] }));
+    call('{not json');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(patches).toHaveLength(1);
+    await watcher.stop();
+  });
+
+  it('skips re-injection when the settings did not change', async () => {
+    let notify: () => void = () => undefined;
+    const watcher = await startWatcher({
+      port: browser.port,
+      bundle: '/* bundle */',
+      loadSettings: () => settings,
+      watchSettings: (onChange) => {
+        notify = onChange;
+        return () => undefined;
+      },
+      WebSocketCtor,
+      healthIntervalMs: 60000,
+    });
+    const [main] = browser.pages;
+    const evaluations = main.evaluated.length;
+    notify();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(main.evaluated).toHaveLength(evaluations);
+    await watcher.refresh(true);
+    expect(main.evaluated.length).toBeGreaterThan(evaluations);
+    await watcher.stop();
   });
 
   it('resolves `closed` when Codex goes away', async () => {

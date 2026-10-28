@@ -9,13 +9,21 @@ export {
 } from './selectors';
 export type { CodexSelectorGroup, SelectorGroup } from './selectors';
 export {
+  CODEX_FEATURE_KEYS,
   CODEX_PALETTE_SLUGS,
   DEFAULT_CODEX_CARET_STOPS,
   DEFAULT_CODEX_SETTINGS,
+  applyCodexSettingsPatch,
+  codexPaletteMode,
   findCodexPalette,
   normalizeCodexSettings,
 } from './settings';
-export type { CodexPaletteSlug, CodexSettings } from './settings';
+export type {
+  CodexFeatureKey,
+  CodexPaletteSlug,
+  CodexSettings,
+  CodexSettingsPatch,
+} from './settings';
 export {
   CODEX_STYLE_NAMES,
   buildAccentCss,

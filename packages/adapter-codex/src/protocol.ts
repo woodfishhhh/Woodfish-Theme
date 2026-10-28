@@ -16,6 +16,15 @@ export const CODEX_CONTROLLER_KEY = '__woodfishCodexController';
 /** Global a CDP injection stores the settings under before the bundle runs. */
 export const CODEX_CONFIG_KEY = '__woodfishCodexConfig';
 
+/**
+ * CDP binding (`Runtime.addBinding`) the watcher installs in each main window. The in-app
+ * settings panel calls it with a JSON settings patch; the watcher validates and saves it.
+ */
+export const CODEX_SETTINGS_BINDING = '__woodfishCodexSaveSettings';
+
+/** localStorage key where the Codex++ user script keeps changes made in the panel. */
+export const CODEX_USERSCRIPT_STORAGE_KEY = 'woodfish.codex.settings';
+
 /** Prefix for every `<style>` id the overlay mounts. */
 export const CODEX_STYLE_ID_PREFIX = 'woodfish-codex-';
 

@@ -106,11 +106,15 @@ export function buildGlassCss(settings: CodexSettings): string {
   ].join('\n');
 }
 
-/** Accent glow on the focused composer's rounded body and a tinted active thread row. */
+/**
+ * Accent touches: a glow around the focused composer, a gradient pill on the active
+ * thread row and a two-accent send button.
+ */
 export function buildAccentCss(settings: CodexSettings): string {
   if (!settings.accent.enabled) {
     return '';
   }
+  const activeThread = selectorOf('sidebarActiveThread');
   return [
     rule(':root', [
       `  --woodfish-codex-accent: ${ACCENT};`,
@@ -122,14 +126,32 @@ export function buildAccentCss(settings: CodexSettings): string {
       '    0 0 22px -8px var(--woodfish-codex-accent),',
       '    0 0 34px -14px var(--woodfish-codex-accent-alt) !important;',
     ]),
-    rule(selectorOf('sidebarActiveThread'), [
+    // Only a short pill in the gutter left of the row: Codex's own selected background
+    // stays, and an inset border would bend along the row's rounded corners.
+    rule(`${activeThread}::before`, [
+      '  content: "";',
+      '  position: absolute;',
+      '  left: -6px;',
+      '  top: 50%;',
+      '  width: 3px;',
+      '  height: 16px;',
+      '  border-radius: 999px;',
+      '  transform: translateY(-50%);',
       '  background-image: linear-gradient(',
-      '    90deg,',
-      '    color-mix(in oklab, var(--woodfish-codex-accent) 22%, transparent),',
-      '    color-mix(in oklab, var(--woodfish-codex-accent-alt) 8%, transparent) 70%,',
-      '    transparent',
+      '    180deg,',
+      '    var(--woodfish-codex-accent),',
+      '    var(--woodfish-codex-accent-alt)',
+      '  );',
+      '  box-shadow: 0 0 6px color-mix(in oklab, var(--woodfish-codex-accent) 45%, transparent);',
+      '  pointer-events: none;',
+    ]),
+    rule(selectorOf('composerPrimaryButton'), [
+      '  background-image: linear-gradient(',
+      '    135deg,',
+      '    var(--woodfish-codex-accent),',
+      '    color-mix(in oklab, var(--woodfish-codex-accent-alt) 50%, var(--woodfish-codex-accent))',
       '  ) !important;',
-      '  box-shadow: inset 2px 0 0 var(--woodfish-codex-accent) !important;',
+      '  box-shadow: 0 0 14px -4px color-mix(in oklab, var(--woodfish-codex-accent) 70%, transparent) !important;',
     ]),
   ].join('\n\n');
 }

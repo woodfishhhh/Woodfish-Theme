@@ -47,7 +47,7 @@ theme-core  ←  renderer-runtime  ←  adapter-codex  ←  desktop-cli
 | `color/` | CSS 颜色解析与校验、sRGB ↔ OKLCH、色域映射、WCAG 对比度 |
 | `gradient/` | 从一个文字颜色推导三段渐变和发光色；按调色板或强调色选取锚定色相 |
 | `effects/` | 渐变、发光、光标、毛玻璃、系统窗口材质的可调参数：默认值、取值范围、归一化；用户 CSS 与色标的安全过滤 |
-| `palettes/` | Woodfish 原创调色板（Light / Black / Neon）及可读性校验 |
+| `palettes/` | Woodfish 原创调色板（Light / Black / Neon）及可读性校验；从 VS Code 主题移植的 Dark / Dracula 调色板（`ported.ts`，由 `apps/vscode-extension/scripts/port-palettes.js` 生成） |
 
 ### `@woodfish/renderer-runtime`
 
