@@ -702,7 +702,7 @@
   }
 
   // browser/overlay-bootstrap.ts
-  var VERSION = "7.0.0";
+  var VERSION = "7.1.0";
   var CONTROLLER_KEY = "__woodfishOverlayController";
   var TOKEN_SELECTOR = '.monaco-editor .view-lines span[class*="mtk"]:not(.cursor):not(.colorpicker-color-decoration)';
   var VIEW_LINES_SELECTOR = ".monaco-editor .view-lines";

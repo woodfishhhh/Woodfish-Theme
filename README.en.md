@@ -96,7 +96,7 @@ Search for `Woodfish` in the command palette:
 
 ## Configuration
 
-All settings live under `woodfishTheme.`:
+All settings live under `woodfishTheme.`. In the Settings UI they are grouped into switches, colored text, glow, colored cursor, frosted glass, transparent window (experimental) and advanced, with every effect switch at the top:
 
 ```json
 {

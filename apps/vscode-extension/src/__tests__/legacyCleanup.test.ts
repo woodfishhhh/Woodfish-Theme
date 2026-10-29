@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { readSettingSchemas } from './support/settingsSchema';
 
 const extensionRoot = path.resolve(__dirname, '../..');
 const repoRoot = path.resolve(extensionRoot, '../..');
@@ -62,29 +63,15 @@ describe('legacy Custom CSS cleanup', () => {
   });
 
   it('documents only the retained settings model and removes misleading runtime keys', () => {
-    const packageJson = JSON.parse(read('package.json')) as {
-      contributes: {
-        configuration: {
-          properties: Record<string, unknown>;
-        };
-      };
-    };
+    const settingSchemas = readSettingSchemas();
     const readmeZh = readRepo('README.md');
     const readmeEn = readRepo('README.en.md');
     const troubleshooting = read('docs/TROUBLESHOOTING.md');
 
-    expect(packageJson.contributes.configuration.properties['woodfishTheme.runtime.enabled']).toBe(
-      undefined
-    );
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.runtime.autoSwitchTheme']
-    ).toBeUndefined();
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.runtime.reapplyOnStartup']
-    ).toBeUndefined();
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.syntaxGradient.preset']
-    ).toBeUndefined();
+    expect(settingSchemas['woodfishTheme.runtime.enabled']).toBe(undefined);
+    expect(settingSchemas['woodfishTheme.runtime.autoSwitchTheme']).toBeUndefined();
+    expect(settingSchemas['woodfishTheme.runtime.reapplyOnStartup']).toBeUndefined();
+    expect(settingSchemas['woodfishTheme.syntaxGradient.preset']).toBeUndefined();
 
     expect(readmeZh).not.toContain('woodfishTheme.runtime.enabled');
     expect(readmeZh).not.toContain('woodfishTheme.customStyles');

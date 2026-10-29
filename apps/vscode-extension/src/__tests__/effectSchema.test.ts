@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import {
   CURSOR_RANGES,
   DEFAULT_CURSOR,
@@ -17,6 +15,7 @@ import {
   TEXT_GRADIENT_RANGES,
 } from '@woodfish/theme-core';
 import { DEFAULT_RUNTIME_SETTINGS } from '../types/features';
+import { readSettingSchemas } from './support/settingsSchema';
 
 type SettingSchema = {
   default?: unknown;
@@ -25,11 +24,7 @@ type SettingSchema = {
   enum?: string[];
 };
 
-const properties = (
-  JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf-8')) as {
-    contributes: { configuration: { properties: Record<string, SettingSchema> } };
-  }
-).contributes.configuration.properties;
+const properties = readSettingSchemas<SettingSchema>();
 
 function setting(key: string): SettingSchema {
   const schema = properties[`woodfishTheme.${key}`];

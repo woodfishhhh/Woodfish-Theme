@@ -7,16 +7,10 @@ jest.mock(
   { virtual: true }
 );
 
-import * as fs from 'fs';
-import * as path from 'path';
 import { BUILT_IN_PRESETS, CURSOR_PALETTES, PRESET_KEYS, parseColorList } from '../config/presets';
+import { readSettingSchemas } from './support/settingsSchema';
 
-const packageJson = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf-8')
-) as {
-  contributes: { configuration: { properties: Record<string, { type: string; enum?: string[] }> } };
-};
-const properties = packageJson.contributes.configuration.properties;
+const properties = readSettingSchemas<{ type: string; enum?: string[] }>();
 
 describe('presets', () => {
   it('only references contributed settings with values of the declared type', () => {

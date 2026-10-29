@@ -8,6 +8,7 @@ import {
   buildRuntimePayload,
   normalizeRuntimeSettings,
 } from '../services/runtime/payloadBuilder';
+import { readSettingSchemas } from './support/settingsSchema';
 
 describe('runtime payload builder', () => {
   const assets = {
@@ -20,15 +21,7 @@ describe('runtime payload builder', () => {
       'div.cursor { animation: 30s linear infinite alternate bp-animation !important; border-radius: 2px !important; }',
     cursorGlow: 'div.cursor::after { box-shadow: 0 0 15px rgba(255, 255, 255, 0.7) !important; }',
   };
-  const packageJson = JSON.parse(
-    fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf-8')
-  ) as {
-    contributes: {
-      configuration: {
-        properties: Record<string, { default: unknown }>;
-      };
-    };
-  };
+  const settingSchemas = readSettingSchemas<{ default: unknown }>();
   const realCursorAssets = {
     themeVariables: DEFAULT_BEARDED_THEME_VARIABLES,
     activityBar: '.activity { color: red; }',
@@ -135,31 +128,14 @@ describe('runtime payload builder', () => {
     ).toBeUndefined();
     expect(DEFAULT_RUNTIME_SETTINGS.glow.enabled).toBe(true);
     expect(DEFAULT_RUNTIME_SETTINGS.cursor.enabled).toBe(true);
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.runtime.enabled']
-    ).toBeUndefined();
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.overlay.enabled'].default
-    ).toBe(true);
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.overlay.hueShift'].default
-    ).toBe(24);
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.overlay.lightnessDelta']
-        .default
-    ).toBe(0.06);
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.runtime.autoSwitchTheme']
-    ).toBeUndefined();
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.runtime.reapplyOnStartup']
-    ).toBeUndefined();
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.syntaxGradient.preset']
-    ).toBeUndefined();
-    expect(
-      packageJson.contributes.configuration.properties['woodfishTheme.cursor.enabled'].default
-    ).toBe(true);
+    expect(settingSchemas['woodfishTheme.runtime.enabled']).toBeUndefined();
+    expect(settingSchemas['woodfishTheme.overlay.enabled'].default).toBe(true);
+    expect(settingSchemas['woodfishTheme.overlay.hueShift'].default).toBe(24);
+    expect(settingSchemas['woodfishTheme.overlay.lightnessDelta'].default).toBe(0.06);
+    expect(settingSchemas['woodfishTheme.runtime.autoSwitchTheme']).toBeUndefined();
+    expect(settingSchemas['woodfishTheme.runtime.reapplyOnStartup']).toBeUndefined();
+    expect(settingSchemas['woodfishTheme.syntaxGradient.preset']).toBeUndefined();
+    expect(settingSchemas['woodfishTheme.cursor.enabled'].default).toBe(true);
   });
 
   it('ships the bootstrap only while text gradient or glow processing is enabled', () => {

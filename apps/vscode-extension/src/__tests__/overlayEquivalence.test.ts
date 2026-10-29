@@ -17,6 +17,18 @@ const CURRENT = fs.readFileSync(
   path.resolve(__dirname, '../../themes/shared/overlay-bootstrap.js'),
   'utf-8'
 );
+const CURRENT_VERSION = (
+  JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf-8')) as {
+    version: string;
+  }
+).version;
+
+// The build stamps the extension version into the root markers; it is checked on its own.
+function withoutVersion(dataset: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(dataset).filter(([key]) => key !== 'woodfishOverlayVersion')
+  );
+}
 
 function createRandom(seed: number): () => number {
   let state = seed >>> 0;
@@ -308,7 +320,7 @@ class World {
         style: [...token.style.values.entries()].sort(),
         attributes: [...token.attributes.entries()].sort(),
       })),
-      root: this.documentElement.dataset,
+      root: withoutVersion(this.documentElement.dataset),
       activeObservers: this.observers.filter((o) => !o.disconnected).length,
       observerTargets: this.observers
         .filter((o) => !o.disconnected)
@@ -434,7 +446,10 @@ describe('overlay bootstrap equivalence with the frozen 7.0.0 build', () => {
   });
 
   it('keeps the same controller contract and root markers', () => {
-    for (const source of [FROZEN, CURRENT]) {
+    for (const [source, version] of [
+      [FROZEN, '7.0.0'],
+      [CURRENT, CURRENT_VERSION],
+    ]) {
       const world = new World(createRandom(7));
       vm.runInContext(source, world.context);
       world.settle();
@@ -442,8 +457,9 @@ describe('overlay bootstrap equivalence with the frozen 7.0.0 build', () => {
         `({ version: globalThis.__woodfishOverlayController.version, keys: Object.keys(globalThis.__woodfishOverlayController).sort().join(',') })`,
         world.context
       ) as { version: string; keys: string };
-      expect(controller).toEqual({ version: '7.0.0', keys: 'dispose,refresh,version' });
+      expect(controller).toEqual({ version, keys: 'dispose,refresh,version' });
       expect(world.documentElement.dataset.woodfishOverlay).toBe('active');
+      expect(world.documentElement.dataset.woodfishOverlayVersion).toBe(version);
     }
   });
 });

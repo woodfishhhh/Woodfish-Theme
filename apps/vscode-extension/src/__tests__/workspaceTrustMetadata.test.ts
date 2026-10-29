@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { readSettingSchemas } from './support/settingsSchema';
 
 type ConfigurationProperty = {
   maxItems?: number;
@@ -15,11 +16,6 @@ type ExtensionManifest = {
     untrustedWorkspaces?: {
       supported?: boolean | 'limited';
       restrictedConfigurations?: string[];
-    };
-  };
-  contributes: {
-    configuration: {
-      properties: Record<string, ConfigurationProperty>;
     };
   };
 };
@@ -42,7 +38,7 @@ describe('workspace trust and runtime setting metadata', () => {
   });
 
   it('mirrors runtime bounds and unsafe CSS guards in the settings schema', () => {
-    const properties = manifest.contributes.configuration.properties;
+    const properties = readSettingSchemas<ConfigurationProperty>();
     for (const setting of [
       'woodfishTheme.syntaxGradient.customRules',
       'woodfishTheme.glow.customRules',

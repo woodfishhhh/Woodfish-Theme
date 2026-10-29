@@ -2,7 +2,7 @@
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
   "description": "为 VS Code、Cursor、Kiro、Windsurf、Trae 等编辑器的任意颜色主题叠加 OKLCH 渐变、发光、彩色光标与毛玻璃；内置 Woodfish Dark / Dracula / Black / Neon / Light 五套主题",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"
@@ -182,275 +182,191 @@
         "icon": "$(trash)"
       }
     ],
-    "configuration": {
-      "title": "Woodfish Theme",
-      "properties": {
-        "woodfishTheme.overlay.enabled": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "控制 Woodfish 通用叠层是否安装到当前 VS Code。默认开启，切换到任意颜色主题后仍会继续工作；关闭后会移除整个运行时叠层，但保留各子效果的设置值。",
-          "scope": "application",
-          "order": 0
-        },
-        "woodfishTheme.overlay.hueShift": {
-          "type": "number",
-          "default": 24,
-          "minimum": 0,
-          "maximum": 180,
-          "markdownDescription": "控制代码原色在渐变两端的 OKLCH 色相偏移。单位为度，默认 `24` 表示左端 `-24°`、右端 `+24°`；`0` 只保留明暗变化。",
-          "scope": "application",
-          "order": 1
-        },
-        "woodfishTheme.overlay.lightnessDelta": {
-          "type": "number",
-          "default": 0.06,
-          "minimum": 0,
-          "maximum": 0.5,
-          "markdownDescription": "控制代码原色在渐变两端的 OKLCH 明度变化。默认 `0.06`，左端增加、右端减少；算法会自动压回可显示的 sRGB 色域。",
-          "scope": "application",
-          "order": 2
-        },
-        "woodfishTheme.overlay.neutralChroma": {
-          "type": "number",
-          "default": 0.06,
-          "minimum": 0,
-          "maximum": 0.4,
-          "markdownDescription": "为纯白、灰色等低色度文字补充的最小 OKLCH 色度。默认 `0.06`，色相会自动取自当前主题的主要强调色，因此默认前景文字也能获得可见渐变。",
-          "scope": "application",
-          "order": 3
-        },
-        "woodfishTheme.overlay.angle": {
-          "type": "number",
-          "default": 90,
-          "minimum": 0,
-          "maximum": 360,
-          "markdownDescription": "代码渐变方向，单位为度。默认 `90` 为从左到右。",
-          "scope": "application",
-          "order": 4
-        },
-        "woodfishTheme.syntaxGradient.enabled": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "控制通用叠层是否为 Monaco 代码文字生成渐变。关闭后仍可单独保留文字发光、彩色光标和当前颜色主题。",
-          "scope": "application",
-          "order": 5
-        },
-        "woodfishTheme.syntaxGradient.customRules": {
-          "type": "array",
-          "default": [],
-          "maxItems": 32,
-          "markdownDescription": "效果：在默认彩色字体层之后追加你自己的 CSS 覆盖。单位：数组，每一项都是一段 CSS 字符串。原理：这些规则会拼接到 syntax gradient 层的最后，因此可以覆盖默认 token 配色。例子：`[\":not(.cursor)[class*='mtk'] { font-weight: 500 !important; }\"]`。为什么要有这个项：给高级用户留一个精细调色出口，而不是继续往设置面板塞更多离散开关。",
-          "items": {
-            "type": "string",
-            "maxLength": 4096,
-            "pattern": "^(?![\\s\\S]*(?:<\\/[sS][tT][yY][lL][eE]\\b|<\\/?[sS][cC][rR][iI][pP][tT]\\b|@[iI][mM][pP][oO][rR][tT]\\b|[uU][rR][lL]\\s*\\())[\\s\\S]*$"
+    "configuration": [
+      {
+        "id": "woodfishTheme",
+        "title": "开关",
+        "order": 0,
+        "properties": {
+          "woodfishTheme.overlay.enabled": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "markdownDescription": "Woodfish 效果总开关，适用于任意颜色主题。关闭后移除全部效果，下面各项的设置会保留。想一键换风格，可以用 [效果预设](command:woodfish-theme.applyPreset)。",
+            "order": 0
           },
-          "scope": "application",
-          "order": 6
-        },
-        "woodfishTheme.glow.enabled": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "效果：控制文字发光层是否参与最终注入。单位：布尔开关。原理：关闭后会跳过 glow 的 `text-shadow` 样式。例子：设为 `false` 时可保留彩色字体但去掉霓虹糊边。为什么要有这个项：有人喜欢颜色层次，但不喜欢发光带来的眩光和模糊感。",
-          "scope": "application",
-          "order": 7
-        },
-        "woodfishTheme.glow.intensity": {
-          "type": "number",
-          "default": 1,
-          "minimum": 0.1,
-          "maximum": 3,
-          "markdownDescription": "效果：调节发光的整体强弱。单位：倍率，范围 `0.1 - 3`，`1` 为默认。原理：运行时会按这个倍率缩放默认 `text-shadow` 的模糊半径。例子：`0.6` 更克制，`1.5` 更亮，`2` 以上会明显更霓虹。为什么要有这个项：不同显示器、缩放比例和字体粗细下，固定强度并不总是合适。",
-          "scope": "application",
-          "order": 8
-        },
-        "woodfishTheme.glow.customRules": {
-          "type": "array",
-          "default": [],
-          "maxItems": 32,
-          "markdownDescription": "效果：在默认发光层后面追加自定义 CSS。单位：数组，每一项是一段 CSS。原理：这些规则会在 glow 层最后拼接，可精确覆盖某些 token 或元素的发光策略。例子：`[\".monaco-editor .view-lines span[class*='mtk'] { text-shadow: none !important; }\"]`。为什么要有这个项：可以只关掉局部发光，或者给个别语法元素单独加重，而不必改扩展源码。",
-          "items": {
-            "type": "string",
-            "maxLength": 4096,
-            "pattern": "^(?![\\s\\S]*(?:<\\/[sS][tT][yY][lL][eE]\\b|<\\/?[sS][cC][rR][iI][pP][tT]\\b|@[iI][mM][pP][oO][rR][tT]\\b|[uU][rR][lL]\\s*\\())[\\s\\S]*$"
+          "woodfishTheme.syntaxGradient.enabled": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "markdownDescription": "代码文字显示渐变色。",
+            "order": 1
           },
-          "scope": "application",
-          "order": 9
-        },
-        "woodfishTheme.cursor.enabled": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "效果：控制彩色光标主体和尾迹是否一起参与注入。单位：布尔开关。原理：关闭后会跳过 cursor core 和 trail 两层 CSS。例子：设为 `false` 时可保留彩色字体与发光字体，但恢复普通光标。为什么要有这个项：不是所有人都希望光标成为视觉焦点。",
-          "scope": "application",
-          "order": 10
-        },
-        "woodfishTheme.cursor.animationDuration": {
-          "type": "number",
-          "default": 8,
-          "minimum": 1,
-          "maximum": 60,
-          "markdownDescription": "效果：调节彩色光标颜色循环的速度。单位：秒，范围 `1 - 60`。原理：运行时会替换光标动画的持续时间，值越小切换越快。例子：`4` 比较活跃，`8` 是默认，`12` 更平缓。为什么要有这个项：有人喜欢更强的呼吸感，也有人更在意专注度。",
-          "scope": "application",
-          "order": 11
-        },
-        "woodfishTheme.cursor.gradientStops": {
-          "type": "array",
-          "default": [
-            "#ff2d95",
-            "#ff4500",
-            "#ffd700",
-            "#7cfc00",
-            "#00ffff",
-            "#1e90ff",
-            "#9370db",
-            "#ff00ff",
-            "#ff1493"
-          ],
-          "minItems": 2,
-          "maxItems": 16,
-          "markdownDescription": "效果：定义彩色光标从上到下的渐变色带。单位：数组，每一项都是 CSS 颜色值。原理：运行时会把这些颜色拼成 `linear-gradient(180deg, ...)`，同时用于主体和尾迹。例子：`[\"#ff2d95\", \"#ffd700\", \"#00ffff\"]`。为什么要有这个项：这是决定彩色光标个性的核心参数，值得开放给用户。",
-          "items": {
-            "type": "string",
-            "maxLength": 64,
-            "pattern": "^(?:#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|(?:rgb|rgba|hsl|hsla)\\([^()]{1,50}\\)|[a-zA-Z]+)$"
+          "woodfishTheme.glow.enabled": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "markdownDescription": "代码文字带柔和的发光。",
+            "order": 2
           },
-          "scope": "application",
-          "order": 12
-        },
-        "woodfishTheme.cursor.borderRadius": {
-          "type": "number",
-          "default": 2,
-          "minimum": 0,
-          "maximum": 24,
-          "markdownDescription": "效果：调节彩色光标主体和尾迹的圆角。单位：像素 `px`，范围 `0 - 24`。原理：运行时会替换默认光标 CSS 中的 `border-radius`。例子：`0` 更利落，`2` 默认，`8` 更柔和。为什么要有这个项：不同字体粗细和编辑器缩放下，圆角观感差异很明显。",
-          "scope": "application",
-          "order": 13
-        },
-        "woodfishTheme.cursor.glow": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "效果：控制彩色光标的尾迹发光是否启用。单位：布尔开关。原理：关闭后只保留彩色光标主体，不再注入尾迹 pseudo-element。例子：设为 `false` 可保留彩色光标，但去掉拖尾。为什么要有这个项：有人想保留色彩辨识度，但不希望尾迹分散注意力。",
-          "scope": "application",
-          "order": 14
-        },
-        "woodfishTheme.cursor.glowBlur": {
-          "type": "number",
-          "default": 0,
-          "minimum": 0,
-          "maximum": 24,
-          "markdownDescription": "效果：按需开启光标尾迹模糊。单位：像素 `px`，范围 `0 - 24`，默认 `0` 表示不启用 GPU blur。原理：只有值大于 `0` 时，运行时才会添加 `blur(...)`。例子：保持 `0` 获得更低的 GPU 开销，设为 `4` 可恢复柔和光晕。为什么要有这个项：默认优先性能，同时保留用户主动选择模糊效果的能力。",
-          "scope": "application",
-          "order": 15
-        },
-        "woodfishTheme.cursor.glowOpacity": {
-          "type": "number",
-          "default": 0.7,
-          "minimum": 0,
-          "maximum": 1,
-          "markdownDescription": "效果：调节光标尾迹发光的存在感。单位：透明度，范围 `0 - 1`。原理：运行时会替换尾迹层的 `opacity`。例子：`0.35` 更克制，`0.7` 默认，`1` 最亮。为什么要有这个项：这样用户可以控制“看得见多少”，而不是只能全开或全关。",
-          "scope": "application",
-          "order": 16
-        },
-        "woodfishTheme.cursor.customRules": {
-          "type": "array",
-          "default": [],
-          "maxItems": 32,
-          "markdownDescription": "效果：在默认彩色光标层后追加自定义 CSS。单位：数组，每一项是一段 CSS。原理：这些规则会拼在 cursor 样式最后，可直接覆盖主体或尾迹细节。例子：`[\"div.cursor { width: 3px !important; }\"]`。为什么要有这个项：给高级用户留一个最终覆盖出口，避免为了少量个性化需求继续扩展设置项。",
-          "items": {
-            "type": "string",
-            "maxLength": 4096,
-            "pattern": "^(?![\\s\\S]*(?:<\\/[sS][tT][yY][lL][eE]\\b|<\\/?[sS][cC][rR][iI][pP][tT]\\b|@[iI][mM][pP][oO][rR][tT]\\b|[uU][rR][lL]\\s*\\())[\\s\\S]*$"
+          "woodfishTheme.cursor.enabled": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "markdownDescription": "光标变成循环变色的彩色光标。",
+            "order": 3
           },
-          "scope": "application",
-          "order": 17
-        },
-        "woodfishTheme.glass.enabled": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "为菜单、悬浮提示、补全列表、命令面板、通知、查找框等浮层开启毛玻璃。底色取自当前颜色主题，无需修改 `workbench.colorCustomizations`。",
-          "scope": "application",
-          "order": 18
-        },
-        "woodfishTheme.glass.mode": {
-          "type": "string",
-          "enum": [
-            "blur",
-            "acrylic"
-          ],
-          "enumDescriptions": [
-            "CSS 背景模糊 + 噪点颗粒，开销最低、兼容性最好",
-            "SVG 亚克力滤镜（模糊 + 颗粒在滤镜内合成），质感更好、开销更高"
-          ],
-          "default": "blur",
-          "markdownDescription": "毛玻璃的渲染方式。",
-          "scope": "application",
-          "order": 19
-        },
-        "woodfishTheme.glass.blur": {
-          "type": "number",
-          "default": 30,
-          "minimum": 0,
-          "maximum": 60,
-          "markdownDescription": "背景模糊半径，单位 `px`。默认 `30`（Fluent Acrylic 推荐值）；`0` 只保留半透明底色。",
-          "scope": "application",
-          "order": 20
-        },
-        "woodfishTheme.glass.saturate": {
-          "type": "number",
-          "default": 125,
-          "minimum": 100,
-          "maximum": 250,
-          "markdownDescription": "背景饱和度，单位 `%`。默认 `125`，让透出的颜色不发灰。",
-          "scope": "application",
-          "order": 21
-        },
-        "woodfishTheme.glass.opacity": {
-          "type": "number",
-          "default": 0.7,
-          "minimum": 0.15,
-          "maximum": 1,
-          "markdownDescription": "浮层底色的不透明度。默认 `0.7` 兼顾通透与文字可读性；在浅色或花哨的背景上建议调高。",
-          "scope": "application",
-          "order": 22
-        },
-        "woodfishTheme.glass.noise": {
-          "type": "number",
-          "default": 0.02,
-          "minimum": 0,
-          "maximum": 0.2,
-          "markdownDescription": "磨砂颗粒强度。默认 `0.02`；`0` 关闭颗粒。",
-          "scope": "application",
-          "order": 23
-        },
-        "woodfishTheme.glass.borderRadius": {
-          "type": "number",
-          "default": 0,
-          "minimum": 0,
-          "maximum": 16,
-          "markdownDescription": "浮层圆角，单位 `px`。默认 `0` 表示跟随 VS Code 自带的圆角设计。",
-          "scope": "application",
-          "order": 24
-        },
-        "woodfishTheme.glass.targets": {
-          "type": "array",
-          "uniqueItems": true,
-          "default": [
-            "menu",
-            "hover",
-            "suggest",
-            "quickInput",
-            "notifications",
-            "editorWidget",
-            "dropdown",
-            "breadcrumbPicker",
-            "debugToolbar",
-            "stickyScroll",
-            "paneHeader",
-            "dialog"
-          ],
-          "items": {
-            "type": "string",
-            "enum": [
+          "woodfishTheme.glass.enabled": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "markdownDescription": "菜单、悬浮提示、补全列表、命令面板、通知等弹出层使用毛玻璃，底色跟随当前颜色主题。",
+            "order": 4
+          }
+        }
+      },
+      {
+        "id": "woodfishTheme.overlay",
+        "title": "彩色字体",
+        "order": 1,
+        "properties": {
+          "woodfishTheme.overlay.hueShift": {
+            "type": "number",
+            "default": 24,
+            "minimum": 0,
+            "maximum": 180,
+            "scope": "application",
+            "markdownDescription": "渐变两端的颜色偏移，单位为度。数值越大，同一个词首尾的颜色差别越明显；`0` 只保留明暗变化。默认 `24`，范围 `0`–`180`。",
+            "order": 0
+          },
+          "woodfishTheme.overlay.lightnessDelta": {
+            "type": "number",
+            "default": 0.06,
+            "minimum": 0,
+            "maximum": 0.5,
+            "scope": "application",
+            "markdownDescription": "渐变两端的明暗差，数值越大左亮右暗越明显。默认 `0.06`，范围 `0`–`0.5`。",
+            "order": 1
+          },
+          "woodfishTheme.overlay.neutralChroma": {
+            "type": "number",
+            "default": 0.06,
+            "minimum": 0,
+            "maximum": 0.4,
+            "scope": "application",
+            "markdownDescription": "给白色、灰色这类没有颜色的文字补一点主题色，让它们也能看出渐变；`0` 保持原样。默认 `0.06`，范围 `0`–`0.4`。",
+            "order": 2
+          },
+          "woodfishTheme.overlay.angle": {
+            "type": "number",
+            "default": 90,
+            "minimum": 0,
+            "maximum": 360,
+            "scope": "application",
+            "markdownDescription": "渐变方向，单位为度。`90` 从左到右，`180` 从上到下。默认 `90`。",
+            "order": 3
+          }
+        }
+      },
+      {
+        "id": "woodfishTheme.glow",
+        "title": "发光字体",
+        "order": 2,
+        "properties": {
+          "woodfishTheme.glow.intensity": {
+            "type": "number",
+            "default": 1,
+            "minimum": 0.1,
+            "maximum": 3,
+            "scope": "application",
+            "markdownDescription": "发光强度倍数。`0.6` 更含蓄，`1.5` 更亮，`2` 以上很霓虹。默认 `1`，范围 `0.1`–`3`。",
+            "order": 0
+          }
+        }
+      },
+      {
+        "id": "woodfishTheme.cursor",
+        "title": "彩色光标",
+        "order": 3,
+        "properties": {
+          "woodfishTheme.cursor.gradientStops": {
+            "type": "array",
+            "default": [
+              "#ff2d95",
+              "#ff4500",
+              "#ffd700",
+              "#7cfc00",
+              "#00ffff",
+              "#1e90ff",
+              "#9370db",
+              "#ff00ff",
+              "#ff1493"
+            ],
+            "minItems": 2,
+            "maxItems": 16,
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^(?:#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|(?:rgb|rgba|hsl|hsla)\\([^()]{1,50}\\)|[a-zA-Z]+)$"
+            },
+            "scope": "application",
+            "markdownDescription": "光标从上到下的颜色，2–16 个，支持 `#hex`、`rgb()`、`hsl()` 和颜色名。不改时使用当前 Woodfish 主题自带的配色。也可以用命令 [选择彩色光标配色](command:woodfish-theme.pickCursorPalette) 挑一套。",
+            "order": 0
+          },
+          "woodfishTheme.cursor.animationDuration": {
+            "type": "number",
+            "default": 8,
+            "minimum": 1,
+            "maximum": 60,
+            "scope": "application",
+            "markdownDescription": "颜色循环一圈的秒数，越小变色越快。默认 `8`，范围 `1`–`60`。",
+            "order": 1
+          },
+          "woodfishTheme.cursor.borderRadius": {
+            "type": "number",
+            "default": 2,
+            "minimum": 0,
+            "maximum": 24,
+            "scope": "application",
+            "markdownDescription": "光标圆角，单位 `px`。默认 `2`，范围 `0`–`24`。",
+            "order": 2
+          },
+          "woodfishTheme.cursor.glow": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "markdownDescription": "光标周围的彩色光晕。",
+            "order": 3
+          },
+          "woodfishTheme.cursor.glowOpacity": {
+            "type": "number",
+            "default": 0.7,
+            "minimum": 0,
+            "maximum": 1,
+            "scope": "application",
+            "markdownDescription": "光晕亮度。默认 `0.7`，范围 `0`–`1`。",
+            "order": 4
+          },
+          "woodfishTheme.cursor.glowBlur": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 24,
+            "scope": "application",
+            "markdownDescription": "光晕模糊，单位 `px`。默认 `0` 不模糊、最省性能；`4` 左右更柔和。范围 `0`–`24`。",
+            "order": 5
+          }
+        }
+      },
+      {
+        "id": "woodfishTheme.glass",
+        "title": "毛玻璃",
+        "order": 4,
+        "properties": {
+          "woodfishTheme.glass.targets": {
+            "type": "array",
+            "uniqueItems": true,
+            "default": [
               "menu",
               "hover",
               "suggest",
@@ -464,106 +380,244 @@
               "paneHeader",
               "dialog"
             ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "menu",
+                "hover",
+                "suggest",
+                "quickInput",
+                "notifications",
+                "editorWidget",
+                "dropdown",
+                "breadcrumbPicker",
+                "debugToolbar",
+                "stickyScroll",
+                "paneHeader",
+                "dialog"
+              ],
+              "enumDescriptions": [
+                "右键菜单、菜单栏与下拉菜单",
+                "悬浮提示（含调试悬浮）",
+                "代码补全列表与详情",
+                "命令面板 / 快速打开",
+                "通知与通知中心",
+                "查找、重命名、Code Action 等编辑器小部件",
+                "设置页等处的下拉选择框",
+                "面包屑选择器",
+                "调试工具栏",
+                "编辑器与资源管理器的粘性滚动",
+                "侧边栏分区标题",
+                "模态对话框"
+              ]
+            },
+            "scope": "application",
+            "markdownDescription": "哪些弹出层使用毛玻璃，默认全部。",
+            "order": 0
+          },
+          "woodfishTheme.glass.opacity": {
+            "type": "number",
+            "default": 0.7,
+            "minimum": 0.15,
+            "maximum": 1,
+            "scope": "application",
+            "markdownDescription": "弹出层底色的不透明度，越小越通透。默认 `0.7`；背景花哨或文字看不清时调高。范围 `0.15`–`1`。",
+            "order": 1
+          },
+          "woodfishTheme.glass.blur": {
+            "type": "number",
+            "default": 30,
+            "minimum": 0,
+            "maximum": 60,
+            "scope": "application",
+            "markdownDescription": "背景模糊程度，单位 `px`。默认 `30`；`0` 只保留半透明底色。范围 `0`–`60`。",
+            "order": 2
+          },
+          "woodfishTheme.glass.mode": {
+            "type": "string",
+            "enum": [
+              "blur",
+              "acrylic"
+            ],
             "enumDescriptions": [
-              "右键菜单、菜单栏与下拉菜单",
-              "悬浮提示（含调试悬浮）",
-              "代码补全列表与详情",
-              "命令面板 / 快速打开",
-              "通知与通知中心",
-              "查找、重命名、Code Action 等编辑器小部件",
-              "设置页等处的下拉选择框",
-              "面包屑选择器",
-              "调试工具栏",
-              "编辑器与资源管理器的粘性滚动",
-              "侧边栏分区标题",
-              "模态对话框"
+              "普通模糊：开销低、兼容性好",
+              "亚克力：质感更好，开销稍高"
+            ],
+            "default": "blur",
+            "scope": "application",
+            "markdownDescription": "毛玻璃的画法。",
+            "order": 3
+          },
+          "woodfishTheme.glass.saturate": {
+            "type": "number",
+            "default": 125,
+            "minimum": 100,
+            "maximum": 250,
+            "scope": "application",
+            "markdownDescription": "透出背景的鲜艳程度，单位 `%`。默认 `125`，避免颜色发灰。范围 `100`–`250`。",
+            "order": 4
+          },
+          "woodfishTheme.glass.noise": {
+            "type": "number",
+            "default": 0.02,
+            "minimum": 0,
+            "maximum": 0.2,
+            "scope": "application",
+            "markdownDescription": "磨砂颗粒感。默认 `0.02`；`0` 关闭颗粒。范围 `0`–`0.2`。",
+            "order": 5
+          },
+          "woodfishTheme.glass.borderRadius": {
+            "type": "number",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 16,
+            "scope": "application",
+            "markdownDescription": "弹出层圆角，单位 `px`。默认 `0` 表示沿用 VS Code 自带的圆角。范围 `0`–`16`。",
+            "order": 6
+          },
+          "woodfishTheme.glass.animations": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "markdownDescription": "菜单、悬浮提示、命令面板弹出时的淡入动画。系统开启“减少动态效果”或 `workbench.reduceMotion` 时自动关闭。",
+            "order": 7
+          },
+          "woodfishTheme.glass.reveal": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "markdownDescription": "鼠标划过列表、按钮、标签页时，跟随指针的柔光。",
+            "order": 8
+          }
+        }
+      },
+      {
+        "id": "woodfishTheme.glass.nativeWindow",
+        "title": "透明窗口（实验）",
+        "order": 5,
+        "properties": {
+          "woodfishTheme.glass.nativeWindow.enabled": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "markdownDescription": "让整个窗口透出桌面（Windows 11 亚克力 / 云母，macOS vibrancy），Linux 不支持。开启后需要**完全退出**编辑器再打开；编辑器更新后要重新开启。关闭或卸载 Woodfish 时自动还原。",
+            "order": 0
+          },
+          "woodfishTheme.glass.nativeWindow.windowsMaterial": {
+            "type": "string",
+            "enum": [
+              "acrylic",
+              "mica",
+              "tabbed"
+            ],
+            "enumDescriptions": [
+              "亚克力：透出窗口后面的内容",
+              "云母：取桌面壁纸色调，更省电",
+              "标签式云母：颜色更深"
+            ],
+            "default": "acrylic",
+            "scope": "application",
+            "markdownDescription": "Windows 11 上的窗口材质。",
+            "order": 1
+          },
+          "woodfishTheme.glass.nativeWindow.macVibrancy": {
+            "type": "string",
+            "enum": [
+              "under-window",
+              "sidebar",
+              "fullscreen-ui",
+              "hud",
+              "window",
+              "content"
+            ],
+            "default": "under-window",
+            "scope": "application",
+            "markdownDescription": "macOS 上的窗口材质。",
+            "order": 2,
+            "enumDescriptions": [
+              "窗口下方（推荐）",
+              "侧边栏",
+              "全屏界面",
+              "HUD 浮窗，偏深",
+              "窗口",
+              "内容区"
             ]
           },
-          "markdownDescription": "哪些浮层使用毛玻璃。",
-          "scope": "application",
-          "order": 25
-        },
-        "woodfishTheme.glass.animations": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "菜单、悬浮提示、命令面板等弹出时的入场动画。遵循系统“减少动态效果”与 `workbench.reduceMotion`。",
-          "scope": "application",
-          "order": 26
-        },
-        "woodfishTheme.glass.reveal": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Reveal 光效：鼠标划过列表、按钮、标签页时跟随指针的柔光。",
-          "scope": "application",
-          "order": 27
-        },
-        "woodfishTheme.glass.nativeWindow.enabled": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "**实验功能**：让整个 VS Code 窗口透出桌面（macOS vibrancy / Windows 11 亚克力或云母）。需要在 `out/main.js` 开头加入一行受保护的加载语句，生效需完全退出 VS Code；VS Code 更新后需重新开启。关闭、彻底停用或卸载 Woodfish 时自动还原。Linux 不支持。",
-          "scope": "application",
-          "order": 28
-        },
-        "woodfishTheme.glass.nativeWindow.windowsMaterial": {
-          "type": "string",
-          "enum": [
-            "acrylic",
-            "mica",
-            "tabbed"
-          ],
-          "enumDescriptions": [
-            "亚克力：透出窗口后面的内容",
-            "云母：取桌面壁纸色调，更省电",
-            "标签式云母：颜色更深"
-          ],
-          "default": "acrylic",
-          "markdownDescription": "Windows 11 的系统窗口材质。",
-          "scope": "application",
-          "order": 29
-        },
-        "woodfishTheme.glass.nativeWindow.macVibrancy": {
-          "type": "string",
-          "enum": [
-            "under-window",
-            "sidebar",
-            "fullscreen-ui",
-            "hud",
-            "window",
-            "content"
-          ],
-          "default": "under-window",
-          "markdownDescription": "macOS 的 vibrancy 材质。",
-          "scope": "application",
-          "order": 30
-        },
-        "woodfishTheme.glass.nativeWindow.opacity": {
-          "type": "number",
-          "default": 0.78,
-          "minimum": 0.3,
-          "maximum": 1,
-          "markdownDescription": "系统级透明窗口开启时，编辑器、侧边栏等区域底色的不透明度。",
-          "scope": "application",
-          "order": 31
-        },
-        "woodfishTheme.runtime.fixChecksums": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "注入后同步更新 `product.json` 中对应文件的校验和，避免 VS Code 提示“安装似乎损坏”。移除注入时会再次同步。",
-          "scope": "application",
-          "order": 32
-        },
-        "woodfishTheme.presets.custom": {
-          "type": "object",
-          "default": {},
-          "markdownDescription": "“保存为预设”记录的自定义预设。建议通过命令 `Woodfish Theme: 选择效果预设` 管理。",
-          "additionalProperties": {
-            "type": "object"
+          "woodfishTheme.glass.nativeWindow.opacity": {
+            "type": "number",
+            "default": 0.78,
+            "minimum": 0.3,
+            "maximum": 1,
+            "scope": "application",
+            "markdownDescription": "透明窗口下编辑器、侧边栏底色的不透明度，越小越透。默认 `0.78`，范围 `0.3`–`1`。",
+            "order": 3
+          }
+        }
+      },
+      {
+        "id": "woodfishTheme.advanced",
+        "title": "高级",
+        "order": 6,
+        "properties": {
+          "woodfishTheme.syntaxGradient.customRules": {
+            "type": "array",
+            "default": [],
+            "maxItems": 32,
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "pattern": "^(?![\\s\\S]*(?:<\\/[sS][tT][yY][lL][eE]\\b|<\\/?[sS][cC][rR][iI][pP][tT]\\b|@[iI][mM][pP][oO][rR][tT]\\b|[uU][rR][lL]\\s*\\())[\\s\\S]*$"
+            },
+            "scope": "application",
+            "markdownDescription": "追加在彩色字体之后的自定义 CSS，每项一条规则。例如 `\":not(.cursor)[class*='mtk'] { font-weight: 500 !important; }\"`。",
+            "order": 0
           },
-          "scope": "application",
-          "order": 33
+          "woodfishTheme.glow.customRules": {
+            "type": "array",
+            "default": [],
+            "maxItems": 32,
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "pattern": "^(?![\\s\\S]*(?:<\\/[sS][tT][yY][lL][eE]\\b|<\\/?[sS][cC][rR][iI][pP][tT]\\b|@[iI][mM][pP][oO][rR][tT]\\b|[uU][rR][lL]\\s*\\())[\\s\\S]*$"
+            },
+            "scope": "application",
+            "markdownDescription": "追加在发光字体之后的自定义 CSS，每项一条规则。例如关掉某类文字的发光：`\".monaco-editor .view-lines span[class*='mtk'] { text-shadow: none !important; }\"`。",
+            "order": 1
+          },
+          "woodfishTheme.cursor.customRules": {
+            "type": "array",
+            "default": [],
+            "maxItems": 32,
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "pattern": "^(?![\\s\\S]*(?:<\\/[sS][tT][yY][lL][eE]\\b|<\\/?[sS][cC][rR][iI][pP][tT]\\b|@[iI][mM][pP][oO][rR][tT]\\b|[uU][rR][lL]\\s*\\())[\\s\\S]*$"
+            },
+            "scope": "application",
+            "markdownDescription": "追加在彩色光标之后的自定义 CSS，每项一条规则。例如 `\"div.cursor { width: 3px !important; }\"`。",
+            "order": 2
+          },
+          "woodfishTheme.runtime.fixChecksums": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "markdownDescription": "写入效果后同步更新编辑器的文件校验和，避免出现“安装似乎损坏”的提示。一般不需要关闭。",
+            "order": 3
+          },
+          "woodfishTheme.presets.custom": {
+            "type": "object",
+            "default": {},
+            "additionalProperties": {
+              "type": "object"
+            },
+            "scope": "application",
+            "markdownDescription": "“保存为预设”记下的自定义预设。建议用命令 [选择效果预设](command:woodfish-theme.applyPreset) 管理，不用手动编辑。",
+            "order": 4
+          }
         }
       }
-    },
+    ],
     "menus": {
       "commandPalette": [
         {
