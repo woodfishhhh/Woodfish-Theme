@@ -97,3 +97,8 @@ npm run package          # Build the VSIX
 - 8 feature commands + repair/uninstall commands
 - Theme-specific syntax and metadata stay separate from shared runtime CSS
 - `README.md` and `LICENSE` live at the repo root and are copied into the extension only while packaging
+
+## Finishing a Task
+
+- Before you finish, delete what the task left behind: debug scripts, logs, screenshots, `.playwright-*`, and temporary worktrees. This checkout is the only one; develop the monorepo line on `feat/monorepo-theme-core` here instead of adding a sibling worktree.
+- Record what you confirmed, the pitfalls you hit, and the user's stated preferences in the matching entry of this file or `docs/`. Rewrite existing entries and drop stale ones rather than appending a log.
