@@ -23,7 +23,7 @@ const colors = deriveTokenGradient('rgb(97, 175, 234)', {
 
 ## 构建与使用
 
-- `npm run compile -w @woodfish/theme-core` 输出 CommonJS 与类型声明到 `out/`。
+- `pnpm --filter @woodfish/theme-core run compile` 输出 CommonJS 与类型声明到 `out/`。
 - 打包工具通过 `source` 导出条件直接引用 `src/` 中的 TypeScript 源码。VS Code 扩展就是这样把核心打进 VSIX 的，所以发布出去的产物不依赖本包。
 - 包目前标记为 `private`，只在本仓库内使用。
 

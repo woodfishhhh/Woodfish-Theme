@@ -16,41 +16,43 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Compile all workspaces
-        run: npm run compile
+        run: pnpm compile
 
       - name: Check generated themes and renderer scripts
         run: |
-          npm run themes:check
-          npm run runtime:check
-          npm run codex:check
+          pnpm themes:check
+          pnpm runtime:check
+          pnpm codex:check
 
       - name: Check formatting
-        run: npm run format:check
+        run: pnpm format:check
 
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
 
       - name: Test all workspaces
-        run: npm test -- --runInBand
+        run: pnpm test --runInBand
 
       - name: Run VS Code integration tests
-        run: xvfb-run -a npm run test:integration
+        run: xvfb-run -a pnpm test:integration
 
       - name: Check release package hygiene
-        run: npm run pre-publish
+        run: pnpm pre-publish
 
       - name: Package VS Code extension
-        run: npm run package -- --out "$GITHUB_WORKSPACE/dist/"
+        run: pnpm package --out "$GITHUB_WORKSPACE/dist/"
 
       - name: Check the VSIX is self-contained
         run: |
@@ -75,24 +77,26 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build and test the desktop CLI and shared packages
         run: |
-          npm run compile -w @woodfish/theme-core
-          npm run compile -w @woodfish/renderer-runtime
-          npm run compile -w @woodfish/adapter-codex
-          npm run compile -w @woodfish/desktop-cli
-          npm run codex:check
-          npm test -w @woodfish/adapter-codex -- --runInBand
-          npm test -w @woodfish/desktop-cli -- --runInBand
+          pnpm --filter @woodfish/theme-core run compile
+          pnpm --filter @woodfish/renderer-runtime run compile
+          pnpm --filter @woodfish/adapter-codex run compile
+          pnpm --filter @woodfish/desktop-cli run compile
+          pnpm codex:check
+          pnpm --filter @woodfish/adapter-codex run test --runInBand
+          pnpm --filter @woodfish/desktop-cli run test --runInBand
 
       - name: Smoke-test the bundled CLI
         run: node apps/desktop-cli/out/woodfish.js help

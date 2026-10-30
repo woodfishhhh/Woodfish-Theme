@@ -60,7 +60,7 @@ async function main() {
       const current = fs.existsSync(outputPath) ? fs.readFileSync(outputPath, 'utf8') : null;
       if (current !== content) {
         stale = true;
-        console.error(`✗ ${entry.output} is out of date; run npm run runtime:build`);
+        console.error(`✗ ${entry.output} is out of date; run pnpm runtime:build`);
       }
       continue;
     }

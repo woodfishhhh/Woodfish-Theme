@@ -42,9 +42,9 @@ Dark 和 Dracula 的配色由 `apps/vscode-extension/scripts/port-palettes.js` �
 需要 Node.js 22 或更高版本。在仓库根目录运行：
 
 ```bash
-npm install
-npm run compile                 # 生成 apps/desktop-cli/out/woodfish.js
-npm run woodfish -- codex status
+pnpm install
+pnpm compile                 # 生成 apps/desktop-cli/out/woodfish.js
+pnpm woodfish codex status
 ```
 
 也可以直接运行 `node apps/desktop-cli/out/woodfish.js codex <命令>`。

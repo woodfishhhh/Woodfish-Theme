@@ -97,7 +97,7 @@ async function buildAssets({ check, write }) {
       const current = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
       if (current !== text) {
         stale = true;
-        console.error(`✗ ${asset.output} is out of date; run npm run codex:build`);
+        console.error(`✗ ${asset.output} is out of date; run pnpm codex:build`);
       }
       continue;
     }

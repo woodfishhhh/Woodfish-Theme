@@ -92,7 +92,7 @@ VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建�
 
 ## 构建方式
 
-- `npm run compile`：通过 TypeScript project references 依次构建共享包（输出到各自的 `out/`），检查各应用的类型，并生成 `apps/desktop-cli/out/woodfish.js`。
+- `pnpm compile`：通过 TypeScript project references 依次构建共享包（输出到各自的 `out/`），检查各应用的类型，并生成 `apps/desktop-cli/out/woodfish.js`。
 - 打包工具通过 `source` 导出条件直接引用共享包的 TypeScript 源码，把它们打进产物。VSIX 和 `woodfish.js` 都不需要 `node_modules`，也不依赖本仓库。
 - 渲染端脚本（VS Code 的 `overlay-bootstrap.js`、Codex 的 `assets/*.js`）提交入库，因为运行时直接读取，测试也要检查它们。`runtime:check`、`codex:check` 和对应的测试会在共享包变化、产物没有重新生成时报错。`compile` 不会改写这些已提交的文件。
 - 原创主题 JSON 由 `apps/vscode-extension/scripts/generate-themes.js` 根据核心里的调色板生成，`themes:check` 检查是否过期。
@@ -103,14 +103,14 @@ VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建�
 共享包的改动可能影响所有产品。提交前在仓库根目录运行：
 
 ```bash
-npm run compile
-npm run themes:check
-npm run runtime:check
-npm run codex:check
-npm test
+pnpm compile
+pnpm themes:check
+pnpm runtime:check
+pnpm codex:check
+pnpm test
 ```
 
-检查失败时，运行 `npm run themes:generate`、`npm run runtime:build` 或 `npm run codex:build`，并把生成的文件一起提交。
+检查失败时，运行 `pnpm themes:generate`、`pnpm runtime:build` 或 `pnpm codex:build`，并把生成的文件一起提交。
 
 ## 新增宿主应用
 

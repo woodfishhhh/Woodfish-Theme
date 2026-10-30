@@ -682,9 +682,9 @@
   },
   "scripts": {
     "compile": "tsc -b && tsc -p browser/tsconfig.json",
-    "build:dev": "npm run compile && npm run runtime:build",
+    "build:dev": "pnpm compile && pnpm runtime:build",
     "watch": "tsc -b -w",
-    "vscode:prepublish": "npm run compile && npm run runtime:build && npm run bundle",
+    "vscode:prepublish": "pnpm compile && pnpm runtime:build && pnpm bundle",
     "vscode:uninstall": "node ./out/uninstall.js",
     "format": "prettier --write \"src/**/*.ts\" \"browser/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"browser/**/*.ts\"",
@@ -693,9 +693,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:integration": "npm run build:dev && node out/integration/runTests.js",
+    "test:integration": "pnpm build:dev && node out/integration/runTests.js",
     "pre-publish": "node scripts/pre-publish-check.js",
-    "verify": "npm run compile && npm run themes:check && npm run runtime:check && npm run format:check && npm run lint && npm test && npm run pre-publish",
+    "verify": "pnpm compile && pnpm themes:check && pnpm runtime:check && pnpm format:check && pnpm lint && pnpm test && pnpm pre-publish",
     "publish": "node scripts/publish.js",
     "publish:pre-release": "node scripts/publish.js --pre-release",
     "package": "node scripts/package.js",
@@ -710,8 +710,8 @@
     "@types/vscode": "1.74.0",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
-    "@woodfish/renderer-runtime": "0.1.0",
-    "@woodfish/theme-core": "0.1.0"
+    "@woodfish/renderer-runtime": "workspace:*",
+    "@woodfish/theme-core": "workspace:*"
   },
   "repository": {
     "type": "git",

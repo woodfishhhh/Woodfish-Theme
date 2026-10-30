@@ -24,10 +24,10 @@ git clone https://github.com/YOUR_USERNAME/Woodfish-Theme.git
 cd Woodfish-Theme
 
 # 2. 安装依赖（npm workspaces，会同时链接 packages/ 与 apps/ 下的包）
-npm install
+pnpm install
 
 # 3. 编译项目
-npm run compile
+pnpm compile
 
 # 4. 在 VSCode 中打开项目
 code .
@@ -73,8 +73,8 @@ code .
 如果您想改进主题设计：
 
 1. 主题 JSON、元数据和语法渐变分别位于 `apps/vscode-extension/themes/bearded/` 与 `apps/vscode-extension/themes/dracula/`
-2. Woodfish 原创调色板（Light / Black / Neon）定义在 `packages/theme-core/src/palettes/`，修改后运行 `npm run themes:generate` 重新生成主题 JSON；同一命令也会从 Woodfish Dark / Dracula 的主题文件重新生成 `palettes/ported.ts`
-3. 各主题共用的注入 CSS 位于 `apps/vscode-extension/themes/shared/`；渲染端脚本源码位于 `apps/vscode-extension/browser/`，修改后运行 `npm run runtime:build`
+2. Woodfish 原创调色板（Light / Black / Neon）定义在 `packages/theme-core/src/palettes/`，修改后运行 `pnpm themes:generate` 重新生成主题 JSON；同一命令也会从 Woodfish Dark / Dracula 的主题文件重新生成 `palettes/ported.ts`
+3. 各主题共用的注入 CSS 位于 `apps/vscode-extension/themes/shared/`；渲染端脚本源码位于 `apps/vscode-extension/browser/`，修改后运行 `pnpm runtime:build`
 4. 如涉及运行时拼装逻辑，同时检查 `apps/vscode-extension/src/services/runtime/assets.ts` 与 `apps/vscode-extension/src/services/runtime/payloadBuilder.ts`；颜色与渐变算法在 `packages/theme-core/src/`
 5. 至少在 `Woodfish Dark` 和 `Woodfish Dracula` 下验证启用、停用、主题切换与修复注入
 6. 提供前后对比截图，并说明是否影响彩色字体 / 发光 / 彩色光标
@@ -154,20 +154,20 @@ feat(theme): 添加新的渐变样式
 至少运行以下检查：
 
 ```bash
-npm run compile
-npm run themes:check
-npm run runtime:check
-npm run lint
-npm run format:check
-npm test
-npm run test:integration
-npm run pre-publish
-npm run package
+pnpm compile
+pnpm themes:check
+pnpm runtime:check
+pnpm lint
+pnpm format:check
+pnpm test
+pnpm test:integration
+pnpm pre-publish
+pnpm package
 ```
 
 修改 `packages/theme-core` 时，所有使用它的产品都可能受影响；`themes:check` 和 `runtime:check` 会发现未重新生成的主题与渲染端脚本。
 
-`npm run test:integration` 会启动隔离的 VS Code 扩展宿主，验证 runtime payload 的开启、关闭与原始工作台恢复。CI 会在 Linux 的虚拟显示环境中执行同一条链路，并继续检查 VSIX 内容。
+`pnpm test:integration` 会启动隔离的 VS Code 扩展宿主，验证 runtime payload 的开启、关闭与原始工作台恢复。CI 会在 Linux 的虚拟显示环境中执行同一条链路，并继续检查 VSIX 内容。
 
 ### 4. 提交 Pull Request
 

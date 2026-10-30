@@ -19,9 +19,9 @@
 - Test: `src/__tests__/payloadBuilder.test.ts`
 
 - [ ] **Step 1: Write failing tests for removed settings**
-- [ ] **Step 2: Run `npm test -- featureFlags.test.ts payloadBuilder.test.ts --runInBand` and confirm failures mention removed runtime/preset expectations**
+- [ ] **Step 2: Run `pnpm test featureFlags.test.ts payloadBuilder.test.ts --runInBand` and confirm failures mention removed runtime/preset expectations**
 - [ ] **Step 3: Remove deleted config keys from `package.json`, `src/types/features.ts`, `src/constants/config.ts`, and `src/config/featureFlags.ts`**
-- [ ] **Step 4: Re-run `npm test -- featureFlags.test.ts payloadBuilder.test.ts --runInBand` and confirm pass**
+- [ ] **Step 4: Re-run `pnpm test featureFlags.test.ts payloadBuilder.test.ts --runInBand` and confirm pass**
 
 ### Task 2: Add runtime status model and legacy takeover tests
 
@@ -32,9 +32,9 @@
 - Test: `src/__tests__/runtimeState.test.ts`
 
 - [ ] **Step 1: Write failing tests for runtime status detection and known-legacy payload takeover**
-- [ ] **Step 2: Run `npm test -- workbenchPatcher.test.ts runtimeState.test.ts --runInBand` and confirm failures are for missing runtime status / takeover helpers**
+- [ ] **Step 2: Run `pnpm test workbenchPatcher.test.ts runtimeState.test.ts --runInBand` and confirm failures are for missing runtime status / takeover helpers**
 - [ ] **Step 3: Implement runtime snapshot types and helpers in `src/types/features.ts`, `src/services/runtime/state.ts`, and `src/services/runtime/workbenchPatcher.ts`**
-- [ ] **Step 4: Re-run `npm test -- workbenchPatcher.test.ts runtimeState.test.ts --runInBand` and confirm pass**
+- [ ] **Step 4: Re-run `pnpm test workbenchPatcher.test.ts runtimeState.test.ts --runInBand` and confirm pass**
 
 ### Task 3: Refactor integrated runtime commands and service
 
@@ -60,9 +60,9 @@
 - Modify: `src/extension.ts`
 
 - [ ] **Step 1: Write failing tests for `on|paused|off` rendering and menu descriptions**
-- [ ] **Step 2: Run `npm test -- showFeatureMenu.test.ts --runInBand` and confirm failure**
+- [ ] **Step 2: Run `pnpm test showFeatureMenu.test.ts --runInBand` and confirm failure**
 - [ ] **Step 3: Implement combined feature/runtime snapshot rendering**
-- [ ] **Step 4: Re-run `npm test -- showFeatureMenu.test.ts --runInBand` and confirm pass**
+- [ ] **Step 4: Re-run `pnpm test showFeatureMenu.test.ts --runInBand` and confirm pass**
 
 ### Task 5: Update docs and release notes to match shipped behavior
 
@@ -74,16 +74,16 @@
 - Modify: `src/__tests__/legacyCleanup.test.ts`
 
 - [ ] **Step 1: Write failing doc assertions for the new settings model**
-- [ ] **Step 2: Run `npm test -- legacyCleanup.test.ts --runInBand` and confirm failure**
+- [ ] **Step 2: Run `pnpm test legacyCleanup.test.ts --runInBand` and confirm failure**
 - [ ] **Step 3: Rewrite docs/examples to match real settings and runtime behavior**
-- [ ] **Step 4: Re-run `npm test -- legacyCleanup.test.ts --runInBand` and confirm pass**
+- [ ] **Step 4: Re-run `pnpm test legacyCleanup.test.ts --runInBand` and confirm pass**
 
 ### Task 6: Full verification
 
 **Files:**
 - Modify: none expected
 
-- [ ] **Step 1: Run `npm test -- --runInBand`**
-- [ ] **Step 2: Run `npm run compile`**
-- [ ] **Step 3: Run `npm run lint`**
+- [ ] **Step 1: Run `pnpm test --runInBand`**
+- [ ] **Step 2: Run `pnpm compile`**
+- [ ] **Step 3: Run `pnpm lint`**
 - [ ] **Step 4: If a command fails, fix the code and repeat verification**

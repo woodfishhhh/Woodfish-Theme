@@ -19,6 +19,7 @@ type PackageJson = {
   publisher: string;
   private?: boolean;
   workspaces?: string[];
+  packageManager?: string;
   devDependencies?: Record<string, string>;
   dependencies?: Record<string, string>;
   vsce?: { dependencies?: boolean };
@@ -38,10 +39,14 @@ describe('monorepo layout', () => {
     expect(extension.vsce?.dependencies).toBe(false);
   });
 
-  it('declares the root as a private npm workspace', () => {
+  it('declares the root as a private pnpm workspace', () => {
     const root = readJson(path.join(repoRoot, 'package.json'));
     expect(root.private).toBe(true);
-    expect(root.workspaces).toEqual(expect.arrayContaining(['packages/*', 'apps/*']));
+    expect(root.workspaces).toBeUndefined();
+    expect(root.packageManager).toBe('pnpm@11.11.0');
+    const workspace = fs.readFileSync(path.join(repoRoot, 'pnpm-workspace.yaml'), 'utf-8');
+    expect(workspace).toContain('packages/*');
+    expect(workspace).toContain('apps/*');
     expect(root.name).not.toBe('woodfish-theme');
   });
 

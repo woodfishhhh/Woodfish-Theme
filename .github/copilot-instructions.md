@@ -11,7 +11,7 @@ Paths below are relative to `apps/vscode-extension/` unless noted.
 - The extension entry is `src/extension.ts`, compiled to `out/extension.js`.
 - Runtime orchestration lives under `src/services/runtime/`.
 - Theme-specific assets live in `themes/bearded/` and `themes/dracula/`; shared runtime CSS lives in `themes/shared/`.
-- The workbench renderer script is written in `browser/overlay-bootstrap.ts` and built into `themes/shared/overlay-bootstrap.js` (`npm run runtime:build`).
+- The workbench renderer script is written in `browser/overlay-bootstrap.ts` and built into `themes/shared/overlay-bootstrap.js` (`pnpm runtime:build`).
 - Commands live in `src/commands/`.
 - User-facing state and settings live in `src/config/`, `src/types/`, and `src/ui/`.
 - `packages/theme-core/` (repository root) must not depend on `vscode`, Electron, the DOM or Node built-ins.
@@ -49,12 +49,12 @@ Do not reintroduce old aggregate files such as `index.css`, `index-all.css`, or 
 
 Run these from the repository root:
 
-- Compile: `npm run compile`
-- Generated files: `npm run themes:check` and `npm run runtime:check`
-- Lint: `npm run lint`
-- Test: `npm test -- --runInBand`
-- Package: `npm run package`
-- Pre-publish verification: `npm run pre-publish`
+- Compile: `pnpm compile`
+- Generated files: `pnpm themes:check` and `pnpm runtime:check`
+- Lint: `pnpm lint`
+- Test: `pnpm test --runInBand`
+- Package: `pnpm package`
+- Pre-publish verification: `pnpm pre-publish`
 
 For manual debugging:
 

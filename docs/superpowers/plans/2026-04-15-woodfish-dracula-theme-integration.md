@@ -51,7 +51,7 @@ expect(items[0]?.description).toContain('Woodfish Dracula');
 
 - [ ] **Step 4: Run the targeted suite**
 
-Run: `npm test -- themeRegistry.test.ts runtimeStatus.test.ts themeCommands.test.ts showFeatureMenu.test.ts --runInBand`
+Run: `pnpm test themeRegistry.test.ts runtimeStatus.test.ts themeCommands.test.ts showFeatureMenu.test.ts --runInBand`
 
 Expected: FAIL because registry helpers and remembered-theme behavior do not exist yet.
 
@@ -98,7 +98,7 @@ export async function writeLastSelectedTheme(context: vscode.ExtensionContext, l
 
 - [ ] **Step 4: Update runtime status logic to use the registry instead of `WOODFISH_THEME_NAME === activeTheme`**
 
-Run: `npm test -- themeRegistry.test.ts runtimeStatus.test.ts themeCommands.test.ts --runInBand`
+Run: `pnpm test themeRegistry.test.ts runtimeStatus.test.ts themeCommands.test.ts --runInBand`
 
 Expected: PASS for registry and status tests; command tests may still fail until command flow is updated later.
 
@@ -141,7 +141,7 @@ Use these source-to-target moves:
 
 - [ ] **Step 4: Update `readRuntimeAssets` and `buildRuntimeCss` to load shared assets plus a theme-specific variable block**
 
-Run: `npm test -- payloadBuilder.test.ts --runInBand`
+Run: `pnpm test payloadBuilder.test.ts --runInBand`
 
 Expected: PASS with shared CSS still producing one combined runtime payload.
 
@@ -186,7 +186,7 @@ Exact target:
 
 - [ ] **Step 4: Update `package.json` to point `Woodfish Dark` to `./themes/bearded/Woodfish Dark.json`**
 
-Run: `npm test -- themeRegistry.test.ts payloadBuilder.test.ts --runInBand`
+Run: `pnpm test themeRegistry.test.ts payloadBuilder.test.ts --runInBand`
 
 Expected: PASS and no runtime asset lookup should still depend on `themes/Bearded Theme`.
 
@@ -237,7 +237,7 @@ Include only high-identity token groups for:
 
 - [ ] **Step 4: Register the new built-in theme in `package.json`**
 
-Run: `npm test -- themeRegistry.test.ts legacyCleanup.test.ts --runInBand`
+Run: `pnpm test themeRegistry.test.ts legacyCleanup.test.ts --runInBand`
 
 Expected: PASS and `package.json` contributes both `Woodfish Dark` and `Woodfish Dracula`.
 
@@ -279,7 +279,7 @@ await setColorTheme(nextTheme);
 
 - [ ] **Step 4: Update menu/status text to use the resolved active or restored theme name**
 
-Run: `npm test -- themeCommands.test.ts showFeatureMenu.test.ts runtimeService.test.ts statusBar.test.ts --runInBand`
+Run: `pnpm test themeCommands.test.ts showFeatureMenu.test.ts runtimeService.test.ts statusBar.test.ts --runInBand`
 
 Expected: PASS with no remaining assertions tied to a permanently hard-coded `Woodfish Dark` enable flow.
 
@@ -308,15 +308,15 @@ expect(readmeEn).toContain('Woodfish Dracula');
 
 - [ ] **Step 3: Run the full Jest suite**
 
-Run: `npm test -- --runInBand`
+Run: `pnpm test --runInBand`
 
 Expected: PASS
 
 - [ ] **Step 4: Run compile and lint verification**
 
 Run:
-- `npm run compile`
-- `npm run lint`
+- `pnpm compile`
+- `pnpm lint`
 
 Expected:
 - TypeScript compile succeeds with no new strict-mode errors

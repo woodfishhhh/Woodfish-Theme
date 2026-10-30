@@ -311,7 +311,7 @@ async function main() {
   if (process.argv.includes('--check')) {
     const current = fs.existsSync(OUTPUT) ? fs.readFileSync(OUTPUT, 'utf8').replace(/\r\n/g, '\n') : '';
     if (current !== output) {
-      console.error(`${path.relative(process.cwd(), OUTPUT)} is stale; run npm run themes:generate`);
+      console.error(`${path.relative(process.cwd(), OUTPUT)} is stale; run pnpm themes:generate`);
       process.exit(1);
     }
     console.log('✓ ported palettes are up to date');

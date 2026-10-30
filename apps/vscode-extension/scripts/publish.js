@@ -63,17 +63,17 @@ function runCommand(command, description) {
 
 function runVerification() {
   console.log('🧪 运行发布前验证...');
-  runCommand('npm run verify -w @woodfish/theme-core', '🧩 共享主题核心检查');
-  runCommand('npm run compile', '🔨 TypeScript 编译');
-  runCommand('npm run themes:check', '🎨 生成主题一致性检查');
-  runCommand('npm run runtime:check', '🧱 渲染端脚本一致性检查');
-  runCommand('npm run format:check', '🎨 Prettier 检查');
-  runCommand('npm run lint', '🧹 ESLint 检查');
-  runCommand('npm test -- --runInBand', '✅ Jest 测试');
+  runCommand('pnpm --filter @woodfish/theme-core run verify', '🧩 共享主题核心检查');
+  runCommand('pnpm compile', '🔨 TypeScript 编译');
+  runCommand('pnpm themes:check', '🎨 生成主题一致性检查');
+  runCommand('pnpm runtime:check', '🧱 渲染端脚本一致性检查');
+  runCommand('pnpm format:check', '🎨 Prettier 检查');
+  runCommand('pnpm lint', '🧹 ESLint 检查');
+  runCommand('pnpm test --runInBand', '✅ Jest 测试');
   const integrationCommand =
     process.platform === 'linux' && !process.env.DISPLAY
-      ? 'xvfb-run -a npm run test:integration'
-      : 'npm run test:integration';
+      ? 'xvfb-run -a pnpm test:integration'
+      : 'pnpm test:integration';
   runCommand(integrationCommand, '🧭 VS Code 集成测试');
   runCommand('node scripts/pre-publish-check.js', '🔍 发布前检查');
 }
@@ -99,7 +99,7 @@ function packageExtension(version, isPreRelease) {
 
 // Cursor、Kiro、Windsurf、VSCodium 等衍生编辑器从 Open VSX 安装扩展
 function buildOvsxArgs(packagePath, { isPreRelease = false } = {}) {
-  return ['--yes', 'ovsx@1', 'publish', packagePath, ...(isPreRelease ? ['--pre-release'] : [])];
+  return ['dlx', 'ovsx@1', 'publish', packagePath, ...(isPreRelease ? ['--pre-release'] : [])];
 }
 
 function publishToOpenVsx(packagePath, isPreRelease, readline, done) {
@@ -116,7 +116,7 @@ function publishToOpenVsx(packagePath, isPreRelease, readline, done) {
       try {
         // ovsx 直接从环境变量 OVSX_PAT 读取令牌，不出现在命令行参数里
         execFileSync(
-          process.platform === 'win32' ? 'npx.cmd' : 'npx',
+          process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
           buildOvsxArgs(packagePath, { isPreRelease }),
           { stdio: 'inherit', shell: process.platform === 'win32' }
         );

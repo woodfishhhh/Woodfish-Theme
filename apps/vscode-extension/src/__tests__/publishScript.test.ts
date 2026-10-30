@@ -28,7 +28,7 @@ describe('publish script safety', () => {
 
   it('provides a virtual display for integration tests on headless Linux', () => {
     expect(publishScript).toContain("process.platform === 'linux' && !process.env.DISPLAY");
-    expect(publishScript).toContain('xvfb-run -a npm run test:integration');
+    expect(publishScript).toContain('xvfb-run -a pnpm test:integration');
   });
 
   it('uses the size-gated package script and reports Marketplace failures', () => {
@@ -41,7 +41,7 @@ describe('publish script safety', () => {
     const packagePath = path.resolve('woodfish-theme-7.0.0.vsix');
 
     expect(buildOvsxArgs(packagePath, { isPreRelease: true })).toEqual([
-      '--yes',
+      'dlx',
       'ovsx@1',
       'publish',
       packagePath,

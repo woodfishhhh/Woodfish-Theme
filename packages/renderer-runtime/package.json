@@ -21,7 +21,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@woodfish/theme-core": "0.1.0"
+    "@woodfish/theme-core": "workspace:*"
   },
   "scripts": {
     "compile": "tsc -b && tsc -p tsconfig.test.json",
@@ -31,6 +31,6 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "verify": "npm run compile && npm run format:check && npm run lint && npm test"
+    "verify": "pnpm compile && pnpm format:check && pnpm lint && pnpm test"
   }
 }

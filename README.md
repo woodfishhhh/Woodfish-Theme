@@ -254,19 +254,19 @@ Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和�
 ## 本地开发
 
 ```bash
-npm install
-npm run compile
-npm test
-npm run test:integration
-npm run lint
-npm run format:check
-npm run verify
-npm run package
+pnpm install
+pnpm compile
+pnpm test
+pnpm test:integration
+pnpm lint
+pnpm format:check
+pnpm verify
+pnpm package
 ```
 
 仓库是 npm workspaces monorepo，以上命令都在根目录运行。VS Code 扩展位于 `apps/vscode-extension/`，与宿主无关的颜色算法、渐变计算、调色板和效果参数位于 `packages/theme-core/`，结构与边界见 [仓库结构](./docs/ARCHITECTURE.md)。
 
-`npm run test:integration` 会启动隔离的 VS Code 扩展宿主，验证开启、关闭和工作台恢复。扩展入口是 `apps/vscode-extension/src/extension.ts`；主题由 `apps/vscode-extension/scripts/generate-themes.js` 生成（`npm run themes:generate`），渲染端脚本源码在 `apps/vscode-extension/browser/`（`npm run runtime:build`），注入用 CSS 在 `apps/vscode-extension/themes/shared/`。发布到 Open VSX 需要先设置环境变量 `OVSX_PAT`。
+`pnpm test:integration` 会启动隔离的 VS Code 扩展宿主，验证开启、关闭和工作台恢复。扩展入口是 `apps/vscode-extension/src/extension.ts`；主题由 `apps/vscode-extension/scripts/generate-themes.js` 生成（`pnpm themes:generate`），渲染端脚本源码在 `apps/vscode-extension/browser/`（`pnpm runtime:build`），注入用 CSS 在 `apps/vscode-extension/themes/shared/`。发布到 Open VSX 需要先设置环境变量 `OVSX_PAT`。
 
 ## 项目信息
 

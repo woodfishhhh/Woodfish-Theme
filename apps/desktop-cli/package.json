@@ -21,7 +21,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "verify": "npm run compile && npm run codex:check && npm run format:check && npm run lint && npm test"
+    "verify": "pnpm compile && pnpm codex:check && pnpm format:check && pnpm lint && pnpm test"
   },
   "dependencies": {
     "smol-toml": "^1.9.1"
@@ -29,9 +29,9 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/ws": "^8.5.13",
-    "@woodfish/adapter-codex": "0.1.0",
-    "@woodfish/renderer-runtime": "0.1.0",
-    "@woodfish/theme-core": "0.1.0",
+    "@woodfish/adapter-codex": "workspace:*",
+    "@woodfish/renderer-runtime": "workspace:*",
+    "@woodfish/theme-core": "workspace:*",
     "ws": "^8.18.0"
   }
 }

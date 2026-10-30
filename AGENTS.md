@@ -64,7 +64,7 @@ Woodfish-Theme/
 - **Output to `out/`** - not `dist/` or `build/` (applies to every workspace)
 - **Runtime injection** - patches `workbench.html` through `workbenchPatcher.ts`
 - **Core stays host-agnostic** - `packages/theme-core` must not import `vscode`, Electron, DOM or Node APIs
-- **Generated files are committed** - regenerate with `npm run themes:generate` / `npm run runtime:build`
+- **Generated files are committed** - regenerate with `pnpm themes:generate` / `pnpm runtime:build`
 
 ## Anti-Patterns (THIS PROJECT)
 
@@ -76,20 +76,20 @@ Woodfish-Theme/
 - **DO NOT** put host selectors, settings I/O or file patching into `packages/theme-core`
 - **DO NOT** modify Codex installation files (Store MSIX, asar integrity); use `woodfish codex` commands
 - **DO NOT** copy code from Codex++ (AGPL-3.0); reimplement from public CDP / Microsoft docs
-- **DO NOT** hand-edit `apps/desktop-cli/assets/*.js`; run `npm run codex:build`
+- **DO NOT** hand-edit `apps/desktop-cli/assets/*.js`; run `pnpm codex:build`
 
 ## Commands (run from the repository root)
 
 ```bash
-npm run compile          # Build theme-core, type-check extension + browser scripts
-npm test                 # Jest in every workspace
-npm run lint             # ESLint in every workspace
-npm run themes:check     # Generated theme JSON is current
-npm run runtime:check    # Built renderer scripts are current
-npm run codex:check      # Built Codex renderer bundles are current
-npm run woodfish -- codex status   # Run the desktop CLI
-npm run test:integration # VS Code extension host tests
-npm run package          # Build the VSIX
+pnpm compile          # Build theme-core, type-check extension + browser scripts
+pnpm test                 # Jest in every workspace
+pnpm lint             # ESLint in every workspace
+pnpm themes:check     # Generated theme JSON is current
+pnpm runtime:check    # Built renderer scripts are current
+pnpm codex:check      # Built Codex renderer bundles are current
+pnpm woodfish codex status   # Run the desktop CLI
+pnpm test:integration # VS Code extension host tests
+pnpm package          # Build the VSIX
 ```
 
 ## Notes

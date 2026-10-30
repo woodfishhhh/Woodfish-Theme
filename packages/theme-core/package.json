@@ -28,6 +28,6 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "verify": "npm run compile && npm run format:check && npm run lint && npm test"
+    "verify": "pnpm compile && pnpm format:check && pnpm lint && pnpm test"
   }
 }

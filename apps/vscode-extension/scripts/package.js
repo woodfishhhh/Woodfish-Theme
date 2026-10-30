@@ -108,7 +108,7 @@ function findOutputPath(args) {
 
 function main(args = process.argv.slice(2)) {
   // npm runs workspace scripts inside apps/vscode-extension; resolve a relative --out against
-  // the directory the user actually ran `npm run package` from.
+  // the directory the user actually ran `pnpm package` from.
   const invocation = buildPackageInvocation(
     args,
     readPackageMetadata(),
