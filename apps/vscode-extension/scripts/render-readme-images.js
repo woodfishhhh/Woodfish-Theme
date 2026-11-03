@@ -18,9 +18,22 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { pathToFileURL } = require('url');
+const {
+  BACKSLASH,
+  BOOTSTRAP_URL,
+  DARK_MODERN,
+  DARK_THEME_COLORS,
+  REPO_ROOT,
+  T,
+  escapeHtml,
+  findChrome,
+  resolvePalette,
+  runtimeCss,
+  splitLikeMonaco,
+  suggestWidget,
+  core,
+} = require('./lib/scene-kit');
 
-const EXTENSION_ROOT = path.resolve(__dirname, '..');
-const REPO_ROOT = path.resolve(EXTENSION_ROOT, '../..');
 const OUTPUT_DIR = path.join(REPO_ROOT, 'assets', 'readme');
 const SCALE = 2;
 const LINE_HEIGHT = 34;
@@ -29,61 +42,6 @@ const PADDING_X = 32;
 const CODE_FAMILY = "Consolas, 'Microsoft YaHei', monospace";
 const UI_FONT = "14px/24px 'Segoe UI', 'Microsoft YaHei', sans-serif";
 
-const core = require(path.join(REPO_ROOT, 'packages/theme-core/out/index.js'));
-const { buildRuntimeCss } = require(path.join(EXTENSION_ROOT, 'out/services/runtime/payloadBuilder.js'));
-
-const BOOTSTRAP_URL = pathToFileURL(
-  path.join(EXTENSION_ROOT, 'themes/shared/overlay-bootstrap.js')
-).href;
-const SHARED_CSS = {
-  cursorCore: fs.readFileSync(path.join(EXTENSION_ROOT, 'themes/shared/cursor-core.css'), 'utf8'),
-  cursorGlow: fs.readFileSync(path.join(EXTENSION_ROOT, 'themes/shared/cursor-glow.css'), 'utf8'),
-};
-const DARK_THEME_COLORS = JSON.parse(
-  fs.readFileSync(path.join(EXTENSION_ROOT, 'themes/bearded/Woodfish Dark.json'), 'utf8')
-).colors;
-const BACKSLASH = String.fromCharCode(92);
-
-/** The CSS the extension injects for these settings (cursor and glass off unless asked). */
-function runtimeCss(settings) {
-  return buildRuntimeCss(
-    { cursor: { enabled: false }, glass: { enabled: false }, ...settings },
-    { activityBar: '', tabBar: '', overlayBootstrap: '', nativeWindowHook: '', ...SHARED_CSS }
-  );
-}
-
-/** VS Code's own Dark Modern colors, to show Woodfish on a theme it does not ship. */
-const DARK_MODERN = {
-  slug: 'dark-modern',
-  type: 'dark',
-  ui: { bg: '#1F1F1F', fg: '#CCCCCC' },
-  tokens: {
-    keyword: '#C586C0',
-    storage: '#569CD6',
-    function: '#DCDCAA',
-    type: '#4EC9B0',
-    string: '#CE9178',
-    number: '#B5CEA8',
-    parameter: '#9CDCFE',
-    variable: '#9CDCFE',
-    property: '#9CDCFE',
-    decorator: '#DCDCAA',
-    operator: '#D4D4D4',
-    punctuation: '#CCCCCC',
-    comment: '#6A9955',
-    tag: '#569CD6',
-    attribute: '#9CDCFE',
-    regexp: '#D16969',
-    escape: '#D7BA7D',
-    namespace: '#4EC9B0',
-    macro: '#569CD6',
-    self: '#569CD6',
-    invalid: '#F44747',
-  },
-};
-
-/** Code lines as [text, palette token role] pairs; `fg` is the editor foreground. */
-const T = (text, role, marker) => (marker ? [text, role, marker] : [text, role]);
 const LINES = {
   comment: [T('// 读取主题文件，失败时重试', 'comment')],
   imports: [T('import', 'keyword'), T(' { ', 'punctuation'), T('readFile', 'variable'), T(' } ', 'punctuation'), T('from', 'keyword'), T(" 'node:fs/promises'", 'string'), T(';', 'punctuation')],
@@ -125,25 +83,6 @@ const SCENES = [
   { file: 'glass', palette: 'dark', lines: ['signature', 'pattern', 'typing', 'cache', 'error', 'cache', 'blank', 'markup'], width: 1100, settings: { glass: { enabled: true, opacity: 0.5, blur: 14 } }, suggest: true },
 ];
 
-function escapeHtml(text) {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/** Monaco renders a token longer than 50 characters as several 50-character spans. */
-function splitLikeMonaco(text) {
-  const parts = [];
-  for (let index = 0; index < text.length; index += 50) {
-    parts.push(text.slice(index, index + 50));
-  }
-  return parts.length > 0 ? parts : [''];
-}
-
-function resolvePalette(palette) {
-  return typeof palette === 'string'
-    ? core.WOODFISH_PALETTES.find((candidate) => candidate.slug === palette)
-    : palette;
-}
-
 function renderLines(palette, lineNames, splitRuns) {
   const roles = { ...palette.tokens, fg: palette.ui.fg };
   const classOf = new Map();
@@ -173,31 +112,6 @@ function renderLines(palette, lineNames, splitRuns) {
     .join('');
   const rules = [...classOf].map(([color, name]) => `.${name} { color: ${color}; }`).join('\n');
   return { body, rules };
-}
-
-const SUGGESTIONS = [
-  ['readFile', 'function readFile(path: PathLike): Promise<Buffer>'],
-  ['readdir', ''],
-  ['readlink', ''],
-  ['realpath', ''],
-  ['readv', ''],
-];
-
-function suggestWidget() {
-  const color = (key, fallback) => DARK_THEME_COLORS[key] ?? fallback;
-  const rows = SUGGESTIONS.map(
-    ([label, detail], index) =>
-      `<div class="monaco-list-row${index === 0 ? ' focused' : ''}"><i class="icon"></i><span class="label"><b>rea</b>${escapeHtml(label.slice(3))}</span><span class="detail">${escapeHtml(detail)}</span></div>`
-  ).join('');
-  const css = `.suggest-widget{position:absolute;width:520px;border:1px solid ${color('editorSuggestWidget.border', '#405275')};border-radius:6px;overflow:hidden;font:${UI_FONT};color:${color('editorSuggestWidget.foreground', '#D0D7E4')}}
-.monaco-list-row{height:26px;display:flex;align-items:center;gap:8px;padding:0 10px}
-.monaco-list-row.focused{background:${color('editorSuggestWidget.selectedBackground', '#405275')}}
-.monaco-list-row .icon{width:14px;height:14px;border-radius:3px;background:${color('symbolIcon.functionForeground', '#B78AFF')};opacity:.85}
-.monaco-list-row .label{font-family:Consolas,monospace;font-size:15px}
-.monaco-list-row .label b{color:${color('editorSuggestWidget.highlightForeground', '#69C3FF')};font-weight:700}
-.monaco-list-row .detail{margin-left:auto;opacity:.65;font-size:13px}`;
-  const html = `<div class="suggest-widget"><div class="monaco-list"><div class="monaco-list-rows">${rows}</div></div></div>`;
-  return { css, html };
 }
 
 /** Places one cursor after each token marked `data-caret`, and the suggest list under the first. */
@@ -239,7 +153,7 @@ function scenePage(scene) {
   const { body, rules } = renderLines(palette, scene.lines, scene.splitRuns);
   const woodfish = scene.woodfish !== false;
   const css = woodfish ? runtimeCss(scene.settings ?? {}) : '';
-  const suggest = scene.suggest ? suggestWidget() : null;
+  const suggest = scene.suggest ? suggestWidget({ font: UI_FONT }) : null;
   const cursors = scene.cursor ? cursorFrames(scene.lines.length) : null;
   const fontSize = scene.fontSize ?? 21;
   const lineHeight = Math.round(fontSize * (LINE_HEIGHT / 21));
@@ -262,22 +176,6 @@ ${cursors ? cursors.css : ''}
 </style><div class="${workbenchClass}"><div class="monaco-editor"><div class="view-lines">${body}${cursors ? cursors.html : ''}${suggest ? suggest.html : ''}</div></div></div>
 ${woodfish ? `<script src="${BOOTSTRAP_URL}"></script>` : ''}<script>${PLACE_WIDGETS}</script>`;
   return { width: scene.width, height, html };
-}
-
-function findChrome() {
-  const candidates = [
-    process.env.CHROME_PATH,
-    'C:/Program Files/Google/Chrome/Application/chrome.exe',
-    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium',
-  ].filter(Boolean);
-  const found = candidates.find((candidate) => fs.existsSync(candidate));
-  if (!found) {
-    throw new Error('Chrome / Edge not found; set CHROME_PATH');
-  }
-  return found;
 }
 
 function screenshot(chrome, workDir, name, { width, height, html }) {
