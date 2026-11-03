@@ -1,4 +1,6 @@
+import { WoodfishPalette, findGradientPreset } from '@woodfish/theme-core';
 import {
+  GradientContext,
   PageController,
   StyleManager,
   TextGradientEngine,
@@ -101,6 +103,7 @@ function startEngine(
   extra: {
     acceptToken?: (token: HTMLElement) => boolean;
     mapColor?: (cssColor: string) => string;
+    gradientContext?: () => GradientContext;
   } = {}
 ): TextGradientEngine {
   return startTextGradientEngine({
@@ -108,6 +111,7 @@ function startEngine(
     rootSelector,
     acceptToken: extra.acceptToken,
     mapColor: extra.mapColor,
+    gradientContext: extra.gradientContext,
     params: {
       hueShift: settings.codeGradient.hueShift,
       lightnessDelta: settings.codeGradient.lightnessDelta,
@@ -194,11 +198,37 @@ export function startCodexOverlay(
     source === 'userscript' ? { [CODEX_PLUS_NODE_ATTRIBUTE]: 'woodfish' } : {}
   );
 
-  /** Diffs take the palette of the appearance mode Codex is in, if one is selected. */
-  function diffColor(cssColor: string): string {
+  /** The Woodfish palette of the appearance mode Codex is in, if one is selected. */
+  function activePalette(): WoodfishPalette | null {
     const mode = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
     const slug = settings.palette[mode];
-    return mapDiffColor(cssColor, slug ? findCodexPalette(slug) : null);
+    return slug ? findCodexPalette(slug) : null;
+  }
+
+  /** Diffs take the palette of the appearance mode Codex is in, if one is selected. */
+  function diffColor(cssColor: string): string {
+    return mapDiffColor(cssColor, activePalette());
+  }
+
+  /**
+   * A Woodfish palette brings its hand-tuned gradients; with Codex's own theme every color
+   * is derived, readable against the surface Codex actually draws.
+   */
+  function gradientContext(): GradientContext {
+    const palette = activePalette();
+    if (palette) {
+      return {
+        background: palette.ui.bg,
+        foreground: palette.ui.fg,
+        preset: findGradientPreset(palette.slug),
+      };
+    }
+    const style = getComputedStyle(document.documentElement);
+    return {
+      background: style.getPropertyValue('--app-color-background-surface').trim() || null,
+      foreground: getComputedStyle(document.body).color || null,
+      preset: null,
+    };
   }
   let degradedTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
   let degradedChecks = 0;
@@ -219,6 +249,7 @@ export function startCodexOverlay(
     if (wantCode && !codeEngine) {
       codeEngine = startEngine(CODE_TOKEN_SELECTOR, CODE_ROOT_SELECTOR, settings, {
         acceptToken: outsideComposer,
+        gradientContext,
       });
       diffEngine = startEngine(
         DIFF_TOKEN_SELECTOR,
@@ -227,6 +258,7 @@ export function startCodexOverlay(
         {
           acceptToken: isDiffToken,
           mapColor: diffColor,
+          gradientContext,
         }
       );
       diffs.setEngine(diffEngine);
@@ -242,7 +274,9 @@ export function startCodexOverlay(
     }
 
     if (settings.bodyText.enabled && !bodyEngine) {
-      bodyEngine = startEngine(BODY_TEXT_SELECTOR, BODY_ROOT_SELECTOR, settings);
+      bodyEngine = startEngine(BODY_TEXT_SELECTOR, BODY_ROOT_SELECTOR, settings, {
+        gradientContext,
+      });
     } else if (settings.bodyText.enabled && bodyEngine) {
       bodyEngine.update(settings.codeGradient);
     } else if (!settings.bodyText.enabled && bodyEngine) {

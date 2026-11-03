@@ -5,20 +5,22 @@ Woodfish 各产品共用的视觉核心，只包含纯计算和数据，不依�
 | 模块 | 导出 |
 | --- | --- |
 | 颜色 | `parseCssColor`、`rgbToOklch`、`oklchToRgb`、`gamutMapOklch`、`contrastRatio`、`isValidCssColor` 等 |
-| 渐变 | `deriveTokenGradient`：从一个文字颜色推导三段渐变和发光色；`rankPaletteAnchorHue`、`pickAccentHue`、`isPunctuationOnly` |
+| 渐变 | `deriveTokenGradient`：一个文字颜色的渐变色标和发光色。传入 `preset` 时先查特调表，否则按特调规律推导；`GRADIENT_PRESETS`、`findGradientPreset`、`detectGradientPreset`；`rankPaletteAnchorHue`、`pickAccentHue`、`isPunctuationOnly` |
 | 效果参数 | `DEFAULT_*` 默认值、`*_RANGES` 取值范围、`normalize*` 归一化；`sanitizeCustomCssRules`、`sanitizeGradientStops`、`containsUnsafeCss` |
 | 调色板 | `ORIGINAL_PALETTES`（Woodfish Light / Black / Neon）、`validatePalette` |
 
 ```ts
-import { deriveTokenGradient, normalizeTextGradient } from '@woodfish/theme-core';
+import { deriveTokenGradient, findGradientPreset, normalizeTextGradient } from '@woodfish/theme-core';
 
 const params = normalizeTextGradient({ hueShift: 30 });
 const colors = deriveTokenGradient('rgb(97, 175, 234)', {
   ...params,
   anchorHue: 300,
   punctuation: false,
+  background: '#1C2433',
+  preset: findGradientPreset('dark'),
 });
-// colors.light / colors.base / colors.dark → 三段 CSS 渐变色
+// colors.stops → 2 个及以上的色标，colors.angle → 特调自带的角度（推导出来的为 null）
 ```
 
 ## 构建与使用

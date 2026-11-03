@@ -232,38 +232,38 @@
         "properties": {
           "woodfishTheme.overlay.hueShift": {
             "type": "number",
-            "default": 24,
+            "default": 32,
             "minimum": 0,
             "maximum": 180,
             "scope": "application",
-            "markdownDescription": "渐变两端的颜色偏移，单位为度。数值越大，同一个词首尾的颜色差别越明显；`0` 只保留明暗变化。默认 `24`，范围 `0`–`180`。",
+            "markdownDescription": "渐变从文字原色出发，沿色环转多少度到终点，数值越大首尾颜色差别越大。Woodfish 自带的 5 套主题用特调渐变，这一项只影响其他主题和特调表里没有的颜色。默认 `32`，范围 `0`–`180`。",
             "order": 0
           },
           "woodfishTheme.overlay.lightnessDelta": {
             "type": "number",
-            "default": 0.06,
+            "default": 0.12,
             "minimum": 0,
             "maximum": 0.5,
             "scope": "application",
-            "markdownDescription": "渐变两端的明暗差，数值越大左亮右暗越明显。默认 `0.06`，范围 `0`–`0.5`。",
+            "markdownDescription": "渐变终点最多变亮或变暗多少。终点会朝它最鲜艳的亮度靠：橙色转向黄色时变亮，青色转向蓝色时变暗。只影响自动计算的渐变。默认 `0.12`，范围 `0`–`0.5`。",
             "order": 1
           },
           "woodfishTheme.overlay.neutralChroma": {
             "type": "number",
-            "default": 0.06,
+            "default": 0.075,
             "minimum": 0,
             "maximum": 0.4,
             "scope": "application",
-            "markdownDescription": "给白色、灰色这类没有颜色的文字补一点主题色，让它们也能看出渐变；`0` 保持原样。默认 `0.06`，范围 `0`–`0.4`。",
+            "markdownDescription": "普通文字（编辑器前景色）上那条彩虹的浓淡，`0` 保持原色。只影响自动计算的渐变。默认 `0.075`，范围 `0`–`0.4`。",
             "order": 2
           },
           "woodfishTheme.overlay.angle": {
             "type": "number",
-            "default": 90,
+            "default": 45,
             "minimum": 0,
             "maximum": 360,
             "scope": "application",
-            "markdownDescription": "渐变方向，单位为度。`90` 从左到右，`180` 从上到下。默认 `90`。",
+            "markdownDescription": "自动计算的渐变的方向，单位为度。`45` 从左下到右上，`90` 从左到右。特调渐变自带方向。默认 `45`。",
             "order": 3
           }
         }

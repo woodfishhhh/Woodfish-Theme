@@ -2,9 +2,9 @@ import {
   PAINTED_TOKEN_SELECTOR,
   buildGlowDeclarations,
   buildGradientDeclarations,
+  buildLightGlowDeclarations,
   buildPunctuationGlowDeclarations,
   formatCssNumber,
-  scaleGlowRadius,
 } from '@woodfish/renderer-runtime';
 import { ThemeRuntimeSettings, normalizeRuntimeSettings } from '../../types/features';
 
@@ -51,13 +51,13 @@ export function buildUniversalOverlayCss(settings: ThemeRuntimeSettings): string
   }
 
   if (safeSettings.glow.enabled) {
-    // Light themes: the same glow reads as blur on a bright background, so it is softened.
+    // Light themes: the glow is a bright tint of the text hue there (theme-core), drawn as
+    // a tight edge and a soft halo instead of a dark smudge.
     parts.push(
       [
         `.monaco-workbench.vs ${OVERLAY_TOKEN_SELECTOR},`,
         `.monaco-workbench.hc-light ${OVERLAY_TOKEN_SELECTOR} {`,
-        '  text-shadow:',
-        `    0 0 ${scaleGlowRadius(2, safeSettings.glow.intensity)} var(--woodfish-overlay-glow-mid) !important;`,
+        ...buildLightGlowDeclarations(safeSettings.glow.intensity),
         '}',
       ].join('\n')
     );

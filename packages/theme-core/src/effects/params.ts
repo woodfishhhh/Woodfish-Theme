@@ -6,11 +6,11 @@ import { NumericRange, sanitizeEnum, sanitizeGradientStops, sanitizeNumber } fro
  */
 
 export interface TextGradientParams {
-  /** Hue rotation at each gradient end, degrees. */
+  /** Hue rotation from the start to the end of a derived gradient, degrees. */
   hueShift: number;
-  /** OKLCH lightness change at each gradient end. */
+  /** Largest OKLCH lightness change of a derived gradient stop. */
   lightnessDelta: number;
-  /** Minimum OKLCH chroma for neutral text. */
+  /** OKLCH chroma of the rainbow on neutral text. */
   neutralChroma: number;
   /** Gradient direction, degrees. */
   angle: number;
@@ -85,10 +85,10 @@ function freezeRanges<T extends Record<string, NumericRange>>(ranges: T): Readon
 }
 
 export const DEFAULT_TEXT_GRADIENT: Readonly<TextGradientParams> = /* @__PURE__ */ Object.freeze({
-  hueShift: 24,
-  lightnessDelta: 0.06,
-  neutralChroma: 0.06,
-  angle: 90,
+  hueShift: 32,
+  lightnessDelta: 0.12,
+  neutralChroma: 0.075,
+  angle: 45,
 });
 
 export const TEXT_GRADIENT_RANGES: Ranges<TextGradientParams> = /* @__PURE__ */ freezeRanges({

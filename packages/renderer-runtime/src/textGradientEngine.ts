@@ -1,11 +1,13 @@
 import {
   DEFAULT_ANCHOR_HUE,
+  GradientPreset,
   TokenGradientColors,
   deriveTokenGradient,
   isPunctuationOnly,
   pickAccentHue,
   rankPaletteAnchorHue,
 } from '@woodfish/theme-core';
+import { RUN_VARIABLES, clearRunVariables, linkGradientRuns } from './gradientRuns';
 
 /** OKLCH tunables the engine applies to every token. */
 export interface TextGradientParams {
@@ -13,6 +15,18 @@ export interface TextGradientParams {
   lightnessDelta: number;
   neutralChroma: number;
 }
+
+/** What the host knows about the theme the text is painted on. */
+export interface GradientContext {
+  /** Background behind the tokens; derived stops stay at least as readable as the source. */
+  background: string | null;
+  /** Default text color; only it gets the rainbow. */
+  foreground: string | null;
+  /** Hand-tuned gradients of the active built-in theme, `null` for any other theme. */
+  preset: GradientPreset | null;
+}
+
+const NO_CONTEXT: GradientContext = { background: null, foreground: null, preset: null };
 
 /** Helpers handed to {@link TextGradientEngineOptions.themeSignature}. */
 export interface ThemeSignatureHelpers {
@@ -33,6 +47,13 @@ export interface TextGradientEngineOptions {
    */
   mapColor?: (cssColor: string, token: HTMLElement) => string;
   params: TextGradientParams;
+  /** Read again whenever the theme changes; without it every color is derived. */
+  gradientContext?: () => GradientContext;
+  /**
+   * Join adjacent same-colored tokens into one continuous gradient (default true). Needed
+   * where the host splits long tokens into several elements, as Monaco does.
+   */
+  continuousRuns?: boolean;
   /** CSS variables on `<html>`/`<body>` holding host accent colors; used as anchor hue fallback. */
   accentVariables: readonly string[];
   /** Attributes on `<html>`/`<body>` whose change means the host theme switched. */
@@ -59,9 +80,12 @@ export interface TextGradientEngine {
 /** Marker and CSS variables written on each token; host CSS reads these. */
 export const TOKEN_MARKER_ATTRIBUTE = 'data-woodfish-overlay-token';
 export const TOKEN_VARIABLES = {
-  gradientLight: '--woodfish-overlay-gradient-light',
+  /** Comma-separated color stops with positions, for `linear-gradient(angle, …)`. */
+  gradientStops: '--woodfish-overlay-gradient-stops',
+  /** A hand-tuned angle such as `45deg`; `initial` makes host CSS use its own setting. */
+  gradientAngle: '--woodfish-overlay-gradient-angle',
+  /** The token's own color. */
   gradientBase: '--woodfish-overlay-gradient-base',
-  gradientDark: '--woodfish-overlay-gradient-dark',
   glowNear: '--woodfish-overlay-glow-near',
   glowMid: '--woodfish-overlay-glow-mid',
   glowFar: '--woodfish-overlay-glow-far',
@@ -70,12 +94,20 @@ export const TOKEN_VARIABLES = {
 } as const;
 
 const DEFAULT_POLL_INTERVAL_MS = 1200;
+
+/** `a 0%, b 50%, c 100%`: the stops spread evenly. */
+export function formatGradientStops(stops: readonly string[]): string {
+  const last = Math.max(1, stops.length - 1);
+  return stops
+    .map((stop, index) => `${stop} ${Number(((100 * index) / last).toFixed(2))}%`)
+    .join(', ');
+}
 const DEFAULT_MAX_TOKENS_PER_FRAME = 600;
 const PALETTE_SIGNATURE_LIMIT = 24;
 
 /**
- * Gives every matching text element a three-stop OKLCH gradient derived from its own
- * computed color. Tokens are discovered with MutationObservers on the root containers and
+ * Gives every matching text element a gradient: the theme's hand-tuned one for its
+ * computed color, or one derived from that color in OKLCH. Tokens are discovered with MutationObservers on the root containers and
  * painted in animation-frame batches; neutral colors borrow the dominant palette hue.
  */
 export function startTextGradientEngine(options: TextGradientEngineOptions): TextGradientEngine {
@@ -84,6 +116,7 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
   const acceptToken = options.acceptToken ?? ((): boolean => true);
   const MAX_TOKENS_PER_FRAME = options.maxTokensPerFrame ?? DEFAULT_MAX_TOKENS_PER_FRAME;
   const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
+  const continuousRuns = options.continuousRuns ?? true;
   let settings: TextGradientParams = { ...options.params };
   const pendingTokens = new Set<HTMLElement>();
   const tokenState = new WeakMap<
@@ -93,6 +126,7 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
   const colorCache = new Map<string, TokenGradientColors | null>();
   const viewLineObservers = new Map<Element | ShadowRoot, MutationObserver>();
   let anchorHue = DEFAULT_ANCHOR_HUE;
+  let context: GradientContext = NO_CONTEXT;
   let profileVersion = 0;
   let frameId = 0;
   let profileRefreshTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
@@ -100,9 +134,9 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
   let disposed = false;
 
   function deriveTokenColors(cssColor: string, punctuation: boolean): TokenGradientColors | null {
+    // The cache is cleared whenever the profile (anchor hue, context) is refreshed.
     const cacheKey = [
       cssColor,
-      anchorHue.toFixed(3),
       settings.hueShift,
       settings.lightnessDelta,
       settings.neutralChroma,
@@ -113,7 +147,14 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
       return cached;
     }
 
-    const result = deriveTokenGradient(cssColor, { ...settings, anchorHue, punctuation });
+    const result = deriveTokenGradient(cssColor, {
+      ...settings,
+      anchorHue,
+      punctuation,
+      background: context.background,
+      foreground: context.foreground,
+      preset: context.preset,
+    });
     if (result) {
       colorCache.set(cacheKey, result);
     }
@@ -126,6 +167,7 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
     }
     if (!acceptToken(token)) {
       token.removeAttribute(TOKEN_MARKER_ATTRIBUTE);
+      clearRunVariables(token);
       tokenState.delete(token);
       return;
     }
@@ -146,12 +188,16 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
     const colors = deriveTokenColors(cssColor, punctuation);
     if (!colors) {
       token.removeAttribute(TOKEN_MARKER_ATTRIBUTE);
+      clearRunVariables(token);
       return;
     }
 
-    token.style.setProperty(TOKEN_VARIABLES.gradientLight, colors.light);
+    token.style.setProperty(TOKEN_VARIABLES.gradientStops, formatGradientStops(colors.stops));
+    token.style.setProperty(
+      TOKEN_VARIABLES.gradientAngle,
+      colors.angle === null ? 'initial' : `${colors.angle}deg`
+    );
     token.style.setProperty(TOKEN_VARIABLES.gradientBase, colors.base);
-    token.style.setProperty(TOKEN_VARIABLES.gradientDark, colors.dark);
     token.style.setProperty(TOKEN_VARIABLES.glowNear, colors.glowNear);
     token.style.setProperty(TOKEN_VARIABLES.glowMid, colors.glowMid);
     token.style.setProperty(TOKEN_VARIABLES.glowFar, colors.glowFar);
@@ -160,6 +206,7 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
     token.dataset.woodfishOverlayToken = 'true';
     token.dataset.woodfishNeutral = colors.neutral ? 'true' : 'false';
     token.dataset.woodfishPunctuation = punctuation ? 'true' : 'false';
+    token.dataset.woodfishPreset = colors.preset ? 'true' : 'false';
     tokenState.set(token, {
       profileVersion,
       cssColor,
@@ -167,16 +214,34 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
     });
   }
 
+  /** Gradient identity of a painted token, for joining runs. */
+  function runKey(element: Element): string | null {
+    // Duck-typed: the marker lives in the dataset, so no global HTMLElement is needed.
+    const token = element as HTMLElement;
+    if (token.dataset?.woodfishOverlayToken !== 'true') {
+      return null;
+    }
+    const state = tokenState.get(token);
+    return state && state.profileVersion === profileVersion ? state.cssColor : null;
+  }
+
   function flushTokens(): void {
     frameId = 0;
     let processed = 0;
+    const touchedParents = new Set<Element>();
     for (const token of pendingTokens) {
       pendingTokens.delete(token);
       applyToken(token);
+      if (continuousRuns && token.isConnected && token.parentElement) {
+        touchedParents.add(token.parentElement);
+      }
       processed += 1;
       if (processed >= MAX_TOKENS_PER_FRAME) {
         break;
       }
+    }
+    for (const parent of touchedParents) {
+      linkGradientRuns(parent, runKey);
     }
 
     if (pendingTokens.size > 0) {
@@ -303,6 +368,7 @@ export function startTextGradientEngine(options: TextGradientEngineOptions): Tex
       profileRefreshTimer = null;
     }
     anchorHue = resolveAnchorHue();
+    context = options.gradientContext ? options.gradientContext() : NO_CONTEXT;
     profileVersion += 1;
     colorCache.clear();
     pruneViewLines();
@@ -422,7 +488,8 @@ export function clearTextGradientMarks(root: ParentNode = document): void {
     token.removeAttribute(TOKEN_MARKER_ATTRIBUTE);
     delete token.dataset.woodfishNeutral;
     delete token.dataset.woodfishPunctuation;
-    for (const variable of Object.values(TOKEN_VARIABLES)) {
+    delete token.dataset.woodfishPreset;
+    for (const variable of [...Object.values(TOKEN_VARIABLES), ...Object.values(RUN_VARIABLES)]) {
       token.style.removeProperty(variable);
     }
     if (token.getAttribute('style') === '') {

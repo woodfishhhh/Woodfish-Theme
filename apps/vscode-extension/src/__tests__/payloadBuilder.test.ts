@@ -75,8 +75,8 @@ describe('runtime payload builder', () => {
     expect(css).toContain('--woodfish-tab-border-gradient');
     expect(css).toContain('.activity { color: red; }');
     expect(css).toContain('[data-woodfish-overlay-token="true"]');
-    expect(css).toContain('--woodfish-overlay-hue-shift: 24');
-    expect(css).toContain('--woodfish-overlay-lightness-delta: 0.06');
+    expect(css).toContain('--woodfish-overlay-hue-shift: 32');
+    expect(css).toContain('--woodfish-overlay-lightness-delta: 0.12');
     expect(css).toContain('0 0 2px var(--woodfish-overlay-glow-near)');
     expect(css).toContain('0 0 5px var(--woodfish-overlay-glow-mid)');
     expect(css).toContain('animation: 12s linear infinite alternate bp-animation !important;');
@@ -117,10 +117,10 @@ describe('runtime payload builder', () => {
     });
     expect(DEFAULT_RUNTIME_SETTINGS.overlay).toEqual({
       enabled: true,
-      hueShift: 24,
-      lightnessDelta: 0.06,
-      neutralChroma: 0.06,
-      angle: 90,
+      hueShift: 32,
+      lightnessDelta: 0.12,
+      neutralChroma: 0.075,
+      angle: 45,
     });
     expect(DEFAULT_RUNTIME_SETTINGS.syntaxGradient.enabled).toBe(true);
     expect(
@@ -130,8 +130,10 @@ describe('runtime payload builder', () => {
     expect(DEFAULT_RUNTIME_SETTINGS.cursor.enabled).toBe(true);
     expect(settingSchemas['woodfishTheme.runtime.enabled']).toBeUndefined();
     expect(settingSchemas['woodfishTheme.overlay.enabled'].default).toBe(true);
-    expect(settingSchemas['woodfishTheme.overlay.hueShift'].default).toBe(24);
-    expect(settingSchemas['woodfishTheme.overlay.lightnessDelta'].default).toBe(0.06);
+    expect(settingSchemas['woodfishTheme.overlay.hueShift'].default).toBe(32);
+    expect(settingSchemas['woodfishTheme.overlay.lightnessDelta'].default).toBe(0.12);
+    expect(settingSchemas['woodfishTheme.overlay.neutralChroma'].default).toBe(0.075);
+    expect(settingSchemas['woodfishTheme.overlay.angle'].default).toBe(45);
     expect(settingSchemas['woodfishTheme.runtime.autoSwitchTheme']).toBeUndefined();
     expect(settingSchemas['woodfishTheme.runtime.reapplyOnStartup']).toBeUndefined();
     expect(settingSchemas['woodfishTheme.syntaxGradient.preset']).toBeUndefined();
@@ -396,7 +398,7 @@ describe('runtime payload builder', () => {
     expect(settings.glow.intensity).toBe(3);
     expect(settings.overlay.hueShift).toBe(180);
     expect(settings.overlay.lightnessDelta).toBe(0);
-    expect(settings.overlay.neutralChroma).toBe(0.06);
+    expect(settings.overlay.neutralChroma).toBe(0.075);
     expect(settings.overlay.angle).toBe(360);
     expect(settings.cursor.animationDuration).toBe(1);
     expect(settings.cursor.borderRadius).toBe(24);

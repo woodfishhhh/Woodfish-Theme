@@ -2,10 +2,11 @@ import {
   PAINTED_TOKEN_SELECTOR,
   buildGlowDeclarations,
   buildGradientDeclarations,
+  buildGradientImage,
+  buildLightGlowDeclarations,
   buildNoiseDataUri,
   buildPunctuationGlowDeclarations,
   formatCssNumber,
-  scaleGlowRadius,
 } from '@woodfish/renderer-runtime';
 import { CODE_ROOT_SELECTOR, CODEX_SELECTORS, selectorOf } from '../selectors';
 import { CodexSettings } from '../settings';
@@ -51,11 +52,8 @@ export function buildCodeCss(settings: CodexSettings): string {
         scoped(CODE_ROOT_SELECTOR, `${PAINTED_TOKEN_SELECTOR}[data-woodfish-punctuation="true"]`),
         buildPunctuationGlowDeclarations(intensity)
       ),
-      // The same glow reads as blur on a bright background, so light mode is softer.
-      rule(scoped('[data-theme="light"]', tokens), [
-        '  text-shadow:',
-        `    0 0 ${scaleGlowRadius(2, intensity)} var(--woodfish-overlay-glow-mid) !important;`,
-      ])
+      // Light mode glows in a bright tint of the text hue (theme-core), not a dark halo.
+      rule(scoped('[data-theme="light"]', tokens), buildLightGlowDeclarations(intensity))
     );
   }
   return parts.join('\n\n');
@@ -88,10 +86,7 @@ export function buildDiffCss(settings: CodexSettings): string {
         `${tokens}[data-woodfish-punctuation="true"]`,
         buildPunctuationGlowDeclarations(intensity)
       ),
-      rule(`:host-context([data-theme="light"]) ${tokens}`, [
-        '  text-shadow:',
-        `    0 0 ${scaleGlowRadius(2, intensity)} var(--woodfish-overlay-glow-mid) !important;`,
-      ])
+      rule(`:host-context([data-theme="light"]) ${tokens}`, buildLightGlowDeclarations(intensity))
     );
   }
   return parts.join('\n\n');
@@ -233,12 +228,7 @@ export function buildBodyTextCss(settings: CodexSettings): string {
   return [
     rule(':root', [`  ${ANGLE_VARIABLE}: ${formatCssNumber(settings.codeGradient.angle)}deg;`]),
     rule(painted, [
-      '  background-image: linear-gradient(',
-      `    var(${ANGLE_VARIABLE}),`,
-      '    var(--woodfish-overlay-gradient-light) 0%,',
-      '    var(--woodfish-overlay-gradient-base) 50%,',
-      '    var(--woodfish-overlay-gradient-dark) 100%',
-      '  ) !important;',
+      `  background-image: ${buildGradientImage(ANGLE_VARIABLE)} !important;`,
       '  background-clip: text !important;',
       '  -webkit-background-clip: text !important;',
       '  -webkit-text-fill-color: transparent !important;',

@@ -5,9 +5,23 @@ import * as vm from 'vm';
 /*
  * Equivalence gate for the renderer-runtime extraction: the frozen 7.0.0 bootstrap and
  * the current build run the same seeded scenarios in identical fake DOMs, and every
- * observable effect (token datasets and CSS variables, root datasets, observer and timer
- * bookkeeping) must match after each step.
+ * observable effect (which tokens are painted, their glow variables and datasets, root
+ * datasets, observer and timer bookkeeping) must match after each step.
+ *
+ * The gradient colors themselves changed on purpose in 7.2 (hand-tuned presets and the
+ * derivation modeled on them, multi-stop gradients, continuous runs), so the variables
+ * that carry them are left out of the comparison; their behavior is covered by the
+ * theme-core and renderer-runtime tests.
  */
+const GRADIENT_COLOR_VARIABLES = new Set([
+  '--woodfish-overlay-gradient-light',
+  '--woodfish-overlay-gradient-dark',
+  '--woodfish-overlay-gradient-stops',
+  '--woodfish-overlay-gradient-angle',
+  '--woodfish-overlay-gradient-size',
+  '--woodfish-overlay-gradient-position',
+]);
+const GRADIENT_DATASET_KEYS = new Set(['woodfishPreset']);
 
 const FROZEN = fs.readFileSync(
   path.resolve(__dirname, 'fixtures', 'overlay-bootstrap.7.0.0.frozen.js'),
@@ -111,6 +125,15 @@ class FakeElement {
 }
 
 class FakeToken extends FakeElement {
+  public get previousSibling(): FakeElement | null {
+    const parent = this.parentElement as FakeViewLines | null;
+    if (!parent) {
+      return null;
+    }
+    const index = parent.tokens.indexOf(this);
+    return index > 0 ? parent.tokens[index - 1] : null;
+  }
+
   public constructor(
     public cssColor: string,
     text: string,
@@ -128,6 +151,10 @@ class FakeToken extends FakeElement {
 
 class FakeViewLines extends FakeElement {
   public readonly tokens: FakeToken[] = [];
+
+  public get children(): FakeToken[] {
+    return this.tokens;
+  }
 
   public override matches(selector: string): boolean {
     return selector.includes('.view-lines') && !selector.includes('[class*="mtk"]');
@@ -235,6 +262,7 @@ class World {
         body: this.body,
         documentElement: this.documentElement,
         head: this.body,
+        querySelector: (): null => null,
         querySelectorAll: (selector: string) =>
           selector.includes('[class*="mtk"]')
             ? world.connectedRoots().flatMap((root) => root.querySelectorAll(selector))
@@ -316,8 +344,12 @@ class World {
     const tokens = this.viewLines.flatMap((root) => root.tokens);
     return JSON.stringify({
       tokens: tokens.map((token) => ({
-        dataset: token.dataset,
-        style: [...token.style.values.entries()].sort(),
+        dataset: Object.fromEntries(
+          Object.entries(token.dataset).filter(([key]) => !GRADIENT_DATASET_KEYS.has(key))
+        ),
+        style: [...token.style.values.entries()]
+          .filter(([name]) => !GRADIENT_COLOR_VARIABLES.has(name))
+          .sort(),
         attributes: [...token.attributes.entries()].sort(),
       })),
       root: withoutVersion(this.documentElement.dataset),

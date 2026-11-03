@@ -2,14 +2,17 @@ export {
   TOKEN_MARKER_ATTRIBUTE,
   TOKEN_VARIABLES,
   clearTextGradientMarks,
+  formatGradientStops,
   startTextGradientEngine,
 } from './textGradientEngine';
 export type {
+  GradientContext,
   TextGradientEngine,
   TextGradientEngineOptions,
   TextGradientParams,
   ThemeSignatureHelpers,
 } from './textGradientEngine';
+export { RUN_VARIABLES, linkGradientRuns } from './gradientRuns';
 export { createStyleManager } from './styleManager';
 export type { StyleManager, StyleManagerOptions } from './styleManager';
 export { createDisposerRegistry } from './disposers';
@@ -34,6 +37,8 @@ export {
   PAINTED_TOKEN_SELECTOR,
   buildGlowDeclarations,
   buildGradientDeclarations,
+  buildGradientImage,
+  buildLightGlowDeclarations,
   buildNoiseDataUri,
   buildPunctuationGlowDeclarations,
   formatCssNumber,

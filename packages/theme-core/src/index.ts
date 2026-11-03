@@ -13,6 +13,7 @@ export {
 export { formatRgba, withHexAlpha } from './color/format';
 export { contrastRatio, relativeLuminance } from './color/contrast';
 export { isValidCssColor } from './color/validate';
+export { gamutCusp, maxChromaInGamut } from './color/gamut';
 
 export {
   DEFAULT_ANCHOR_HUE,
@@ -22,6 +23,8 @@ export {
 } from './gradient/tokenGradient';
 export type { TokenGradientColors, TokenGradientOptions } from './gradient/tokenGradient';
 export { isPunctuationOnly, pickAccentHue, rankPaletteAnchorHue } from './gradient/anchorHue';
+export { findPresetGradient, matchGradientPreset } from './gradient/presets';
+export type { GradientPreset, PresetGradient } from './gradient/presets';
 
 export * from './effects/params';
 export {
@@ -39,6 +42,11 @@ export * from './palettes/types';
 export { ORIGINAL_PALETTES } from './palettes/originals';
 export { PORTED_PALETTES } from './palettes/ported';
 export { WOODFISH_PALETTES } from './palettes/all';
+export {
+  GRADIENT_PRESETS,
+  detectGradientPreset,
+  findGradientPreset,
+} from './palettes/gradientPresets';
 export {
   MIN_COMMENT_CONTRAST,
   MIN_KEYWORD_VARIABLE_HUE_DISTANCE,

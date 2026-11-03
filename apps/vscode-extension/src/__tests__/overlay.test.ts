@@ -102,7 +102,10 @@ describe('universal token overlay', () => {
     expect(css).toContain('--woodfish-overlay-lightness-delta: 0.06');
     expect(css).toContain('--woodfish-overlay-neutral-chroma: 0.06');
     expect(css).toContain('--woodfish-overlay-angle: 90deg');
-    expect(css).toContain('var(--woodfish-overlay-gradient-base) 50%');
+    expect(css).toContain(
+      'linear-gradient(var(--woodfish-overlay-gradient-angle, var(--woodfish-overlay-angle)), var(--woodfish-overlay-gradient-stops))'
+    );
+    expect(css).toContain('var(--woodfish-overlay-gradient-size, 100% 100%)');
     expect(css).toContain('var(--woodfish-overlay-glow-near)');
     expect(css).not.toMatch(/\.mtk\d+/);
     expect(css).not.toContain('oklch(');
@@ -143,6 +146,7 @@ describe('universal token overlay', () => {
       document: {
         body,
         documentElement,
+        querySelector: () => null,
         querySelectorAll: (selector: string) =>
           selector.includes('[class*="mtk"]') ? tokens : [viewLines],
       },
@@ -172,12 +176,10 @@ describe('universal token overlay', () => {
     expect(neutralToken.style.getPropertyValue('--woodfish-overlay-gradient-base')).toBe(
       originalWhite
     );
-    expect(neutralToken.style.getPropertyValue('--woodfish-overlay-gradient-light')).not.toBe(
-      originalWhite
-    );
-    expect(neutralToken.style.getPropertyValue('--woodfish-overlay-gradient-dark')).not.toBe(
-      originalWhite
-    );
+    const neutralStops = neutralToken.style.getPropertyValue('--woodfish-overlay-gradient-stops');
+    // White body text gets the rainbow: nine stops, none of them plain white.
+    expect(neutralStops.split('%,')).toHaveLength(9);
+    expect(neutralStops).not.toContain(originalWhite);
     expect(neutralToken.style.getPropertyValue('--woodfish-overlay-glow-near')).toContain('0.58');
     expect(punctuationToken.dataset.woodfishPunctuation).toBe('true');
     expect(bracketToken.dataset.woodfishOverlayToken).toBe('true');
@@ -201,10 +203,67 @@ describe('universal token overlay', () => {
   it('keeps the approved overlay defaults stable', () => {
     expect(DEFAULT_RUNTIME_SETTINGS.overlay).toEqual({
       enabled: true,
-      hueShift: 24,
-      lightnessDelta: 0.06,
-      neutralChroma: 0.06,
-      angle: 90,
+      hueShift: 32,
+      lightnessDelta: 0.12,
+      neutralChroma: 0.075,
+      angle: 45,
     });
+  });
+
+  it('paints the hand-tuned Woodfish Dark gradients when the editor uses Woodfish Dark', () => {
+    const keyword = new FakeToken('rgb(234, 205, 97)', 'export');
+    const other = new FakeToken('rgb(243, 140, 236)', 'param');
+    const tokens = [keyword, other];
+    const viewLines = new FakeViewLines(tokens);
+    const documentElement = new FakeElement();
+    const body = new FakeElement();
+    const workbench = new FakeElement();
+    const animationFrames: Array<() => void> = [];
+    const editorColors: Record<string, string> = {
+      '--vscode-editor-background': '#1c2433',
+      '--vscode-editor-foreground': '#d0d7e4',
+    };
+
+    vm.runInNewContext(bootstrap, {
+      Element: FakeElement,
+      MutationObserver: FakeMutationObserver,
+      Node: { TEXT_NODE: 3 },
+      cancelAnimationFrame: jest.fn(),
+      clearInterval: jest.fn(),
+      clearTimeout: jest.fn(),
+      document: {
+        body,
+        documentElement,
+        querySelector: (selector: string) => (selector === '.monaco-workbench' ? workbench : null),
+        querySelectorAll: (selector: string) =>
+          selector.includes('[class*="mtk"]') ? tokens : [viewLines],
+      },
+      getComputedStyle: (element: FakeElement) => ({
+        color: element instanceof FakeToken ? element.cssColor : 'rgb(208, 215, 228)',
+        getPropertyValue: (name: string) =>
+          element === workbench ? (editorColors[name] ?? '') : '',
+      }),
+      requestAnimationFrame: (callback: () => void) => {
+        animationFrames.push(callback);
+        return animationFrames.length;
+      },
+      setInterval: jest.fn(() => 1),
+      setTimeout: jest.fn(() => 1),
+    });
+    while (animationFrames.length > 0) {
+      animationFrames.shift()?.();
+    }
+
+    expect(keyword.style.getPropertyValue('--woodfish-overlay-gradient-stops')).toBe(
+      '#eacd61 0%, #ea618e 100%'
+    );
+    expect(keyword.style.getPropertyValue('--woodfish-overlay-gradient-angle')).toBe('45deg');
+    expect(keyword.dataset.woodfishPreset).toBe('true');
+    // Colors the tuning does not cover are derived, starting at the token color.
+    expect(other.dataset.woodfishPreset).toBe('false');
+    expect(other.style.getPropertyValue('--woodfish-overlay-gradient-stops')).toMatch(
+      /^rgba\(243, 140, 236, 1\) 0%, rgba\(\d+, \d+, \d+, 1\) 100%$/
+    );
+    expect(other.style.getPropertyValue('--woodfish-overlay-gradient-angle')).toBe('initial');
   });
 });

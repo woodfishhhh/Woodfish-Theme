@@ -31,9 +31,9 @@ describe('runtime overlay assets', () => {
     });
 
     expect(css).toContain('[data-woodfish-overlay-token="true"]');
-    expect(css).toContain('--woodfish-overlay-hue-shift: 24');
-    expect(css).toContain('--woodfish-overlay-lightness-delta: 0.06');
-    expect(css).toContain('--woodfish-overlay-neutral-chroma: 0.06');
+    expect(css).toContain('--woodfish-overlay-hue-shift: 32');
+    expect(css).toContain('--woodfish-overlay-lightness-delta: 0.12');
+    expect(css).toContain('--woodfish-overlay-neutral-chroma: 0.075');
     expect(css).not.toMatch(/span\.mtk\d+/);
     expect(css).not.toContain('oklch(');
   });

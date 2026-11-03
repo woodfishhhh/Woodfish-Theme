@@ -17,23 +17,24 @@ export function scaleGlowRadius(radius: number, intensity: number): string {
 }
 
 /**
- * Three-stop `background-clip: text` gradient. `angleVariable` must hold an angle such
- * as `90deg`.
+ * The token's gradient as a `background-image` value. A hand-tuned gradient brings its
+ * own angle; otherwise `angleVariable` (which must hold an angle such as `45deg`) is used.
  */
+export function buildGradientImage(angleVariable = '--woodfish-overlay-angle'): string {
+  return `linear-gradient(var(--woodfish-overlay-gradient-angle, var(${angleVariable})), var(--woodfish-overlay-gradient-stops))`;
+}
+
+/** `background-clip: text` gradient painted from the engine's per-token variables. */
 export function buildGradientDeclarations(angleVariable = '--woodfish-overlay-angle'): string[] {
   return [
-    '  background-image: linear-gradient(',
-    `    var(${angleVariable}),`,
-    '    var(--woodfish-overlay-gradient-light) 0%,',
-    '    var(--woodfish-overlay-gradient-base) 50%,',
-    '    var(--woodfish-overlay-gradient-dark) 100%',
-    '  ) !important;',
+    `  background-image: ${buildGradientImage(angleVariable)} !important;`,
     '  background-clip: text !important;',
     '  -webkit-background-clip: text !important;',
     '  -webkit-text-fill-color: transparent !important;',
     '  background-repeat: no-repeat !important;',
-    '  background-size: 100% 100% !important;',
-    '  background-position: center !important;',
+    // Set by the engine when adjacent spans share one gradient (split long tokens).
+    '  background-size: var(--woodfish-overlay-gradient-size, 100% 100%) !important;',
+    '  background-position: var(--woodfish-overlay-gradient-position, center) !important;',
     // `background-clip: text` only paints inside the span box; italic or wide glyphs
     // (JetBrains Mono, Cascadia, ligatures) overhang it and were clipped. Padding
     // extends the painted area, the negative margin keeps the host's layout unchanged.
@@ -50,6 +51,19 @@ export function buildGlowDeclarations(intensity: number): string[] {
     `    0 0 ${scaleGlowRadius(4, intensity)} var(--woodfish-overlay-glow-near),`,
     `    0 0 ${scaleGlowRadius(10, intensity)} var(--woodfish-overlay-glow-mid),`,
     `    0 0 ${scaleGlowRadius(20, intensity)} var(--woodfish-overlay-glow-far) !important;`,
+  ];
+}
+
+/**
+ * Glow on light backgrounds. The engine gives it a bright tint of the text hue there (see
+ * theme-core), so it reads as a light aura instead of a dark smudge: a tight bright edge
+ * and a soft halo.
+ */
+export function buildLightGlowDeclarations(intensity: number): string[] {
+  return [
+    '  text-shadow:',
+    `    0 0 ${scaleGlowRadius(3, intensity)} var(--woodfish-overlay-glow-near),`,
+    `    0 0 ${scaleGlowRadius(9, intensity)} var(--woodfish-overlay-glow-mid) !important;`,
   ];
 }
 

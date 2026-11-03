@@ -6,8 +6,9 @@
  * math in `@woodfish/theme-core`; this file only supplies the Monaco/workbench specifics:
  * selectors, settings read from `--woodfish-*` CSS variables, and the page controller.
  */
-import { DEFAULT_GLASS, DEFAULT_TEXT_GRADIENT } from '@woodfish/theme-core';
+import { DEFAULT_GLASS, DEFAULT_TEXT_GRADIENT, detectGradientPreset } from '@woodfish/theme-core';
 import {
+  GradientContext,
   createDisposerRegistry,
   disposeController,
   installController,
@@ -62,6 +63,22 @@ function hasForeignDecoration(token: Element): boolean {
 
 const disposers = createDisposerRegistry();
 
+/**
+ * Editor colors of the active theme. VS Code declares its `--vscode-*` variables on the
+ * workbench element; a built-in Woodfish theme is recognised by background + foreground.
+ */
+function readGradientContext(): GradientContext {
+  const host = document.querySelector('.monaco-workbench') ?? document.body;
+  const style = getComputedStyle(host);
+  const background = style.getPropertyValue('--vscode-editor-background').trim() || null;
+  const foreground = style.getPropertyValue('--vscode-editor-foreground').trim() || null;
+  return {
+    background,
+    foreground,
+    preset: background && foreground ? detectGradientPreset(background, foreground) : null,
+  };
+}
+
 function startTokens(): (() => void) | void {
   if (readNumberVariable('--woodfish-overlay-tokens', 1) !== 1) {
     return;
@@ -82,6 +99,7 @@ function startTokens(): (() => void) | void {
         DEFAULT_TEXT_GRADIENT.neutralChroma
       ),
     },
+    gradientContext: readGradientContext,
     accentVariables: ACCENT_VARIABLES,
     themeAttributes: ['class', 'data-color-theme'],
     themeSignature: ({ tokenPaletteSignature }) => {

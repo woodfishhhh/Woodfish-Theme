@@ -50,10 +50,10 @@ describe('featureFlags config access', () => {
 
     expect(settings.overlay).toEqual({
       enabled: true,
-      hueShift: 24,
-      lightnessDelta: 0.06,
-      neutralChroma: 0.06,
-      angle: 90,
+      hueShift: 32,
+      lightnessDelta: 0.12,
+      neutralChroma: 0.075,
+      angle: 45,
     });
     expect(settings.syntaxGradient.enabled).toBe(true);
     expect((settings.syntaxGradient as Record<string, unknown>).preset).toBeUndefined();
@@ -114,7 +114,7 @@ describe('featureFlags config access', () => {
 
     const settings = readRuntimeSettings();
 
-    expect(settings.overlay.hueShift).toBe(24);
+    expect(settings.overlay.hueShift).toBe(32);
     expect(settings.overlay.lightnessDelta).toBe(0);
     expect(settings.overlay.neutralChroma).toBe(0.4);
     expect(settings.glow.enabled).toBe(true);

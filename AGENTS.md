@@ -47,6 +47,7 @@ Woodfish-Theme/
 | Theme registry | `apps/vscode-extension/src/services/runtime/themeRegistry.ts` |
 | Renderer overlay script | `apps/vscode-extension/browser/overlay-bootstrap.ts` |
 | OKLCH / gradient math | `packages/theme-core/src/color/`, `packages/theme-core/src/gradient/` |
+| Hand-tuned gradients | `packages/theme-core/src/palettes/gradientPresets.ts` |
 | Effect defaults & ranges | `packages/theme-core/src/effects/params.ts` |
 | Original palettes | `packages/theme-core/src/palettes/originals.ts` |
 | Text gradient engine | `packages/renderer-runtime/src/textGradientEngine.ts` |
@@ -65,10 +66,15 @@ Woodfish-Theme/
 - **Runtime injection** - patches `workbench.html` through `workbenchPatcher.ts`
 - **Core stays host-agnostic** - `packages/theme-core` must not import `vscode`, Electron, DOM or Node APIs
 - **Generated files are committed** - regenerate with `pnpm themes:generate` / `pnpm runtime:build`
+- **Two kinds of text gradients** - the 5 built-in themes use hand-tuned presets (`packages/theme-core/src/palettes/gradientPresets.ts`, keyed by token color); any other theme, and colors a preset does not list, use the derivation in `gradient/tokenGradient.ts`, which is modeled on the presets. Hosts pass background / foreground / preset through the engine's `gradientContext`
+- **Woodfish Dark preset is the owner's own tuning** - the 5.x hand-written Bearded CSS, restored byte for byte. Never retune it or let the algorithm replace it; new presets follow its rules (start at the token color, turn forward on the hue circle to a more vivid end, 45°, pastel rainbow at 135° for the foreground)
+- **Judge gradients on real renders** - unit tests only check rules. Render the built `overlay-bootstrap.js` with its real CSS in a Monaco-like page (long tokens split every 50 chars) and look at it zoomed in, in dark and light (`.monaco-workbench.vs`)
 
 ## Anti-Patterns (THIS PROJECT)
 
 - **DO NOT** use `as any` or `@ts-ignore`
+- **DO NOT** size a gradient to a single Monaco span - Monaco splits tokens over 50 chars into several spans; `gradientRuns.ts` joins adjacent same-colored spans so the gradient does not restart
+- **DO NOT** glow in the text color on light backgrounds - it reads as a dark smudge; theme-core gives light backgrounds a bright tint of the hue
 - **DO NOT** commit with unfixed TypeScript errors
 - **DO NOT** modify workbench.html directly (use workbenchPatcher.ts)
 - **DO NOT** use `any` type - use proper TypeScript types

@@ -45,8 +45,9 @@ theme-core  ←  renderer-runtime  ←  adapter-codex  ←  desktop-cli
 | 模块 | 内容 |
 | --- | --- |
 | `color/` | CSS 颜色解析与校验、sRGB ↔ OKLCH、色域映射、WCAG 对比度 |
-| `gradient/` | 从一个文字颜色推导三段渐变和发光色；按调色板或强调色选取锚定色相 |
+| `gradient/` | 文字渐变：先查当前主题的特调表（`presets.ts`），查不到再按特调的规律推导（`tokenGradient.ts`），并保证每个色标在背景上不比原色难读；发光色（浅色背景上用同色相的亮色）；按调色板或强调色选取锚定色相 |
 | `effects/` | 渐变、发光、光标、毛玻璃、系统窗口材质的可调参数：默认值、取值范围、归一化；用户 CSS 与色标的安全过滤 |
+| `palettes/gradientPresets.ts` | 5 套内置主题的特调渐变表，按 token 颜色查。Woodfish Dark 是 5.x 手写的 Bearded 特调原样保留，其余四套按同一手法调出 |
 | `palettes/` | Woodfish 原创调色板（Light / Black / Neon）及可读性校验；从 VS Code 主题移植的 Dark / Dracula 调色板（`ported.ts`，由 `apps/vscode-extension/scripts/port-palettes.js` 生成） |
 
 ### `@woodfish/renderer-runtime`
@@ -55,12 +56,13 @@ theme-core  ←  renderer-runtime  ←  adapter-codex  ←  desktop-cli
 
 | 模块 | 内容 |
 | --- | --- |
-| `textGradientEngine` | 文字渐变引擎：用 MutationObserver 找到 token，按动画帧分批上色，跟随主题变化重新计算。选择器、过滤条件和主题签名由宿主传入 |
+| `textGradientEngine` | 文字渐变引擎：用 MutationObserver 找到 token，按动画帧分批上色，跟随主题变化重新计算。选择器、过滤条件、主题签名，以及背景色 / 前景色 / 特调表（`gradientContext`）由宿主传入 |
+| `gradientRuns` | 把同一行里相邻、同色的 span 连成一段，共用一条渐变。Monaco 会把超过 50 个字符的 token 拆成多个 span，不连起来渐变会每 50 个字重新开始 |
 | `tokenCss` | 读取 token 变量的渐变、发光 CSS 声明，以及毛玻璃颗粒的 data URI（纯字符串，宿主端也能用） |
 | `styleManager` / `controller` / `disposers` / `steps` | 管理 `<style>`、页面控制器、释放顺序和各效果的独立启动 |
 | `acrylic` / `reveal` / `themeMode` | 亚克力滤镜、鼠标跟随光效、深浅色监听 |
 
-VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建在 500 个随机场景中逐步比对结果完全一致（`overlayEquivalence.test.ts`）。
+VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建在 500 个随机场景中逐步比对（`overlayEquivalence.test.ts`）。7.2 起渐变颜色是有意改变的，比对时去掉渐变色变量，其余（哪些 token 上色、发光、观察器与计时器、释放）仍须完全一致。
 
 ### `@woodfish/adapter-codex`
 
