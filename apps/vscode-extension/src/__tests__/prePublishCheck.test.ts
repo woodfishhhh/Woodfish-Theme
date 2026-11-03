@@ -87,24 +87,26 @@ describe('pre-publish package hygiene', () => {
     ]);
   });
 
-  it('requires every packaged README preview to use its canonical remote URL', () => {
-    const previewUrls = [
-      'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/hero.png',
-      'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/dracula-preview.png',
-      'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img1.png',
-      'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img2.png',
-    ];
-    const readme = [
-      `<img src="${previewUrls[0]}" alt="Hero">`,
-      `<img src="${previewUrls[1]}" alt="Dracula">`,
-      `![Woodfish Dark 彩虹光标效果](${previewUrls[2]})`,
-      `![Woodfish Dark 渐变语法与发光效果](${previewUrls[3]})`,
-    ].join('\n');
-
-    expect(findMissingReadmePreviewUrls(readme)).toEqual([]);
+  it('requires the README banner as a repository raw link at HEAD or a release tag', () => {
+    const repository = 'https://github.com/woodfishhhh/Woodfish-Theme/raw';
     expect(
-      findMissingReadmePreviewUrls([previewUrls[0], ...readme.split('\n').slice(1)].join('\n'))
-    ).toEqual([previewUrls[0]]);
+      findMissingReadmePreviewUrls(`<img src="${repository}/HEAD/assets/readme/hero.png" alt="">`)
+    ).toEqual([]);
+    expect(
+      findMissingReadmePreviewUrls(`![Woodfish](${repository}/v7.2.0/assets/readme/hero.png)`)
+    ).toEqual([]);
+    // A bare path, another repository or a branch name does not count.
+    expect(findMissingReadmePreviewUrls('<img src="assets/readme/hero.png">')).toEqual([
+      'assets/readme/hero.png',
+    ]);
+    expect(
+      findMissingReadmePreviewUrls(
+        '<img src="https://github.com/someone/fork/raw/HEAD/assets/readme/hero.png">'
+      )
+    ).toEqual(['assets/readme/hero.png']);
+    expect(
+      findMissingReadmePreviewUrls(`<img src="${repository}/main/assets/readme/hero.png">`)
+    ).toEqual(['assets/readme/hero.png']);
   });
 
   it('requires the runtime entry, icon, theme definitions, and injectable CSS', () => {

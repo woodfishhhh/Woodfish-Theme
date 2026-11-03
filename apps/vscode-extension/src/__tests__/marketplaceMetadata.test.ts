@@ -20,15 +20,16 @@ function normalizeGithubRepo(url: string): string | null {
   return match ? match[1] : null;
 }
 
-function findRelativeImagePaths(markdown: string): string[] {
+function findImageSources(markdown: string): string[] {
   const markdownImages = [...markdown.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map((match) => match[1]);
   const htmlImages = [...markdown.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map(
     (match) => match[1]
   );
-  return [...markdownImages, ...htmlImages].filter(
-    (imagePath) => !/^(?:https?:)?\/\//i.test(imagePath)
-  );
+  return [...markdownImages, ...htmlImages];
 }
+
+const REPOSITORY_RAW_IMAGE =
+  /^https:\/\/github\.com\/woodfishhhh\/Woodfish-Theme\/raw\/(?:HEAD|v\d+\.\d+\.\d+)\/(.+)$/;
 
 function findGithubRepos(markdown: string): string[] {
   return [...markdown.matchAll(/https:\/\/github\.com\/[^)\s"'<>]+/gi)]
@@ -41,18 +42,20 @@ describe('marketplace metadata guardrails', () => {
     const packageJson = JSON.parse(read(extensionRoot, 'package.json')) as PackageJson;
     const readmeZh = read(repoRoot, 'README.md');
     const readmeEn = read(repoRoot, 'README.en.md');
-    const relativeImagePaths = [
-      ...findRelativeImagePaths(readmeZh),
-      ...findRelativeImagePaths(readmeEn),
-    ];
+    const images = [...findImageSources(readmeZh), ...findImageSources(readmeEn)];
     const readmeRepos = new Set([...findGithubRepos(readmeZh), ...findGithubRepos(readmeEn)]);
 
-    expect(relativeImagePaths).toEqual(
-      expect.arrayContaining(['images/img1.png', 'images/img2.png'])
-    );
-
-    for (const relativeImagePath of relativeImagePaths) {
-      expect(fs.existsSync(path.join(repoRoot, relativeImagePath))).toBe(true);
+    // The Marketplace renders the README outside the repository: no relative image paths.
+    expect(images.filter((source) => !/^https:\/\//i.test(source))).toEqual([]);
+    const repositoryImages = images
+      .map((source) => REPOSITORY_RAW_IMAGE.exec(source)?.[1])
+      .filter((imagePath): imagePath is string => imagePath !== undefined);
+    expect(repositoryImages).toEqual(expect.arrayContaining(['assets/readme/hero.png']));
+    for (const imagePath of repositoryImages) {
+      expect({ imagePath, exists: fs.existsSync(path.join(repoRoot, imagePath)) }).toEqual({
+        imagePath,
+        exists: true,
+      });
     }
 
     expect(readmeRepos.size).toBe(1);

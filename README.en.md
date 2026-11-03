@@ -7,34 +7,91 @@
 [![License](https://img.shields.io/badge/license-MIT%20%2B%20GPL--3.0-green.svg)](apps/vscode-extension/THIRD_PARTY_NOTICES.md)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 
-Woodfish Theme is a visual layer that sits on top of any color theme. It keeps the colors you already use, derives OKLCH gradients and glow for every code token at runtime, and adds a rainbow cursor and frosted glass. It works in VS Code, Cursor, Kiro, Windsurf, Trae and VSCodium.
+![Woodfish Dark: gradient syntax and glow](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/hero.png)
+
+Woodfish Theme adds gradients and glow to code, plus a rainbow cursor and frosted glass. Its five bundled themes each come with hand-tuned gradients; on any other color theme the gradients are derived by the same rules. It works in VS Code, Cursor, Kiro, Windsurf, Trae and VSCodium.
+
+Every picture on this page is rendered by the extension's own workbench script and injected CSS ([generator](apps/vscode-extension/scripts/render-readme-images.js)).
 
 > The extension UI is in Chinese. Command names below are given in Chinese with an English gloss.
 
 ## Preview
 
-![Woodfish Dracula preview](https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/dracula-preview.png)
+**Woodfish Dark**: Bearded Theme Arc colors with the hand-written 5.x gradients.
 
-![Woodfish Dark gradient syntax and glow](images/img2.png)
+![Woodfish Dark](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-dark.png)
 
-![Woodfish Dark rainbow cursor](images/img1.png)
+**Woodfish Dracula**: the official Dracula colors, keywords running pink into purple.
 
-## What's new in 7.0
+![Woodfish Dracula](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-dracula.png)
+
+**Woodfish Black**: pure black for OLED screens.
+
+![Woodfish Black](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-black.png)
+
+**Woodfish Neon**: neon on deep purple.
+
+![Woodfish Neon](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-neon.png)
+
+**Woodfish Light**: warm white; gradients go deeper and the glow is a light tint of each hue.
+
+![Woodfish Light](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-light.png)
+
+**Any other theme**: VS Code's own Dark Modern as it ships (left) and with Woodfish (right).
+
+| Dark Modern | With Woodfish |
+|---|---|
+| ![Dark Modern](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/any-theme-before.png) | ![Dark Modern with Woodfish](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/any-theme-after.png) |
+
+**Glow**, off and on:
+
+| Gradient only | Gradient + glow |
+|---|---|
+| ![Glow off](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glow-off.png) | ![Glow on](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glow-on.png) |
+
+**Rainbow cursor**: its colors cycle; these are six moments of one cycle.
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/cursor.png" width="40%" alt="Six moments of the rainbow cursor's color cycle">
+
+**Frosted glass** on the suggest list (opacity 0.5, 14px blur):
+
+![Frosted glass](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glass.png)
+
+## What's new in 7.2
+
+- **Hand-tuned gradients are back**: `Woodfish Dark` restores the hand-written 5.x colors; `Dracula`, `Black`, `Neon` and `Light` are tuned the same way.
+- **Better gradients on every other theme**: the derivation follows the same rules, with more vivid ends and a soft rainbow on plain text.
+- **Long names and paragraphs no longer break**: VS Code shows a word longer than 50 characters as several pieces, and each piece used to get its own gradient, so colors restarted every 50 characters (most visible in Markdown). It is one gradient now:
+
+  Before 7.2 the rainbow starts over at `and`:
+
+  ![Before 7.2: the rainbow restarts at the 50th character](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/long-before.png)
+
+  7.2, one rainbow across the line:
+
+  ![7.2: one rainbow across the line](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/long-after.png)
+
+- **Light themes glow in a light color**: the glow used to be the dark text color, which looked like a shadow.
+
+<details>
+<summary><strong>What's new in 7.0</strong></summary>
 
 - **Cursor, Kiro, Windsurf, Trae and VSCodium support**: install the same extension from their extension panel (Open VSX).
 - **Frosted glass is back**: menus, hovers, suggestions, the command palette, notifications and 7 more surfaces, in a plain blur or an acrylic finish, with a Reveal highlight and entry animations. Cooperates with VS Code 1.143's native frosted glass.
 - **System window transparency (experimental)**: macOS vibrancy, Windows 11 acrylic / mica.
-- **Three new themes**: `Woodfish Black` (pure black), `Woodfish Neon` (cyberpunk) and `Woodfish Light`.
+- **Three new themes**: `Woodfish Black` (pure black), `Woodfish Neon` (neon) and `Woodfish Light`.
 - **Presets and cursor palettes**: 6 built-in presets plus your own; 8 cursor palettes plus custom colors.
 - **Uninstalling restores everything**: no more effects left behind after removing the extension.
 - **Actionable errors and diagnostics**: write failures explain what to do on each OS; one command copies a diagnostics report for issues.
 - **Getting-started walkthrough** on the Welcome page.
 
+</details>
+
 ## Installation
 
 - **VS Code**: install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme).
 - **Cursor, Kiro, Windsurf, Trae, VSCodium**: search for `Woodfish Theme` in the extension panel (served from [Open VSX](https://open-vsx.org/extension/zhongjun/woodfish-theme)).
-- **VSIX**: download it from [GitHub Releases](https://github.com/woodfishhhh/Woodfish-Theme/releases), then run `code --install-extension woodfish-theme-7.0.0.vsix` (use `cursor`, `kiro`, … for other editors).
+- **VSIX**: download it from [GitHub Releases](https://github.com/woodfishhhh/Woodfish-Theme/releases), then run `code --install-extension woodfish-theme-7.2.0.vsix` (use `cursor`, `kiro`, … for other editors).
 
 Pick any color theme, then click **重新加载窗口** (Reload Window) when prompted. The overlay is on by default and never switches your color theme. Click `Woodfish ...` in the status bar for the feature menu.
 
@@ -50,18 +107,6 @@ Pick any color theme, then click **重新加载窗口** (Reload Window) when pro
 | Trae / Trae CN | 1.107 | Open VSX | Package layout verified |
 
 "Package layout verified" means the workbench path, CSP, checksums and main-process format in the editor's installer were checked and match the editors that were tested end to end. Remote SSH, WSL and dev containers work too, because Woodfish always runs on the local UI side.
-
-## Bundled themes
-
-| Theme | Style |
-|---|---|
-| `Woodfish Dark` | Unmodified Bearded Theme Arc |
-| `Woodfish Dracula` | Official Dracula, with a pink/purple/cyan/green cursor |
-| `Woodfish Black` | Pure black background for OLED screens |
-| `Woodfish Neon` | Cyberpunk neon on deep purple |
-| `Woodfish Light` | Warm white light theme with softened glow |
-
-They are optional bases: the overlay works with every color theme.
 
 ## Effect layers and status bar
 
@@ -144,7 +189,7 @@ pnpm test:integration
 pnpm package
 ```
 
-The repository is an npm workspaces monorepo; run the commands above from the root. The VS Code extension lives in `apps/vscode-extension/`, and the host-agnostic color math, gradient derivation, palettes and effect parameters live in `packages/theme-core/` (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)). Themes are generated by `apps/vscode-extension/scripts/generate-themes.js`; the workbench renderer script is built from `apps/vscode-extension/browser/`, and injected CSS lives in `apps/vscode-extension/themes/shared/`. Publishing to Open VSX requires the `OVSX_PAT` environment variable.
+The repository is a pnpm workspace monorepo; run the commands above from the root. The VS Code extension lives in `apps/vscode-extension/`, and the host-agnostic color math, gradient derivation, hand-tuned presets, palettes and effect parameters live in `packages/theme-core/` (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)). Themes are generated by `apps/vscode-extension/scripts/generate-themes.js`; the workbench renderer script is built from `apps/vscode-extension/browser/`, and injected CSS lives in `apps/vscode-extension/themes/shared/`. Publishing to Open VSX requires the `OVSX_PAT` environment variable.
 
 ## License
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/hero.png" width="100%" alt="Woodfish Theme：为任意颜色主题叠加渐变语法、可调发光、彩虹光标和毛玻璃">
+  <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/hero.png" width="100%" alt="Woodfish Dark 下的一段 TypeScript：渐变语法与发光">
 </p>
 
 <p align="center">
@@ -17,55 +17,118 @@
   <a href="./apps/vscode-extension/docs/TROUBLESHOOTING.md">故障排查</a>
 </p>
 
-Woodfish Theme 是一层叠在任意颜色主题上的视觉效果：它保留你正在用的配色，为代码文字自动计算 OKLCH 渐变和发光，再加上彩虹光标和毛玻璃。VS Code、Cursor、Kiro、Windsurf、Trae、VSCodium 都能用。
+Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和毛玻璃。自带 5 套主题，每套都有手工调好的渐变；换成别的颜色主题也能用，渐变会照着同样的规律自动算出来。VS Code、Cursor、Kiro、Windsurf、Trae、VSCodium 都能用。
+
+本页所有图片都由扩展实际的渲染脚本和注入 CSS 生成（[生成脚本](./apps/vscode-extension/scripts/render-readme-images.js)）。
 
 ## 效果预览
 
-<p align="center">
-  <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/dracula-preview.png" width="100%" alt="Woodfish Dracula 的渐变语法、分层发光、主题光标与完整工作台效果">
-</p>
+### 五套内置主题
 
-每个 token 以自己的原色为中点生成渐变：默认色相 `±24°`、明度 `ΔL ±0.060`，再映射回可显示的 sRGB。白色、灰色这类低色度文字会从当前主题的强调色借一个色相，所以普通前景色也有渐变和发光。上图使用 `Woodfish Dracula`，换成其他颜色主题效果同样成立。
+**Woodfish Dark**：Bearded Theme Arc 的配色，渐变是 5.x 时手写的那一套。
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-dark.png" width="100%" alt="Woodfish Dark">
+
+**Woodfish Dracula**：Dracula 官方配色，关键字是粉到紫的渐变。
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-dracula.png" width="100%" alt="Woodfish Dracula">
+
+**Woodfish Black**：纯黑背景，适合 OLED 屏。
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-black.png" width="100%" alt="Woodfish Black">
+
+**Woodfish Neon**：深紫底的霓虹配色。
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-neon.png" width="100%" alt="Woodfish Neon">
+
+**Woodfish Light**：暖白底的浅色主题，渐变往深处走，发光是同色相的亮色。
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-light.png" width="100%" alt="Woodfish Light">
+
+按 `Ctrl+K Ctrl+T`（macOS 为 `Cmd+K Cmd+T`）切换主题。
+
+### 叠在任意主题上
+
+不用内置主题也行。下面是 VS Code 自带的 Dark Modern，左边是原样，右边开了 Woodfish：渐变从每个词原来的颜色出发，沿色环转到更鲜艳的颜色，读起来不比原色费劲。
+
+<table>
+  <tr>
+    <td width="50%"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/any-theme-before.png" alt="Dark Modern 原样"></td>
+    <td width="50%"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/any-theme-after.png" alt="Dark Modern 开启 Woodfish"></td>
+  </tr>
+  <tr>
+    <td align="center">Dark Modern 原样</td>
+    <td align="center">开启 Woodfish</td>
+  </tr>
+</table>
+
+## 7.2 有什么新东西
+
+- **特调渐变回来了**：`Woodfish Dark` 恢复 5.x 手写的那套颜色，`Dracula`、`Black`、`Neon`、`Light` 也按同样的手法调了一遍。
+- **其他主题的渐变更好看**：自动计算改成照着特调的规律来，终点更鲜艳，普通文字是一条淡彩虹。
+- **长名字、长段落不再断色**：VS Code 会把超过 50 个字符的词拆成几段显示，以前每段各算一次渐变，所以每隔 50 个字颜色就从头开始（Markdown 里最明显）。现在整段是一条渐变：
+
+  7.1 及以前，彩虹在 `and` 那里又从粉色开始了一遍：
+
+  <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/long-before.png" width="100%" alt="7.1 及以前：一行 100 个字符的文字，彩虹在第 50 个字符处重新开始">
+
+  7.2，从头到尾是一条：
+
+  <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/long-after.png" width="100%" alt="7.2：整行一条彩虹">
+
+- **浅色主题的发光换成亮色**：以前用文字本身的深色发光，看起来像一圈阴影。
 
 <details>
-<summary><strong>查看 Woodfish Dark 预览</strong></summary>
-
-![Woodfish Dark 渐变语法与发光效果](https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img2.png)
-
-![Woodfish Dark 彩虹光标效果](https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img1.png)
-
-</details>
-
-## 7.0 有什么新东西
+<summary><strong>7.0 的新功能</strong></summary>
 
 - **支持 Cursor、Kiro、Windsurf、Trae、VSCodium**：同一个扩展，从各自的扩展面板（Open VSX）直接安装。
 - **毛玻璃回来了**：菜单、悬浮提示、补全列表、命令面板、通知等 12 类浮层，可选普通模糊或亚克力质感，带 Reveal 光效和入场动画；VS Code 1.143 起与原生毛玻璃协同。
 - **系统级透明窗口（实验）**：macOS vibrancy、Windows 11 亚克力 / 云母。
-- **三套新主题**：`Woodfish Black`（纯黑）、`Woodfish Neon`（赛博朋克）、`Woodfish Light`（浅色）。
+- **三套新主题**：`Woodfish Black`（纯黑）、`Woodfish Neon`（霓虹）、`Woodfish Light`（浅色）。
 - **效果预设和光标配色**：6 套内置预设，可以保存自己的组合；8 套光标配色，也能自定义颜色。
 - **卸载即还原**：卸载扩展后自动清理所有注入，不会再出现“卸载了光标还在”。
 - **出错时说人话**：写入失败会按系统给出中文的处理办法；新增一键生成诊断信息，方便提 issue。
 - **新手引导**：首次安装后在“欢迎”页里一步步带你开启效果。
 
+</details>
+
 ## 它提供什么
 
-- **任意主题叠层**：默认开启，切换到任何颜色主题后继续工作。
-- **原色自动计算**：运行时读取 Monaco token 的实际颜色，不依赖固定的 `mtk` 编号。
-- **渐变语法**：色相偏移、明度变化、低色度补色和渐变方向都能调。
-- **可调发光**：独立开关，按倍率调整强度，适配不同字体和显示器。
-- **彩虹光标**：颜色、循环速度、圆角、尾迹模糊和透明度都能调。
-- **毛玻璃**：底色取自当前主题，不用改 `workbench.colorCustomizations`。
-- **五套内置主题**：Dark、Dracula、Black、Neon、Light，都是可选基底，不是使用效果的前提。
-- **安全恢复**：写入前保存并校验备份，失败自动回滚；修复和彻底停用只使用与当前安装匹配的可信备份。
+- **渐变语法**：内置主题用特调，其他主题自动计算。运行时读取每个词的实际颜色，不依赖固定的 `mtk` 编号。
+- **发光**：独立开关，强弱可调。深色主题用文字本身的颜色发光，浅色主题用同色相的亮色。
+- **彩虹光标**：颜色、循环速度、圆角、尾迹模糊和透明度都能调，8 套配色可选。
+- **毛玻璃**：12 类浮层，底色取自当前主题，不用改 `workbench.colorCustomizations`。
+- **系统级透明窗口（实验）**：macOS vibrancy、Windows 11 亚克力 / 云母。
+- **效果预设**：6 套内置组合，也能把自己调好的参数存成预设。
+- **安全恢复**：写入前保存并校验备份，失败自动回滚；卸载后自动还原。
 - **动效降级**：遵循系统的“减少动态效果”“降低透明度”和 `workbench.reduceMotion`。
 - **状态栏**：显示 `on / paused / off`，用 `A / G / C / F` 标出正在生效的效果层。
+
+### 发光
+
+<table>
+  <tr>
+    <td width="50%"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glow-off.png" alt="只开渐变"></td>
+    <td width="50%"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glow-on.png" alt="渐变加发光"></td>
+  </tr>
+  <tr>
+    <td align="center">只开渐变</td>
+    <td align="center">渐变 + 发光（默认强度）</td>
+  </tr>
+</table>
+
+### 彩虹光标
+
+光标的颜色会循环变化。下图是同一个光标在一个循环里的 6 个时刻：
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/cursor.png" width="40%" alt="彩虹光标一个颜色循环里的 6 个时刻">
 
 ## 三步开始
 
 1. 安装 **Woodfish Theme**：
    - VS Code：从 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme) 安装。
    - Cursor、Kiro、Windsurf、Trae、VSCodium：在扩展面板里搜索 `Woodfish Theme`（来自 [Open VSX](https://open-vsx.org/extension/zhongjun/woodfish-theme)）。
-2. 选一个你喜欢的颜色主题（任意主题都行）。
+2. 选一个你喜欢的颜色主题，想要特调效果就选 `Woodfish` 开头的那五套。
 3. 点右下角弹出的 **重新加载窗口**。
 
 叠层默认开启，不会替你切换颜色主题。点击状态栏右下角的 `Woodfish ...` 打开功能菜单，可以开关各项效果、选预设、开毛玻璃。
@@ -76,14 +139,12 @@ Woodfish Theme 是一层叠在任意颜色主题上的视觉效果：它保留�
 从 [GitHub Releases](https://github.com/woodfishhhh/Woodfish-Theme/releases) 下载 `.vsix` 后运行（Cursor 把 `code` 换成 `cursor`，其他编辑器同理）：
 
 ```bash
-code --install-extension woodfish-theme-7.0.0.vsix
+code --install-extension woodfish-theme-7.2.0.vsix
 ```
 
 </details>
 
 ## 支持的编辑器
-
-提示信息会显示你正在用的编辑器名字，比如“请重新加载 Cursor”。
 
 | 编辑器 | 基于 VS Code | 从哪里安装 | 实测 |
 |---|---|---|---|
@@ -94,27 +155,15 @@ code --install-extension woodfish-theme-7.0.0.vsix
 | Windsurf / Devin | 1.126 | 扩展面板（Open VSX） | 结构已核对 |
 | Trae / Trae CN | 1.107 | 扩展面板（Open VSX） | 结构已核对 |
 
-“结构已核对”表示已逐项检查过该编辑器安装包里的 workbench 路径、安全策略（CSP）、校验和与主进程格式，与实测通过的编辑器一致。
-
-Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地界面这一侧。
-
-## 内置主题
-
-按 `Ctrl+K Ctrl+T`（macOS 为 `Cmd+K Cmd+T`）打开主题选择器：
-
-| 主题 | 风格 |
-|---|---|
-| `Woodfish Dark` | Bearded Theme Arc 原版配色 |
-| `Woodfish Dracula` | Dracula 官方配色，自带粉紫青绿光标 |
-| `Woodfish Black` | 纯黑背景，适合 OLED 屏 |
-| `Woodfish Neon` | 深紫底的赛博朋克霓虹 |
-| `Woodfish Light` | 暖白底的浅色主题，发光自动减弱 |
-
-不用内置主题也没关系，效果层对任何颜色主题都生效。
+“结构已核对”表示已逐项检查过该编辑器安装包里的 workbench 路径、安全策略（CSP）、校验和与主进程格式，与实测通过的编辑器一致。提示信息会显示你正在用的编辑器名字，比如“请重新加载 Cursor”。Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地界面这一侧。
 
 ## 毛玻璃
 
 运行 `Woodfish Theme: 开启/关闭 Woodfish 毛玻璃`，或在功能菜单里打开。
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glass.png" width="100%" alt="补全列表的毛玻璃效果，后面的代码透出来">
+
+<sub>补全列表，毛玻璃透明度 0.5、模糊 14px</sub>
 
 - **两种质感**：`blur` 是普通模糊加噪点，开销最低；`acrylic` 是 SVG 亚克力滤镜，质感更好。
 - **作用范围**：菜单、悬浮提示、补全列表、命令面板、通知、查找框、下拉框、面包屑、调试工具栏、粘性滚动、面板标题、对话框，可以在 `woodfishTheme.glass.targets` 里逐项取舍。
@@ -157,7 +206,8 @@ Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地
 > [!IMPORTANT]
 > 效果是通过修改编辑器自带的 `workbench.html` 实现的，切换效果后需要重新加载窗口。写入前会做校验后的原子替换，并保存带哈希、路径和版本信息的备份。编辑器更新会覆盖这个文件，效果消失时运行 `Woodfish Theme: 修复 Woodfish 注入`。
 
-## 常用命令
+<details>
+<summary><strong>常用命令</strong></summary>
 
 在命令面板（`Ctrl+Shift+P`）里搜索 `Woodfish`：
 
@@ -177,6 +227,8 @@ Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地
 | `生成 Woodfish 诊断信息` | 复制一份环境报告，提 issue 时直接粘贴 |
 | `彻底停用 Woodfish 叠层` | 移除全部注入、备份和系统级窗口钩子 |
 
+</details>
+
 ## 配置示例
 
 所有设置都以 `woodfishTheme.` 开头，也可以运行 `打开 Woodfish 设置` 在图形界面里调：设置页分成“开关、彩色字体、发光字体、彩色光标、毛玻璃、透明窗口（实验）、高级”几组，所有效果开关都在最上面。下面是一组偏克制、带毛玻璃的配置：
@@ -184,7 +236,7 @@ Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地
 ```json
 {
   "woodfishTheme.overlay.hueShift": 24,
-  "woodfishTheme.overlay.lightnessDelta": 0.06,
+  "woodfishTheme.overlay.lightnessDelta": 0.08,
   "woodfishTheme.glow.intensity": 0.8,
   "woodfishTheme.cursor.animationDuration": 8,
   "woodfishTheme.cursor.gradientStops": ["#ff2d95", "#ffd700", "#00ffff"],
@@ -196,12 +248,16 @@ Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地
 }
 ```
 
-- `overlay.hueShift`（`0 - 180` 度）：渐变两端的色相偏移，默认 `24`。
-- `overlay.lightnessDelta`（`0 - 0.5`）：渐变两端的明度变化，默认 `0.06`。
-- `overlay.neutralChroma`（`0 - 0.4`）：给白色、灰色文字补的色度，默认 `0.06`。
-- `overlay.angle`（`0 - 360` 度）：渐变方向，默认 `90`（从左到右）。
-- `glow.intensity`（`0.1 - 3`）：发光强度倍率，默认 `1`。
-- `cursor.animationDuration`（`1 - 60` 秒）：光标颜色循环一圈的时间，默认 `8`。
+| 设置 | 范围 | 默认 | 作用 |
+|---|---|---|---|
+| `overlay.hueShift` | `0 - 180` 度 | `32` | 渐变从原色沿色环转到终点的角度 |
+| `overlay.lightnessDelta` | `0 - 0.5` | `0.12` | 渐变终点最多变亮或变暗多少 |
+| `overlay.neutralChroma` | `0 - 0.4` | `0.075` | 普通文字上那条彩虹的浓淡 |
+| `overlay.angle` | `0 - 360` 度 | `45` | 渐变方向，`45` 是从左下到右上 |
+| `glow.intensity` | `0.1 - 3` | `1` | 发光强度倍率 |
+| `cursor.animationDuration` | `1 - 60` 秒 | `8` | 光标颜色循环一圈的时间 |
+
+- `overlay.*` 这四项只影响自动计算的渐变；内置主题的特调渐变自带颜色和方向。
 - `glass.blur` / `glass.saturate` / `glass.opacity` / `glass.noise`：毛玻璃的模糊半径、饱和度、底色不透明度和颗粒强度。
 - `syntaxGradient.customRules`、`glow.customRules`、`cursor.customRules`：在对应效果层之后追加自己的 CSS。
 
@@ -213,27 +269,37 @@ Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地
 
 ## 排查问题
 
-**效果没有出现**
+<details>
+<summary><strong>效果没有出现</strong></summary>
 
 确认右下角状态栏显示 `Woodfish on`，并且重新加载过窗口。显示 `paused` 时运行 `修复 Woodfish 注入`。
 
-**编辑器更新后效果消失**
+</details>
+
+<details>
+<summary><strong>编辑器更新后效果消失</strong></summary>
 
 编辑器更新会覆盖 `workbench.html`，运行 `修复 Woodfish 注入` 后重新加载窗口。
 
-**提示“没有权限写入”**
+</details>
+
+<details>
+<summary><strong>提示“没有权限写入”</strong></summary>
 
 - macOS：如果是在终端里用 `code .`、`cursor .` 启动的，macOS 会把写入算到终端头上。请完全退出编辑器，改从程序坞打开后运行 `修复 Woodfish 注入`。仍然不行的话，到“系统设置 → 隐私与安全性 → App 管理”里允许这个编辑器。
 - Windows：安装在 `Program Files` 时，以管理员身份运行一次编辑器再修复，或者改用“用户安装版”。
 - Linux：Snap、Flatpak 版的安装目录是只读的，无法注入，请改用官方 `.deb`、`.rpm` 或 `.tar.gz`。
 
-**提示“安装似乎损坏”**
+</details>
+
+<details>
+<summary><strong>提示“安装似乎损坏”</strong></summary>
 
 开启、修改或移除效果后，在完全退出编辑器之前这条提示会一直出现，重新加载窗口不会消失。完全退出再打开就好，这是编辑器只在启动时读取校验和导致的。
 
-**提 issue**
+</details>
 
-运行 `生成 Woodfish 诊断信息`，内容会复制到剪贴板，直接粘贴到 [issue](https://github.com/woodfishhhh/Woodfish-Theme/issues) 里。更多排查步骤见 [故障排查指南](./apps/vscode-extension/docs/TROUBLESHOOTING.md)。
+提 issue 前运行 `生成 Woodfish 诊断信息`，内容会复制到剪贴板，直接粘贴到 [issue](https://github.com/woodfishhhh/Woodfish-Theme/issues) 里。更多排查步骤见 [故障排查指南](./apps/vscode-extension/docs/TROUBLESHOOTING.md)。
 
 ## 已知限制
 
@@ -247,7 +313,7 @@ Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地
 Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和效果。它不修改 Codex 的安装文件，有两种方式：
 
 - **原生配色**：`woodfish codex theme apply --dark neon --light light`，写入 Codex 官方的主题设置，深色和浅色各一套，不开任何端口；加 `--appearance dark` 可把 Codex 固定为深色。
-- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕和彩色光标。需要以本机调试端口启动 Codex，首次使用前会说明风险。开启后可以直接在 Codex 的 **设置 → 外观 → Woodfish** 里切换 Woodfish Dark / Dracula / Black / Neon / Light 主题和各项效果。
+- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕和彩色光标。需要以本机调试端口启动 Codex，首次使用前会说明风险。开启后可以直接在 Codex 的 **设置 → 外观 → Woodfish** 里切换五套主题和各项效果，特调渐变同样生效。
 
 已经在用 Codex++ 的话，也可以运行 `woodfish codex install-userscript`，以用户脚本的形式加载。详见 [Woodfish 桌面工具](./apps/desktop-cli/README.md)。
 
@@ -264,9 +330,9 @@ pnpm verify
 pnpm package
 ```
 
-仓库是 npm workspaces monorepo，以上命令都在根目录运行。VS Code 扩展位于 `apps/vscode-extension/`，与宿主无关的颜色算法、渐变计算、调色板和效果参数位于 `packages/theme-core/`，结构与边界见 [仓库结构](./docs/ARCHITECTURE.md)。
+仓库是 pnpm workspace monorepo，以上命令都在根目录运行。VS Code 扩展位于 `apps/vscode-extension/`，与宿主无关的颜色算法、渐变计算、特调表和调色板位于 `packages/theme-core/`，结构与边界见 [仓库结构](./docs/ARCHITECTURE.md)。
 
-`pnpm test:integration` 会启动隔离的 VS Code 扩展宿主，验证开启、关闭和工作台恢复。扩展入口是 `apps/vscode-extension/src/extension.ts`；主题由 `apps/vscode-extension/scripts/generate-themes.js` 生成（`pnpm themes:generate`），渲染端脚本源码在 `apps/vscode-extension/browser/`（`pnpm runtime:build`），注入用 CSS 在 `apps/vscode-extension/themes/shared/`。发布到 Open VSX 需要先设置环境变量 `OVSX_PAT`。
+`pnpm test:integration` 会启动隔离的 VS Code 扩展宿主，验证开启、关闭和工作台恢复。扩展入口是 `apps/vscode-extension/src/extension.ts`；主题由 `apps/vscode-extension/scripts/generate-themes.js` 生成（`pnpm themes:generate`），渲染端脚本源码在 `apps/vscode-extension/browser/`（`pnpm runtime:build`），注入用 CSS 在 `apps/vscode-extension/themes/shared/`。README 里的图片由 `apps/vscode-extension/scripts/render-readme-images.js` 生成，改了渐变或效果后重跑一次。发布到 Open VSX 需要先设置环境变量 `OVSX_PAT`。
 
 ## 项目信息
 

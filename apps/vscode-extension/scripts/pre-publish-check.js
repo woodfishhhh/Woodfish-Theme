@@ -65,28 +65,14 @@ const REQUIRED_PACKAGE_PATHS = [
   'themes/light/theme.meta.json',
   'docs/walkthrough/enable.md',
 ];
-const REQUIRED_README_PREVIEWS = [
-  {
-    url: 'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/hero.png',
-    sourcePrefix: '<img src="',
-    sourceSuffix: '"',
-  },
-  {
-    url: 'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/dracula-preview.png',
-    sourcePrefix: '<img src="',
-    sourceSuffix: '"',
-  },
-  {
-    url: 'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img1.png',
-    sourcePrefix: '![Woodfish Dark 彩虹光标效果](',
-    sourceSuffix: ')',
-  },
-  {
-    url: 'https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/images/img2.png',
-    sourcePrefix: '![Woodfish Dark 渐变语法与发光效果](',
-    sourceSuffix: ')',
-  },
-];
+/**
+ * README images ship outside the VSIX, so they must be remote links into this repository:
+ * `raw/HEAD/…` or a release tag such as `raw/v7.2.0/…` (the extension is released from a
+ * branch, so images added for a release only exist at its tag).
+ */
+const REPOSITORY_RAW_URL =
+  /^https:\/\/github\.com\/woodfishhhh\/Woodfish-Theme\/raw\/(?:HEAD|v\d+\.\d+\.\d+)\/(.+)$/;
+const REQUIRED_README_PREVIEWS = ['assets/readme/hero.png'];
 
 function isValidExtensionVersion(version) {
   return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(version);
@@ -107,11 +93,25 @@ function findForbiddenPackagePaths(tree) {
   );
 }
 
+/** Every image source in the README, Markdown and HTML. */
+function findReadmeImages(readme) {
+  const markdownImages = [...readme.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map((match) => match[1]);
+  const htmlImages = [...readme.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map(
+    (match) => match[1]
+  );
+  return [...markdownImages, ...htmlImages];
+}
+
+/** Repository path of a `raw/<ref>/<path>` link into this repository, or `null`. */
+function repositoryImagePath(url) {
+  const match = REPOSITORY_RAW_URL.exec(url);
+  return match ? match[1] : null;
+}
+
+/** Required previews that the README does not show through a repository raw link. */
 function findMissingReadmePreviewUrls(readme) {
-  return REQUIRED_README_PREVIEWS.filter(
-    ({ sourcePrefix, sourceSuffix, url }) =>
-      !readme.includes(`${sourcePrefix}${url}${sourceSuffix}`)
-  ).map(({ url }) => url);
+  const shown = new Set(findReadmeImages(readme).map(repositoryImagePath).filter(Boolean));
+  return REQUIRED_README_PREVIEWS.filter((imagePath) => !shown.has(imagePath));
 }
 
 function findMissingRequiredPackagePaths(tree) {
@@ -283,23 +283,27 @@ function checkDocumentation() {
     }
   });
 
-  const missingPreviewUrls = findMissingReadmePreviewUrls(readme);
-  for (const previewUrl of missingPreviewUrls) {
-    console.log(`❌ README 缺少规范远程预览链接: ${previewUrl}`);
+  const missingPreviews = findMissingReadmePreviewUrls(readme);
+  for (const previewPath of missingPreviews) {
+    console.log(`❌ README 缺少预览图（需用本仓库的 raw 链接）: ${previewPath}`);
     allGood = false;
   }
 
-  const markdownImages = [...readme.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map((match) => match[1]);
-  const htmlImages = [...readme.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map(
-    (match) => match[1]
-  );
-  for (const imagePath of [...markdownImages, ...htmlImages]) {
-    if (/^(?:https?:)?\/\//i.test(imagePath)) {
+  for (const imagePath of findReadmeImages(readme)) {
+    const repositoryPath = repositoryImagePath(imagePath);
+    if (repositoryPath !== null) {
+      // The link resolves to the release tag or HEAD, so the file has to be in the repository.
+      if (fs.existsSync(path.join(REPO_ROOT, repositoryPath))) {
+        console.log(`✅ 仓库图片: ${repositoryPath}`);
+      } else {
+        console.log(`❌ 仓库里没有这张图: ${repositoryPath}`);
+        allGood = false;
+      }
+    } else if (/^(?:https?:)?\/\//i.test(imagePath)) {
       console.log(`✅ 远程图片引用: ${imagePath}`);
-    } else if (fs.existsSync(path.join(REPO_ROOT, imagePath))) {
-      console.log(`✅ 图片存在: ${imagePath}`);
     } else {
-      console.log(`❌ 图片缺失: ${imagePath}`);
+      // Relative paths break on the Marketplace, which renders the README outside the repository.
+      console.log(`❌ 图片需用远程链接: ${imagePath}`);
       allGood = false;
     }
   }
