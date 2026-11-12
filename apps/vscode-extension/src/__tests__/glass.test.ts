@@ -133,18 +133,28 @@ describe('glass layer', () => {
     );
   });
 
-  it('follows the native guards: feature detection, reduced transparency and high contrast', () => {
+  it('guards menu glass and keeps submenu surfaces visible', () => {
     const css = buildGlassCss(glass());
     expect(css).toContain(
       '@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))'
     );
     expect(css).toContain('@media not (prefers-reduced-transparency: reduce)');
-    const surfaceRules = css
-      .split('\n')
-      .filter((line) => line.includes('.monaco-menu-container .monaco-scrollable-element'));
-    expect(surfaceRules.every((line) => line.includes(':not(.hc-black):not(.hc-light)'))).toBe(
-      true
+    expect(css).toContain(
+      '.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-menu-container,'
     );
+    expect(css).toContain(
+      '.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-menu-container::before'
+    );
+    expect(css).toContain('overflow: visible !important;');
+    expect(css).toContain(
+      '.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-menu-container .monaco-scrollable-element'
+    );
+    expect(css).toContain('background-color: transparent !important;');
+    const scrollableRuleStart = css.indexOf(
+      '.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-menu-container .monaco-scrollable-element'
+    );
+    const scrollableRuleEnd = css.indexOf('\n}', scrollableRuleStart);
+    expect(css.slice(scrollableRuleStart, scrollableRuleEnd)).not.toContain('backdrop-filter');
   });
 
   it('sanitizes glass settings', () => {
