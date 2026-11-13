@@ -200,6 +200,13 @@ export function startCodexOverlay(
   const diffs = startDiffDecorator(ownership);
   let reveal: Disposer | null = null;
   let caretGlow: Disposer | null = null;
+  // The thread ring stops turning while Codex is in the background.
+  const markFocus = (): void => {
+    document.documentElement.toggleAttribute('data-woodfish-codex-unfocused', !document.hasFocus());
+  };
+  window.addEventListener('focus', markFocus);
+  window.addEventListener('blur', markFocus);
+  markFocus();
   let streamingTail: Disposer | null = null;
   let acrylic: { blur: number; dispose: Disposer } | null = null;
 
@@ -375,6 +382,11 @@ export function startCodexOverlay(
         (): void => panel?.dispose(),
         (): void => reveal?.(),
         (): void => caretGlow?.(),
+        (): void => {
+          window.removeEventListener('focus', markFocus);
+          window.removeEventListener('blur', markFocus);
+          document.documentElement.removeAttribute('data-woodfish-codex-unfocused');
+        },
         (): void => streamingTail?.(),
         (): void => acrylic?.dispose(),
         (): void => diffs.dispose(),

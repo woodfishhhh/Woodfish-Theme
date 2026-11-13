@@ -114,6 +114,8 @@ export const CODEX_SELECTORS = {
       '[role="menu"]',
       '[role="listbox"]',
       '[role="dialog"]',
+      // Sonner toasts (notifications in the corner).
+      '[data-sonner-toast]',
     ],
     alwaysPresent: false,
     description: '菜单与浮层',

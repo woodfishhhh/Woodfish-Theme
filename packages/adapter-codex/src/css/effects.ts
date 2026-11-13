@@ -112,6 +112,9 @@ export function buildGlassCss(settings: CodexSettings): string {
       : `blur(${formatCssNumber(glass.blur)}px) saturate(${formatCssNumber(glass.saturate)}%)`;
   const declarations = [
     `  background-color: ${tint} !important;`,
+    // A hairline and a soft drop shadow keep thin glass readable over busy backgrounds.
+    '  border-color: color-mix(in oklab, var(--app-color-text-foreground, currentColor) 14%, transparent) !important;',
+    '  box-shadow: 0 0 0 1px color-mix(in oklab, var(--app-color-text-foreground, currentColor) 8%, transparent), 0 16px 40px -16px rgb(0 0 0 / 55%) !important;',
     `  -webkit-backdrop-filter: ${filter} !important;`,
     `  backdrop-filter: ${filter} !important;`,
   ];
@@ -204,54 +207,58 @@ function buildRevealCss(): string {
 }
 
 /**
- * The thread indicator: one bar in the 8px gutter left of each sidebar row, centered in it.
- * It grows from a faint hover hint to the selected bar (theme gradient, soft glow), and
- * while a thread runs the theme's gradient flows slowly through it. Codex's own row
- * background stays; only the bar's length, light and motion carry the state.
+ * The owner's pick from docs/playground/tab-indicator.html (#8 旋转流光边框, 4px, radius 8.5,
+ * no glow, 8 s): a 2px ring of the theme's gradient around the thread row, turning slowly.
+ * Hover shows it faint and still, the selected row turns once every 16 s, a running thread
+ * every 8 s; unread and error keep Codex's own markers. Only the ring's conic-gradient
+ * angle animates (a registered custom property: repaint of one small layer, no layout),
+ * and it pauses while the window is in the background.
  */
+export const THREAD_RING = {
+  thickness: 4,
+  radius: 8.5,
+  selectedTurnSeconds: 16,
+  runningTurnSeconds: 8,
+};
+
 function buildThreadIndicatorCss(): string[] {
   const row = '[data-app-action-sidebar-thread-row]';
   const active = selectorOf('sidebarActiveThread');
   const running = selectorOf('sidebarRunningThread');
-  const flowing = `linear-gradient(180deg, var(--woodfish-codex-accent), var(--woodfish-codex-accent-alt), var(--woodfish-codex-accent))`;
+  const stops =
+    'var(--woodfish-codex-accent), var(--woodfish-codex-accent-alt), var(--woodfish-codex-accent)';
   return [
+    '@property --woodfish-codex-spin {\n  syntax: "<angle>";\n  inherits: false;\n  initial-value: 0deg;\n}',
+    '@keyframes woodfish-codex-spin {\n  to { --woodfish-codex-spin: 360deg; }\n}',
+    rule(row, [`  border-radius: ${formatCssNumber(THREAD_RING.radius)}px !important;`]),
     rule(`${row}::before`, [
       '  content: "";',
       '  position: absolute;',
-      '  left: -5.5px;',
-      '  top: 50%;',
-      '  width: 3px;',
-      '  height: 6px;',
-      '  border-radius: 999px;',
-      '  transform: translateY(-50%);',
-      '  background-image: linear-gradient(180deg, var(--woodfish-codex-accent), var(--woodfish-codex-accent-alt));',
+      '  inset: 0;',
+      '  border-radius: inherit;',
+      `  padding: ${formatCssNumber(THREAD_RING.thickness / 2)}px;`,
+      `  background: conic-gradient(from var(--woodfish-codex-spin), var(--woodfish-codex-ring-stops, ${stops}));`,
+      '  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);',
+      '  -webkit-mask-composite: xor;',
+      '  mask-composite: exclude;',
       '  opacity: 0;',
-      '  transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 160ms ease, box-shadow 220ms ease;',
+      '  transition: opacity 160ms ease;',
       '  pointer-events: none;',
     ]),
-    rule(`${row}:hover::before`, ['  height: 10px;', '  opacity: 0.5;']),
+    rule(`${row}:hover::before`, ['  opacity: 0.25;']),
     rule(`${active}::before`, [
-      // The whole theme gradient, standing still; it starts flowing while the thread runs.
-      `  background-image: var(--woodfish-codex-flow-gradient, ${flowing});`,
-      '  height: 20px;',
-      '  opacity: 1;',
-      '  box-shadow:',
-      '    0 0 6px color-mix(in oklab, var(--woodfish-codex-accent) 55%, transparent),',
-      '    0 0 14px -2px color-mix(in oklab, var(--woodfish-codex-accent-alt) 40%, transparent);',
+      '  opacity: 0.85;',
+      `  animation: woodfish-codex-spin ${THREAD_RING.selectedTurnSeconds}s linear infinite;`,
     ]),
-    '@keyframes woodfish-codex-thread-flow {\n  from { background-position: 50% 0%; }\n  to { background-position: 50% 100%; }\n}',
     rule(`${running}::before`, [
-      `  background-image: var(--woodfish-codex-flow-gradient, ${flowing});`,
-      '  background-size: 100% 300%;',
-      '  animation: woodfish-codex-thread-flow 2.4s linear infinite;',
-      '  opacity: 0.9;',
+      '  opacity: 1;',
+      `  animation: woodfish-codex-spin ${THREAD_RING.runningTurnSeconds}s linear infinite;`,
     ]),
-    rule(`${running}:not(${active})::before`, ['  height: 12px;']),
-    rule(`:root[data-reduced-motion="true"] ${row}::before`, [
-      '  transition: none;',
-      '  animation: none;',
+    rule(`:root[data-woodfish-codex-unfocused] ${row}::before`, [
+      '  animation-play-state: paused;',
     ]),
-    `@media (prefers-reduced-motion: reduce) {\n  ${row}::before { transition: none; animation: none; }\n}`,
+    rule(`:root[data-reduced-motion="true"] ${row}::before`, ['  animation: none;']),
+    `@media (prefers-reduced-motion: reduce) {\n  ${row}::before { animation: none; }\n}`,
   ];
 }
 

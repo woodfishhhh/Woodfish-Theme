@@ -35,6 +35,7 @@ export {
   buildHljsRoleCss,
   buildPaletteCss,
   buildPaletteVariables,
+  THREAD_RING,
 } from './css';
 export type { CodexStyleName } from './css';
 export {

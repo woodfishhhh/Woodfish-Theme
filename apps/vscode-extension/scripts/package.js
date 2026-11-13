@@ -5,7 +5,8 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { EXTENSION_ROOT, VSCE_ENTRY, withStagedRepoFiles } = require('./paths');
 
-const MAX_VSIX_BYTES = 200 * 1024;
+// 15 themes (10 of them bundled upstream files) compress to about 230 KB.
+const MAX_VSIX_BYTES = 256 * 1024;
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/;
 
 function assertVsixSize(size, filePath, maximum = MAX_VSIX_BYTES) {

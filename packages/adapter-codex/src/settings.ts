@@ -45,6 +45,13 @@ export interface CodexSettings {
 
 type Loose = Record<string, unknown>;
 
+/** Codex floating panels: more see-through and more saturated than the VS Code defaults. */
+const CODEX_GLASS_DEFAULTS: Readonly<Loose> = Object.freeze({
+  opacity: 0.4,
+  saturate: 150,
+  blur: 24,
+});
+
 function section(input: unknown, key: string): Loose {
   if (input === null || typeof input !== 'object') {
     return {};
@@ -91,7 +98,8 @@ export function normalizeCodexSettings(input: unknown = {}): CodexSettings {
       enabled: sanitizeBoolean(glass.enabled, true),
       animations: sanitizeBoolean(glass.animations, true),
       reveal: sanitizeBoolean(glass.reveal, true),
-      ...normalizeGlass(glass),
+      // The owner's VS Code look: thin, saturated glass (Frosted Glass Theme at ~0.4).
+      ...normalizeGlass({ ...CODEX_GLASS_DEFAULTS, ...glass }),
     },
     accent: { enabled: sanitizeBoolean(section(input, 'accent').enabled, true) },
     caret: {

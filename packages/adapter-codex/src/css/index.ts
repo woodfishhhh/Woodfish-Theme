@@ -42,4 +42,5 @@ export {
   buildCodeCss,
   buildDiffCss,
   buildGlassCss,
+  THREAD_RING,
 } from './effects';

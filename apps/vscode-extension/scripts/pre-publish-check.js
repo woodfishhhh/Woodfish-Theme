@@ -213,8 +213,8 @@ function checkThemeFiles() {
 
   let allGood = true;
 
-  // 每个贡献的主题：文件可解析（VS Code 接受带注释的 JSON）、带 theme.meta.json；
-  // 原样收录的上游主题还要带 NOTICE.md 与 LICENSE.txt
+  // 每个贡献的主题：文件可解析（VS Code 接受带注释的 JSON）、带 theme.meta.json 与 NOTICE.md；
+  // 原样收录的上游主题还要带 LICENSE.txt
   const { contributes } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   contributes.themes.forEach(({ path: themePath }) => {
     const file = path.posix.normalize(themePath);
@@ -231,9 +231,14 @@ function checkThemeFiles() {
       console.log(`❌ ${file} 解析失败:`, error.message);
       allGood = false;
     }
-    const companions = [`${directory}/theme.meta.json`];
-    if (fs.existsSync(`${directory}/NOTICE.md`) || fs.existsSync(`${directory}/LICENSE.txt`)) {
-      companions.push(`${directory}/NOTICE.md`, `${directory}/LICENSE.txt`);
+    // Every theme has accents and a notice; an upstream copy (its notice says so) also
+    // ships the upstream license. Woodfish's own palettes are covered by the root LICENSE.
+    const companions = [`${directory}/theme.meta.json`, `${directory}/NOTICE.md`];
+    const notice = fs.existsSync(`${directory}/NOTICE.md`)
+      ? fs.readFileSync(`${directory}/NOTICE.md`, 'utf8')
+      : '';
+    if (/unmodified copy/i.test(notice)) {
+      companions.push(`${directory}/LICENSE.txt`);
     }
     for (const companion of companions) {
       if (!fs.existsSync(companion)) {

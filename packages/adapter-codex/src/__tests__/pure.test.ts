@@ -20,6 +20,7 @@ import {
   normalizeCodexSettings,
   paletteMode,
   paletteToChromeTheme,
+  THREAD_RING,
 } from '../index';
 
 describe('normalizeCodexSettings', () => {
@@ -263,14 +264,14 @@ describe('buildCodexCss', () => {
 
   it('follows the VS Code glass options: acrylic mode, entrance animations, reveal light', () => {
     const blur = buildCodexCss(normalizeCodexSettings({})).glass;
-    expect(blur).toContain('blur(30px) saturate(125%)');
+    expect(blur).toContain('blur(24px) saturate(150%)');
     expect(blur).toContain('@keyframes woodfish-codex-drop');
     expect(blur).toContain('[role="menu"][data-state="open"]');
     expect(blur).toContain('[data-woodfish-reveal="true"]');
     const acrylic = buildCodexCss(
       normalizeCodexSettings({ glass: { mode: 'acrylic', animations: false, reveal: false } })
     ).glass;
-    expect(acrylic).toContain('url(#woodfish-acrylic) saturate(125%)');
+    expect(acrylic).toContain('url(#woodfish-acrylic) saturate(150%)');
     expect(acrylic).not.toContain('@keyframes');
     expect(acrylic).not.toContain('data-woodfish-reveal');
   });
@@ -307,17 +308,33 @@ describe('buildCodexCss', () => {
     );
   });
 
-  it('marks the running thread with a flowing theme gradient and keeps motion optional', () => {
+  it("draws the owner's pick: a turning gradient ring, slower when selected than running", () => {
     const accent = buildCodexCss(normalizeCodexSettings({})).accent;
-    expect(accent).toContain(':has(.motion-safe\\:animate-spin)::before');
-    expect(accent).toContain('animation: woodfish-codex-thread-flow 2.4s linear infinite;');
-    expect(accent).toContain('[data-app-action-sidebar-thread-active="true"]::before');
+    expect(THREAD_RING).toEqual({
+      thickness: 4,
+      radius: 8.5,
+      selectedTurnSeconds: 16,
+      runningTurnSeconds: 8,
+    });
+    expect(accent).toContain('@property --woodfish-codex-spin');
+    expect(accent).toContain('border-radius: 8.5px !important;');
+    expect(accent).toContain('padding: 2px;');
+    expect(accent).toContain('conic-gradient(from var(--woodfish-codex-spin)');
+    expect(accent).toContain(
+      'thread-active="true"]::before {\n  opacity: 0.85;\n  animation: woodfish-codex-spin 16s'
+    );
+    expect(accent).toContain('animation: woodfish-codex-spin 8s linear infinite;');
+    // No outer glow, and the ring stops while Codex is in the background or motion is reduced.
+    expect(accent).not.toMatch(/thread-row\][^{]*::before \{[^}]*(box-shadow|drop-shadow)/);
+    expect(accent).toContain(
+      ':root[data-woodfish-codex-unfocused] [data-app-action-sidebar-thread-row]::before'
+    );
     expect(accent).toContain(
       ':root[data-reduced-motion="true"] [data-app-action-sidebar-thread-row]::before'
     );
     const palette = buildCodexCss(normalizeCodexSettings({ palette: { dark: 'nord' } })).palette;
     expect(palette).toContain(
-      '--woodfish-codex-flow-gradient: linear-gradient(180deg, #8FBCBB, #88C0D0, #81A1C1, #B48EAD, #8FBCBB);'
+      '--woodfish-codex-ring-stops: #8FBCBB, #88C0D0, #81A1C1, #B48EAD, #8FBCBB;'
     );
   });
 
