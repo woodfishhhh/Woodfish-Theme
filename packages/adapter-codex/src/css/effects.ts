@@ -209,16 +209,16 @@ function buildRevealCss(): string {
 /**
  * The owner's pick from docs/playground/tab-indicator.html (#8 旋转流光边框, 4px, radius 8.5,
  * no glow, 8 s): a 2px ring of the theme's gradient around the thread row, turning slowly.
- * Hover shows it faint and still, the selected row turns once every 16 s, a running thread
- * every 8 s; unread and error keep Codex's own markers. Only the ring's conic-gradient
+ * Hover shows it faint and still, the selected row turns once every 8 s (the owner's value), a running thread
+ * twice as fast; unread and error keep Codex's own markers. Only the ring's conic-gradient
  * angle animates (a registered custom property: repaint of one small layer, no layout),
  * and it pauses while the window is in the background.
  */
 export const THREAD_RING = {
   thickness: 4,
   radius: 8.5,
-  selectedTurnSeconds: 16,
-  runningTurnSeconds: 8,
+  selectedTurnSeconds: 8,
+  runningTurnSeconds: 4,
 };
 
 function buildThreadIndicatorCss(): string[] {

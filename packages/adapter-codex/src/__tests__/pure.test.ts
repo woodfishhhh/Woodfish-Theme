@@ -313,17 +313,17 @@ describe('buildCodexCss', () => {
     expect(THREAD_RING).toEqual({
       thickness: 4,
       radius: 8.5,
-      selectedTurnSeconds: 16,
-      runningTurnSeconds: 8,
+      selectedTurnSeconds: 8,
+      runningTurnSeconds: 4,
     });
     expect(accent).toContain('@property --woodfish-codex-spin');
     expect(accent).toContain('border-radius: 8.5px !important;');
     expect(accent).toContain('padding: 2px;');
     expect(accent).toContain('conic-gradient(from var(--woodfish-codex-spin)');
     expect(accent).toContain(
-      'thread-active="true"]::before {\n  opacity: 0.85;\n  animation: woodfish-codex-spin 16s'
+      'thread-active="true"]::before {\n  opacity: 0.85;\n  animation: woodfish-codex-spin 8s'
     );
-    expect(accent).toContain('animation: woodfish-codex-spin 8s linear infinite;');
+    expect(accent).toContain('animation: woodfish-codex-spin 4s linear infinite;');
     // No outer glow, and the ring stops while Codex is in the background or motion is reduced.
     expect(accent).not.toMatch(/thread-row\][^{]*::before \{[^}]*(box-shadow|drop-shadow)/);
     expect(accent).toContain(
