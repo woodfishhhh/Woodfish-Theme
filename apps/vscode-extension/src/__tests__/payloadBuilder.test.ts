@@ -140,17 +140,35 @@ describe('runtime payload builder', () => {
     expect(settingSchemas['woodfishTheme.cursor.enabled'].default).toBe(true);
   });
 
-  it('ships the bootstrap only while text gradient or glow processing is enabled', () => {
+  it('ships the bootstrap only while text gradient, glow or effect plugins need it', () => {
     const enabled = buildRuntimePayload(DEFAULT_RUNTIME_SETTINGS, realCursorAssets);
     const cursorOnlySettings = normalizeRuntimeSettings({
       syntaxGradient: { enabled: false },
       glow: { enabled: false },
       cursor: { enabled: true },
+      effects: { enabled: false },
     });
 
     expect(enabled.bootstrap).toContain('MAX_TOKENS_PER_FRAME = 600');
     expect(buildRuntimeBootstrap(cursorOnlySettings, realCursorAssets)).toBe('');
     expect(buildRuntimePayload(cursorOnlySettings, realCursorAssets).css).toContain('div.cursor');
+  });
+
+  it('points the bootstrap at the effect plugins only while they are on', () => {
+    const url = 'vscode-file://vscode-app/c%3A/Users/me/globalStorage/woodfish/effects/';
+    const on = buildRuntimeCss(DEFAULT_RUNTIME_SETTINGS, { ...realCursorAssets, effectsUrl: url });
+    expect(on).toContain(`--woodfish-effects-url: "${url}";`);
+    const off = buildRuntimeCss(normalizeRuntimeSettings({ effects: { enabled: false } }), {
+      ...realCursorAssets,
+      effectsUrl: url,
+    });
+    expect(off).not.toContain('--woodfish-effects-url');
+    const effectsOnly = normalizeRuntimeSettings({
+      syntaxGradient: { enabled: false },
+      glow: { enabled: false },
+      cursor: { enabled: false },
+    });
+    expect(buildRuntimeBootstrap(effectsOnly, realCursorAssets)).not.toBe('');
   });
 
   it('deduplicates cursor selectors and shared keyframes in the runtime payload', () => {

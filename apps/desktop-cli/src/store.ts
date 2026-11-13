@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { CodexSettings, normalizeCodexSettings } from '@woodfish/adapter-codex';
+import { ensureEffects, hasLegacyEffectSettings } from './codex/effects';
 import { WoodfishPaths } from './paths';
 
 export function sha256(data: Buffer | string): string {
@@ -68,10 +69,29 @@ export function loadSettings(paths: WoodfishPaths): StoredSettings {
 }
 
 export function saveSettings(paths: WoodfishPaths, settings: StoredSettings): void {
+  // An older file still has effect settings; move them into the effect folders before the
+  // new shape (without them) is written.
+  const previous = readJson<Partial<StoredSettings>>(paths.settingsFile);
+  if (hasLegacyEffectSettings(previous?.codex)) {
+    ensureEffects(paths, previous?.codex);
+  }
   writeJson(paths.settingsFile, {
     ...settings,
     codex: normalizeCodexSettings(settings.codex),
   });
+}
+
+/**
+ * Moves effect settings an older `codex.json` still has into the effect folders and
+ * rewrites the file without them. Safe to call any time; does nothing when done.
+ */
+export function migrateSettings(paths: WoodfishPaths): boolean {
+  const raw = readJson<Partial<StoredSettings>>(paths.settingsFile);
+  if (!hasLegacyEffectSettings(raw?.codex)) {
+    return false;
+  }
+  saveSettings(paths, loadSettings(paths));
+  return true;
 }
 
 /** Watcher bookkeeping, so later commands can find and stop it. */

@@ -73,6 +73,9 @@ export function shouldInstallOverlayBootstrap(settings: ThemeRuntimeSettings): b
     (safeSettings.glass.mode === 'acrylic' || safeSettings.glass.reveal);
   return (
     safeSettings.overlay.enabled &&
-    (safeSettings.syntaxGradient.enabled || safeSettings.glow.enabled || glassNeedsScript)
+    (safeSettings.syntaxGradient.enabled ||
+      safeSettings.glow.enabled ||
+      glassNeedsScript ||
+      safeSettings.effects.enabled)
   );
 }

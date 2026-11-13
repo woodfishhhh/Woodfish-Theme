@@ -33,6 +33,7 @@
     "@types/ws": "^8.5.13",
     "@woodfish/adapter-codex": "workspace:*",
     "@woodfish/adapter-dsh": "workspace:*",
+    "@woodfish/effects": "workspace:*",
     "@woodfish/renderer-runtime": "workspace:*",
     "@woodfish/theme-core": "workspace:*",
     "ws": "^8.18.0"

@@ -1,18 +1,14 @@
 import {
   BackgroundParams,
-  CursorParams,
   DEFAULT_CURSOR,
-  GlassParams,
+  EffectValues,
   GlowParams,
   TextGradientParams,
   WOODFISH_PALETTES,
   WoodfishPalette,
   normalizeBackground,
-  normalizeCursor,
-  normalizeGlass,
   normalizeGlow,
   normalizeTextGradient,
-  sanitizeBoolean,
   sanitizeCustomCssRules,
 } from '@woodfish/theme-core';
 
@@ -26,27 +22,19 @@ export const CODEX_PALETTE_SLUGS: readonly CodexPaletteSlug[] = Object.freeze(
   WOODFISH_PALETTES.map((palette) => palette.slug)
 );
 
+/**
+ * What `codex.json` keeps. Every visual effect (caret, trails, particles, glass, the window
+ * background's look, the code gradient…) is a plugin with its values in its own folder
+ * (`%APPDATA%\Woodfish\effects\<id>\params.json`); this file keeps what is not an effect.
+ */
 export interface CodexSettings {
   /** Palette per Codex appearance mode; `null` keeps Codex's own colors for that mode. */
   palette: { dark: CodexPaletteSlug | null; light: CodexPaletteSlug | null };
-  codeGradient: { enabled: boolean } & TextGradientParams;
-  codeGlow: { enabled: boolean } & GlowParams;
-  /** `animations`: menus and dialogs fade in; `reveal`: pointer-following light on rows. */
-  glass: { enabled: boolean; animations: boolean; reveal: boolean } & GlassParams;
-  accent: { enabled: boolean };
-  /** `glow`: draw the composer caret (and a cursor after streaming text) as a glowing bar. */
-  caret: { enabled: boolean; glow: boolean } & Pick<
-    CursorParams,
-    'animationDuration' | 'gradientStops'
-  >;
-  /** Rainbow gradient on assistant reply text (pure CSS, also while it streams). */
-  bodyText: { enabled: boolean };
   /**
-   * The window background: a picture under the window, panels frosted over it. `image` is
-   * `caiyun` (the bundled 《彩云》), `gradient` (the `fill` colors) or the id of a picture
-   * the user saved (kept by the watcher, never in this file).
+   * The picture under the window when the `background` effect is on: `caiyun` (the bundled
+   * 《彩云》), `gradient` (the 彩云 gradient) or the id of a picture the user saved.
    */
-  background: { enabled: boolean; image: CodexBackgroundId } & BackgroundParams;
+  backgroundImage: CodexBackgroundId;
   /** Extra CSS appended last, sanitized like the VS Code custom rules. */
   customCss: string[];
 }
@@ -75,13 +63,6 @@ export function isSavedBackgroundId(value: string): boolean {
 
 type Loose = Record<string, unknown>;
 
-/** Codex floating panels: more see-through and more saturated than the VS Code defaults. */
-const CODEX_GLASS_DEFAULTS: Readonly<Loose> = Object.freeze({
-  opacity: 0.4,
-  saturate: 150,
-  blur: 24,
-});
-
 function section(input: unknown, key: string): Loose {
   if (input === null || typeof input !== 'object') {
     return {};
@@ -105,54 +86,23 @@ function paletteFor(mode: 'dark' | 'light', value: unknown): CodexPaletteSlug | 
   return slug && codexPaletteMode(slug) === mode ? slug : null;
 }
 
-/** Turns untrusted settings (file, CLI flags) into complete, clamped Codex settings. */
+/** Turns untrusted settings (file, CLI flags) into complete Codex settings. */
 export function normalizeCodexSettings(input: unknown = {}): CodexSettings {
   const palette = section(input, 'palette');
-  const codeGradient = section(input, 'codeGradient');
-  const codeGlow = section(input, 'codeGlow');
-  const glass = section(input, 'glass');
-  const caret = section(input, 'caret');
-  const background = section(input, 'background');
-  const cursor = normalizeCursor(caret);
-  const customCss =
-    input !== null && typeof input === 'object' ? (input as Loose).customCss : undefined;
-
+  const loose = input !== null && typeof input === 'object' ? (input as Loose) : {};
+  // Before effects became plugins the picture lived in `background.image`.
+  const image = loose.backgroundImage ?? section(input, 'background').image;
   return {
     palette: { dark: paletteFor('dark', palette.dark), light: paletteFor('light', palette.light) },
-    codeGradient: {
-      enabled: sanitizeBoolean(codeGradient.enabled, true),
-      ...normalizeTextGradient(codeGradient),
-    },
-    // Large-area glow is off by default (the owner keeps it off in VS Code); the caret glows.
-    codeGlow: { enabled: sanitizeBoolean(codeGlow.enabled, false), ...normalizeGlow(codeGlow) },
-    glass: {
-      enabled: sanitizeBoolean(glass.enabled, true),
-      animations: sanitizeBoolean(glass.animations, true),
-      reveal: sanitizeBoolean(glass.reveal, true),
-      // The owner's VS Code look: thin, saturated glass (Frosted Glass Theme at ~0.4).
-      ...normalizeGlass({ ...CODEX_GLASS_DEFAULTS, ...glass }),
-    },
-    accent: { enabled: sanitizeBoolean(section(input, 'accent').enabled, true) },
-    caret: {
-      enabled: sanitizeBoolean(caret.enabled, true),
-      glow: sanitizeBoolean(caret.glow, true),
-      animationDuration: cursor.animationDuration,
-      gradientStops: cursor.gradientStops,
-    },
-    bodyText: { enabled: sanitizeBoolean(section(input, 'bodyText').enabled, true) },
-    background: {
-      enabled: sanitizeBoolean(background.enabled, true),
-      image: isCodexBackgroundId(background.image) ? background.image : CODEX_DEFAULT_BACKGROUND_ID,
-      ...normalizeBackground(background),
-    },
-    customCss: sanitizeCustomCssRules(customCss),
+    backgroundImage: isCodexBackgroundId(image) ? image : CODEX_DEFAULT_BACKGROUND_ID,
+    customCss: sanitizeCustomCssRules(loose.customCss),
   };
 }
 
 export const DEFAULT_CODEX_SETTINGS: Readonly<CodexSettings> =
   Object.freeze(normalizeCodexSettings());
 
-/** The default caret stops, so callers can tell whether the user customised them. */
+/** The default caret stops (Woodfish's rainbow). */
 export const DEFAULT_CODEX_CARET_STOPS: readonly string[] = DEFAULT_CURSOR.gradientStops;
 
 /** Looks up a Woodfish palette by slug. */
@@ -164,38 +114,146 @@ export function findCodexPalette(slug: CodexPaletteSlug): WoodfishPalette {
   return palette;
 }
 
-/** The on/off features the in-app settings panel shows, in display order. */
-export const CODEX_FEATURE_KEYS = Object.freeze([
-  'codeGradient',
-  'codeGlow',
-  'glass',
-  'accent',
-  'caret',
-  'bodyText',
-] as const);
-export type CodexFeatureKey = (typeof CODEX_FEATURE_KEYS)[number];
-
-/** What the in-app settings panel may change: the themes and the feature switches. */
-export interface CodexSettingsPatch {
-  palette?: { dark?: CodexPaletteSlug | null; light?: CodexPaletteSlug | null };
-  codeGradient?: { enabled: boolean };
-  codeGlow?: { enabled: boolean };
-  glass?: { enabled: boolean };
-  accent?: { enabled: boolean };
-  caret?: { enabled: boolean };
-  bodyText?: { enabled: boolean };
-  background?: Partial<
-    Pick<CodexSettings['background'], 'enabled' | 'image' | 'opacity' | 'blur' | 'mask'>
-  >;
+/**
+ * Values an older `codex.json` had for features that are effect plugins now, keyed by
+ * effect folder. Only keys the file actually had are returned, so the plugin's own
+ * defaults fill the rest; used once to seed `params.json`.
+ */
+export function legacyEffectValues(input: unknown): Record<string, Loose> {
+  const result: Record<string, Loose> = {};
+  const pick = (source: Loose, keys: readonly string[], rename: Loose = {}): Loose => {
+    const picked: Loose = {};
+    for (const key of keys) {
+      if (key in source) {
+        picked[typeof rename[key] === 'string' ? rename[key] : key] = source[key];
+      }
+    }
+    return picked;
+  };
+  const add = (id: string, values: Loose): void => {
+    if (Object.keys(values).length > 0) {
+      result[id] = { ...result[id], ...values };
+    }
+  };
+  add(
+    'code-gradient',
+    pick(section(input, 'codeGradient'), [
+      'enabled',
+      'angle',
+      'hueShift',
+      'lightnessDelta',
+      'neutralChroma',
+    ])
+  );
+  add(
+    'code-gradient',
+    pick(section(input, 'codeGlow'), ['enabled', 'intensity'], {
+      enabled: 'glow',
+      intensity: 'glowIntensity',
+    })
+  );
+  add(
+    'glass',
+    pick(section(input, 'glass'), [
+      'enabled',
+      'mode',
+      'blur',
+      'saturate',
+      'opacity',
+      'noise',
+      'borderRadius',
+      'animations',
+      'reveal',
+    ])
+  );
+  add('accent', pick(section(input, 'accent'), ['enabled']));
+  add('thread-ring', pick(section(input, 'accent'), ['enabled']));
+  add('caret', pick(section(input, 'caret'), ['enabled']));
+  add('rainbow-text', pick(section(input, 'bodyText'), ['enabled']));
+  add(
+    'background',
+    pick(section(input, 'background'), [
+      'enabled',
+      'opacity',
+      'blur',
+      'mask',
+      'saturate',
+      'luminosity',
+      'size',
+      'position',
+    ])
+  );
+  return result;
 }
 
-/** Background fields the panel may change; colors and the rest stay file-only. */
-const PANEL_BACKGROUND_NUMBERS = ['opacity', 'blur', 'mask'] as const;
+/**
+ * What the core engines (code gradient, window background) need, composed from the
+ * settings file and the values of their effect folders. `null` values mean the effect is
+ * off (or its folder is missing).
+ */
+export interface CodexCoreView {
+  palette: CodexSettings['palette'];
+  codeGradient: { enabled: boolean } & TextGradientParams;
+  codeGlow: { enabled: boolean } & GlowParams;
+  background: { enabled: boolean; image: CodexBackgroundId } & BackgroundParams;
+  customCss: string[];
+}
+
+export function composeCodexCoreView(
+  settings: CodexSettings,
+  core: { 'code-gradient'?: EffectValues | null; background?: EffectValues | null }
+): CodexCoreView {
+  const code = core['code-gradient'] ?? null;
+  const background = core.background ?? null;
+  return {
+    palette: settings.palette,
+    codeGradient: {
+      enabled: code !== null,
+      ...normalizeTextGradient({
+        angle: code?.angle,
+        hueShift: code?.hueShift,
+        lightnessDelta: code?.lightnessDelta,
+        neutralChroma: code?.neutralChroma,
+      }),
+    },
+    codeGlow: {
+      enabled: code !== null && code.glow === true,
+      ...normalizeGlow({ intensity: code?.glowIntensity }),
+    },
+    background: {
+      enabled: background !== null,
+      image: settings.backgroundImage,
+      ...normalizeBackground({
+        opacity: background?.opacity,
+        blur: background?.blur,
+        mask: background?.mask,
+        saturate: background?.saturate,
+        luminosity: background?.luminosity,
+        size: background?.size,
+        position: background?.position,
+      }),
+    },
+    customCss: settings.customCss,
+  };
+}
 
 /**
- * Applies an untrusted patch from the page (the in-app settings panel). Only the themes
- * and the feature switches can change; tunables and custom CSS always come from the
- * settings file, so nothing running in the page can inject CSS this way.
+ * What the in-app settings panel may change. Effect values go to the effect folders (the
+ * watcher validates them against each `effect.json`); everything else here is the file.
+ */
+export interface CodexSettingsPatch {
+  palette?: { dark?: CodexPaletteSlug | null; light?: CodexPaletteSlug | null };
+  backgroundImage?: CodexBackgroundId;
+  /** Per effect folder: values to change (`enabled` and parameters). */
+  effects?: Record<string, Record<string, unknown>>;
+  /** Effect folders to put back to their defaults. */
+  reset?: string[];
+}
+
+/**
+ * Applies the file part of an untrusted patch from the page. Only the themes and the
+ * background picture can change; custom CSS always comes from the file, so nothing running
+ * in the page can inject CSS this way.
  */
 export function applyCodexSettingsPatch(settings: CodexSettings, patch: unknown): CodexSettings {
   const next = normalizeCodexSettings(settings);
@@ -210,23 +268,9 @@ export function applyCodexSettingsPatch(settings: CodexSettings, patch: unknown)
       next.palette[mode] = paletteFor(mode, palette[mode]) ?? next.palette[mode];
     }
   }
-  for (const key of CODEX_FEATURE_KEYS) {
-    const enabled = section(patch, key).enabled;
-    if (typeof enabled === 'boolean') {
-      next[key].enabled = enabled;
-    }
-  }
-  const background = section(patch, 'background');
-  if (typeof background.enabled === 'boolean') {
-    next.background.enabled = background.enabled;
-  }
-  if (isCodexBackgroundId(background.image)) {
-    next.background.image = background.image;
-  }
-  for (const key of PANEL_BACKGROUND_NUMBERS) {
-    if (typeof background[key] === 'number') {
-      next.background[key] = normalizeBackground({ [key]: background[key] })[key];
-    }
+  const image = (patch as Loose).backgroundImage;
+  if (isCodexBackgroundId(image)) {
+    next.backgroundImage = image;
   }
   return next;
 }

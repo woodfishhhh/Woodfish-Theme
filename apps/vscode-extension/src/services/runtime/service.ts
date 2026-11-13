@@ -37,6 +37,7 @@ import {
   uninstallNativeWindow,
 } from './nativeWindow';
 import { buildRuntimePayload, RuntimePayload } from './payloadBuilder';
+import { effectsPayloadDir } from '../effects';
 import { deriveRuntimeStatus } from './status';
 import {
   clearRuntimeInstallState,
@@ -124,7 +125,8 @@ export function shouldInstallRuntime(settings: ThemeRuntimeSettings): boolean {
       settings.glow.enabled ||
       settings.cursor.enabled ||
       settings.glass.enabled ||
-      settings.background.enabled)
+      settings.background.enabled ||
+      settings.effects.enabled)
   );
 }
 
@@ -334,7 +336,14 @@ export class IntegratedThemeService {
     return buildRuntimePayload(settings, {
       ...readRuntimeAssets(this.context, readCurrentColorTheme()),
       backgroundImage: backgroundFile ? toWorkbenchFileUrl(backgroundFile) : null,
+      effectsUrl: this.effectsUrl(),
     });
+  }
+
+  /** Where the effects service writes the effect plugins, as the workbench loads it. */
+  private effectsUrl(): string | null {
+    const storage = (this.context as Partial<vscode.ExtensionContext>).globalStorageUri;
+    return storage ? `${toWorkbenchFileUrl(effectsPayloadDir(storage.fsPath))}/` : null;
   }
 
   private hasExpectedPayload(

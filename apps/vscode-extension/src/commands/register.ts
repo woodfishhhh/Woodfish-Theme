@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { registerAutoConfigureRainbowCursorCommand } from './autoConfigureRainbowCursor';
 import { registerCompleteUninstallCommand } from './completeUninstall';
 import { registerDisableThemeCommand } from './disableTheme';
+import { registerEffectsCommands } from './effects';
 import { registerEnableThemeCommand } from './enableTheme';
 import { registerOpenSettingsCommand } from './openSettings';
 import { registerPresetCommands } from './presets';
@@ -32,6 +33,7 @@ export function registerCommands(context: vscode.ExtensionContext, deps: Command
     ...registerPresetCommands(deps),
     registerShowDiagnosticsCommand(deps),
     registerOpenSettingsCommand(),
+    ...registerEffectsCommands(deps),
   ];
 
   context.subscriptions.push(...disposables);

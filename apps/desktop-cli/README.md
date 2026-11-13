@@ -29,16 +29,35 @@ VS Code 扩展里的 15 套主题都能用在 Codex 上（命令行里用括号�
 
 除原创的三套外，配色都由 `apps/vscode-extension/scripts/port-palettes.js` 直接从扩展附带的主题文件读出，和 VS Code 里看到的一致。Woodfish 自己的 5 套用特调渐变，其余按同样的规律从各自配色推导；回复正文的彩虹、侧栏会话的流光边框、标签页下划线和光标颜色也都取自当前主题。
 
+## 效果插件
+
+Codex 里 Woodfish 画的每个效果都是一个**插件文件夹**，放在 `%APPDATA%\Woodfish\effects\<名字>\`（VS Code 扩展共用同一个文件夹）：
+
+| 文件 | 内容 |
+| --- | --- |
+| `effect.json` | 名字、说明、参数定义（默认值、范围），设置页按它自动生成开关和滑块 |
+| `params.json` | 现在用的值。设置页、AI、`woodfish codex settings --set` 改的都是它 |
+| `effect.js` | 实现：`module.exports = function (ctx) { … }`，只通过 `ctx` 拿事件、画布和样式 |
+| `README.md` | 这个效果是什么、参数各管什么、改哪里会怎样 |
+
+自带 12 个：输入框光标 `caret`、鼠标拖尾 `mouse-trail`、光标拖尾 `caret-trail`、打字粒子 `typing-particles`、吐字光标 `stream-cursor`、新字淡入 `text-reveal`、流光边框 `thread-ring`（Bifrost「创建 Key」按钮）、回复正文彩虹 `rainbow-text`、强调色点缀 `accent`、浮层毛玻璃 `glass`、窗口背景 `background`、代码渐变 `code-gradient`（后两个是核心效果：引擎在 Woodfish 里，文件夹管开关和参数）。
+
+- **对 AI 说一句就能改**：文件夹根目录有 `AGENTS.md`（和指向它的 `CLAUDE.md`），写清楚找哪个文件夹、`ctx` 有什么、怎么验证。对 Codex 或 Claude 说“把打字粒子改成金色，效果文件夹在 %APPDATA%\Woodfish\effects”，它读完就知道改 `typing-particles` 的 `params.json`（实测 Codex 两分钟左右改完并刷新）。
+- **打字和吐字是同一个事件**：效果订阅 `ctx.onInsert`（某处插入了文字）和 `ctx.onCaret`（光标在这里）。VS Code 里由你打字触发，Codex 里由你在输入框打字或 AI 流式吐字触发，所以同一个粒子、拖尾两边都能用。
+- **刷新**：保存效果文件后一秒内自动重新加载；手动刷新用 `woodfish reload`（Codex 和 VS Code 一起，并打印每个效果的状态）、Codex 里按 **Ctrl+Alt+R**，或设置页的「刷新效果」。`woodfish codex reload --hard` 连窗口一起重新加载。
+- **出错不影响别的**：语法错误（带行号）、`effect.json` 写坏、运行时连续报错的效果会被跳过并标出原因，其他效果和 Codex 照常。`woodfish codex effects` 列出状态，`effects restore <名字>` 恢复出厂文件（改过的留 `.bak`），`effects reset <名字>` 参数恢复默认。
+- **升级不覆盖改动**：Woodfish 记下自己放进去的每个文件（`.woodfish-shipped.json`），只升级你没改过的文件；`params.json` 从不覆盖；删掉的效果也不会被放回来。
+- **新增效果**：新建一个文件夹（小写字母、数字、横线），放 `effect.json` 和 `effect.js`，保存后自动加载，设置页自动出现它的开关和参数。
+
 ## 在 Codex 里设置
 
-注入效果开启后，打开 Codex 的 **设置 → 外观**，“视觉风格”下面会多出 **Woodfish** 一节：
+注入效果开启后，打开 Codex 的 **设置 → 外观**，“视觉风格”下面会多出 **Woodfish 外观** 一节：
 
-- **深色主题 / 浅色主题**：点预览卡切换，“Codex 默认”表示保留 Codex 自己的配色。整个界面立刻换色，所有 Codex 窗口同步。
-- **效果开关**：代码渐变、代码发光、毛玻璃浮层、强调色点缀、彩色光标、回复正文渐变。
+- **深色主题 / 浅色主题**：点预览卡切换（15 套），“Codex 默认”表示保留 Codex 自己的配色。整个界面立刻换色，所有 Codex 窗口同步。
+- **效果插件**：每个效果一行开关，点「参数」展开它的全部参数（滑块、选项、取色），改动立刻生效并写回该效果的 `params.json`；每个效果可单独「恢复默认」，顶部有「刷新效果」和「全部恢复默认」。加载失败的效果标红并写出原因。
+- **背景图片**：《彩云》、彩云渐变和保存过的图片，点一下就换上；点“上传图片…”或把图片拖进 Codex 窗口（设置页打开时）。开关、透明度、模糊、遮罩在上面「窗口背景」效果的参数里。
 
-- **窗口背景**：一张图片铺在窗口底下，对话区直接透出，侧栏和输入框是毛玻璃。默认开启，用的是作者 woodfish 制作的《彩云》。点“上传图片…”选文件，或者把图片直接拖进 Codex 窗口（设置页打开时），窗口立刻预览；拖动透明度、模糊、遮罩三个滑块也是实时预览，满意再点“保存”，“取消”回到原样，“恢复默认”回到《彩云》和默认数值。保存过的图片都留在图库里，点一下切换，悬停后点 × 删除。
-
-改动由后台监视进程保存到 Woodfish 的设置文件，和 `woodfish codex settings` 改的是同一份。页面只能改主题、开关和背景的图片与三个滑块，模糊半径、渐变参数、自定义 CSS 等仍只能通过命令行修改。使用 Codex++ 用户脚本时，改动保存在 Codex 本机的 localStorage 中。
+主题和背景图片存在 `%APPDATA%\Woodfish\codex.json`，效果参数存在各效果文件夹的 `params.json`，和 `woodfish codex settings`、AI 改文件是同一份数据。使用 Codex++ 用户脚本时，改动保存在 Codex 本机的 localStorage 中。
 
 ### 窗口背景是怎么存的
 
@@ -70,7 +89,13 @@ woodfish codex theme restore                                         # 撤销全
 # 注入效果
 woodfish codex launch                      # 首次运行会说明风险并请你确认
 woodfish codex settings --set palette.dark=neon --set palette.light=light
-woodfish codex settings --set bodyText.enabled=true --set glass.blur=24
+woodfish codex settings --set glass.blur=24 --set mouse-trail.length=20
+
+# 效果插件
+woodfish codex effects                     # 每个效果的状态（运行中 / 已关闭 / 失败原因）和文件夹位置
+woodfish reload                            # 从磁盘重新加载所有效果（Codex 和 VS Code），不用重启
+woodfish codex effects reset typing-particles   # 参数恢复默认
+woodfish codex effects restore caret       # 恢复自带的效果文件
 
 # 窗口背景
 woodfish codex background set D:\图片\海边.jpg   # 保存一张图片并使用（超大图片借助正在运行的 Codex 页面缩小）
@@ -94,20 +119,16 @@ woodfish codex shortcut                    # 开始菜单快捷方式“Woodfish
 woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部修改
 ```
 
-可调设置：
+可调设置（`--set 键=值`）：
 
-| 设置 | 默认值 | 说明 |
+| 设置 | 存在 | 说明 |
 | --- | --- | --- |
-| `palette.dark` | `null` | 任一深色主题（见上表）；`null` 表示保留 Codex 自己的颜色 |
-| `palette.light` | `null` | `light`、`catppuccin-latte`、`github-light`；`null` 表示保留 Codex 自己的颜色 |
-| `codeGradient.*` | 开 | `hueShift`、`lightnessDelta`、`neutralChroma`、`angle`，与 VS Code 扩展的参数一致 |
-| `codeGlow.*` | 开 | `intensity` |
-| `glass.*` | 开 | `mode`（`blur` / `acrylic`）、`blur`、`saturate`、`opacity`、`noise`、`borderRadius`、`animations`（菜单与弹窗淡入）、`reveal`（列表项跟随指针的柔光） |
-| `accent.enabled` | 开 | 输入框聚焦光晕、发送按钮渐变、侧栏会话的旋转流光边框、当前标签页下划线 |
-| `caret.*` | 开 | `animationDuration`、`gradientStops`；不改时使用当前主题的光标配色 |
-| `bodyText.enabled` | 开 | 助手回复的段落、标题、列表和表格用当前主题的彩虹渐变（纯 CSS，流式输出时同样生效） |
-| `background.*` | 开 | `image`（`caiyun` / `gradient` / 图片编号）、`opacity` 0.15（背景图透出程度）、`blur` 10（侧栏和输入框毛玻璃的模糊）、`mask` 0.35（遮罩：面板盖在背景上的主题色浓度）、`saturate` 150、`luminosity` 0.1（亮度层）、`secondaryBlur` 10（输入框后方底条的模糊）、`size`（`cover` / `contain`）、`position`、`transition` 30（毫秒）、`fill`（没有图片时的渐变色，两个相同颜色即纯色） |
-| `customCss` | `[]` | 追加的 CSS，会经过安全过滤 |
+| `palette.dark` / `palette.light` | `codex.json` | 深色 / 浅色主题（见上表）；`null` 表示保留 Codex 自己的颜色 |
+| `backgroundImage` | `codex.json` | 窗口背景用哪张图：`caiyun` / `gradient` / 图片编号（也可写 `background.image`） |
+| `customCss` | `codex.json` | 追加的 CSS，会经过安全过滤 |
+| `<效果名>.<参数>` | 效果的 `params.json` | 例如 `mouse-trail.length=20`、`typing-particles.colors=rainbow`、`thread-ring.followTheme=true`，`enabled` 是开关；驼峰写法也行（`mouseTrail.length`）。参数和范围见各效果的 `effect.json` |
+
+旧键名照样能用：`glass.*`、`caret.enabled`、`accent.enabled`、`background.*` 对应同名效果，`bodyText.*` 对应 `rainbow-text`，`codeGradient.*` 和 `codeGlow.*`（`enabled` → `glow`，`intensity` → `glowIntensity`）对应 `code-gradient`。升级后第一次运行时，旧 `codex.json` 里的效果设置会自动搬进各效果的 `params.json`。
 
 ## 和 VS Code 版的对照
 

@@ -9,6 +9,7 @@
   "exclude": ["node_modules", ".vscode-test"],
   "references": [
     { "path": "../../packages/theme-core" },
-    { "path": "../../packages/renderer-runtime" }
+    { "path": "../../packages/renderer-runtime" },
+    { "path": "../../packages/effects" }
   ]
 }

@@ -75,6 +75,9 @@ importers:
       '@woodfish/adapter-dsh':
         specifier: workspace:*
         version: link:../../packages/adapter-dsh
+      '@woodfish/effects':
+        specifier: workspace:*
+        version: link:../../packages/effects
       '@woodfish/renderer-runtime':
         specifier: workspace:*
         version: link:../../packages/renderer-runtime
@@ -96,6 +99,9 @@ importers:
       '@vscode/vsce':
         specifier: ^3.9.2
         version: 3.9.2
+      '@woodfish/effects':
+        specifier: workspace:*
+        version: link:../../packages/effects
       '@woodfish/renderer-runtime':
         specifier: workspace:*
         version: link:../../packages/renderer-runtime
@@ -120,6 +126,16 @@ importers:
       '@woodfish/theme-core':
         specifier: workspace:*
         version: link:../theme-core
+
+  packages/effects:
+    dependencies:
+      '@woodfish/theme-core':
+        specifier: workspace:*
+        version: link:../theme-core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.5
 
   packages/renderer-runtime:
     dependencies:

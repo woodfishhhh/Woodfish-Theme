@@ -1,51 +1,31 @@
-import { CodexSettings } from '../settings';
-import {
-  buildAccentCss,
-  buildBodyTextCss,
-  buildCaretCss,
-  buildCodeCss,
-  buildGlassCss,
-} from './effects';
+import { CodexCoreView } from '../settings';
+import { buildCodeCss } from './effects';
 import { buildBackgroundCss } from './background';
 import { buildPaletteCss } from './palette';
 
-/** One `<style>` per feature, so features can be updated or removed independently. */
-export type CodexStyleName =
-  'palette' | 'background' | 'code' | 'glass' | 'accent' | 'caret' | 'body' | 'custom';
+/**
+ * One `<style>` per core feature. Everything else Woodfish draws in Codex is an effect
+ * plugin with its own stylesheet (see @woodfish/effects).
+ */
+export type CodexStyleName = 'palette' | 'background' | 'code' | 'custom';
 
 export const CODEX_STYLE_NAMES: readonly CodexStyleName[] = Object.freeze([
   'palette',
   'background',
   'code',
-  'glass',
-  'accent',
-  'caret',
-  'body',
   'custom',
 ]);
 
-/** All Woodfish CSS for Codex, keyed by feature; empty strings mean "not mounted". */
-export function buildCodexCss(settings: CodexSettings): Record<CodexStyleName, string> {
+/** The core CSS for Codex, keyed by feature; empty strings mean "not mounted". */
+export function buildCodexCss(view: CodexCoreView): Record<CodexStyleName, string> {
   return {
-    palette: buildPaletteCss(settings.palette),
-    background: buildBackgroundCss(settings),
-    code: buildCodeCss(settings),
-    glass: buildGlassCss(settings),
-    accent: buildAccentCss(settings),
-    caret: buildCaretCss(settings),
-    body: buildBodyTextCss(settings),
-    custom: settings.customCss.join('\n'),
+    palette: buildPaletteCss(view.palette),
+    background: buildBackgroundCss(view),
+    code: buildCodeCss(view),
+    custom: view.customCss.join('\n'),
   };
 }
 
 export { buildBackgroundCss } from './background';
 export { buildHljsRoleCss, buildPaletteCss, buildPaletteVariables } from './palette';
-export {
-  buildAccentCss,
-  buildBodyTextCss,
-  buildCaretCss,
-  buildCodeCss,
-  buildDiffCss,
-  buildGlassCss,
-  THREAD_RING,
-} from './effects';
+export { buildCodeCss, buildDiffCss } from './effects';

@@ -1,0 +1,79 @@
+{
+  "name": "流光边框",
+  "description": "侧栏选中的会话照抄 Bifrost「创建 Key」按钮：七色光谱环 3.2 秒转一圈，外面一圈柔光晕，里面是干净的面；悬停更亮并上浮 1px。运行中的会话用弱化版。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 60,
+  "params": {
+    "followTheme": {
+      "type": "boolean",
+      "default": false,
+      "label": "跟随主题配色",
+      "description": "关：Bifrost 的七色光谱（深浅色各一套）；开：当前主题的颜色和底色"
+    },
+    "turnSeconds": {
+      "type": "number",
+      "default": 3.2,
+      "min": 0.5,
+      "max": 30,
+      "step": 0.1,
+      "unit": "s",
+      "label": "转一圈",
+      "description": "光谱环转一圈的时间（Bifrost 是 3.2 秒）"
+    },
+    "border": {
+      "type": "number",
+      "default": 1.5,
+      "min": 0.5,
+      "max": 6,
+      "step": 0.5,
+      "unit": "px",
+      "label": "光谱环粗细",
+      "description": "Bifrost 是 1.5px"
+    },
+    "radius": {
+      "type": "number",
+      "default": 10,
+      "min": 0,
+      "max": 16,
+      "step": 0.5,
+      "unit": "px",
+      "label": "圆角",
+      "description": "Bifrost 小号按钮是 10px（里面的面是 8.5px）"
+    },
+    "halo": {
+      "type": "number",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "label": "光晕",
+      "description": "选中时外圈柔光的浓度（Bifrost 0.5）"
+    },
+    "hoverHalo": {
+      "type": "number",
+      "default": 0.85,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "label": "悬停光晕",
+      "description": "鼠标放上去时的浓度（Bifrost 0.85）"
+    },
+    "runningHalo": {
+      "type": "number",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "label": "运行中光晕",
+      "description": "没选中但在运行的会话用同一效果的弱化版，光晕更淡"
+    },
+    "lift": {
+      "type": "boolean",
+      "default": true,
+      "label": "悬停上浮",
+      "description": "鼠标放到选中的会话上时上浮 1px"
+    }
+  }
+}

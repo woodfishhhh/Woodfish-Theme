@@ -1,0 +1,40 @@
+{
+  "name": "回复正文彩虹",
+  "description": "助手回复的段落、标题、列表和表格文字用渐变色；纯 CSS，流式输出时边吐边上色，长对话不费脚本。链接、代码和公式保留原色。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 70,
+  "params": {
+    "colors": {
+      "type": "select",
+      "default": "theme",
+      "options": [
+        { "value": "theme", "label": "主题渐变" },
+        { "value": "rainbow", "label": "Woodfish 彩虹" }
+      ],
+      "label": "颜色",
+      "description": "主题渐变：Woodfish 主题用特调的正文彩虹，其他主题用光标色向正文色收拢；彩虹：VS Code 光标那套"
+    },
+    "strength": {
+      "type": "number",
+      "default": 42,
+      "min": 10,
+      "max": 100,
+      "step": 2,
+      "unit": "%",
+      "label": "鲜艳程度",
+      "description": "Woodfish 彩虹（以及没有特调的主题）里颜色占多少，其余是正文色"
+    },
+    "angle": {
+      "type": "number",
+      "default": 135,
+      "min": 0,
+      "max": 360,
+      "step": 5,
+      "unit": "deg",
+      "label": "渐变角度",
+      "description": "Woodfish 彩虹的方向；主题特调的渐变用它自己的角度"
+    }
+  }
+}

@@ -16,6 +16,8 @@ export const COMMANDS = {
   pickCursorPalette: 'woodfish-theme.pickCursorPalette',
   showDiagnostics: 'woodfish-theme.showDiagnostics',
   openSettings: 'woodfish-theme.openSettings',
+  reloadEffects: 'woodfish-theme.reloadEffects',
+  openEffectsFolder: 'woodfish-theme.openEffectsFolder',
   reloadWindow: 'workbench.action.reloadWindow',
   vscodeOpenSettings: 'workbench.action.openSettings',
 } as const;

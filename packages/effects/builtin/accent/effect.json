@@ -1,0 +1,37 @@
+{
+  "name": "强调色点缀",
+  "description": "输入框聚焦时的一圈光晕、双色渐变的发送按钮、右侧面板当前标签下一条慢慢流动的渐变短条。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 80,
+  "params": {
+    "composerGlow": {
+      "type": "boolean",
+      "default": true,
+      "label": "输入框光晕",
+      "description": "输入框聚焦时外圈一层强调色光晕"
+    },
+    "sendButton": {
+      "type": "boolean",
+      "default": true,
+      "label": "渐变发送按钮",
+      "description": "发送按钮用两种强调色的渐变"
+    },
+    "tabBar": {
+      "type": "boolean",
+      "default": true,
+      "label": "标签下划线",
+      "description": "右侧面板当前标签下面一条慢慢流动的渐变短条（VS Code 标签栏那条渐变）"
+    },
+    "glow": {
+      "type": "number",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.1,
+      "label": "光晕强度",
+      "description": "输入框光晕和发送按钮阴影的强弱"
+    }
+  }
+}

@@ -7,6 +7,8 @@ export interface WoodfishPaths {
   /** `%LOCALAPPDATA%\Woodfish`: transient files (launch wrappers, watcher lock and log). */
   runtimeDir: string;
   settingsFile: string;
+  /** The effect plugins (`%APPDATA%\Woodfish\effects`), shared with the VS Code extension. */
+  effectsDir: string;
   stateFile: string;
   backupsDir: string;
   watcherLog: string;
@@ -31,6 +33,7 @@ export function resolvePaths(env: NodeJS.ProcessEnv = process.env): WoodfishPath
     dataDir,
     runtimeDir,
     settingsFile: path.join(dataDir, 'codex.json'),
+    effectsDir: env.WOODFISH_EFFECTS_DIR ?? path.join(dataDir, 'effects'),
     stateFile: path.join(runtimeDir, 'codex-state.json'),
     backupsDir: path.join(dataDir, 'backups'),
     watcherLog: path.join(runtimeDir, 'codex-watcher.log'),

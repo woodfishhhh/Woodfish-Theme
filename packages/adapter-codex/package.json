@@ -1,6 +1,6 @@
 {
   "name": "@woodfish/adapter-codex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Woodfish adapter for the OpenAI Codex desktop app: selectors, CSS builders, native theme mapping and the in-page overlay.",
   "license": "MIT",

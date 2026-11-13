@@ -19,7 +19,8 @@ Woodfish-Theme/
 │  ├─ theme-core/            # @woodfish/theme-core：与宿主无关的颜色与效果核心
 │  ├─ renderer-runtime/      # @woodfish/renderer-runtime：任意 Chromium 页面里运行的效果引擎
 │  ├─ adapter-codex/         # @woodfish/adapter-codex：Codex 选择器、CSS 生成、原生主题映射、页面内 overlay
-│  └─ adapter-dsh/           # @woodfish/adapter-dsh：dsh Web 版选择器、CSS 生成、页面内 overlay（油猴脚本）
+│  ├─ adapter-dsh/           # @woodfish/adapter-dsh：dsh Web 版选择器、CSS 生成、页面内 overlay（油猴脚本）
+│  └─ effects/               # @woodfish/effects：自带的效果插件（builtin/）与用户效果文件夹的 Node 端
 ├─ docs/
 │  ├─ ARCHITECTURE.md
 │  └─ hosts/                 # 各宿主实测结论：codex.md、dsh.md（含 dsh-screenshots/）
@@ -32,6 +33,7 @@ Woodfish-Theme/
 ```text
 theme-core  ←  renderer-runtime  ←  adapter-codex  ←  desktop-cli
                                  ←  adapter-dsh    ←
+     ↑      ←  effects（Node 端）  ←─────────────────  desktop-cli、vscode-extension
      ↑                ↑
      └──── vscode-extension（宿主代码与 browser/ 渲染端脚本）
 ```
@@ -48,7 +50,7 @@ theme-core  ←  renderer-runtime  ←  adapter-codex  ←  desktop-cli
 | --- | --- |
 | `color/` | CSS 颜色解析与校验、sRGB ↔ OKLCH、色域映射、WCAG 对比度 |
 | `gradient/` | 文字渐变：先查当前主题的特调表（`presets.ts`），查不到再按特调的规律推导（`tokenGradient.ts`），并保证每个色标在背景上不比原色难读；发光色（浅色背景上用同色相的亮色）；按调色板或强调色选取锚定色相 |
-| `effects/` | 渐变、发光、光标、毛玻璃、系统窗口材质、窗口背景的可调参数：默认值、取值范围、归一化；用户 CSS 与色标的安全过滤；背景图片按文件头校验（JPG / PNG / WebP 与尺寸，`backgroundImage.ts`） |
+| `effects/` | 渐变、发光、光标、毛玻璃、系统窗口材质、窗口背景的可调参数：默认值、取值范围、归一化；用户 CSS 与色标的安全过滤；背景图片按文件头校验（JPG / PNG / WebP 与尺寸，`backgroundImage.ts`）；效果插件的 `effect.json` 校验与参数值归一化（`plugins.ts`：数字夹到范围、颜色和选项校验、不认识的键丢弃、参数转成 `--woodfish-<效果>-<参数>` CSS 变量） |
 | `palettes/gradientPresets.ts` | 5 套内置主题的特调渐变表，按 token 颜色查。Woodfish Dark 是 5.x 手写的 Bearded 特调原样保留，其余四套按同一手法调出 |
 | `palettes/` | Woodfish 原创调色板（Light / Black / Neon）及可读性校验；从 VS Code 主题移植的调色板（`ported.ts`，由 `apps/vscode-extension/scripts/port-palettes.js` 生成）：Woodfish Dark、Dracula，以及原样收录的 10 套热门 MIT 主题 |
 
@@ -89,6 +91,20 @@ VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建�
 | `settings` | 设置的类型与归一化。主题按 `WOODFISH_PALETTES` 通用遍历，theme-core 新增主题无需改动 |
 | `css/` | `--dsw-alias-*` / `--dsw-specific-*` 配色覆盖、`--shiki-token-*` 语法色、代码渐变与发光、浮层毛玻璃（变量）、强调色、彩色光标、正文渐变 |
 | `renderer/` | `startDshOverlay`，以及油猴脚本入口：只在 dsh 页面启动，菜单切换主题与开关（`GM_*`，没有时退回 localStorage） |
+
+### `@woodfish/effects` 与效果插件
+
+所有可见效果都是插件：一个效果一个文件夹（`effect.json` 参数定义、`params.json` 当前值、`effect.js` 实现、`README.md` 说明，可选 `effect.css`）。自带的放在 `packages/effects/builtin/`，根目录的 `AGENTS.md` 写给 AI：用户一句“改一下出字的粒子”，AI 读完就知道改哪个文件夹、怎么验证。
+
+| 位置 | 内容 |
+| --- | --- |
+| `packages/effects/src/`（Node） | 把自带效果同步进用户的效果文件夹（`%APPDATA%\Woodfish\effects`，CLI 和 VS Code 扩展共用）：`.woodfish-shipped.json` 记下放进去的每个文件和版本，只升级没被改过的文件，`params.json` 从不覆盖；读取文件夹（语法错误用 `vm.Script` 只编译不运行地查出并带行号）；写参数；生成页面用的效果列表（经典脚本给 Codex，ES module 给 VS Code） |
+| `renderer-runtime/effectHost.ts` | 页面里的效果宿主：给每个效果一个 `ctx`（参数、主题、选择器、事件、共用画布和覆盖层、样式、计时器），一个效果启动失败或连续出错只停它自己；画布只在有效果要画时跑帧，窗口在后台时暂停并在 `<html>` 上标 `data-woodfish-paused`；参数变了有 `update` 就原地更新，否则重启；代码变了（hash）重启 |
+| `renderer-runtime/textEvents.ts` | 统一事件的来源：`watchStream` 把流式回复里追加的文字变成插入事件（每帧最多一次，不改 DOM）；`watchEditableTyping` 处理 contenteditable 输入框的打字（含输入法提交） |
+| `adapter-codex/renderer/effects.ts` | Codex 这一侧：`ctx.theme()`（当前外观的调色板、光标色、特调正文渐变）、`ctx.selectors`、`ctx.lib`，输入框打字和流式回复（运行中的当前会话、最后一个用户消息之后的回复）接到事件上 |
+| `apps/vscode-extension/src/services/effects.ts`、`browser/effects.ts` | VS Code 这一侧：扩展把效果文件夹写成全局存储里的 `effects.mjs` 和 `effects.json`，自带的三个效果用 `woodfishTheme.<驼峰名>.*` 设置当参数；工作台脚本每 1.5 秒（窗口在前台时）看一眼版本，变了就 `import()` 新模块；Monaco 光标的 `top/left` 变化和按键合成光标事件与插入事件 |
+
+背景和代码渐变是“核心效果”（`effect.json` 里有 `core`）：引擎留在适配器里，文件夹只管开关、参数和追加的 CSS。
 
 ### 宿主应用
 

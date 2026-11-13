@@ -19,6 +19,13 @@ import { CodexInstallation, CodexPlatform, CodexRuntimeState } from '../platform
 import { loadSettings, sha256 } from '../store';
 import { normalizeCodexSettings } from '@woodfish/adapter-codex';
 
+/** One effect's values as saved in its folder. */
+function effectValues(id: string): Record<string, unknown> {
+  return JSON.parse(
+    fs.readFileSync(path.join(paths.effectsDir, id, 'params.json'), 'utf8')
+  ) as Record<string, unknown>;
+}
+
 function memoryIo(answers: string[] = [], interactive = false): Io & { output: string[] } {
   const output: string[] = [];
   return {
@@ -221,20 +228,89 @@ describe('run', () => {
     ).toBe(2);
   });
 
-  it('saves settings through --set and normalizes them', async () => {
+  it('saves settings through --set: themes in codex.json, effect values in their folders', async () => {
     const io = memoryIo();
     expect(
       await run(
-        ['codex', 'settings', '--set', 'glass.blur=999', '--set', 'bodyText.enabled=true'],
-        {
-          io,
-          context: { paths },
-        }
+        [
+          'codex',
+          'settings',
+          '--set',
+          'palette.dark=neon',
+          '--set',
+          'glass.blur=999',
+          '--set',
+          'bodyText.enabled=false',
+          '--set',
+          'mouseTrail.length=20',
+          '--set',
+          'typing-particles.colors=rainbow',
+        ],
+        { io, context: { paths } }
       )
     ).toBe(0);
-    const stored = loadSettings(paths).codex;
-    expect(stored.glass.blur).toBe(60);
-    expect(stored.bodyText.enabled).toBe(true);
+    expect(loadSettings(paths).codex.palette.dark).toBe('neon');
+    expect(effectValues('glass').blur).toBe(60);
+    expect(effectValues('rainbow-text').enabled).toBe(false);
+    expect(effectValues('mouse-trail').length).toBe(20);
+    expect(effectValues('typing-particles').colors).toBe('rainbow');
+    expect(await run(['codex', 'settings', '--set', 'nope.x=1'], { io, context: { paths } })).toBe(
+      2
+    );
+  });
+
+  it('moves the effect settings of an older codex.json into the effect folders once', async () => {
+    fs.mkdirSync(paths.dataDir, { recursive: true });
+    fs.writeFileSync(
+      paths.settingsFile,
+      JSON.stringify({
+        version: 1,
+        codex: {
+          palette: { dark: 'dracula' },
+          glass: { enabled: false, blur: 12 },
+          caret: { enabled: false },
+          background: { enabled: true, image: 'gradient', opacity: 0.3 },
+        },
+      })
+    );
+    const io = memoryIo();
+    expect(await run(['codex', 'settings'], { io, context: { paths } })).toBe(0);
+    expect(effectValues('glass')).toMatchObject({ enabled: false, blur: 12 });
+    expect(effectValues('caret').enabled).toBe(false);
+    expect(effectValues('background')).toMatchObject({ enabled: true, opacity: 0.3 });
+    const saved = JSON.parse(fs.readFileSync(paths.settingsFile, 'utf8')) as { codex: unknown };
+    expect(saved.codex).toEqual({
+      palette: { dark: 'dracula', light: null },
+      backgroundImage: 'gradient',
+      customCss: [],
+    });
+  });
+
+  it('lists, resets and restores effects, and asks for a reload', async () => {
+    const io = memoryIo();
+    expect(await run(['effects'], { io, context: { paths } })).toBe(0);
+    expect(io.output.join('\n')).toContain('typing-particles');
+    fs.writeFileSync(
+      path.join(paths.effectsDir, 'caret-trail', 'effect.js'),
+      'module.exports = (;'
+    );
+    expect(await run(['codex', 'effects'], { io, context: { paths } })).toBe(1);
+    expect(io.output.join('\n')).toMatch(/caret-trail\s+失败：effect\.js 第 1 行有语法错误/);
+    expect(
+      await run(['codex', 'effects', 'restore', 'caret-trail'], { io, context: { paths } })
+    ).toBe(0);
+    expect(fs.existsSync(path.join(paths.effectsDir, 'caret-trail', 'effect.js.bak'))).toBe(true);
+
+    await run(['codex', 'settings', '--set', 'mouse-trail.length=30'], { io, context: { paths } });
+    expect(
+      await run(['codex', 'effects', 'reset', 'mouse-trail'], { io, context: { paths } })
+    ).toBe(0);
+    expect(effectValues('mouse-trail').length).toBe(12);
+
+    const platform = fakePlatform();
+    expect(await run(['reload'], { io, context: { paths, platform: () => platform } })).toBe(0);
+    expect(fs.existsSync(path.join(paths.effectsDir, '.reload'))).toBe(true);
+    expect(io.output.join('\n')).toContain('Codex 没有在运行 Woodfish 注入');
   });
 
   it('requires consent before opening a port and never launches without it', async () => {

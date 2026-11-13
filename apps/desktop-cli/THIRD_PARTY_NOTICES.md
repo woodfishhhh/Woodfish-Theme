@@ -62,6 +62,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## VS Code Animations（拖尾效果）
+
+单文件里带有 Woodfish 自带的效果插件（`packages/effects/builtin/`，运行时复制到效果文件夹）。其中 `mouse-trail` 和 `caret-trail` 照抄了 VS Code Animations 2.0.9（`brandonkirbyson.vscode-animations`，https://github.com/BrandonKirbyson/VSCode-Animations）里 CursorAnimation 的拖尾画法，MIT 许可：
+
+```text
+MIT License
+
+Copyright (c) 2023 Brandon Kirbyson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## 说明
 
 Woodfish 参考了 Codex++（BigPizzaV3/CodexPlusPlus，AGPL-3.0）证明的思路：通过 Chromium 调试协议注入页面样式，不修改 Codex 安装文件。Woodfish 的实现依据 Chromium DevTools Protocol 和 Microsoft 公开文档独立编写，没有使用 Codex++ 的任何代码。

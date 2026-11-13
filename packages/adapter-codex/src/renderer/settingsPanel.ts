@@ -1,7 +1,5 @@
 import {
-  CODEX_FEATURE_KEYS,
   CODEX_PALETTE_SLUGS,
-  CodexFeatureKey,
   CodexPaletteSlug,
   CodexSettings,
   CodexSettingsPatch,
@@ -9,10 +7,11 @@ import {
   findCodexPalette,
 } from '../settings';
 import {
-  BackgroundPanelOptions,
   BackgroundSection,
+  BackgroundPanelOptions,
   buildBackgroundSection,
 } from './backgroundPanel';
+import { EffectsCard, EffectsPanelOptions, buildEffectsCard } from './effectsPanel';
 import { Look, element, labelBlock, readLook } from './panelDom';
 
 /** Marks the Woodfish settings section, so styles, dispose and tests can find it. */
@@ -25,18 +24,6 @@ export const SETTINGS_PANEL_ATTRIBUTE = 'data-woodfish-codex-settings';
 const APPEARANCE_ANCHOR = 'input[type="radio"][name="appearance-theme"]';
 const MOUNT_DELAY_MS = 120;
 
-const FEATURE_TEXT: Readonly<Record<CodexFeatureKey, { label: string; description: string }>> = {
-  codeGradient: { label: '代码渐变', description: '代码块中的每个 token 按 OKLCH 渐变着色' },
-  codeGlow: { label: '代码发光', description: '代码文字带一层柔和的光晕' },
-  glass: {
-    label: '毛玻璃浮层',
-    description: '菜单、弹窗和浮层使用磨砂玻璃，弹出时淡入，列表项跟随指针微微发亮',
-  },
-  accent: { label: '强调色点缀', description: '输入框聚焦光晕、发送按钮渐变与当前会话标记' },
-  caret: { label: '彩色光标', description: '输入框里的光标循环变换颜色' },
-  bodyText: { label: '回复正文渐变', description: '助手回复的正文也使用渐变，比较醒目' },
-};
-
 /** Codex's own default colors, shown on the "keep Codex's theme" tile. */
 const CODEX_DEFAULT_TILE: Readonly<Record<'dark' | 'light', readonly string[]>> = {
   dark: ['#181818', '#f8a6c8', '#63a8f8', '#83d197', '#339cff'],
@@ -45,18 +32,21 @@ const CODEX_DEFAULT_TILE: Readonly<Record<'dark' | 'light', readonly string[]>> 
 
 export interface SettingsPanelOptions {
   settings: () => CodexSettings;
+  /** Theme and picture changes (applied at once and saved). */
   change: (patch: CodexSettingsPatch) => void;
+  effects: Omit<EffectsPanelOptions, 'location'> & { location: string };
+  background: Pick<BackgroundPanelOptions, 'store'>;
   /** Where changes are kept, shown under the controls. */
   footnote: string;
   /** Extra attributes on the section (e.g. the Codex++ ownership marker). */
   nodeAttributes?: Readonly<Record<string, string>>;
-  /** Picture storage and live preview for the background rows. */
-  background: Pick<BackgroundPanelOptions, 'store' | 'preview'>;
 }
 
 export interface SettingsPanel {
-  /** Re-reads the settings into the controls. */
+  /** Re-reads the settings and effects into the controls. */
   refresh: () => void;
+  /** A short message in the effects card (e.g. the result of a reload). */
+  say: (text: string) => void;
   dispose: () => void;
 }
 
@@ -114,36 +104,14 @@ function galleryRow(look: Look, mode: 'dark' | 'light'): HTMLElement {
   ]);
 }
 
-function switchRow(look: Look, key: CodexFeatureKey): HTMLElement {
-  const text = FEATURE_TEXT[key];
-  const control = element(
-    'button',
-    'woodfish-settings-switch',
-    {
-      type: 'button',
-      role: 'switch',
-      'aria-checked': 'false',
-      'aria-label': text.label,
-      'data-woodfish-feature': key,
-    },
-    [
-      element('span', 'woodfish-settings-switch-track', { 'aria-hidden': 'true' }, [
-        element('span', 'woodfish-settings-switch-thumb'),
-      ]),
-    ]
-  );
-  return element('div', look.row, {}, [
-    labelBlock(look, text.label, text.description),
-    element('div', look.rowRight, {}, [control]),
-  ]);
-}
-
 /**
- * Adds a "Woodfish" section to Codex's Settings → Appearance page, right after its own
- * visual style section, and keeps it there while the page is open.
+ * Adds a "Woodfish 外观" section to Codex's Settings → Appearance page, right after its own
+ * visual style section, and keeps it there while the page is open: the themes, every
+ * effect plugin with its parameters, the background picture, reload and reset.
  */
 export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel {
   let root: HTMLElement | null = null;
+  let effects: EffectsCard | null = null;
   let background: BackgroundSection | null = null;
   let timer: ReturnType<typeof globalThis.setTimeout> | null = null;
   let disposed = false;
@@ -160,13 +128,11 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
         button.setAttribute('aria-checked', String(settings.palette[mode] === slug));
       }
     }
-    for (const button of root.querySelectorAll<HTMLElement>('[data-woodfish-feature]')) {
-      const key = button.dataset.woodfishFeature as CodexFeatureKey;
-      button.setAttribute('aria-checked', String(Boolean(settings[key]?.enabled)));
-    }
+    effects?.sync();
+    background?.sync();
   }
 
-  function onClick(event: Event): void {
+  function onThemeClick(event: Event): void {
     const target = event.target instanceof Element ? event.target : null;
     const paletteButton = target?.closest<HTMLElement>('[data-woodfish-palette]');
     const group = paletteButton?.closest<HTMLElement>('[data-woodfish-mode]');
@@ -174,49 +140,48 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
       const mode = group.dataset.woodfishMode === 'light' ? 'light' : 'dark';
       const slug = paletteButton.dataset.woodfishPalette || null;
       options.change({ palette: { [mode]: slug } });
-      return;
-    }
-    const featureButton = target?.closest<HTMLElement>('[data-woodfish-feature]');
-    if (featureButton) {
-      const key = featureButton.dataset.woodfishFeature as CodexFeatureKey;
-      const enabled = featureButton.getAttribute('aria-checked') !== 'true';
-      options.change({ [key]: { enabled } });
+      sync();
     }
   }
 
   function build(anchorSection: Element): HTMLElement {
     const look = readLook(anchorSection);
-    const card = element('div', look.card, look.cardStyle ? { style: look.cardStyle } : {}, [
+    const cardAttributes: Record<string, string> = look.cardStyle ? { style: look.cardStyle } : {};
+    const themes = element('div', look.card, cardAttributes, [
       galleryRow(look, 'dark'),
       galleryRow(look, 'light'),
-      ...CODEX_FEATURE_KEYS.map((key) => switchRow(look, key)),
     ]);
+    themes.addEventListener('click', onThemeClick);
+    effects = buildEffectsCard(look, options.effects);
     background = buildBackgroundSection(look, {
-      ...options.background,
-      settings: options.settings,
-      change: options.change,
+      store: options.background.store,
+      image: () => options.settings().backgroundImage,
+      choose: (image) => options.change({ backgroundImage: image }),
     });
     const backgroundCard = element(
       'div',
       `${look.card} woodfish-background-card`,
-      look.cardStyle ? { style: look.cardStyle } : {},
+      cardAttributes,
       background.rows
     );
-    const section = element(
+    return element(
       'section',
       look.section,
-      { [SETTINGS_PANEL_ATTRIBUTE]: 'true', 'aria-label': 'Woodfish', ...options.nodeAttributes },
+      {
+        [SETTINGS_PANEL_ATTRIBUTE]: 'true',
+        'aria-label': 'Woodfish 外观',
+        ...options.nodeAttributes,
+      },
       [
-        element('div', look.header, {}, [element('div', look.title, {}, ['Woodfish'])]),
+        element('div', look.header, {}, [element('div', look.title, {}, ['Woodfish 外观'])]),
         element('div', look.body, {}, [
-          card,
+          themes,
+          effects.card,
           backgroundCard,
           element('div', 'woodfish-settings-footnote', {}, [options.footnote]),
         ]),
       ]
     );
-    section.addEventListener('click', onClick);
-    return section;
   }
 
   /** Mounts the section after the visual style section, or drops it when the page closes. */
@@ -242,6 +207,7 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
   function unmount(): void {
     background?.dispose();
     background = null;
+    effects = null;
     root?.remove();
     root = null;
   }
@@ -257,10 +223,8 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
   check();
 
   return {
-    refresh: (): void => {
-      sync();
-      background?.sync();
-    },
+    refresh: sync,
+    say: (text: string): void => effects?.say(text),
     dispose: (): void => {
       disposed = true;
       observer.disconnect();

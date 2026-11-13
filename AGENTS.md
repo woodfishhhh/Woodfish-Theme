@@ -2,7 +2,7 @@
 
 **Type**: npm workspaces monorepo, TypeScript
 **Products**: VS Code extension (`apps/vscode-extension`, published as `zhongjun.woodfish-theme`); `woodfish` desktop CLI for the Codex app and the DeepSeek Harness (dsh) Web UI user script (`apps/desktop-cli`)
-**Shared packages**: `@woodfish/theme-core` (pure color/effect core), `@woodfish/renderer-runtime` (in-page engines), `@woodfish/adapter-codex` (Codex selectors, CSS, overlay), `@woodfish/adapter-dsh` (dsh Web UI selectors, CSS, overlay)
+**Shared packages**: `@woodfish/theme-core` (pure color/effect core), `@woodfish/renderer-runtime` (in-page engines, effect plugin host), `@woodfish/adapter-codex` (Codex selectors, CSS, overlay), `@woodfish/adapter-dsh` (dsh Web UI selectors, CSS, overlay), `@woodfish/effects` (shipped effect plugins and the Node side of the user's effects folder)
 
 ## Structure
 
@@ -30,7 +30,8 @@ Woodfish-Theme/
 │   ├── theme-core/            # Host-agnostic color math, gradients, palettes, effect params
 │   ├── renderer-runtime/      # DOM engines shared by every host page (text gradient, styles)
 │   ├── adapter-codex/         # Codex app selectors, CSS builders, native theme mapping, overlay
-│   └── adapter-dsh/           # dsh Web UI selectors, CSS builders (variable overrides), overlay
+│   ├── adapter-dsh/           # dsh Web UI selectors, CSS builders (variable overrides), overlay
+│   └── effects/               # builtin/<id>/ effect plugins + AGENTS.md for AIs; src/ seeds and loads the user's effects folder
 ├── docs/ARCHITECTURE.md       # Boundaries and how to add a host app
 ├── package.json               # Workspace root (shared dev tooling only)
 └── tsconfig.base.json         # Shared strict TypeScript options
@@ -59,6 +60,13 @@ Woodfish-Theme/
 | dsh selectors / CSS | `packages/adapter-dsh/src/selectors.ts`, `packages/adapter-dsh/src/css/` |
 | dsh CLI commands, user script header | `apps/desktop-cli/src/commands/dsh.ts`, `apps/desktop-cli/scripts/build.js` |
 | dsh measurements | `docs/hosts/dsh.md` |
+| Effect plugins (shipped) | `packages/effects/builtin/<id>/` (`effect.json`, `effect.js`, `README.md`), guide for AIs `packages/effects/builtin/AGENTS.md` |
+| Effects folder sync / load / payload | `packages/effects/src/index.ts` |
+| Effect manifest & value normalization | `packages/theme-core/src/effects/plugins.ts` |
+| In-page effect host, insert/caret events | `packages/renderer-runtime/src/effectHost.ts`, `textEvents.ts` |
+| Codex effect events, theme, selectors | `packages/adapter-codex/src/renderer/effects.ts`; settings page card `renderer/effectsPanel.ts` |
+| VS Code effects | `apps/vscode-extension/src/services/effects.ts` (payload), `browser/effects.ts` (Monaco events, hot import) |
+| Effect playgrounds | `docs/playground/streaming-text.html` (吐字 schemes), `docs/playground/tab-indicator.html` |
 | Woodfish Dark | `apps/vscode-extension/themes/bearded/Woodfish Dark.json` |
 | Woodfish Dracula | `apps/vscode-extension/themes/dracula/Woodfish Dracula.json` |
 
@@ -72,7 +80,9 @@ Woodfish-Theme/
 - **Generated files are committed** - regenerate with `pnpm themes:generate` / `pnpm runtime:build`
 - **Two kinds of text gradients** - the 5 built-in themes use hand-tuned presets (`packages/theme-core/src/palettes/gradientPresets.ts`, keyed by token color); any other theme, and colors a preset does not list, use the derivation in `gradient/tokenGradient.ts`, which is modeled on the presets. Hosts pass background / foreground / preset through the engine's `gradientContext`
 - **Bundled popular themes are unmodified upstream files** - `themes/<slug>/` holds the upstream JSON (VS Code reads JSONC; `scripts/lib/jsonc.js` parses it the same way), its `LICENSE.txt`, a `NOTICE.md` and Woodfish's own `theme.meta.json` (accents, tab gradient, cursor colors picked from the theme's palette). Only MIT-style licenses; list each in both THIRD_PARTY_NOTICES files. Add the slug to `port-palettes.js`, `package.json` and `themeRegistry.ts`, then `pnpm themes:generate`. They have no hand-tuned preset; gradients are derived
-- **Codex effects are designed, not copied** - the owner wants Codex to look designed: rainbow reply text (pure CSS so streaming and long threads cost nothing), a turning gradient ring on the selected/running sidebar thread (the owner's pick in `docs/playground/tab-indicator.html`), all following the active theme. Let the owner pick visual flourishes in a static playground like that one. Judge on real Codex screenshots with the window in front (an occluded Codex throttles frames, so captures go stale)
+- **Codex effects are designed** - the owner wants Codex to look designed: rainbow reply text (pure CSS so streaming and long threads cost nothing), the selected sidebar thread copies the Bifrost console's 「创建 Key」 bridge button (owner's company, copying approved 2026-11-14: 1.5px seven-band conic ring turning every 3.2 s, navy face, blur(14px) halo; running threads a weaker halo; replaced the earlier playground #8 ring), Codex's caret is the owner's VS Code caret (6px, solid, smooth 80 ms, Woodfish rainbow, no glow), trails copy the VS Code Animations extension (MIT; single-color band, length 12, default `#ffffff`), streaming default is playground #1 (`docs/playground/streaming-text.html`: rainbow cursor at the end of the text + caret trail + 120 ms fade-in). Let the owner pick visual flourishes in a static playground like those. Judge on real Codex screenshots with the window in front (an occluded Codex is marked hidden and throttles frames, so `PrintWindow` captures go stale; CDP `Page.captureScreenshot` is reliable for page content)
+- **Effects are plugins (the owner's core selling point)** - every visual effect is a folder (`effect.json` schema + `params.json` values + `effect.js` + `README.md`) shipped from `packages/effects/builtin/` into `%APPDATA%\Woodfish\effects` (shared by the CLI and the VS Code extension; `.woodfish-shipped.json` records what was shipped so upgrades only replace untouched files, `params.json` is never shipped, deleted folders stay deleted; bump `version` in `effect.json` when changing a shipped effect). A user tells Codex/Claude "改一下出字的粒子" and the AI follows the folder's `AGENTS.md`. Effects only talk to `ctx` (`renderer-runtime/effectHost.ts`): one shared canvas whose loop stops when idle and while the window is in the background, `ctx.onInsert` / `ctx.onCaret` / `ctx.onStreamEnd` fire for the user typing (Monaco in VS Code, the composer in Codex) and for Codex streaming a reply (`watchStream`, one flush per frame, no per-character DOM). A failing effect (syntax error with line, bad JSON, three runtime errors) is skipped and reported; the rest keep running. Values: Codex reads `params.json` (the settings page writes it through the watcher, `codex.json` keeps only palette, picture and custom CSS; an older `codex.json` is migrated once); VS Code reads `woodfishTheme.<camelId>.*` for its three effects (opt-in, default off) and `params.json` for any other. Reload: saving re-injects within ~250 ms; `woodfish reload` (touches `effects/.reload`, VS Code watches it too), Ctrl+Alt+R and 「刷新效果」 restart every effect. VS Code loads `effects.mjs` from global storage with `import()` (allowed under its CSP and Trusted Types) and polls `effects.json` every 1.5 s while focused
+- **Effect plugins must stay cheap** - measured 2026-11-14 in a real streaming reply: frame interval avg 4.72 / p95 8.4 ms with the streaming effects on vs 4.68 / 8.4 off, no long tasks. Keep animations in transforms/CSS or the shared canvas, never animate per character, and never put a live `backdrop-filter` over large streaming areas
 - **Window background is shared** - params in `theme-core/effects` (`DEFAULT_BACKGROUND`: picture 15 %, panels 35 % theme tint, blur 10px, saturate 150 %, luminosity 10 %, 30 ms; the owner picked 0.35 / 10px / 150 % in the Codex playground), the layer and frosted-panel CSS in `renderer-runtime/background.ts`, hosts only wire selectors. 《彩云》 (by the owner) is committed once as `packages/renderer-runtime/assets/caiyun.webp`; the VSIX stages it in (`scripts/paths.js`), the CLI and the Codex++ user script inline it, the CDP overlay never does. Codex pictures travel through their own binding (`__woodfishCodexBackground`) and live in `%APPDATA%\Woodfish\backgrounds\`; VS Code copies them into globalStorage and loads `vscode-file://` URLs. In Codex never use a live `backdrop-filter` over the background: during a streaming reply it roughly doubled frame time (the running indicator, the caret and text scrolling under the composer recompute it every frame); the sidebar and composer draw a canvas-blurred static copy (`--woodfish-background-image-soft`, `background-attachment: fixed`). Bindings added with `Runtime.addBinding` are gone after a page reload; the watcher re-adds them on every load. VS Code 1.146's floating panels paint parts, panes, the grid frame and the editor card with `!important` (up to four classes), so the VS Code background rules are prefixed with `:root body`. A patched workbench only shows up after a full restart of the test VS Code, a reload can serve the old HTML
 - **Codex autostart** - `woodfish codex autostart on` is a per-user logon task (`conhost --headless`, normal rights) running a private copy of the CLI as `codex daemon`; it only restarts a Codex that started without a port less than 90 s ago. From an elevated shell, `launch` relays the package launch through `explorer.exe`
 - **Woodfish Dark preset is the owner's own tuning** - the 5.x hand-written Bearded CSS, restored byte for byte. Never retune it or let the algorithm replace it; new presets follow its rules (start at the token color, turn forward on the hue circle to a more vivid end, 45°, pastel rainbow at 135° for the foreground)
@@ -96,6 +106,8 @@ Woodfish-Theme/
 - **DO NOT** hand-edit `apps/desktop-cli/assets/*.js`; run `pnpm codex:build` (same as `pnpm dsh:build`)
 - **DO NOT** modify dsh's files or `$DSH_HOME` config; dsh is themed only through the user script
 - **DO NOT** list palettes by hand in a new adapter; iterate `WOODFISH_PALETTES` so new themes appear automatically (adapter-dsh does)
+- **DO NOT** change a shipped effect only in `%APPDATA%\Woodfish\effects`; edit `packages/effects/builtin/<id>/` and bump its `version` (that folder is the user's, upgrades leave edited files alone)
+- **DO NOT** wrap characters in spans or restructure host DOM for an effect; read positions (Range rects, Monaco's cursor style) and draw on the shared layer, masks or CSS Highlights
 
 ## Commands (run from the repository root)
 
@@ -109,6 +121,8 @@ pnpm codex:check      # Built renderer bundles in apps/desktop-cli/assets (Codex
 pnpm dsh:check        # Same check, named for the dsh user script
 pnpm woodfish codex status   # Run the desktop CLI
 pnpm woodfish dsh userscript # Write the dsh user script with the saved settings
+pnpm woodfish codex effects  # Effect plugins and their state (running / off / failed with reason)
+pnpm woodfish reload         # Reload every effect from disk in Codex and VS Code, no restart
 pnpm test:integration # VS Code extension host tests
 pnpm package          # Build the VSIX
 ```

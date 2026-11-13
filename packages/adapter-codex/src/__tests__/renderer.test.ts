@@ -1,5 +1,12 @@
-import { startStreamingTail } from '../renderer/caretGlow';
-import { CODEX_CONFIG_KEY, CODEX_CONTROLLER_KEY, CODEX_PLUS_NODE_ATTRIBUTE } from '../protocol';
+import { EffectSource } from '@woodfish/renderer-runtime';
+import { EffectValues, normalizeEffectManifest } from '@woodfish/theme-core';
+import {
+  CODEX_CONFIG_KEY,
+  CODEX_CONTROLLER_KEY,
+  CODEX_EFFECTS_KEY,
+  CODEX_PLUS_NODE_ATTRIBUTE,
+  CODEX_RELOAD_BINDING,
+} from '../protocol';
 import {
   CodexOverlayController,
   bootCodexOverlay,
@@ -13,6 +20,52 @@ const host = globalThis as unknown as Host;
 
 function controller(): CodexOverlayController | undefined {
   return host[CODEX_CONTROLLER_KEY] as CodexOverlayController | undefined;
+}
+
+/** The code-gradient core effect, on or off. */
+function codeGradient(enabled: boolean): EffectSource {
+  return {
+    id: 'code-gradient',
+    hash: 'code',
+    manifest: normalizeEffectManifest({
+      name: '代码渐变',
+      hosts: ['codex'],
+      core: 'code-gradient',
+    }),
+    values: { enabled } as EffectValues,
+  };
+}
+
+/** A plugin effect that styles the composer and records its lifecycle. */
+function plugin(log: string[], hash = 'p1', enabled = true): EffectSource {
+  return {
+    id: 'demo',
+    hash,
+    manifest: normalizeEffectManifest({ name: '示例', hosts: ['codex'] }),
+    values: { enabled } as EffectValues,
+    factory: (module) => {
+      module.exports = (ctx: {
+        style: (css: string) => void;
+        selectors: Record<string, string>;
+      }) => {
+        log.push(`start ${hash}`);
+        ctx.style(`${ctx.selectors.composer} { outline: 1px solid red; }`);
+        return { dispose: () => log.push(`stop ${hash}`) };
+      };
+    },
+  };
+}
+
+function broken(): EffectSource {
+  return {
+    id: 'broken',
+    hash: 'b',
+    manifest: normalizeEffectManifest({ name: '坏的', hosts: ['codex'] }),
+    values: { enabled: true } as EffectValues,
+    factory: () => {
+      throw new Error('boom');
+    },
+  };
 }
 
 function mountCodexDom(): void {
@@ -49,6 +102,8 @@ afterEach(() => {
   controller()?.dispose?.();
   delete host[CODEX_CONTROLLER_KEY];
   delete host[CODEX_CONFIG_KEY];
+  delete host[CODEX_EFFECTS_KEY];
+  delete host[CODEX_RELOAD_BINDING];
   delete host.codexPlus;
   jest.useRealTimers();
   jest.restoreAllMocks();
@@ -63,45 +118,56 @@ function settle(): void {
 }
 
 describe('startCodexOverlay', () => {
-  it('mounts styles, paints code tokens and marks the root', () => {
-    const overlay = startCodexOverlay({ palette: { dark: 'neon' } }, 'cdp');
+  it('mounts the core styles and the effects, paints code tokens and marks the root', () => {
+    const log: string[] = [];
+    const overlay = startCodexOverlay({ palette: { dark: 'neon' } }, 'cdp', [
+      codeGradient(true),
+      plugin(log),
+    ]);
     settle();
     const ids = [...document.head.querySelectorAll('style')].map((element) => element.id).sort();
     expect(ids).toEqual([
-      'woodfish-codex-accent',
-      'woodfish-codex-background',
-      'woodfish-codex-body',
-      'woodfish-codex-caret',
       'woodfish-codex-code',
-      'woodfish-codex-glass',
+      'woodfish-codex-fx-demo-js',
       'woodfish-codex-palette',
       'woodfish-codex-settings',
     ]);
+    expect(log).toEqual(['start p1']);
     expect(document.querySelectorAll('[data-woodfish-overlay-token="true"]')).toHaveLength(2);
     expect(document.querySelector('p')?.hasAttribute('data-woodfish-overlay-token')).toBe(false);
-    expect(document.documentElement.dataset.woodfishCodex).toBe('0.1.0');
+    expect(document.documentElement.dataset.woodfishCodex).toBe('0.2.0');
     expect(document.documentElement.dataset.woodfishCodexSource).toBe('cdp');
+    expect(overlay.effects().map((effect) => [effect.id, effect.state])).toEqual([
+      ['code-gradient', 'core'],
+      ['demo', 'running'],
+    ]);
     expect(overlay.probe().codeToken).toBe(2);
     expect(controller()).toBe(overlay);
   });
 
-  it('updates in place: switching the body gradient, removing the palette', () => {
-    const overlay = startCodexOverlay(
-      { palette: { dark: 'neon' }, bodyText: { enabled: false } },
-      'cdp'
-    );
+  it('updates settings and effects in place', () => {
+    const log: string[] = [];
+    const overlay = startCodexOverlay({ palette: { dark: 'neon' } }, 'cdp', [codeGradient(true)]);
     settle();
-    expect(document.getElementById('woodfish-codex-body')).toBeNull();
-    overlay.update({ bodyText: { enabled: true } });
+    overlay.update({}, [codeGradient(false), plugin(log)]);
     settle();
     expect(document.getElementById('woodfish-codex-palette')).toBeNull();
-    expect(document.getElementById('woodfish-codex-body')).not.toBeNull();
-    // Reply text is painted by CSS alone; no script marks paragraphs.
-    expect(document.querySelector('p')?.hasAttribute('data-woodfish-overlay-token')).toBe(false);
-
-    overlay.update({ codeGradient: { enabled: false }, codeGlow: { enabled: false } });
-    settle();
     expect(document.querySelectorAll('[data-woodfish-overlay-token]')).toHaveLength(0);
+    expect(log).toEqual(['start p1']);
+    // Settings alone (no effects list) leave the effects as they are.
+    overlay.update({ palette: { dark: 'nord' } });
+    expect(log).toEqual(['start p1']);
+    overlay.update({}, [codeGradient(false), plugin(log, 'p2')]);
+    expect(log).toEqual(['start p1', 'stop p1', 'start p2']);
+  });
+
+  it('keeps going when an effect fails, and reports it', () => {
+    const log: string[] = [];
+    const overlay = startCodexOverlay({}, 'cdp', [broken(), plugin(log)]);
+    expect(log).toEqual(['start p1']);
+    const failed = overlay.effects().find((effect) => effect.id === 'broken');
+    expect(failed?.state).toBe('failed');
+    expect(failed?.error).toContain('boom');
   });
 
   it('leaves no trace after dispose', () => {
@@ -113,7 +179,7 @@ describe('startCodexOverlay', () => {
       return document.body.innerHTML;
     };
     const before = normalized();
-    const overlay = startCodexOverlay({ bodyText: { enabled: true } }, 'cdp');
+    const overlay = startCodexOverlay({}, 'cdp', [codeGradient(true), plugin([])]);
     settle();
     overlay.dispose();
     overlay.dispose();
@@ -123,7 +189,21 @@ describe('startCodexOverlay', () => {
     expect(
       Object.keys(document.documentElement.dataset).filter((key) => key.startsWith('woodfish'))
     ).toEqual([]);
+    expect(document.documentElement.hasAttribute('data-woodfish-paused')).toBe(false);
     expect(controller()).toBeUndefined();
+  });
+
+  it('asks the watcher to reload the effects on Ctrl+Alt+R', () => {
+    const calls: string[] = [];
+    host[CODEX_RELOAD_BINDING] = (payload: string) => calls.push(payload);
+    startCodexOverlay({}, 'cdp', []);
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { code: 'KeyR', ctrlKey: true, altKey: true, bubbles: true })
+    );
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { code: 'KeyR', ctrlKey: true, bubbles: true })
+    );
+    expect(calls).toEqual(['reload']);
   });
 
   it('re-checks a missing app shell until Codex has rendered it', () => {
@@ -148,9 +228,9 @@ describe('startCodexOverlay', () => {
   });
 
   it('tags user-script styles for Codex++', () => {
-    startCodexOverlay({}, 'userscript');
+    startCodexOverlay({}, 'userscript', [plugin([])]);
     const styles = [...document.head.querySelectorAll('style')];
-    expect(styles.length).toBeGreaterThan(0);
+    expect(styles.length).toBeGreaterThan(1);
     for (const style of styles) {
       expect(style.id.startsWith('codex-plus-ext-woodfish-')).toBe(true);
       expect(style.getAttribute(CODEX_PLUS_NODE_ATTRIBUTE)).toBe('woodfish');
@@ -172,28 +252,30 @@ describe('boot entries', () => {
     Object.defineProperty(window, 'location', { configurable: true, value: realLocation });
   });
 
-  it('boots from the CDP config global and updates on re-injection', () => {
-    host[CODEX_CONFIG_KEY] = { glass: { enabled: false } };
+  it('boots from the CDP globals and updates on re-injection', () => {
+    const log: string[] = [];
+    host[CODEX_CONFIG_KEY] = { palette: { dark: 'neon' } };
+    host[CODEX_EFFECTS_KEY] = [];
     bootFromCdp();
     const first = controller();
     expect(first?.source).toBe('cdp');
-    expect(document.getElementById('woodfish-codex-glass')).toBeNull();
+    expect(document.getElementById('woodfish-codex-fx-demo-js')).toBeNull();
 
-    host[CODEX_CONFIG_KEY] = { glass: { enabled: true } };
+    host[CODEX_EFFECTS_KEY] = [plugin(log)];
     bootFromCdp();
     expect(controller()).toBe(first);
-    expect(document.getElementById('woodfish-codex-glass')).not.toBeNull();
+    expect(document.getElementById('woodfish-codex-fx-demo-js')).not.toBeNull();
   });
 
   it('lets a user script replace a CDP overlay, and a CDP injection yield to it', () => {
-    bootCodexOverlay({}, 'cdp');
+    bootCodexOverlay({}, 'cdp', [codeGradient(true)]);
     const cleanups: Array<() => void> = [];
     host.codexPlus = { onCleanup: (cleanup: () => void) => cleanups.push(cleanup) };
-    bootFromUserScript({});
+    bootFromUserScript({}, [codeGradient(false)]);
     expect(controller()?.source).toBe('userscript');
     expect(document.getElementById('woodfish-codex-code')).toBeNull();
 
-    bootCodexOverlay({ glass: { enabled: false } }, 'cdp');
+    bootCodexOverlay({}, 'cdp', [codeGradient(true)]);
     expect(controller()?.source).toBe('userscript');
 
     expect(cleanups).toHaveLength(1);
@@ -224,32 +306,5 @@ describe('boot entries', () => {
     });
     bootCodexOverlay({}, 'cdp');
     expect(controller()).toBeUndefined();
-  });
-});
-
-describe('streaming tail', () => {
-  it('marks the reply after the last user message only while the active thread runs', () => {
-    document.body.innerHTML = [
-      '<div data-app-action-sidebar-thread-row data-app-action-sidebar-thread-active="true"><div class="motion-safe:animate-spin"></div></div>',
-      '<div data-markdown-text-style="assistant-message" id="old"><p>old</p></div>',
-      '<div data-user-message-bubble>question</div>',
-    ].join('');
-    const stop = startStreamingTail({
-      runningSelector:
-        '[data-app-action-sidebar-thread-row]:has(.motion-safe\\:animate-spin)[data-app-action-sidebar-thread-active="true"]',
-      replySelector: '[data-markdown-text-style="assistant-message"]',
-      userMessageSelector: '[data-user-message-bubble]',
-    });
-    // Still thinking: the only reply is the previous one, before the question.
-    expect(document.querySelector('[data-woodfish-codex-streaming-tail]')).toBeNull();
-    const reply = document.createElement('div');
-    reply.setAttribute('data-markdown-text-style', 'assistant-message');
-    document.body.append(reply);
-    jest.advanceTimersByTime(500);
-    expect(reply.getAttribute('data-woodfish-codex-streaming-tail')).toBe('true');
-    document.querySelector('.motion-safe\\:animate-spin')?.remove();
-    jest.advanceTimersByTime(500);
-    expect(reply.hasAttribute('data-woodfish-codex-streaming-tail')).toBe(false);
-    stop();
   });
 });

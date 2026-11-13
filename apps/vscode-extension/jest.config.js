@@ -8,6 +8,7 @@ module.exports = {
   moduleNameMapper: {
     '^@woodfish/theme-core$': '<rootDir>/../../packages/theme-core/src/index.ts',
     '^@woodfish/renderer-runtime$': '<rootDir>/../../packages/renderer-runtime/src/index.ts',
+    '^@woodfish/effects$': '<rootDir>/../../packages/effects/src/index.ts',
   },
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts'],
   coverageDirectory: 'coverage',

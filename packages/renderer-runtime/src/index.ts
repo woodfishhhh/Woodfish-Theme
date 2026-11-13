@@ -58,3 +58,21 @@ export {
   formatCssNumber,
   scaleGlowRadius,
 } from './tokenCss';
+export { startEffectHost } from './effectHost';
+export type {
+  CaretEvent,
+  EffectContext,
+  EffectFactory,
+  EffectHostApi,
+  EffectHostOptions,
+  EffectInstance,
+  EffectSource,
+  EffectState,
+  EffectStatus,
+  EffectTheme,
+  InsertEvent,
+  Painter,
+  StreamEndEvent,
+} from './effectHost';
+export { selectionCaretRect, watchEditableTyping, watchStream } from './textEvents';
+export type { StreamWatcher, TextEventSink } from './textEvents';

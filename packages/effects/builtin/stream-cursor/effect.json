@@ -1,0 +1,62 @@
+{
+  "name": "吐字光标",
+  "description": "Codex 流式输出时，回复末尾跟着一根彩虹光标：随新字往右滑，换行跳到下一行开头，生成结束就消失。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 40,
+  "params": {
+    "width": {
+      "type": "number",
+      "default": 6,
+      "min": 1,
+      "max": 16,
+      "step": 0.5,
+      "unit": "px",
+      "label": "光标粗细",
+      "description": "和作者 VS Code 的 editor.cursorWidth 一样是 6"
+    },
+    "followTheme": {
+      "type": "boolean",
+      "default": false,
+      "label": "颜色跟随主题",
+      "description": "关：Woodfish 彩虹（VS Code 光标的颜色）；开：当前主题的光标色"
+    },
+    "flowSeconds": {
+      "type": "number",
+      "default": 8,
+      "min": 1,
+      "max": 60,
+      "step": 0.5,
+      "unit": "s",
+      "label": "变色周期",
+      "description": "彩虹在光标里流过一圈的时间（VS Code 光标是 8 秒）"
+    },
+    "smooth": {
+      "type": "boolean",
+      "default": true,
+      "label": "平滑移动",
+      "description": "在同一行里滑过去（像 VS Code 的 cursorSmoothCaretAnimation），换行总是直接跳"
+    },
+    "radius": {
+      "type": "number",
+      "default": 2,
+      "min": 0,
+      "max": 8,
+      "step": 0.5,
+      "unit": "px",
+      "label": "圆角",
+      "description": "光标的圆角"
+    },
+    "gap": {
+      "type": "number",
+      "default": 1,
+      "min": 0,
+      "max": 8,
+      "step": 0.5,
+      "unit": "px",
+      "label": "离字的距离",
+      "description": "光标和最后一个字之间的空隙"
+    }
+  }
+}

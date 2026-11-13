@@ -236,6 +236,18 @@
         "title": "彻底停用 Woodfish 叠层",
         "category": "Woodfish Theme",
         "icon": "$(trash)"
+      },
+      {
+        "command": "woodfish-theme.reloadEffects",
+        "title": "刷新效果",
+        "category": "Woodfish Theme",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "woodfish-theme.openEffectsFolder",
+        "title": "打开效果文件夹",
+        "category": "Woodfish Theme",
+        "icon": "$(folder-opened)"
       }
     ],
     "configuration": [
@@ -659,9 +671,287 @@
         }
       },
       {
+        "id": "woodfishTheme.effects",
+        "title": "效果插件",
+        "order": 7,
+        "properties": {
+          "woodfishTheme.effects.enabled": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "order": 0,
+            "markdownDescription": "加载效果插件：下面三个，以及和 Codex 共用的效果文件夹（`%APPDATA%\\Woodfish\\effects`）里的其他效果。改了效果文件会自动刷新，也可运行 **Woodfish Theme: 刷新效果**（`Ctrl+Alt+R`）。改这个总开关要重新加载窗口。"
+          },
+          "woodfishTheme.mouseTrail.enabled": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "order": 1,
+            "markdownDescription": "**鼠标拖尾**：鼠标指针身后拖一条单色带子（照抄 Animations 插件）。在 VS Code 里默认关闭，打开就有。参数和 Codex 的 `mouse-trail` 同名同义。"
+          },
+          "woodfishTheme.mouseTrail.length": {
+            "scope": "application",
+            "order": 2,
+            "markdownDescription": "鼠标拖尾 · 拖尾长度：带子由多少个点连成，越大拖得越长（Animations 插件的 TrailLength）",
+            "type": "number",
+            "default": 12,
+            "minimum": 2,
+            "maximum": 50
+          },
+          "woodfishTheme.mouseTrail.style": {
+            "scope": "application",
+            "order": 3,
+            "markdownDescription": "鼠标拖尾 · 样式：Animations 插件的 CursorStyle：block 是实心带子，line 是四条细线",
+            "type": "string",
+            "default": "block",
+            "enum": [
+              "block",
+              "line"
+            ],
+            "enumDescriptions": [
+              "实心带子",
+              "四条细线"
+            ]
+          },
+          "woodfishTheme.mouseTrail.width": {
+            "scope": "application",
+            "order": 4,
+            "markdownDescription": "鼠标拖尾 · 宽度：带子的宽度（插件给光标的默认尺寸是 7px）",
+            "type": "number",
+            "default": 7,
+            "minimum": 1,
+            "maximum": 24
+          },
+          "woodfishTheme.mouseTrail.height": {
+            "scope": "application",
+            "order": 5,
+            "markdownDescription": "鼠标拖尾 · 高度：带子的高度，默认是宽度的 2.2 倍，和箭头差不多高",
+            "type": "number",
+            "default": 15.4,
+            "minimum": 1,
+            "maximum": 48
+          },
+          "woodfishTheme.mouseTrail.color": {
+            "scope": "application",
+            "order": 6,
+            "markdownDescription": "鼠标拖尾 · 颜色：单色，Animations 插件默认白色",
+            "type": "string",
+            "format": "color-hex",
+            "default": "#ffffff"
+          },
+          "woodfishTheme.mouseTrail.followTheme": {
+            "scope": "application",
+            "order": 7,
+            "markdownDescription": "鼠标拖尾 · 颜色跟随主题：打开后用当前主题的强调色，不用上面的颜色",
+            "type": "boolean",
+            "default": false
+          },
+          "woodfishTheme.mouseTrail.opacity": {
+            "scope": "application",
+            "order": 8,
+            "markdownDescription": "鼠标拖尾 · 不透明度：1 是插件原样的实心效果，调小更含蓄",
+            "type": "number",
+            "default": 1,
+            "minimum": 0.05,
+            "maximum": 1
+          },
+          "woodfishTheme.caretTrail.enabled": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "order": 9,
+            "markdownDescription": "**光标拖尾**：文字光标身后拖一条单色带子（照抄 Animations 插件）。已开着 Animations 插件的光标动画会画两条，默认关闭。参数和 Codex 的 `caret-trail` 同名同义。"
+          },
+          "woodfishTheme.caretTrail.length": {
+            "scope": "application",
+            "order": 10,
+            "markdownDescription": "光标拖尾 · 拖尾长度：带子由多少个点连成（负责人 VS Code 里 Animations 的 TrailLength 是 12）",
+            "type": "number",
+            "default": 12,
+            "minimum": 2,
+            "maximum": 50
+          },
+          "woodfishTheme.caretTrail.style": {
+            "scope": "application",
+            "order": 11,
+            "markdownDescription": "光标拖尾 · 样式：Animations 插件的 CursorStyle",
+            "type": "string",
+            "default": "block",
+            "enum": [
+              "block",
+              "line"
+            ],
+            "enumDescriptions": [
+              "实心带子",
+              "四条细线"
+            ]
+          },
+          "woodfishTheme.caretTrail.width": {
+            "scope": "application",
+            "order": 12,
+            "markdownDescription": "光标拖尾 · 宽度：光标宽度（负责人 VS Code 的 editor.cursorWidth 是 6）；宿主报告了光标宽度时用宿主的",
+            "type": "number",
+            "default": 6,
+            "minimum": 1,
+            "maximum": 24
+          },
+          "woodfishTheme.caretTrail.color": {
+            "scope": "application",
+            "order": 13,
+            "markdownDescription": "光标拖尾 · 颜色：单色，Animations 插件默认白色",
+            "type": "string",
+            "format": "color-hex",
+            "default": "#ffffff"
+          },
+          "woodfishTheme.caretTrail.followTheme": {
+            "scope": "application",
+            "order": 14,
+            "markdownDescription": "光标拖尾 · 颜色跟随主题：打开后用当前主题的强调色",
+            "type": "boolean",
+            "default": false
+          },
+          "woodfishTheme.caretTrail.opacity": {
+            "scope": "application",
+            "order": 15,
+            "markdownDescription": "光标拖尾 · 不透明度：1 是插件原样",
+            "type": "number",
+            "default": 1,
+            "minimum": 0.05,
+            "maximum": 1
+          },
+          "woodfishTheme.caretTrail.sources": {
+            "scope": "application",
+            "order": 16,
+            "markdownDescription": "光标拖尾 · 跟随谁：Codex 里 AI 流式吐字时，末尾也算一个光标",
+            "type": "string",
+            "default": "all",
+            "enum": [
+              "all",
+              "user",
+              "ai"
+            ],
+            "enumDescriptions": [
+              "你的光标和 AI 吐字",
+              "只跟你的光标",
+              "只跟 AI 吐字"
+            ]
+          },
+          "woodfishTheme.typingParticles.enabled": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "order": 17,
+            "markdownDescription": "**打字粒子**：打字时从光标处迸出主题色光点（像 Power Mode）。在 VS Code 里默认关闭，打开就有。参数和 Codex 的 `typing-particles` 同名同义。"
+          },
+          "woodfishTheme.typingParticles.count": {
+            "scope": "application",
+            "order": 18,
+            "markdownDescription": "打字粒子 · 每次粒子数：每插入一次文字迸出多少颗",
+            "type": "number",
+            "default": 8,
+            "minimum": 1,
+            "maximum": 40
+          },
+          "woodfishTheme.typingParticles.size": {
+            "scope": "application",
+            "order": 19,
+            "markdownDescription": "打字粒子 · 粒子大小：光点半径",
+            "type": "number",
+            "default": 2.2,
+            "minimum": 0.5,
+            "maximum": 8
+          },
+          "woodfishTheme.typingParticles.speed": {
+            "scope": "application",
+            "order": 20,
+            "markdownDescription": "打字粒子 · 迸出速度：初速度（像素/秒），越大飞得越远",
+            "type": "number",
+            "default": 170,
+            "minimum": 20,
+            "maximum": 600
+          },
+          "woodfishTheme.typingParticles.spread": {
+            "scope": "application",
+            "order": 21,
+            "markdownDescription": "打字粒子 · 散开角度：以正上方为中心的扇形角度，360 是四面八方",
+            "type": "number",
+            "default": 150,
+            "minimum": 10,
+            "maximum": 360
+          },
+          "woodfishTheme.typingParticles.gravity": {
+            "scope": "application",
+            "order": 22,
+            "markdownDescription": "打字粒子 · 重力：向下的加速度（像素/秒²），负数会往上飘",
+            "type": "number",
+            "default": 450,
+            "minimum": -400,
+            "maximum": 1500
+          },
+          "woodfishTheme.typingParticles.life": {
+            "scope": "application",
+            "order": 23,
+            "markdownDescription": "打字粒子 · 存活时间：每颗粒子从出现到消失的时间",
+            "type": "number",
+            "default": 650,
+            "minimum": 100,
+            "maximum": 2000
+          },
+          "woodfishTheme.typingParticles.colors": {
+            "scope": "application",
+            "order": 24,
+            "markdownDescription": "打字粒子 · 颜色：主题渐变色取当前主题的光标色；单色用下面的颜色",
+            "type": "string",
+            "default": "theme",
+            "enum": [
+              "theme",
+              "rainbow",
+              "single"
+            ],
+            "enumDescriptions": [
+              "主题渐变色",
+              "Woodfish 彩虹",
+              "单色"
+            ]
+          },
+          "woodfishTheme.typingParticles.color": {
+            "scope": "application",
+            "order": 25,
+            "markdownDescription": "打字粒子 · 单色颜色：颜色选“单色”时用",
+            "type": "string",
+            "format": "color-hex",
+            "default": "#ffffff"
+          },
+          "woodfishTheme.typingParticles.sources": {
+            "scope": "application",
+            "order": 26,
+            "markdownDescription": "打字粒子 · 谁触发：Codex 里 AI 流式输出也算“打字”",
+            "type": "string",
+            "default": "all",
+            "enum": [
+              "all",
+              "user",
+              "ai"
+            ],
+            "enumDescriptions": [
+              "你打字和 AI 吐字",
+              "只在你打字时",
+              "只在 AI 吐字时"
+            ]
+          },
+          "woodfishTheme.typingParticles.shake": {
+            "scope": "application",
+            "order": 27,
+            "markdownDescription": "打字粒子 · 震动：打字时编辑区轻轻一抖（负责人的 Power Mode 关了震动）",
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      {
         "id": "woodfishTheme.advanced",
         "title": "高级",
-        "order": 7,
+        "order": 8,
         "properties": {
           "woodfishTheme.syntaxGradient.customRules": {
             "type": "array",
@@ -782,6 +1072,13 @@
           }
         ]
       }
+    ],
+    "keybindings": [
+      {
+        "command": "woodfish-theme.reloadEffects",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r"
+      }
     ]
   },
   "scripts": {
@@ -814,6 +1111,7 @@
     "@types/vscode": "1.74.0",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
+    "@woodfish/effects": "workspace:*",
     "@woodfish/renderer-runtime": "workspace:*",
     "@woodfish/theme-core": "workspace:*"
   },

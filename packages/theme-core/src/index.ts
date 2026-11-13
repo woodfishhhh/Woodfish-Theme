@@ -45,6 +45,24 @@ export {
   readBackgroundImageInfo,
 } from './effects/backgroundImage';
 export type { BackgroundImageInfo, BackgroundImageType } from './effects/backgroundImage';
+export {
+  EFFECT_HOSTS,
+  EffectManifestError,
+  defaultEffectValues,
+  effectCssVariables,
+  isEffectId,
+  normalizeEffectManifest,
+  normalizeEffectValues,
+  patchEffectValues,
+} from './effects/plugins';
+export type {
+  EffectHost,
+  EffectManifest,
+  EffectParamOption,
+  EffectParamSpec,
+  EffectParamType,
+  EffectValues,
+} from './effects/plugins';
 
 export * from './palettes/types';
 export { ORIGINAL_PALETTES } from './palettes/originals';

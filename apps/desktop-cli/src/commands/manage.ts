@@ -29,8 +29,14 @@ import {
   isUserScriptInstalled,
   uninstallUserScript,
 } from '../codex/userScript';
+import {
+  applyEffectsPatch,
+  ensureEffects,
+  loadCodexEffects,
+  splitSettingsPatch,
+} from '../codex/effects';
 import { loadUserScriptBundle } from '../inject/payload';
-import { loadSettings, loadWatcherState, saveSettings } from '../store';
+import { loadSettings, loadWatcherState, migrateSettings, saveSettings } from '../store';
 import { CommandContext, CommandError, EXIT, isProcessAlive } from './context';
 import { removeAutostart } from './autostart';
 import { readOverlayStates, restartForNativeTheme, stopInjectCommand } from './inject';
@@ -177,20 +183,41 @@ export async function themeRestoreCommand(
   return EXIT.ok;
 }
 
-/** `woodfish codex settings [--set a.b=v]… [--reset]`. */
+/**
+ * `woodfish codex settings [--set a.b=v]… [--reset]`. Themes, the background picture and
+ * custom CSS live in codex.json; everything else is an effect folder's params.json
+ * (`--set mouse-trail.length=20`, `--set glass.blur=12`, older names such as
+ * `bodyText.enabled` still work).
+ */
 export function settingsCommand(
   context: CommandContext,
   sets: readonly string[],
   options: { reset: boolean }
 ): number {
+  migrateSettings(context.paths);
+  ensureEffects(context.paths);
   const stored = loadSettings(context.paths);
-  let codex: unknown = options.reset ? {} : stored.codex;
+  const effectIds = loadCodexEffects(context.paths)
+    .filter((effect) => effect.manifest)
+    .map((effect) => effect.id);
+  let file: unknown = options.reset ? {} : stored.codex;
+  const effects: Record<string, Record<string, unknown>> = {};
   for (const assignment of sets) {
-    codex = mergeSettings(codex, parseSetting(assignment));
+    let split;
+    try {
+      split = splitSettingsPatch(parseSetting(assignment), effectIds);
+    } catch (error) {
+      throw new CommandError((error as Error).message, EXIT.usage);
+    }
+    file = mergeSettings(file, split.file);
+    for (const [id, values] of Object.entries(split.effects)) {
+      effects[id] = { ...effects[id], ...values };
+    }
   }
-  const normalized = normalizeCodexSettings(codex);
+  const normalized = normalizeCodexSettings(file);
   if (sets.length > 0 || options.reset) {
     saveSettings(context.paths, { ...stored, codex: normalized });
+    applyEffectsPatch(context.paths, { effects, reset: options.reset ? effectIds : [] });
     context.io.out('设置已保存；正在运行的注入会在一秒内更新。');
     if (isUserScriptInstalled(context.paths)) {
       installUserScript(context.paths, normalized, loadUserScriptBundle());
@@ -198,6 +225,13 @@ export function settingsCommand(
     }
   }
   context.io.out(JSON.stringify(normalized, null, 2));
+  for (const effect of loadCodexEffects(context.paths)) {
+    context.io.out(
+      effect.values
+        ? `${effect.id}: ${JSON.stringify(effect.values)}`
+        : `${effect.id}: 无法加载（${effect.error ?? '未知原因'}）`
+    );
+  }
   return EXIT.ok;
 }
 
@@ -206,6 +240,8 @@ export function installUserScriptCommand(context: CommandContext, force: boolean
   if (!isCodexPlusInstalled(context.paths) && !force) {
     throw new CommandError('没有找到 Codex++（%APPDATA%\\Codex++）。已安装的话可加 --force');
   }
+  migrateSettings(context.paths);
+  ensureEffects(context.paths);
   const file = installUserScript(
     context.paths,
     loadSettings(context.paths).codex,

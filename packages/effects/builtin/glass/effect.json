@@ -1,0 +1,80 @@
+{
+  "name": "浮层毛玻璃",
+  "description": "菜单、弹窗、下拉和浮层用磨砂玻璃；弹出时轻轻落下或放大淡入，列表项跟着指针微微发亮。主界面不动，Codex 自己的 Mica 照常。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 90,
+  "params": {
+    "mode": {
+      "type": "select",
+      "default": "blur",
+      "options": [
+        { "value": "blur", "label": "模糊" },
+        { "value": "acrylic", "label": "亚克力（带颗粒）" }
+      ],
+      "label": "玻璃类型",
+      "description": "亚克力是 Fluent 的做法：模糊 + 淡淡的颗粒"
+    },
+    "opacity": {
+      "type": "number",
+      "default": 0.4,
+      "min": 0.15,
+      "max": 1,
+      "step": 0.05,
+      "label": "不透明度",
+      "description": "玻璃上那层底色的浓度；作者 VS Code 的 Frosted Glass 是 0.4"
+    },
+    "blur": {
+      "type": "number",
+      "default": 24,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
+      "label": "模糊",
+      "description": "背后内容的模糊半径"
+    },
+    "saturate": {
+      "type": "number",
+      "default": 150,
+      "min": 100,
+      "max": 250,
+      "step": 5,
+      "unit": "%",
+      "label": "饱和度",
+      "description": "透过玻璃的颜色更鲜艳一些"
+    },
+    "noise": {
+      "type": "number",
+      "default": 0.02,
+      "min": 0,
+      "max": 0.2,
+      "step": 0.01,
+      "label": "颗粒",
+      "description": "叠一层很淡的噪点，大面积玻璃不显得平"
+    },
+    "borderRadius": {
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "label": "圆角",
+      "description": "0 表示保留 Codex 自己的圆角"
+    },
+    "animations": {
+      "type": "boolean",
+      "default": true,
+      "label": "弹出动画",
+      "description": "菜单轻轻落下、弹窗放大淡入（和 VS Code 里一样的曲线）"
+    },
+    "reveal": {
+      "type": "boolean",
+      "default": true,
+      "label": "跟随指针的柔光",
+      "description": "列表项和按钮上跟着指针移动的一团柔光（Fluent Reveal）"
+    }
+  }
+}

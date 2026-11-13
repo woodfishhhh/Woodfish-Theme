@@ -55,7 +55,7 @@ export function parseSetting(assignment: string): Record<string, unknown> {
     throw new Error(`设置格式应为 key=value：${assignment}`);
   }
   const keys = assignment.slice(0, equals).split('.');
-  if (keys.some((key) => !/^[A-Za-z][A-Za-z0-9]*$/.test(key))) {
+  if (keys.some((key) => !/^[A-Za-z][A-Za-z0-9-]*$/.test(key))) {
     throw new Error(`设置名无效：${assignment.slice(0, equals)}`);
   }
   const raw = assignment.slice(equals + 1);

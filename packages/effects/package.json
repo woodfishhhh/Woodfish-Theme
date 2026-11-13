@@ -1,0 +1,40 @@
+{
+  "name": "@woodfish/effects",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Woodfish pluggable effects: the shipped effect folders and the Node side that copies them into the user's effects folder, loads them and builds the page payload.",
+  "license": "MIT",
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/index.d.ts",
+      "source": "./src/index.ts",
+      "default": "./out/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "out",
+    "src",
+    "builtin",
+    "scripts",
+    "!**/__tests__"
+  ],
+  "dependencies": {
+    "@woodfish/theme-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0"
+  },
+  "scripts": {
+    "compile": "tsc -b && tsc -p tsconfig.test.json",
+    "format": "prettier --write \"src/**/*.ts\" \"builtin/**/*.{js,json}\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"builtin/**/*.{js,json}\"",
+    "lint": "eslint src",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "verify": "pnpm compile && pnpm format:check && pnpm lint && pnpm test"
+  }
+}

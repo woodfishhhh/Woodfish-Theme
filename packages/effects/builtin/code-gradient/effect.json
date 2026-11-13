@@ -1,0 +1,63 @@
+{
+  "name": "代码渐变",
+  "description": "代码块和 diff 里每个 token 按 OKLCH 渐变着色（Woodfish 主题用手调的渐变），可选再加一层柔和发光。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 110,
+  "core": "code-gradient",
+  "params": {
+    "angle": {
+      "type": "number",
+      "default": 45,
+      "min": 0,
+      "max": 360,
+      "step": 5,
+      "unit": "deg",
+      "label": "渐变角度",
+      "description": "每个 token 里渐变的方向"
+    },
+    "hueShift": {
+      "type": "number",
+      "default": 32,
+      "min": 0,
+      "max": 180,
+      "step": 1,
+      "label": "色相偏移",
+      "description": "推导渐变时终点相对起点转多少度（主题没有手调渐变的颜色才用）"
+    },
+    "lightnessDelta": {
+      "type": "number",
+      "default": 0.12,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.01,
+      "label": "亮度变化",
+      "description": "推导渐变时终点比起点亮多少（OKLCH 的 L）"
+    },
+    "neutralChroma": {
+      "type": "number",
+      "default": 0.075,
+      "min": 0,
+      "max": 0.4,
+      "step": 0.005,
+      "label": "灰色的彩度",
+      "description": "灰色 token（标点、注释）推导渐变时给的彩度"
+    },
+    "glow": {
+      "type": "boolean",
+      "default": false,
+      "label": "代码发光",
+      "description": "代码文字带一层柔和光晕（作者 VS Code 里关着）"
+    },
+    "glowIntensity": {
+      "type": "number",
+      "default": 1,
+      "min": 0.1,
+      "max": 3,
+      "step": 0.1,
+      "label": "发光强度",
+      "description": "发光打开时的强弱"
+    }
+  }
+}

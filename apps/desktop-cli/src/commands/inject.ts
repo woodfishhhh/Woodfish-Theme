@@ -8,9 +8,22 @@ import { isMainWindowTarget, looksLikeCodexTargets } from '../cdp/targets';
 import { evaluateInMainWindows } from '../inject/pages';
 import { DISPOSE_EXPRESSION, OVERLAY_STATE_EXPRESSION, loadOverlayBundle } from '../inject/payload';
 import { listBackgrounds, readBackground, saveBackground } from '../codex/backgrounds';
+import {
+  applyEffectsPatch,
+  codexEffectsScript,
+  ensureEffects,
+  watchEffectsDir,
+} from '../codex/effects';
 import { startWatcher, watchFile } from '../inject/watcher';
 import { CodexInstallation, CodexPlatform, CodexRuntimeState } from '../platform';
-import { loadSettings, loadWatcherState, saveSettings, saveWatcherState, sha256 } from '../store';
+import {
+  loadSettings,
+  loadWatcherState,
+  migrateSettings,
+  saveSettings,
+  saveWatcherState,
+  sha256,
+} from '../store';
 import { forgetBackground } from './background';
 import {
   CommandContext,
@@ -34,6 +47,14 @@ export interface OverlayState {
   surface: string;
   styles: number;
   painted: number;
+  /** Every effect the page knows, with its state (empty for older overlays). */
+  effects: Array<{
+    id: string;
+    name: string;
+    enabled: boolean;
+    state: string;
+    error: string | null;
+  }>;
 }
 
 export async function ensureConsent(context: CommandContext, acceptRisk: boolean): Promise<void> {
@@ -270,17 +291,33 @@ export async function runWatcher(
   log: (message: string) => void
 ): Promise<void> {
   const bundle = loadOverlayBundle();
+  if (migrateSettings(context.paths)) {
+    log('已把 codex.json 里旧的效果设置搬进效果文件夹');
+  }
+  const synced = ensureEffects(context.paths);
+  if (synced.created.length + synced.updated.length > 0) {
+    log(`效果文件夹已更新：新增 ${synced.created.length} 个文件，升级 ${synced.updated.length} 个`);
+  }
+  if (synced.kept.length > 0) {
+    log(`这些效果文件你改过，没有覆盖：${synced.kept.join('、')}`);
+  }
   const watcher = await startWatcher({
     port,
     bundle,
     loadSettings: () => loadSettings(context.paths).codex,
     watchSettings: watchFile(context.paths.settingsFile),
+    loadEffects: () => codexEffectsScript(context.paths),
+    watchEffects: watchEffectsDir(context.paths.effectsDir),
     saveSettingsPatch: (patch: unknown): void => {
+      const changed = applyEffectsPatch(context.paths, patch);
+      if (changed.length > 0) {
+        log(`已保存效果参数：${changed.join('、')}`);
+      }
       const stored = loadSettings(context.paths);
-      saveSettings(context.paths, {
-        ...stored,
-        codex: applyCodexSettingsPatch(stored.codex, patch),
-      });
+      const codex = applyCodexSettingsPatch(stored.codex, patch);
+      if (JSON.stringify(codex) !== JSON.stringify(stored.codex)) {
+        saveSettings(context.paths, { ...stored, codex });
+      }
     },
     backgrounds: {
       list: () => listBackgrounds(context.paths),

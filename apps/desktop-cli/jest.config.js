@@ -12,6 +12,7 @@ module.exports = {
     '^@woodfish/adapter-codex$': '<rootDir>/../../packages/adapter-codex/src/index.ts',
     '^@woodfish/adapter-codex/renderer$': '<rootDir>/../../packages/adapter-codex/src/renderer/index.ts',
     '^@woodfish/adapter-dsh$': '<rootDir>/../../packages/adapter-dsh/src/index.ts',
+    '^@woodfish/effects$': '<rootDir>/../../packages/effects/src/index.ts',
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
   collectCoverageFrom: ['src/**/*.ts', '!src/**/__tests__/**'],

@@ -36,6 +36,13 @@ const DEFAULT_BACKGROUND_BASE64 = fs
   .readFileSync(path.join(REPO_ROOT, 'packages', 'renderer-runtime', 'assets', 'caiyun.webp'))
   .toString('base64');
 
+/*
+ * The shipped effect plugins (packages/effects/builtin), copied into the user's effects
+ * folder by the CLI. They run in the page from that folder, so they are not part of the
+ * overlay bundle or its build id.
+ */
+const { readBuiltinEffectFiles } = require(path.join(REPO_ROOT, 'packages', 'effects', 'scripts', 'files.js'));
+
 const DSH_VERSION = JSON.parse(
   fs.readFileSync(path.join(REPO_ROOT, 'packages', 'adapter-dsh', 'package.json'), 'utf8')
 ).version;
@@ -83,7 +90,8 @@ const ASSETS = [
     output: 'assets/codex-userscript.js',
     entry: [
       "import { bootFromUserScript } from '@woodfish/adapter-codex/renderer';",
-      'bootFromUserScript((globalThis as Record<string, unknown>).__woodfishCodexUserScriptConfig);',
+      'const host = globalThis as Record<string, unknown>;',
+      'bootFromUserScript(host.__woodfishCodexUserScriptConfig, host.__woodfishCodexUserScriptEffects);',
       '',
     ].join('\n'),
     banner: 'Woodfish Codex overlay (Codex++ user script)',
@@ -194,6 +202,7 @@ async function buildCli(contents) {
       __WOODFISH_DSH_USERSCRIPT__: JSON.stringify(contents['assets/woodfish-dsh.user.js']),
       __WOODFISH_CLI_VERSION__: JSON.stringify(pkg.version),
       __WOODFISH_DEFAULT_BACKGROUND__: JSON.stringify(DEFAULT_BACKGROUND_BASE64),
+      __WOODFISH_BUILTIN_EFFECTS__: JSON.stringify(readBuiltinEffectFiles()),
     },
     banner: {
       js: '#!/usr/bin/env node\n/* Woodfish desktop CLI. Bundles smol-toml (BSD-3-Clause), see THIRD_PARTY_NOTICES.md. */',

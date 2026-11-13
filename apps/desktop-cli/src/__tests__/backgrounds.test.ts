@@ -134,6 +134,13 @@ describe('background binding answers', () => {
   });
 });
 
+/** The background effect's values as saved in its folder. */
+function backgroundValues(): Record<string, unknown> {
+  return JSON.parse(
+    fs.readFileSync(path.join(paths.effectsDir, 'background', 'params.json'), 'utf8')
+  ) as Record<string, unknown>;
+}
+
 describe('woodfish codex background', () => {
   it('saves, switches, resets, clears and removes', async () => {
     const io = memoryIo();
@@ -141,7 +148,7 @@ describe('woodfish codex background', () => {
     const file = path.join(sandbox, 'sky.png');
     fs.writeFileSync(file, png(1280, 720));
     expect(await run(['codex', 'background', 'set', file], { io, context })).toBe(0);
-    const id = loadSettings(paths).codex.background.image;
+    const id = loadSettings(paths).codex.backgroundImage;
     expect(id).toMatch(/^[0-9a-f]{12}$/);
     fs.rmSync(file);
     expect(readBackground(paths, id)).not.toBeNull();
@@ -150,23 +157,20 @@ describe('woodfish codex background', () => {
     expect(io.output.some((line) => line.startsWith(`* ${id}`))).toBe(true);
 
     expect(await run(['codex', 'background', 'use', 'gradient'], { io, context })).toBe(0);
-    expect(loadSettings(paths).codex.background.image).toBe('gradient');
+    expect(loadSettings(paths).codex.backgroundImage).toBe('gradient');
     expect(await run(['codex', 'background', 'use', 'nope'], { io, context })).toBe(2);
 
     expect(await run(['codex', 'background', 'clear'], { io, context })).toBe(0);
-    expect(loadSettings(paths).codex.background.enabled).toBe(false);
+    expect(backgroundValues().enabled).toBe(false);
 
     await run(['codex', 'background', 'use', id], { io, context });
     expect(await run(['codex', 'background', 'remove', id], { io, context })).toBe(0);
-    expect(loadSettings(paths).codex.background.image).toBe('caiyun');
+    expect(loadSettings(paths).codex.backgroundImage).toBe('caiyun');
 
     await run(['codex', 'settings', '--set', 'background.opacity=0.4'], { io, context });
     expect(await run(['codex', 'background', 'reset'], { io, context })).toBe(0);
-    expect(loadSettings(paths).codex.background).toMatchObject({
-      enabled: true,
-      image: 'caiyun',
-      opacity: 0.15,
-    });
+    expect(loadSettings(paths).codex.backgroundImage).toBe('caiyun');
+    expect(backgroundValues()).toMatchObject({ enabled: true, opacity: 0.15 });
   });
 
   it('refuses files that are not pictures', async () => {

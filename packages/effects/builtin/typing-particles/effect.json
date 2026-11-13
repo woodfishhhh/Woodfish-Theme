@@ -1,0 +1,101 @@
+{
+  "name": "打字粒子",
+  "description": "插入文字时，从光标处迸出一簇光点（像 VS Code 的 Power Mode，没有震动和连击计数）；你打字和 AI 吐字都会触发。",
+  "version": 1,
+  "hosts": ["codex", "vscode"],
+  "enabled": true,
+  "order": 30,
+  "params": {
+    "count": {
+      "type": "number",
+      "default": 8,
+      "min": 1,
+      "max": 40,
+      "step": 1,
+      "label": "每次粒子数",
+      "description": "每插入一次文字迸出多少颗"
+    },
+    "size": {
+      "type": "number",
+      "default": 2.2,
+      "min": 0.5,
+      "max": 8,
+      "step": 0.1,
+      "unit": "px",
+      "label": "粒子大小",
+      "description": "光点半径"
+    },
+    "speed": {
+      "type": "number",
+      "default": 170,
+      "min": 20,
+      "max": 600,
+      "step": 10,
+      "label": "迸出速度",
+      "description": "初速度（像素/秒），越大飞得越远"
+    },
+    "spread": {
+      "type": "number",
+      "default": 150,
+      "min": 10,
+      "max": 360,
+      "step": 5,
+      "unit": "deg",
+      "label": "散开角度",
+      "description": "以正上方为中心的扇形角度，360 是四面八方"
+    },
+    "gravity": {
+      "type": "number",
+      "default": 450,
+      "min": -400,
+      "max": 1500,
+      "step": 10,
+      "label": "重力",
+      "description": "向下的加速度（像素/秒²），负数会往上飘"
+    },
+    "life": {
+      "type": "number",
+      "default": 650,
+      "min": 100,
+      "max": 2000,
+      "step": 50,
+      "unit": "ms",
+      "label": "存活时间",
+      "description": "每颗粒子从出现到消失的时间"
+    },
+    "colors": {
+      "type": "select",
+      "default": "theme",
+      "options": [
+        { "value": "theme", "label": "主题渐变色" },
+        { "value": "rainbow", "label": "Woodfish 彩虹" },
+        { "value": "single", "label": "单色" }
+      ],
+      "label": "颜色",
+      "description": "主题渐变色取当前主题的光标色；单色用下面的颜色"
+    },
+    "color": {
+      "type": "color",
+      "default": "#ffffff",
+      "label": "单色颜色",
+      "description": "颜色选“单色”时用"
+    },
+    "sources": {
+      "type": "select",
+      "default": "all",
+      "options": [
+        { "value": "all", "label": "你打字和 AI 吐字" },
+        { "value": "user", "label": "只在你打字时" },
+        { "value": "ai", "label": "只在 AI 吐字时" }
+      ],
+      "label": "谁触发",
+      "description": "Codex 里 AI 流式输出也算“打字”"
+    },
+    "shake": {
+      "type": "boolean",
+      "default": false,
+      "label": "震动",
+      "description": "打字时编辑区轻轻一抖（作者的 Power Mode 关了震动）"
+    }
+  }
+}

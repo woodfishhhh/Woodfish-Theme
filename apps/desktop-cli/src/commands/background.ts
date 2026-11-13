@@ -3,13 +3,12 @@ import * as path from 'path';
 import {
   CODEX_DEFAULT_BACKGROUND_ID,
   CODEX_GRADIENT_BACKGROUND_ID,
-  CodexSettings,
   isSavedBackgroundId,
   normalizeCodexSettings,
 } from '@woodfish/adapter-codex';
+import { resetEffectValues, writeEffectValues } from '@woodfish/effects';
 import {
   BACKGROUND_IMAGE_LIMITS,
-  DEFAULT_BACKGROUND,
   needsBackgroundCompression,
   readBackgroundImageInfo,
 } from '@woodfish/theme-core';
@@ -24,28 +23,56 @@ import {
 } from '../codex/backgrounds';
 import { installUserScript, isUserScriptInstalled } from '../codex/userScript';
 import { loadUserScriptBundle, toScriptLiteral } from '../inject/payload';
-import { loadSettings, loadWatcherState, saveSettings } from '../store';
+import { ensureEffects, loadCodexEffects } from '../codex/effects';
+import { loadSettings, loadWatcherState, migrateSettings, saveSettings } from '../store';
 import { CommandContext, CommandError, EXIT } from './context';
+
+/** The effect folder whose switch and numbers the background uses. */
+const BACKGROUND_EFFECT = 'background';
 
 const BUILT_IN_NAMES: Readonly<Record<string, string>> = {
   [CODEX_DEFAULT_BACKGROUND_ID]: '《彩云》（默认，作者 woodfish）',
   [CODEX_GRADIENT_BACKGROUND_ID]: '彩云渐变（蓝、金、粉）',
 };
 
-function updateBackground(
-  context: CommandContext,
-  change: Partial<CodexSettings['background']>
-): CodexSettings {
+interface BackgroundChange {
+  enabled?: boolean;
+  image?: string;
+  opacity?: number;
+  blur?: number;
+  mask?: number;
+}
+
+/**
+ * The picture lives in codex.json; the switch and the numbers are the `background` effect's
+ * params.json (the settings page and the AI edit the same file).
+ */
+function updateBackground(context: CommandContext, change: BackgroundChange): void {
+  migrateSettings(context.paths);
+  ensureEffects(context.paths);
+  const { image, ...values } = change;
   const stored = loadSettings(context.paths);
   const codex = normalizeCodexSettings({
     ...stored.codex,
-    background: { ...stored.codex.background, ...change },
+    ...(image !== undefined ? { backgroundImage: image } : {}),
   });
-  saveSettings(context.paths, { ...stored, codex });
+  if (image !== undefined) {
+    saveSettings(context.paths, { ...stored, codex });
+  }
+  if (Object.keys(values).length > 0) {
+    writeEffectValues(context.paths.effectsDir, BACKGROUND_EFFECT, values);
+  }
   if (isUserScriptInstalled(context.paths)) {
     installUserScript(context.paths, codex, loadUserScriptBundle());
   }
-  return codex;
+}
+
+/** The background effect's values as they are on disk. */
+function backgroundValues(context: CommandContext): Record<string, unknown> | null {
+  return (
+    loadCodexEffects(context.paths).find((effect) => effect.id === BACKGROUND_EFFECT)?.values ??
+    null
+  );
 }
 
 /**
@@ -55,12 +82,12 @@ function updateBackground(
 export function forgetBackground(context: Pick<CommandContext, 'paths'>, id: string): boolean {
   const removed = removeBackground(context.paths, id);
   const stored = loadSettings(context.paths);
-  if (stored.codex.background.image === id) {
+  if (stored.codex.backgroundImage === id) {
     saveSettings(context.paths, {
       ...stored,
       codex: normalizeCodexSettings({
         ...stored.codex,
-        background: { ...stored.codex.background, image: CODEX_DEFAULT_BACKGROUND_ID },
+        backgroundImage: CODEX_DEFAULT_BACKGROUND_ID,
       }),
     });
   }
@@ -144,8 +171,10 @@ async function setCommand(context: CommandContext, file: string | undefined): Pr
 }
 
 function listCommand(context: CommandContext): number {
-  const { background } = loadSettings(context.paths).codex;
-  context.io.out(`窗口背景：${background.enabled ? '开' : '关'}`);
+  ensureEffects(context.paths);
+  const image = loadSettings(context.paths).codex.backgroundImage;
+  const values = backgroundValues(context);
+  context.io.out(`窗口背景：${values?.enabled ? '开' : '关'}`);
   const rows: Array<[string, string]> = [
     ...Object.entries(BUILT_IN_NAMES),
     ...listBackgrounds(context.paths).map((entry): [string, string] => [
@@ -154,10 +183,10 @@ function listCommand(context: CommandContext): number {
     ]),
   ];
   for (const [id, label] of rows) {
-    context.io.out(`${id === background.image ? '*' : ' '} ${id.padEnd(12)}  ${label}`);
+    context.io.out(`${id === image ? '*' : ' '} ${id.padEnd(12)}  ${label}`);
   }
   context.io.out(
-    `透明度 ${background.opacity}，模糊 ${background.blur}px，遮罩 ${background.mask}（其余见 woodfish codex settings）`
+    `透明度 ${String(values?.opacity)}，模糊 ${String(values?.blur)}px，遮罩 ${String(values?.mask)}（其余参数在 ${path.join(context.paths.effectsDir, BACKGROUND_EFFECT, 'params.json')}）`
   );
   return EXIT.ok;
 }
@@ -192,13 +221,8 @@ export async function backgroundCommand(
     case 'use':
       return useCommand(context, argument);
     case 'reset':
-      updateBackground(context, {
-        enabled: true,
-        image: CODEX_DEFAULT_BACKGROUND_ID,
-        opacity: DEFAULT_BACKGROUND.opacity,
-        blur: DEFAULT_BACKGROUND.blur,
-        mask: DEFAULT_BACKGROUND.mask,
-      });
+      updateBackground(context, { image: CODEX_DEFAULT_BACKGROUND_ID });
+      resetEffectValues(context.paths.effectsDir, BACKGROUND_EFFECT);
       context.io.out('已恢复默认背景《彩云》和默认数值。');
       return EXIT.ok;
     case 'clear':

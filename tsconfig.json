@@ -5,6 +5,7 @@
     { "path": "./packages/renderer-runtime" },
     { "path": "./packages/adapter-codex" },
     { "path": "./packages/adapter-dsh" },
+    { "path": "./packages/effects" },
     { "path": "./apps/vscode-extension" },
     { "path": "./apps/desktop-cli" }
   ]

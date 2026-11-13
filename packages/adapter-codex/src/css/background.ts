@@ -4,7 +4,7 @@ import {
   buildBackgroundLayerCss,
 } from '@woodfish/renderer-runtime';
 import { CODEX_SELECTORS, selectorOf } from '../selectors';
-import { CODEX_GRADIENT_BACKGROUND_ID, CodexSettings } from '../settings';
+import { CODEX_GRADIENT_BACKGROUND_ID, CodexCoreView } from '../settings';
 
 /** Codex's surface color, read at the root before Woodfish clears it inside the thread. */
 const SURFACE = '--woodfish-codex-surface';
@@ -22,7 +22,7 @@ function rule(selector: string, declarations: string[]): string {
  * filters on these areas roughly doubled the frame time (the running indicator, the caret
  * and the text scrolling under the composer force a recompute every frame).
  */
-export function buildBackgroundCss(settings: CodexSettings): string {
+export function buildBackgroundCss(settings: CodexCoreView): string {
   const background = settings.background;
   if (!background.enabled) {
     return '';

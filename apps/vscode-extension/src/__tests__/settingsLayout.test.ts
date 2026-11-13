@@ -30,6 +30,7 @@ describe('settings layout', () => {
       '毛玻璃',
       '透明窗口（实验）',
       '窗口背景',
+      '效果插件',
       '高级',
     ]);
     for (const section of sections) {

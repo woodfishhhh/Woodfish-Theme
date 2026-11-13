@@ -20,6 +20,8 @@ export type RuntimeCssAssets = {
   cursorGlow: string;
   /** `vscode-file:` URL of the background picture, resolved from the settings. */
   backgroundImage?: string | null;
+  /** `vscode-file:` URL of the folder the effects service writes the effect plugins to. */
+  effectsUrl?: string | null;
 };
 
 export type RuntimePayload = {
@@ -223,6 +225,12 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
   parts.push(buildGlassCss(safeSettings.glass));
   parts.push(buildNativeWindowCss(safeSettings.glass));
   parts.push(buildBackgroundCss(safeSettings.background, assets.backgroundImage ?? null));
+  if (safeSettings.effects.enabled && assets.effectsUrl) {
+    // The bootstrap loads the effect plugins from here and reloads them when they change.
+    parts.push(
+      [':root {', `  --woodfish-effects-url: ${JSON.stringify(assets.effectsUrl)};`, '}'].join('\n')
+    );
+  }
 
   return `${parts.filter((part) => part.length > 0).join('\n\n')}\n`;
 }

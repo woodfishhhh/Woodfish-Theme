@@ -10,6 +10,10 @@ const path = require('path');
 const esbuild = require('esbuild');
 
 const ROOT = path.resolve(__dirname, '..');
+// The shipped effect plugins, copied into the user's effects folder at activation.
+const { readBuiltinEffectFiles } = require(
+  path.resolve(ROOT, '..', '..', 'packages', 'effects', 'scripts', 'files.js')
+);
 const production = !process.argv.includes('--dev');
 
 async function main() {
@@ -26,6 +30,7 @@ async function main() {
     target: 'node18',
     external: ['vscode'],
     conditions: ['source'],
+    define: { __WOODFISH_BUILTIN_EFFECTS__: JSON.stringify(readBuiltinEffectFiles()) },
     minify: production,
     sourcemap: !production,
     legalComments: 'none',

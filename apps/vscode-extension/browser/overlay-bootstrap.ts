@@ -19,6 +19,7 @@ import {
   startReveal,
   startTextGradientEngine,
 } from '@woodfish/renderer-runtime';
+import { startEffects } from './effects';
 
 declare const __WOODFISH_VERSION__: string;
 
@@ -140,14 +141,22 @@ function startRevealHighlight(): void {
   disposers.add(startReveal({ targets: REVEAL_TARGETS }));
 }
 
+function startEffectPlugins(): void {
+  const stop = startEffects();
+  if (stop) {
+    disposers.add(stop);
+  }
+}
+
 function start(): void {
   if (!document.body) {
     globalThis.setTimeout(start, 0);
     return;
   }
 
-  const { refresh } = runSteps([startTokens, startAcrylicFilter, startRevealHighlight], (failure) =>
-    console.warn('[Woodfish] overlay step failed', failure.error)
+  const { refresh } = runSteps(
+    [startTokens, startAcrylicFilter, startRevealHighlight, startEffectPlugins],
+    (failure) => console.warn('[Woodfish] overlay step failed', failure.error)
   );
 
   document.documentElement.dataset.woodfishOverlay = 'active';

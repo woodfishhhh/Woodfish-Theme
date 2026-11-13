@@ -3,11 +3,18 @@ import {
   CODEX_BUILD_ID,
   CODEX_CONFIG_KEY,
   CODEX_CONTROLLER_KEY,
+  CODEX_EFFECTS_KEY,
+  CODEX_EFFECTS_RELOAD_KEY,
   CODEX_MAIN_WINDOW_URL,
   CodexOverlaySource,
 } from '../protocol';
 import { applyCodexSettingsPatch, normalizeCodexSettings } from '../settings';
-import { CodexOverlayController, readStoredPatch, startCodexOverlay } from './overlay';
+import {
+  CodexOverlayController,
+  applyStoredEffects,
+  readStoredPatch,
+  startCodexOverlay,
+} from './overlay';
 
 /** True only in the top-level Codex main window (not overlays, quick chat or iframes). */
 export function isCodexMainWindow(): boolean {
@@ -39,11 +46,16 @@ function currentController(): Partial<CodexOverlayController> | undefined {
 /**
  * Starts or updates the overlay for `source`.
  * - A user-script controller always wins: a CDP injection only updates nothing and yields.
- * - The same source and build re-running (settings change) updates in place.
+ * - The same source and build re-running (settings or effects changed) updates in place.
  * - A different build (Woodfish upgraded) is disposed and restarted with the new code.
  * - A user script replacing a CDP controller disposes it first.
  */
-export function bootCodexOverlay(settings: unknown, source: CodexOverlaySource): void {
+export function bootCodexOverlay(
+  settings: unknown,
+  source: CodexOverlaySource,
+  effects?: unknown,
+  reload?: unknown
+): void {
   if (!isCodexMainWindow()) {
     return;
   }
@@ -57,7 +69,7 @@ export function bootCodexOverlay(settings: unknown, source: CodexOverlaySource):
     existing.build === CODEX_BUILD_ID &&
     typeof existing.update === 'function'
   ) {
-    existing.update(settings);
+    existing.update(settings, effects, reload);
     return;
   }
   if (existing && typeof existing.dispose === 'function') {
@@ -67,14 +79,19 @@ export function bootCodexOverlay(settings: unknown, source: CodexOverlaySource):
     if (currentController()?.source === 'userscript' && source === 'cdp') {
       return;
     }
-    startCodexOverlay(settings, source);
+    startCodexOverlay(settings, source, effects, reload);
   });
 }
 
-/** Entry used by the CDP injection: settings were stored on `globalThis` just before. */
+/** Entry used by the CDP injection: settings and effects were stored on `globalThis` just before. */
 export function bootFromCdp(): void {
   const host = globalThis as unknown as Record<string, unknown>;
-  bootCodexOverlay(host[CODEX_CONFIG_KEY], 'cdp');
+  bootCodexOverlay(
+    host[CODEX_CONFIG_KEY],
+    'cdp',
+    host[CODEX_EFFECTS_KEY],
+    host[CODEX_EFFECTS_RELOAD_KEY]
+  );
 }
 
 interface CodexPlusApi {
@@ -82,13 +99,15 @@ interface CodexPlusApi {
 }
 
 /**
- * Entry used by the Codex++ user script, which bakes its settings in at install time;
- * changes made in the in-app panel since then come from localStorage.
+ * Entry used by the Codex++ user script, which bakes its settings and effects in at install
+ * time; changes made in the in-app panel since then come from localStorage.
  */
-export function bootFromUserScript(settings: unknown): void {
+export function bootFromUserScript(settings: unknown, effects?: unknown): void {
+  const stored = readStoredPatch();
   bootCodexOverlay(
-    applyCodexSettingsPatch(normalizeCodexSettings(settings), readStoredPatch()),
-    'userscript'
+    applyCodexSettingsPatch(normalizeCodexSettings(settings), stored),
+    'userscript',
+    applyStoredEffects(effects, stored)
   );
   const api = (globalThis as unknown as { codexPlus?: CodexPlusApi }).codexPlus;
   if (api && typeof api.onCleanup === 'function') {

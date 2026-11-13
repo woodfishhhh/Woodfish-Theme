@@ -5,9 +5,10 @@ import {
   CodexSettings,
   normalizeCodexSettings,
 } from '@woodfish/adapter-codex';
-import { USERSCRIPT_CONFIG_KEY, toScriptLiteral } from '../inject/payload';
+import { USERSCRIPT_CONFIG_KEY, USERSCRIPT_EFFECTS_KEY, toScriptLiteral } from '../inject/payload';
 import { WoodfishPaths } from '../paths';
 import { readJson, writeFileAtomic, writeJson } from '../store';
+import { codexEffectsScript } from './effects';
 
 export const USERSCRIPT_FILE = 'woodfish-codex.js';
 export const USERSCRIPT_KEY = `user:${USERSCRIPT_FILE}`;
@@ -35,8 +36,11 @@ export function isUserScriptInstalled(paths: WoodfishPaths): boolean {
   return fs.existsSync(path.join(scriptsDir(paths), USERSCRIPT_FILE));
 }
 
-/** The user script source: a header, the baked-in settings and the overlay bundle. */
-export function buildUserScript(settings: CodexSettings, bundle: string): string {
+/**
+ * The user script source: a header, the baked-in settings and effects (a user script has no
+ * watcher to read the effects folder later), and the overlay bundle.
+ */
+export function buildUserScript(settings: CodexSettings, bundle: string, effects = ''): string {
   return [
     '/* @codex-plus-script',
     ' * name: Woodfish',
@@ -47,6 +51,7 @@ export function buildUserScript(settings: CodexSettings, bundle: string): string
     ' * 由 `woodfish codex install-userscript` 生成；修改设置后重新运行该命令。',
     ' */',
     `globalThis[${toScriptLiteral(USERSCRIPT_CONFIG_KEY)}] = ${toScriptLiteral(normalizeCodexSettings(settings))};`,
+    effects,
     bundle,
     '',
   ].join('\n');
@@ -59,7 +64,10 @@ export function installUserScript(
   bundle: string
 ): string {
   const file = path.join(scriptsDir(paths), USERSCRIPT_FILE);
-  writeFileAtomic(file, buildUserScript(settings, bundle));
+  writeFileAtomic(
+    file,
+    buildUserScript(settings, bundle, codexEffectsScript(paths, USERSCRIPT_EFFECTS_KEY))
+  );
   const config = readJson<CodexPlusConfig>(configFile(paths)) ?? { enabled: true };
   writeJson(configFile(paths), {
     ...config,

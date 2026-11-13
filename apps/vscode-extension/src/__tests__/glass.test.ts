@@ -98,6 +98,7 @@ describe('glass layer', () => {
       syntaxGradient: { enabled: false },
       glow: { enabled: false },
       glass: { enabled: true, reveal: false, mode: 'blur' },
+      effects: { enabled: false },
     });
     expect(buildRuntimeBootstrap(plainGlass, assets)).toBe('');
   });

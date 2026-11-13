@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import {
   BACKGROUND_SETTING_KEYS,
+  EFFECTS_SETTING_KEYS,
   CONFIG_SECTION,
   CURSOR_SETTING_KEYS,
   FEATURE_SETTING_KEYS,
@@ -162,6 +163,9 @@ export function readRuntimeSettings(): ThemeRuntimeSettings {
       ),
       blur: readSetting(BACKGROUND_SETTING_KEYS.blur, DEFAULT_RUNTIME_SETTINGS.background.blur),
       mask: readSetting(BACKGROUND_SETTING_KEYS.mask, DEFAULT_RUNTIME_SETTINGS.background.mask),
+    },
+    effects: {
+      enabled: readSetting(EFFECTS_SETTING_KEYS.enabled, DEFAULT_RUNTIME_SETTINGS.effects.enabled),
     },
     runtime: {
       fixChecksums: readSetting(

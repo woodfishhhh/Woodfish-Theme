@@ -59,6 +59,10 @@ export const BACKGROUND_SETTING_KEYS = {
   mask: 'background.mask',
 } as const;
 
+export const EFFECTS_SETTING_KEYS = {
+  enabled: 'effects.enabled',
+} as const;
+
 export const RUNTIME_SETTING_KEYS = {
   fixChecksums: 'runtime.fixChecksums',
 } as const;

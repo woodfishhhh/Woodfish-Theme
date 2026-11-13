@@ -17,10 +17,30 @@
 另外新增的界面定位点：
 
 - 运行中的会话：侧栏行内出现 `motion-safe:animate-spin` 的转圈（Tailwind 工具类，不是哈希类名），用 `:has(.motion-safe\:animate-spin)` 识别；出错是 `text-danger` 图标，未读是强调色圆点（Codex 自己用 `--app-color-accent-blue` 画，换主题自动跟随）。
-- 侧栏行：高 30px、宽约 212px、圆角 12.5px，文字距行左缘 8px，行左边到滚动容器左缘有 8px 空隙。选中效果由负责人在 `docs/playground/tab-indicator.html` 里从 16 个方案中挑定：#8 旋转流光边框（4px、圆角 8.5px、无外发光；悬停 25% 静止，选中 16 秒一圈，运行中 8 秒一圈）。以后其他效果也用同样的 playground 让负责人挑。
+- 侧栏行：高 30px、宽约 212px、圆角 12.5px，文字距行左缘 8px，行左边到滚动容器左缘有 8px 空隙。选中效果先由负责人在 `docs/playground/tab-indicator.html` 里挑了 #8 旋转流光边框，2026-11-14 改为照抄 Bifrost「创建 Key」按钮（见下面“效果插件”一节，效果 `thread-ring`）。以后其他效果也用同样的 playground 让负责人挑（吐字效果见 `docs/playground/streaming-text.html`）。
 - 右侧面板的标签页：`[data-app-shell-tab-controller] [role="tab"][aria-selected="true"]`（`role=tablist` 本身是 `sr-only` 的辅助节点）。
 - “思考中”的扫光是 CSS module 类（`_cadencedShimmer*`），按规则不碰；运行状态由侧栏流光边框转得更快来表达。
 - 菜单（Radix）没有入场动画，`data-state="open"` 可用来做淡入。
+
+## 效果插件（2026-11-14 实测）
+
+Codex 里的效果全部改成插件（`%APPDATA%\Woodfish\effects\<名字>\`，见 `apps/desktop-cli/README.md` 和效果文件夹里的 `AGENTS.md`）。在负责人本机的 Codex（26.1013.3656.0）上实测：
+
+| 项目 | 结论 |
+| --- | --- |
+| 侧栏选中会话 | 照抄 Bifrost「创建 Key」按钮（`.ui-button--bridge` 小号：外圈 10px、面 8.5px）。行本身 `isolation: isolate`，`::after` 面和 `::before` 光晕都是 `z-index: -1`，压在行的背景（光谱环）上、行内文字下。行和直接祖先都没有 `overflow: hidden`，5px + 14px 模糊的光晕能透出来；侧栏滚动容器是 `contain: layout paint`，靠左右边缘的光晕会被裁掉一点。运行中（未选中）的会话光晕降到 0.2。截图：[整窗](codex-screenshots/effects-thread-ring-bifrost.jpg)、[放大](codex-screenshots/effects-thread-ring-bifrost-zoom.jpg) |
+| 输入框光标 | ProseMirror 的原生光标设成 `caret-color: transparent`，在 Selection 的位置画一根 6px 的光标，长相和 VS Code 里 Woodfish 的光标一样（900% 高的渐变往上滑）。截图：[打字和粒子](codex-screenshots/effects-codex-composer-typing.jpg)、[按 Home 时的拖尾](codex-screenshots/effects-codex-caret-trail.jpg) |
+| 流式回复 = AI 在打字 | 每 400ms 看一次“当前会话在运行、最后一条回复在最后一条用户消息之后”，找到就只对那条回复挂 MutationObserver，每帧最多算一次末尾位置（`Range.getClientRects`），发插入事件和来源为 ai 的光标事件；回复写完发 `streamEnd`。效果都不改回复的 DOM。截图：[吐字中的光标、拖尾、淡入和粒子](codex-screenshots/effects-codex-streaming.jpg) |
+| 拖尾 | 鼠标拖尾和光标拖尾都照 Animations 画单色白带子（长度 12）。截图：[鼠标拖尾](codex-screenshots/effects-codex-mouse-trail.jpg)、[打字时的光标拖尾和粒子](codex-screenshots/effects-codex-typing-trail.jpg)（带子的头盖在光标上，停下后收拢、露出彩虹光标） |
+| AI 换行 | 一开始光标拖尾在换行时往回扫过整行，一大块白色盖住新字；现在来源为 ai 时换行直接从下一行开头重开（你自己的光标仍照 Animations 原样扫） |
+| 设置页 | 设置 → 外观里“Woodfish 外观”一节：15 套主题、按 `effect.json` 生成的效果开关和参数、背景图片、「刷新效果」「全部恢复默认」。改动先在页面上预览，300ms 后经 `__woodfishCodexSaveSettings` 交给监视进程写进 `params.json`，监视进程看到文件变化再重新注入（同一份数据，改文件和改页面互相可见）。截图：[外观页](codex-screenshots/effects-settings-page.jpg)、[参数展开](codex-screenshots/effects-settings-params.jpg) |
+| 刷新 | 保存效果文件后约 250ms 重新注入（监视进程 `fs.watch` 效果文件夹）。「刷新效果」、Ctrl+Alt+R 走新的 binding `__woodfishCodexReload`，`woodfish reload` 写 `effects/.reload`；三者都让页面重启全部效果（包括失败过的）。页面上的效果报错经 `__woodfishCodexLog` 写进监视进程日志 |
+| 性能 | 真实流式回复里 5 秒窗口：流式相关效果开着，帧间隔平均 4.72ms、p95 8.4ms、最长 20.9ms；关掉 4.68 / 8.4 / 16.7ms；两边都没有 long task |
+| 让 Codex 改效果 | 在负责人的 Codex 里新开聊天说“Woodfish 打字时迸出来的粒子，帮我改成金色的，再稍微大一点。效果文件夹在 %APPDATA%\Woodfish\effects。”用时 2 分 18 秒：读 `AGENTS.md` → 读 `typing-particles` 的 README、`effect.json`、`effect.js` → 新建 `params.json`（`colors: single`、`color: #FFD700`、`size: 2.8`）→ 跑 `codex effects` 看状态、`reload` 刷新，没碰 `effect.js`。约 40 秒花在找 `woodfish` 命令（不在 PATH 里，最后用了 `%LOCALAPPDATA%\Woodfish\woodfish.js`），所以 `AGENTS.md` 补了这条路径。没试过不告诉它文件夹位置的说法。截图：[改完后打字](codex-screenshots/effects-ai-demo-gold-particles.jpg) |
+
+截图要点：Codex 窗口被挡住时 Chromium 把它标成 `hidden`（效果也会暂停），`PrintWindow` 拿到的是很久以前的帧——这次第一张截图里还是旧的 #8 光环。先用 UI 自动化把窗口切到前台（窗口标题是 `ChatGPT`），或者直接用 CDP 的 `Page.captureScreenshot` 截页面内容（背景开着时没有透明区域，不会出现白底）。拖尾要在鼠标还在动时截，而且不要给 `clip` 设 `scale`：带缩放的截图会让页面按另一个倍率重画，效果画布被清空，截出来没有拖尾（粒子还在飞所以照样能截到）。CDP 发 Ctrl+, 打不开设置，要点头像菜单里的“设置”。
+
+VS Code 一侧在 1.144 的测试版里实测：工作台的 CSP 带 `require-trusted-types-for 'script'`，但 `import()` 全局存储里的 `effects.mjs` 可以用；编辑器用 EditContext（`.native-edit-context`），没有 `input` 事件，所以靠 keydown 加光标元素 `top/left` 的变化合成插入事件。改 VS Code 设置后不用重新加载窗口，下一次打字粒子就换了颜色和数量。截图：[打字](codex-screenshots/effects-vscode-typing.jpg)、[热刷新后](codex-screenshots/effects-vscode-hot-reload.jpg)。
 
 ## 窗口背景（2026-11-13 实测）
 

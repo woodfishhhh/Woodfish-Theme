@@ -1,3 +1,4 @@
+import { EffectValues, normalizeEffectManifest } from '@woodfish/theme-core';
 import { findCodexPalette } from '../settings';
 import { CODEX_CONTROLLER_KEY } from '../protocol';
 import { CodexOverlayController, startCodexOverlay } from '../renderer';
@@ -5,6 +6,22 @@ import { DIFF_STYLE_ATTRIBUTE, mapDiffColor } from '../renderer/diffs';
 
 type Host = Record<string, unknown>;
 const host = globalThis as unknown as Host;
+
+/** The code-gradient core effect (its engine also paints diffs). */
+function codeGradient(enabled: boolean): unknown[] {
+  return [
+    {
+      id: 'code-gradient',
+      hash: 'code',
+      manifest: normalizeEffectManifest({
+        name: '代码渐变',
+        hosts: ['codex'],
+        core: 'code-gradient',
+      }),
+      values: { enabled } as EffectValues,
+    },
+  ];
+}
 
 /** A trimmed copy of Codex's diff viewer: Shiki spans inside an open shadow root. */
 function mountDiff(): ShadowRoot {
@@ -69,7 +86,7 @@ describe('mapDiffColor', () => {
 describe('diff viewer', () => {
   it('mounts the token styles inside the shadow root and recolors into the palette', () => {
     const root = mountDiff();
-    startCodexOverlay({ palette: { dark: 'neon' } }, 'cdp');
+    startCodexOverlay({ palette: { dark: 'neon' } }, 'cdp', codeGradient(true));
     settle();
     expect(root.querySelectorAll(`style[${DIFF_STYLE_ATTRIBUTE}]`)).toHaveLength(1);
     const keyword = span(root, 'const');
@@ -84,7 +101,7 @@ describe('diff viewer', () => {
 
   it("keeps the viewer's own colors when the mode has no palette", () => {
     const root = mountDiff();
-    startCodexOverlay({ palette: { light: 'light' } }, 'cdp');
+    startCodexOverlay({ palette: { light: 'light' } }, 'cdp', codeGradient(true));
     settle();
     expect(span(root, 'const').style.getPropertyValue('--woodfish-overlay-gradient-base')).toBe(
       'rgba(246, 117, 118, 1)'
@@ -92,7 +109,7 @@ describe('diff viewer', () => {
   });
 
   it('finds viewers added later and cleans up when effects are turned off', async () => {
-    const overlay = startCodexOverlay({}, 'cdp');
+    const overlay = startCodexOverlay({}, 'cdp', codeGradient(true));
     const root = mountDiff();
     // The decorator learns about the new viewer from a mutation record (a microtask).
     await Promise.resolve();
@@ -100,7 +117,7 @@ describe('diff viewer', () => {
     expect(root.querySelectorAll(`style[${DIFF_STYLE_ATTRIBUTE}]`)).toHaveLength(1);
     expect(span(root, 'const').dataset.woodfishOverlayToken).toBe('true');
 
-    overlay.update({ codeGradient: { enabled: false }, codeGlow: { enabled: false } });
+    overlay.update({}, codeGradient(false));
     settle();
     expect(root.querySelectorAll(`style[${DIFF_STYLE_ATTRIBUTE}]`)).toHaveLength(0);
     expect(root.querySelectorAll('[data-woodfish-overlay-token]')).toHaveLength(0);
@@ -109,7 +126,7 @@ describe('diff viewer', () => {
   it('leaves the shadow root as it was after dispose', () => {
     const root = mountDiff();
     const before = root.innerHTML;
-    const overlay = startCodexOverlay({ palette: { dark: 'dracula' } }, 'cdp');
+    const overlay = startCodexOverlay({ palette: { dark: 'dracula' } }, 'cdp', codeGradient(true));
     settle();
     overlay.dispose();
     for (const element of root.querySelectorAll<HTMLElement>('[style]')) {

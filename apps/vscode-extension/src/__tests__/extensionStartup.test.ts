@@ -34,6 +34,10 @@ jest.mock('../services/runtime/service', () => ({
   })),
 }));
 
+jest.mock('../services/effects', () => ({
+  EffectsService: jest.fn().mockImplementation(() => ({ start: jest.fn() })),
+}));
+
 jest.mock('../ui/notifications', () => ({
   showErrorMessage: (...args: unknown[]) => mockShowErrorMessage(...args),
   showInfoMessage: jest.fn(),

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { FeatureStateController } from './config/featureState';
 import { registerCommands } from './commands/register';
 import type { CommandDeps } from './commands/types';
+import { EffectsService } from './services/effects';
 import { IntegratedThemeService } from './services/runtime/service';
 import { showErrorMessage, showInfoMessage } from './ui/notifications';
 import { getOutputChannel } from './ui/output';
@@ -20,10 +21,13 @@ export function activate(context: vscode.ExtensionContext): void {
     featureState.setRuntimeStatusResolver((features) => runtimeService.getRuntimeStatus(features));
     featureState.registerConfigListener(context);
     runtimeService.registerLifecycle(context);
+    const effects = new EffectsService(context);
+    effects.start(context);
 
     const commandDeps: CommandDeps = {
       featureState,
       runtimeService,
+      effects,
       extensionContext: context,
     };
 

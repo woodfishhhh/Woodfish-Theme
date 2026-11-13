@@ -131,6 +131,15 @@ export type RuntimeOptions = {
   fixChecksums: boolean;
 };
 
+/**
+ * Effect plugins (mouse trail, caret trail, typing particles and any effect in the user's
+ * effects folder). Their own values are read live by the effects service; only this master
+ * switch changes the workbench payload.
+ */
+export type EffectsSettings = {
+  enabled: boolean;
+};
+
 export type CursorThemeDefaultKey = keyof Pick<
   CursorSettings,
   'animationDuration' | 'gradientStops' | 'borderRadius' | 'glowBlur' | 'glowOpacity'
@@ -147,6 +156,7 @@ export type ThemeRuntimeSettings = {
   cursor: CursorSettings;
   glass: GlassSettings;
   background: BackgroundSettings;
+  effects: EffectsSettings;
   runtime: RuntimeOptions;
   explicitSettings?: ThemeRuntimeExplicitSettings;
 };
@@ -160,6 +170,7 @@ export type PartialRuntimeSettings = {
     nativeWindow?: Partial<NativeWindowSettings>;
   };
   background?: Partial<BackgroundSettings>;
+  effects?: Partial<EffectsSettings>;
   runtime?: Partial<RuntimeOptions>;
   explicitSettings?: Partial<ThemeRuntimeExplicitSettings>;
 };
@@ -207,6 +218,9 @@ export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
     image: '',
     ...DEFAULT_BACKGROUND,
     fill: [...DEFAULT_BACKGROUND.fill],
+  },
+  effects: {
+    enabled: true,
   },
   runtime: {
     fixChecksums: true,
@@ -270,6 +284,9 @@ export function normalizeRuntimeSettings(
       ),
       image: sanitizeBackgroundImage(partial.background?.image),
       ...normalizeBackground(partial.background),
+    },
+    effects: {
+      enabled: sanitizeBoolean(partial.effects?.enabled, DEFAULT_RUNTIME_SETTINGS.effects.enabled),
     },
     runtime: {
       fixChecksums: sanitizeBoolean(

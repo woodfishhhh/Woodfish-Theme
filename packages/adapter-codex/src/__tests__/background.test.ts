@@ -1,16 +1,27 @@
+import { EffectValues } from '@woodfish/theme-core';
 import {
   CODEX_DEFAULT_BACKGROUND_ID,
   CODEX_GRADIENT_BACKGROUND_ID,
   DEFAULT_CODEX_SETTINGS,
   applyCodexSettingsPatch,
   buildBackgroundCss,
+  composeCodexCoreView,
   isCodexBackgroundId,
   normalizeCodexSettings,
 } from '../index';
 
+/** The background effect at its defaults (its values come from effects/background). */
+const ON = { enabled: true } as EffectValues;
+
+function view(image = CODEX_DEFAULT_BACKGROUND_ID, values: EffectValues | null = ON) {
+  return composeCodexCoreView(normalizeCodexSettings({ backgroundImage: image }), {
+    background: values,
+  });
+}
+
 describe('Codex background settings', () => {
-  it('is on with 《彩云》 and the owner defaults', () => {
-    expect(DEFAULT_CODEX_SETTINGS.background).toMatchObject({
+  it("uses 《彩云》 and the owner's defaults when the effect is on", () => {
+    expect(view().background).toMatchObject({
       enabled: true,
       image: CODEX_DEFAULT_BACKGROUND_ID,
       opacity: 0.15,
@@ -26,45 +37,29 @@ describe('Codex background settings', () => {
     expect(isCodexBackgroundId('0123456789ab')).toBe(true);
     expect(isCodexBackgroundId('../../secret')).toBe(false);
     expect(isCodexBackgroundId('0123456789AB')).toBe(false);
-    expect(normalizeCodexSettings({ background: { image: 'x.png' } }).background.image).toBe(
+    expect(normalizeCodexSettings({ backgroundImage: 'x.png' }).backgroundImage).toBe(
       CODEX_DEFAULT_BACKGROUND_ID
     );
   });
 
-  it('lets the panel change the switch, picture and three sliders, nothing else', () => {
+  it('lets the panel pick a picture, nothing else', () => {
     const next = applyCodexSettingsPatch(DEFAULT_CODEX_SETTINGS, {
-      background: {
-        enabled: false,
-        image: 'abcdefabcdef',
-        opacity: 5,
-        blur: 'x',
-        mask: 0.6,
-        fill: ['#000', '#fff'],
-        saturate: 250,
-      },
+      backgroundImage: 'abcdefabcdef',
     });
-    expect(next.background).toMatchObject({
-      enabled: false,
-      image: 'abcdefabcdef',
-      opacity: 1,
-      blur: DEFAULT_CODEX_SETTINGS.background.blur,
-      mask: 0.6,
-      saturate: DEFAULT_CODEX_SETTINGS.background.saturate,
-      fill: DEFAULT_CODEX_SETTINGS.background.fill,
-    });
-    expect(
-      applyCodexSettingsPatch(next, { background: { image: 'javascript:1' } }).background.image
-    ).toBe('abcdefabcdef');
+    expect(next.backgroundImage).toBe('abcdefabcdef');
+    expect(applyCodexSettingsPatch(next, { backgroundImage: 'javascript:1' }).backgroundImage).toBe(
+      'abcdefabcdef'
+    );
   });
 });
 
 describe('buildBackgroundCss', () => {
-  it('emits nothing when off', () => {
-    expect(buildBackgroundCss(normalizeCodexSettings({ background: { enabled: false } }))).toBe('');
+  it('emits nothing when the effect is off', () => {
+    expect(buildBackgroundCss(view(CODEX_DEFAULT_BACKGROUND_ID, null))).toBe('');
   });
 
   it('clears the thread and draws panels and bands as static copies of the layer', () => {
-    const css = buildBackgroundCss(DEFAULT_CODEX_SETTINGS);
+    const css = buildBackgroundCss(view());
     expect(css.startsWith('@media not (prefers-reduced-transparency: reduce) {')).toBe(true);
     expect(css).toContain('body::before {');
     expect(css).toContain('--woodfish-codex-surface: var(--color-surface);');
@@ -91,9 +86,7 @@ describe('buildBackgroundCss', () => {
   });
 
   it('paints the fill gradient instead of a picture', () => {
-    const css = buildBackgroundCss(
-      normalizeCodexSettings({ background: { image: CODEX_GRADIENT_BACKGROUND_ID } })
-    );
+    const css = buildBackgroundCss(view(CODEX_GRADIENT_BACKGROUND_ID));
     expect(css).toContain('linear-gradient(180deg, #2990bd, #e2ab5b, #e384be)');
     expect(css).not.toContain('--woodfish-background-image');
   });

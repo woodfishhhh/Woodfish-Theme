@@ -258,6 +258,119 @@ export const SETTINGS_PANEL_CSS = `
   color: var(--color-text-on-accent, #ffffff);
   background-color: var(--color-chart-blue, var(--color-ring, #339cff));
 }
+[data-woodfish-codex-settings] .woodfish-effects-card {
+  margin-top: 12px;
+}
+[data-woodfish-codex-settings] .woodfish-effects-header {
+  flex-wrap: wrap;
+}
+[data-woodfish-codex-settings] .woodfish-effects-header > .woodfish-background-status {
+  flex-basis: 100%;
+}
+[data-woodfish-codex-settings] .woodfish-effect + .woodfish-effect,
+[data-woodfish-codex-settings] .woodfish-effects-header + .woodfish-effect {
+  border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
+}
+[data-woodfish-codex-settings] .woodfish-effect-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+[data-woodfish-codex-settings] .woodfish-effect-id {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--color-text-tertiary, var(--color-text-secondary));
+  font-family: var(--font-code-family, ui-monospace, Consolas, monospace);
+}
+[data-woodfish-codex-settings] .woodfish-effect-error {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-danger, #e5484d);
+}
+[data-woodfish-codex-settings] .woodfish-effect-error:empty {
+  display: none;
+}
+[data-woodfish-codex-settings] .woodfish-effect-toggle {
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: none;
+  cursor: pointer;
+}
+[data-woodfish-codex-settings] .woodfish-effect-toggle::after {
+  content: " ▾";
+}
+[data-woodfish-codex-settings] .woodfish-effect-toggle[aria-expanded="true"]::after {
+  content: " ▴";
+}
+[data-woodfish-codex-settings] .woodfish-effect-toggle[hidden] {
+  display: none;
+}
+[data-woodfish-codex-settings] .woodfish-effect-body[hidden] {
+  display: none;
+}
+[data-woodfish-codex-settings] .woodfish-effect-body {
+  margin: 0 12px 10px 24px;
+  border-left: 2px solid color-mix(in oklab, var(--color-text) 10%, transparent);
+}
+[data-woodfish-codex-settings] .woodfish-effect-param {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+[data-woodfish-codex-settings] .woodfish-effect[data-state="failed"] .woodfish-effect-head {
+  background-color: color-mix(in oklab, var(--color-text-danger, #e5484d) 6%, transparent);
+}
+[data-woodfish-codex-settings] .woodfish-effect-slider,
+[data-woodfish-codex-settings] .woodfish-effect-color {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+[data-woodfish-codex-settings] .woodfish-effect-color input[type="color"] {
+  width: 32px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+[data-woodfish-codex-settings] .woodfish-effect-segments {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background-color: color-mix(in oklab, var(--color-text) 7%, transparent);
+}
+[data-woodfish-codex-settings] .woodfish-effect-segment {
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: none;
+  cursor: pointer;
+}
+[data-woodfish-codex-settings] .woodfish-effect-segment[aria-checked="true"] {
+  color: var(--color-text);
+  background-color: var(--color-surface-elevated, color-mix(in oklab, var(--color-text) 12%, transparent));
+  box-shadow: 0 1px 2px rgb(0 0 0 / 18%);
+}
+[data-woodfish-codex-settings] .woodfish-effect-select {
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--color-text);
+  background-color: var(--color-surface, transparent);
+}
+[data-woodfish-codex-settings] .woodfish-effect-reset-row {
+  justify-content: space-between;
+}
 @media (prefers-reduced-motion: reduce) {
   [data-woodfish-codex-settings] * {
     transition: none !important;

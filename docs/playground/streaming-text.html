@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Woodfish · Codex 吐字效果 Playground</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/*
+ * 每张卡片是一段 Codex 助手回复，同一段文字按同样的节奏流式吐出。
+ * 吐字只往文本节点里追加字符（和 React 更新流式文本一样），效果不拆字、不包 span：
+ * 光标、拖尾、粒子画在一个共用的全窗口 canvas 和覆盖层上，淡入用遮罩，发光用 CSS Highlight API。
+ * 拖尾照抄 VS Code Animations 插件（MIT）的画法：单色实心带子，长度 12。页面上的鼠标拖尾也是同一个拖尾。
+ * 效果函数的写法就是插件 effect.js 的写法：订阅统一的“在某处插入了文字”事件（ctx.onInsert）。
+ */
+:root {
+  --bg: #1C2433; --fg: #D0D7E4; --muted: #9AA2AF; --accent: #EACD61; --accent2: #EA618E; --on-accent: #464646;
+  --body-gradient: linear-gradient(135deg, #D0D7E4, #D0D7E4);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font: 14px/1.43 "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  overflow-x: hidden;
+}
+/* 《彩云》15%，与负责人 Codex 的窗口背景一致 */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background: url("caiyun.jpg") center / cover no-repeat;
+  opacity: .15;
+}
+header {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center;
+  padding: 12px 20px;
+  background: color-mix(in oklab, var(--bg) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+}
+header h1 { font-size: 15px; margin: 0 8px 0 0; font-weight: 600; }
+label.ctl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+label.ctl input[type=range] { width: 104px; accent-color: var(--accent); }
+label.ctl input[type=checkbox] { accent-color: var(--accent); }
+label.ctl output { min-width: 50px; color: var(--fg); font-variant-numeric: tabular-nums; }
+select, button {
+  font: inherit; font-size: 12px; color: var(--fg);
+  background: color-mix(in oklab, var(--fg) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--fg) 16%, transparent);
+  border-radius: 8px; padding: 5px 10px; cursor: pointer;
+}
+main {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 18px; padding: 20px 20px 140px;
+}
+.card {
+  position: relative;
+  border-radius: 16px; padding: 12px 16px 14px;
+  border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+  background: color-mix(in oklab, var(--bg) 55%, transparent);
+  cursor: pointer; transition: border-color .15s, box-shadow .15s;
+}
+.card.picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 8px 30px -12px var(--accent); }
+.card h2 { margin: 0 0 2px; font-size: 13px; font-weight: 600; }
+.card h2 span { color: var(--muted); font-weight: 400; margin-right: 6px; }
+.card .uses { margin: 0 0 10px; font-size: 11.5px; color: var(--muted); }
+/* 一段助手回复：Codex 的回复正文默认是主题彩虹（回复正文渐变），代码保持原色 */
+.reply { height: 300px; overflow: hidden; font-size: 14px; line-height: 1.72; }
+.reply h3 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+.reply p { margin: 0 0 8px; }
+.reply ul { margin: 0 0 8px; padding-left: 20px; }
+.reply :is(h3, p, li) {
+  background-image: var(--body-gradient);
+  background-clip: text; -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.reply code {
+  -webkit-text-fill-color: currentColor; color: var(--accent);
+  font: 12.5px/1 "Cascadia Code", Consolas, monospace;
+  padding: 1px 5px; border-radius: 6px;
+  background: color-mix(in oklab, var(--fg) 10%, transparent);
+}
+.reply strong { font-weight: 650; }
+
+/* 共用的效果层：全窗口、不接收指针 */
+#fx { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 10; pointer-events: none; }
+#layer { position: fixed; inset: 0; z-index: 11; pointer-events: none; overflow: hidden; }
+
+/* ---------- 各效果自己的样式（插件里由 ctx.style 挂载） ---------- */
+@keyframes wf-cursor-flow { from { background-position: 50% 0%; } to { background-position: 50% 100%; } }
+.wf-stream-cursor {
+  position: absolute; left: 0; top: 0; width: 6px; border-radius: 2px;
+  background-size: 100% 900%;
+  animation: wf-cursor-flow 8s linear infinite;
+  transition: transform 80ms linear;
+  will-change: transform;
+}
+.wf-typewriter {
+  position: absolute; left: 0; top: 0; border-radius: 1px; opacity: .9;
+  animation: wf-blink 1.05s steps(1) infinite;
+}
+.wf-typewriter[data-typing] { animation: none; }
+@keyframes wf-blink { 50% { opacity: 0; } }
+.wf-blur { position: absolute; left: 0; top: 0; border-radius: 4px; }
+.wf-sweep { position: absolute; left: 0; top: 0; overflow: hidden; border-radius: 6px; }
+.wf-sweep::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 40%;
+  background: linear-gradient(90deg, transparent, var(--wf-sweep-color), transparent);
+  animation: wf-sweep var(--wf-sweep-ms, 700ms) cubic-bezier(.4, 0, .2, 1) forwards;
+  mix-blend-mode: var(--wf-sweep-blend, screen);
+}
+@keyframes wf-sweep { to { left: 100%; } }
+@keyframes wf-flow { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+[data-wf-flowing] { background-size: 200% 100% !important; animation: wf-flow 1.8s linear infinite; }
+
+footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; gap: 12px; align-items: center; padding: 12px 20px;
+  background: color-mix(in oklab, var(--bg) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-top: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+}
+footer textarea { flex: 1; height: 54px; resize: none; font: 12px/1.5 ui-monospace, Consolas, monospace; color: var(--fg); background: color-mix(in oklab, var(--fg) 6%, transparent); border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent); border-radius: 8px; padding: 6px 10px; }
+footer .pick { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--on-accent); border: 0; font-weight: 600; padding: 9px 18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Codex 吐字效果</h1>
+  <label class="ctl">主题 <select id="theme"></select></label>
+  <button id="mode" type="button">切到浅色</button>
+  <label class="ctl"><input id="followTheme" type="checkbox"> 颜色跟随主题</label>
+  <label class="ctl">速度 <input id="speed" type="range" min="10" max="400" step="5" value="90"><output></output></label>
+  <label class="ctl">光标粗细 <input id="width" type="range" min="1" max="16" step="1" value="6"><output></output></label>
+  <label class="ctl">拖尾长度 <input id="trail" type="range" min="0" max="40" step="1" value="12"><output></output></label>
+  <label class="ctl">淡入时长 <input id="fadeMs" type="range" min="0" max="800" step="20" value="200"><output></output></label>
+  <label class="ctl">粒子数量 <input id="particles" type="range" min="0" max="30" step="1" value="8"><output></output></label>
+  <label class="ctl"><input id="mouseTrail" type="checkbox" checked> 鼠标拖尾</label>
+  <label class="ctl"><input id="simplified" type="checkbox"> 简化（失焦 / 减少动态）</label>
+  <button id="pause" type="button">暂停</button>
+  <button id="replay" type="button">重播</button>
+</header>
+<main id="grid"></main>
+<canvas id="fx"></canvas>
+<div id="layer"></div>
+<footer>
+  <textarea id="result" readonly placeholder="点一个方案卡片，调好参数，再点“我选这个”"></textarea>
+  <button id="copy" type="button">复制</button>
+  <button id="pick" class="pick" type="button">我选这个</button>
+</footer>
+<script>
+'use strict';
+// 主题取自 Woodfish 的调色板（packages/theme-core）：底色、前景、强调色和主题光标色（stops）。
+const THEMES = {
+  'Woodfish Dark':      { mode: 'dark',  bg: '#1C2433', fg: '#D0D7E4', muted: '#9AA2AF', accent: '#EACD61', accent2: '#EA618E', on: '#464646', stops: ['#EACD61', '#EA618E', '#3CEC85', '#61AFEA', '#EACD61'] },
+  'Woodfish Dracula':   { mode: 'dark',  bg: '#282A36', fg: '#F8F8F2', muted: '#B9BAB5', accent: '#FF79C6', accent2: '#BD93F9', on: '#282A36', stops: ['#ff79c6', '#bd93f9', '#8be9fd', '#50fa7b', '#8be9fd', '#bd93f9', '#ff79c6'] },
+  'Woodfish Black':     { mode: 'dark',  bg: '#000000', fg: '#E6E6E6', muted: '#A0A0A0', accent: '#EACD61', accent2: '#EA618E', on: '#000000', stops: ['#EACD61', '#EA618E', '#B78AFF', '#61AFEA', '#22ECDB', '#3CEC85', '#EACD61'] },
+  'Woodfish Neon':      { mode: 'dark',  bg: '#0D0B1E', fg: '#E8E3FF', muted: '#A79FC8', accent: '#FF2E97', accent2: '#00E5FF', on: '#0D0B1E', stops: ['#FF2E97', '#B967FF', '#00E5FF', '#01FFC3', '#FFE66D', '#FF2E97'] },
+  'One Dark Pro':       { mode: 'dark',  bg: '#282C34', fg: '#ABB2BF', muted: '#7F848E', accent: '#61AFEF', accent2: '#C678DD', on: '#282C34', stops: ['#61AFEF', '#C678DD', '#E06C75', '#E5C07B', '#98C379', '#56B6C2', '#61AFEF'] },
+  'Tokyo Night':        { mode: 'dark',  bg: '#1A1B26', fg: '#A9B1D6', muted: '#787C99', accent: '#7AA2F7', accent2: '#BB9AF7', on: '#1A1B26', stops: ['#7AA2F7', '#BB9AF7', '#F7768E', '#E0AF68', '#9ECE6A', '#7DCFFF', '#7AA2F7'] },
+  'Catppuccin Mocha':   { mode: 'dark',  bg: '#1E1E2E', fg: '#CDD6F4', muted: '#9399B2', accent: '#CBA6F7', accent2: '#F5C2E7', on: '#1E1E2E', stops: ['#CBA6F7', '#F5C2E7', '#F38BA8', '#FAB387', '#F9E2AF', '#A6E3A1', '#89DCEB', '#89B4FA', '#CBA6F7'] },
+  'Nord':               { mode: 'dark',  bg: '#2E3440', fg: '#D8DEE9', muted: '#9AA2B1', accent: '#88C0D0', accent2: '#B48EAD', on: '#2E3440', stops: ['#8FBCBB', '#88C0D0', '#81A1C1', '#5E81AC', '#B48EAD', '#A3BE8C', '#8FBCBB'] },
+  'GitHub Dark':        { mode: 'dark',  bg: '#0D1117', fg: '#E6EDF3', muted: '#8B949E', accent: '#4493F8', accent2: '#AB7DF8', on: '#0D1117', stops: ['#4493F8', '#AB7DF8', '#F778BA', '#FF7B72', '#D29922', '#3FB950', '#4493F8'] },
+  'Night Owl':          { mode: 'dark',  bg: '#011627', fg: '#D6DEEB', muted: '#8EA0B5', accent: '#82AAFF', accent2: '#C792EA', on: '#011627', stops: ['#82AAFF', '#C792EA', '#FF5874', '#F78C6C', '#ECC48D', '#ADDB67', '#7FDBCA', '#82AAFF'] },
+  'Ayu Mirage':         { mode: 'dark',  bg: '#242936', fg: '#CCCAC2', muted: '#8A919C', accent: '#FFCC66', accent2: '#F28779', on: '#1F2430', stops: ['#FFCC66', '#FFAD66', '#F28779', '#DFBFFF', '#73D0FF', '#95E6CB', '#D5FF80', '#FFCC66'] },
+  'Gruvbox Dark':       { mode: 'dark',  bg: '#282828', fg: '#EBDBB2', muted: '#A89984', accent: '#FABD2F', accent2: '#FE8019', on: '#282828', stops: ['#FB4934', '#FE8019', '#FABD2F', '#B8BB26', '#8EC07C', '#83A598', '#D3869B', '#FB4934'] },
+  'Woodfish Light':     { mode: 'light', bg: '#FBFAF7', fg: '#24292F', muted: '#57606A', accent: '#1F5FBF', accent2: '#B4235A', on: '#FFFFFF', stops: ['#1F5FBF', '#7B3FC4', '#B4235A', '#A04F00', '#0B7568', '#1F5FBF'] },
+  'Catppuccin Latte':   { mode: 'light', bg: '#EFF1F5', fg: '#4C4F69', muted: '#6C6F85', accent: '#8839EF', accent2: '#EA76CB', on: '#EFF1F5', stops: ['#8839EF', '#EA76CB', '#D20F39', '#FE640B', '#DF8E1D', '#40A02B', '#04A5E5', '#1E66F5', '#8839EF'] },
+  'GitHub Light':       { mode: 'light', bg: '#FFFFFF', fg: '#1F2328', muted: '#59636E', accent: '#0969DA', accent2: '#8250DF', on: '#FFFFFF', stops: ['#0969DA', '#8250DF', '#BF3989', '#CF222E', '#9A6700', '#1A7F37', '#0969DA'] },
+};
+/** VS Code 里 woodfishTheme.cursor 的默认彩虹（负责人 VS Code 的光标色）。 */
+const RAINBOW = ['#ff2d95', '#ff4500', '#ffd700', '#7cfc00', '#00ffff', '#1e90ff', '#9370db', '#ff00ff', '#ff1493'];
+
+/* =====================================================================================
+ * 效果：每个函数就是一个插件 effect.js 的 module.exports。它们只认识 ctx：
+ *   ctx.params            参数（光标粗细 width、拖尾长度 trail、淡入时长 fadeMs、粒子数量 particles、颜色跟随主题 followTheme）
+ *   ctx.theme()           { mode, stops, accent, accent2, background, foreground }
+ *   ctx.rainbow           Woodfish 彩虹色
+ *   ctx.onInsert(fn)      “在某处插入了文字”：{ x, y, height, text, rects, block, node, start, source, rate }
+ *                         x/y 是插入末尾在窗口里的位置；text 为空表示只是位置变了（滚动）
+ *   ctx.onStreamEnd(fn)   这一段吐字结束
+ *   ctx.painter(fn)       在共用 canvas 上逐帧绘制：fn(g, now, dt) 返回 false 表示画完了，宿主空闲时停帧
+ *   ctx.layer             共用的覆盖层（fixed，全窗口，不接收指针）
+ *   ctx.style(css)        这个效果自己的样式
+ *   ctx.simplified()      窗口失焦或减少动态：只保留静态部分
+ * ===================================================================================== */
+
+function effectColors(ctx) {
+  return ctx.params.followTheme ? ctx.theme().stops : ctx.rainbow;
+}
+
+/*
+ * 拖尾：照抄 VS Code 的 Animations 插件（brandonkirbyson.vscode-animations 2.0.9 的 CursorAnimation，
+ * MIT，Copyright (c) 2023 Brandon Kirbyson）。一串点（长度 12 = 负责人 VS Code 里的 TrailLength）
+ * 首尾相连：每帧第一个点贴着光标，后面每个点向前一个点挪 42%（横向）和 35%（纵向）；
+ * 默认画成单色实心的带子（block，宽 = 光标宽，高 = 光标高），颜色默认 #ffffff（插件默认）。
+ * 和插件不同的只有两处：canvas 按设备像素比画（不发虚），光标停下、带子收拢后停帧。
+ */
+function createTrail() {
+  let points = [];
+  let width = 7;
+  let height = 2.2 * 7;
+  const head = { x: 0, y: 0 };
+  return {
+    size(w, h) {
+      width = w;
+      if (h) height = h;
+    },
+    move(x, y, length) {
+      head.x = x + width / 2;
+      head.y = y;
+      if (points.length !== length) points = Array.from({ length }, () => ({ x: head.x, y: head.y }));
+    },
+    reset() {
+      points = [];
+    },
+    /** One frame of the chain; true while the band is still visible. */
+    step() {
+      let x = head.x;
+      let y = head.y;
+      let moving = false;
+      for (let i = 0; i < points.length; i += 1) {
+        const next = points[i + 1] ?? points[0];
+        const point = points[i];
+        moving ||= Math.abs(point.x - x) > 0.05 || Math.abs(point.y - y) > 0.05;
+        point.x = x;
+        point.y = y;
+        x += 0.42 * (next.x - point.x);
+        y += 0.35 * (next.y - point.y);
+      }
+      return moving;
+    },
+    draw(g, color, style = 'block') {
+      if (points.length < 2) return;
+      g.fillStyle = color;
+      g.strokeStyle = color;
+      g.lineJoin = 'round';
+      if (style === 'line') {
+        const line = Math.min(width, height);
+        g.lineWidth = line;
+        const gap = (height - line) / 3;
+        g.beginPath();
+        for (let n = 0; n <= 3; n += 1) {
+          points.forEach((point, i) => (i === 0 ? g.moveTo : g.lineTo).call(g, point.x, point.y + n * gap + line / 2));
+        }
+        g.stroke();
+        return;
+      }
+      g.beginPath();
+      points.forEach((point, i) => (i === 0 ? g.moveTo : g.lineTo).call(g, point.x, point.y));
+      for (let i = points.length - 1; i >= 0; i -= 1) g.lineTo(points[i].x, points[i].y + height);
+      g.closePath();
+      g.fill();
+      g.beginPath();
+      g.lineWidth = Math.min(width, height);
+      const middle = -width / 2 + height / 2;
+      points.forEach((point, i) => (i === 0 ? g.moveTo : g.lineTo).call(g, point.x, point.y + middle));
+      g.stroke();
+    },
+  };
+}
+
+function trailColor(ctx) {
+  return ctx.params.followTheme ? ctx.theme().accent : '#ffffff';
+}
+
+/** 彩虹光标 + 拖尾：彩虹光标跟着吐字末尾走（换行跳到下一行开头），身后是 Animations 插件那样的单色拖尾。 */
+function streamCursor(ctx) {
+  const bar = document.createElement('div');
+  bar.className = 'wf-stream-cursor';
+  bar.hidden = true;
+  ctx.layer.append(bar);
+  const trail = createTrail();
+  let target = null;
+  let colors = '';
+
+  function paintBar() {
+    const stops = effectColors(ctx);
+    const key = stops.join();
+    if (key !== colors) {
+      colors = key;
+      bar.style.backgroundImage = `linear-gradient(180deg, ${[...stops, stops[0]].join(', ')})`;
+    }
+    bar.style.width = `${ctx.params.width}px`;
+    bar.style.height = `${target.h}px`;
+    bar.style.transform = `translate(${target.x}px, ${target.y}px)`;
+  }
+
+  const painter = ctx.painter((g) => {
+    if (!target || ctx.params.trail <= 0) return false;
+    const moving = trail.step();
+    trail.draw(g, trailColor(ctx));
+    return moving;
+  });
+
+  ctx.onInsert((event) => {
+    const jump = !target || Math.abs(event.y - target.y) > event.height / 2 || !event.text;
+    target = { x: event.x, y: event.y, h: event.height };
+    bar.hidden = false;
+    // Glide along the line like VS Code's smooth caret (80 ms); jump straight to a new line.
+    bar.style.transition = jump || ctx.simplified() ? 'none' : '';
+    paintBar();
+    if (ctx.simplified() || !event.text) {
+      trail.reset();
+      return;
+    }
+    trail.size(ctx.params.width, event.height);
+    trail.move(event.x, event.y, ctx.params.trail);
+    painter.wake();
+  });
+  ctx.onStreamEnd(() => {
+    target = null;
+    bar.hidden = true;
+    trail.reset();
+    painter.wake();
+  });
+  return { dispose: () => bar.remove() };
+}
+
+/**
+ * 新字淡入：给正在吐字的段落加一层遮罩，最后一行里刚出现的几段文字从淡到实，其余照常显示。
+ * 不拆字、不改结构，淡完就撤掉遮罩。
+ */
+function fadeIn(ctx, scale = 1) {
+  let block = null;
+  let line = null;
+  const chunks = [];
+
+  function clear() {
+    if (!block) return;
+    for (const name of ['mask-image', 'mask-size', 'mask-position', 'mask-repeat']) block.style.removeProperty(name);
+  }
+
+  const painter = ctx.painter((g, now) => {
+    const fade = ctx.params.fadeMs * scale;
+    while (chunks.length && now - chunks[0].t >= fade) chunks.shift();
+    if (!block || !chunks.length || fade <= 0 || ctx.simplified()) {
+      clear();
+      return false;
+    }
+    const stops = [`#000 0px`, `#000 ${chunks[0].x0}px`];
+    for (const chunk of chunks) {
+      const alpha = 0.12 + 0.88 * Math.min(1, (now - chunk.t) / fade);
+      stops.push(`rgb(0 0 0 / ${alpha.toFixed(3)}) ${chunk.x0}px`, `rgb(0 0 0 / ${alpha.toFixed(3)}) ${chunk.x1}px`);
+    }
+    block.style.maskImage = `linear-gradient(#000, #000), linear-gradient(90deg, ${stops.join(', ')})`;
+    block.style.maskSize = `100% ${line.top}px, 100% ${line.height}px`;
+    block.style.maskPosition = `0 0, 0 ${line.top}px`;
+    block.style.maskRepeat = 'no-repeat';
+    return true;
+  });
+
+  ctx.onInsert((event) => {
+    if (!event.text || !event.block || ctx.simplified()) return;
+    if (event.block !== block) {
+      clear();
+      block = event.block;
+      chunks.length = 0;
+      line = null;
+    }
+    const box = block.getBoundingClientRect();
+    const last = event.rects[event.rects.length - 1];
+    const top = last.top - box.top;
+    if (!line || Math.abs(top - line.top) > last.height / 2) {
+      chunks.length = 0;
+      line = { top, height: last.height + 2 };
+    }
+    chunks.push({ x0: last.left - box.left, x1: last.right - box.left + 1, t: performance.now() });
+    painter.wake();
+  });
+  ctx.onStreamEnd(() => {
+    clear();
+    block = null;
+    chunks.length = 0;
+  });
+  return { dispose: clear };
+}
+
+/** 模糊变清晰：刚出现的文字上盖一小块背景模糊，随后淡掉。 */
+function blurIn(ctx) {
+  const live = [];
+  const pool = [];
+  const painter = ctx.painter((g, now) => {
+    const fade = Math.max(120, ctx.params.fadeMs * 1.4);
+    for (let i = live.length - 1; i >= 0; i -= 1) {
+      const item = live[i];
+      const k = (now - item.t) / fade;
+      if (k >= 1) {
+        item.el.hidden = true;
+        pool.push(item.el);
+        live.splice(i, 1);
+      } else {
+        item.el.style.opacity = String(1 - k);
+      }
+    }
+    return live.length > 0;
+  });
+  ctx.onInsert((event) => {
+    if (!event.text || ctx.simplified()) return;
+    for (const rect of event.rects) {
+      const el = pool.pop() ?? document.createElement('div');
+      el.className = 'wf-blur';
+      el.hidden = false;
+      el.style.cssText = `transform: translate(${rect.left - 2}px, ${rect.top}px); width: ${rect.width + 4}px; height: ${rect.height}px; backdrop-filter: blur(3.5px); -webkit-backdrop-filter: blur(3.5px); opacity: 1;`;
+      ctx.layer.append(el);
+      live.push({ el, t: performance.now() });
+    }
+    painter.wake();
+  });
+  return { dispose: () => [...pool, ...live.map((item) => item.el)].forEach((el) => el.remove()) };
+}
+
+/** 打字机光标：块状光标停在末尾，吐字时常亮，停顿半秒后开始闪。 */
+function typewriter(ctx) {
+  const block = document.createElement('div');
+  block.className = 'wf-typewriter';
+  block.hidden = true;
+  ctx.layer.append(block);
+  let idle = 0;
+  ctx.onInsert((event) => {
+    const stops = effectColors(ctx);
+    block.hidden = false;
+    block.style.background = ctx.params.followTheme ? ctx.theme().accent : stops[0];
+    block.style.width = `${Math.max(ctx.params.width, Math.round(event.height * 0.5))}px`;
+    block.style.height = `${event.height - 4}px`;
+    block.style.transform = `translate(${event.x + 1}px, ${event.y + 2}px)`;
+    if (event.text) {
+      block.setAttribute('data-typing', '');
+      clearTimeout(idle);
+      idle = setTimeout(() => block.removeAttribute('data-typing'), 500);
+    }
+  });
+  ctx.onStreamEnd(() => {
+    block.hidden = true;
+  });
+  return { dispose: () => block.remove() };
+}
+
+/** 整行扫光：一行写满（换到下一行）时，一道光从左到右扫过这一行。 */
+function sweep(ctx) {
+  let line = null;
+  const sweeps = new Set();
+  function flash(target) {
+    if (!target || ctx.simplified()) return;
+    const el = document.createElement('div');
+    el.className = 'wf-sweep';
+    const dark = ctx.theme().mode === 'dark';
+    const color = ctx.params.followTheme ? ctx.theme().accent : effectColors(ctx)[sweeps.size % RAINBOW.length];
+    el.style.cssText = `transform: translate(${target.left}px, ${target.top}px); width: ${target.right - target.left}px; height: ${target.height}px; --wf-sweep-color: color-mix(in oklab, ${color} ${dark ? 55 : 35}%, transparent); --wf-sweep-blend: ${dark ? 'screen' : 'multiply'}; --wf-sweep-ms: ${Math.max(360, ctx.params.fadeMs * 3)}ms;`;
+    ctx.layer.append(el);
+    sweeps.add(el);
+    el.firstChild;
+    el.addEventListener('animationend', () => { el.remove(); sweeps.delete(el); }, { once: true });
+  }
+  ctx.onInsert((event) => {
+    if (!event.text || !event.block) return;
+    const last = event.rects[event.rects.length - 1];
+    const box = event.block.getBoundingClientRect();
+    if (!line || Math.abs(last.top - line.top) > last.height / 2) {
+      if (line && event.rects.length > 0) flash(line);
+      line = { left: box.left, top: last.top, right: last.right, height: last.height };
+    } else {
+      line.right = Math.max(line.right, last.right);
+    }
+  });
+  ctx.onStreamEnd(() => {
+    flash(line);
+    line = null;
+  });
+  return { dispose: () => sweeps.forEach((el) => el.remove()) };
+}
+
+/** 粒子迸出：每段新字在末尾迸出几颗主题色的光点，限速，长回复也不堆积。 */
+function particles(ctx) {
+  const dots = [];
+  let windowStart = 0;
+  let spentInWindow = 0;
+  const painter = ctx.painter((g, now, dt) => {
+    const dark = ctx.theme().mode === 'dark';
+    g.globalCompositeOperation = dark ? 'lighter' : 'source-over';
+    for (let i = dots.length - 1; i >= 0; i -= 1) {
+      const dot = dots[i];
+      const age = now - dot.born;
+      if (age >= dot.life) {
+        dots.splice(i, 1);
+        continue;
+      }
+      const s = dt / 1000;
+      dot.vy += 420 * s;
+      dot.vx *= Math.pow(0.9, dt / 16.7);
+      dot.x += dot.vx * s;
+      dot.y += dot.vy * s;
+      const k = 1 - age / dot.life;
+      g.globalAlpha = Math.min(1, k * 1.4);
+      g.fillStyle = dot.color;
+      g.beginPath();
+      g.arc(dot.x, dot.y, dot.size * (0.6 + 0.4 * k), 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+    g.globalCompositeOperation = 'source-over';
+    return dots.length > 0;
+  });
+  ctx.onInsert((event) => {
+    if (!event.text || ctx.simplified() || ctx.params.particles <= 0) return;
+    const now = performance.now();
+    if (now - windowStart > 100) {
+      windowStart = now;
+      spentInWindow = 0;
+    }
+    const count = Math.min(ctx.params.particles, 48 - spentInWindow);
+    if (count <= 0) return;
+    spentInWindow += count;
+    const stops = effectColors(ctx);
+    for (let i = 0; i < count; i += 1) {
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.9;
+      const speed = 60 + Math.random() * 150;
+      dots.push({
+        x: event.x,
+        y: event.y + event.height * 0.55,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 1.1 + Math.random() * 1.9,
+        life: 420 + Math.random() * 480,
+        born: now,
+        color: stops[Math.floor(Math.random() * stops.length)],
+      });
+    }
+    painter.wake();
+  });
+  return {};
+}
+
+/** 渐变随出字流动：吐字时正在写的这一段，彩虹渐变向右流动；写完就停下。 */
+function flow(ctx) {
+  let block = null;
+  const set = (next) => {
+    if (block === next) return;
+    block?.removeAttribute('data-wf-flowing');
+    block = next;
+    if (block && !ctx.simplified()) block.setAttribute('data-wf-flowing', '');
+  };
+  ctx.onInsert((event) => {
+    if (event.text) set(event.block);
+  });
+  ctx.onStreamEnd(() => set(null));
+  return { dispose: () => set(null) };
+}
+
+/** 新字发光：刚出现的文字带一圈主题色微光，几百毫秒内退去（CSS Highlight API，不动 DOM）。 */
+let glowCount = 0;
+function glowNew(ctx) {
+  if (!(globalThis.CSS && CSS.highlights && globalThis.Highlight)) return {};
+  const id = (glowCount += 1);
+  const names = [0, 1, 2, 3].map((i) => `wf-glow-${id}-${i}`);
+  const sets = names.map(() => new Highlight());
+  names.forEach((name, i) => CSS.highlights.set(name, sets[i]));
+  const recent = [];
+  let color = '';
+  function restyle() {
+    const next = ctx.params.followTheme ? ctx.theme().accent : effectColors(ctx)[0];
+    if (next === color) return;
+    color = next;
+    ctx.style(names.map((name, i) => `::highlight(${name}) { text-shadow: 0 0 ${9 - i * 2}px color-mix(in oklab, ${color} ${85 - i * 20}%, transparent), 0 0 ${2 + (3 - i)}px color-mix(in oklab, ${color} ${60 - i * 14}%, transparent); }`).join('\n'));
+  }
+  const painter = ctx.painter((g, now) => {
+    const fade = Math.max(160, ctx.params.fadeMs * 2);
+    sets.forEach((set) => set.clear());
+    for (let i = recent.length - 1; i >= 0; i -= 1) {
+      const age = now - recent[i].t;
+      if (age >= fade) recent.splice(i, 1);
+      else sets[Math.min(3, Math.max(0, Math.floor((age / fade) * 4)))].add(recent[i].range);
+    }
+    return recent.length > 0;
+  });
+  ctx.onInsert((event) => {
+    if (!event.text || !event.node || ctx.simplified()) return;
+    restyle();
+    const range = document.createRange();
+    range.setStart(event.node, event.start);
+    range.setEnd(event.node, event.start + event.text.length);
+    recent.push({ range, t: performance.now() });
+    painter.wake();
+  });
+  return { dispose: () => names.forEach((name) => CSS.highlights.delete(name)) };
+}
+
+/** 鼠标拖尾：同一个 Animations 拖尾，跟着鼠标指针（宽 7、高 15.4，插件的默认光标尺寸）。 */
+function mouseTrail(ctx) {
+  const trail = createTrail();
+  let inside = false;
+  const painter = ctx.painter((g) => {
+    if (!ctx.params.mouseTrail || !inside) return false;
+    const moving = trail.step();
+    trail.draw(g, trailColor(ctx));
+    return moving;
+  });
+  const move = (event) => {
+    if (!ctx.params.mouseTrail || ctx.simplified()) return;
+    inside = true;
+    trail.move(event.clientX, event.clientY, Math.max(2, ctx.params.trail));
+    painter.wake();
+  };
+  const leave = () => {
+    inside = false;
+    trail.reset();
+    painter.wake();
+  };
+  addEventListener('pointermove', move, { passive: true });
+  document.documentElement.addEventListener('pointerleave', leave);
+  return { dispose: () => { removeEventListener('pointermove', move); document.documentElement.removeEventListener('pointerleave', leave); } };
+}
+
+const EFFECTS = {
+  streamCursor,
+  fadeIn,
+  fadeInSoft: (ctx) => fadeIn(ctx, 0.6),
+  fadeInLong: (ctx) => fadeIn(ctx, 2),
+  blurIn,
+  typewriter,
+  sweep,
+  particles,
+  flow,
+  glowNew,
+};
+
+const SCHEMES = [
+  [1, '彩虹光标 + 拖尾 + 轻淡入', ['streamCursor', 'fadeInSoft'], '负责人描述的默认方案：彩虹光标跟着末尾走，身后是 Animations 插件那样的单色拖尾（默认白色，长度 12），新字轻微淡入'],
+  [2, '逐字淡入', ['fadeInLong'], '没有光标，最后一行新出现的字从淡到实'],
+  [3, '模糊变清晰', ['blurIn'], '新字先是模糊的，随后变清晰'],
+  [4, '打字机光标', ['typewriter'], '块状光标停在末尾，吐字时常亮，停下来开始闪'],
+  [5, '整行扫光', ['sweep', 'fadeInSoft'], '一行写满时，一道光从左到右扫过这一行'],
+  [6, '粒子迸出', ['particles'], '和打字粒子同一个效果：每段新字迸出几颗光点'],
+  [7, '渐变随出字流动', ['flow', 'fadeInSoft'], '正在写的段落彩虹流动，写完停下'],
+  [8, '新字发光', ['glowNew'], '刚出现的字带一圈微光，几百毫秒内退去'],
+  [9, '彩虹光标 + 拖尾 + 粒子', ['streamCursor', 'fadeInSoft', 'particles'], '#1 加上打字粒子，最热闹的一档'],
+  [10, '无特效（对照）', [], 'Codex 原样'],
+];
+
+/* =====================================================================================
+ * 模拟的流式输出：和 React 一样往文本节点里追加字符，节奏是随机的小块（1–5 个字）。
+ * ===================================================================================== */
+const SCRIPT = [
+  ['h3', [['', '先说结论']]],
+  ['p', [['', '吐字效果只在 Codex 流式输出时生效：'], ['strong', '彩虹光标'], ['', '跟着末尾走，换行时跳到下一行开头，生成结束后光标消失、文字恢复普通渲染。']]],
+  ['li', [['', '效果订阅统一的 '], ['code', 'onInsert'], ['', ' 事件，不关心是谁在打字。']]],
+  ['li', [['', 'VS Code 里是你打字触发，Codex 里是 AI 吐字触发。']]],
+  ['p', [['', '同一个粒子、光标和拖尾，两边都能用，让 AI 改一次就两边生效。']]],
+];
+
+function planChunks(seed) {
+  let s = seed;
+  const random = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  const steps = [];
+  SCRIPT.forEach(([tag, parts], blockIndex) => {
+    steps.push({ type: 'block', tag, blockIndex });
+    for (const [inline, text] of parts) {
+      steps.push({ type: 'inline', tag: inline });
+      let i = 0;
+      while (i < text.length) {
+        const size = 1 + Math.floor(random() * 5);
+        steps.push({ type: 'text', text: text.slice(i, i + size) });
+        i += size;
+      }
+    }
+  });
+  return steps;
+}
+
+/* =====================================================================================
+ * 宿主：把 DOM 里的追加变成 onInsert 事件（Codex 适配层用同样的做法观察流式回复），
+ * 管理共用 canvas 的帧循环，空闲时停帧。
+ * ===================================================================================== */
+const canvas = document.getElementById('fx');
+const g = canvas.getContext('2d');
+const LAYER = document.getElementById('layer');
+const painters = new Set();
+let frame = 0;
+let lastFrame = 0;
+let dpr = 1;
+
+function resizeCanvas() {
+  dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(innerWidth * dpr);
+  canvas.height = Math.round(innerHeight * dpr);
+}
+resizeCanvas();
+addEventListener('resize', resizeCanvas);
+
+function loop() {
+  frame = 0;
+  // performance.now(), not the rAF timestamp: insert handlers stamp with performance.now() too.
+  const now = performance.now();
+  const dt = Math.min(64, now - lastFrame || 16.7);
+  lastFrame = now;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.clearRect(0, 0, canvas.width, canvas.height);
+  let busy = false;
+  for (const painter of painters) {
+    if (!painter.awake) continue;
+    const clip = painter.clip.getBoundingClientRect();
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.save();
+    g.beginPath();
+    g.rect(clip.left, clip.top, clip.width, clip.height);
+    g.clip();
+    let keep = false;
+    try {
+      keep = painter.fn(g, now, dt) !== false;
+    } catch (error) {
+      console.warn('[Woodfish] effect painter failed', error);
+    }
+    g.restore();
+    painter.awake = keep;
+    busy ||= keep;
+  }
+  if (busy) frame = requestAnimationFrame(loop);
+}
+
+function wake(painter) {
+  painter.awake = true;
+  if (!frame) {
+    lastFrame = performance.now();
+    frame = requestAnimationFrame(loop);
+  }
+}
+
+const PARAMS = { mouseTrail: true, followTheme: false, speed: 90, width: 6, trail: 12, fadeMs: 200, particles: 8, simplified: false };
+let theme = THEMES['Woodfish Dark'];
+
+/** Last text node in `root`, in document order. */
+function lastTextNode(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => (node.data.length > 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP),
+  });
+  return walker.lastChild();
+}
+
+/** Watches a streaming reply and turns appended text into insert events (one per frame at most). */
+function watchStream(root, emit) {
+  let last = null;
+  let scheduled = 0;
+  let rate = 0;
+  let lastAt = 0;
+  function flush() {
+    scheduled = 0;
+    const node = lastTextNode(root);
+    if (!node) return;
+    const start = last && last.node === node ? Math.min(last.offset, node.length) : 0;
+    const text = node.data.slice(start);
+    const range = document.createRange();
+    range.setStart(node, text ? start : Math.max(0, node.length - 1));
+    range.setEnd(node, node.length);
+    const rects = [...range.getClientRects()].filter((rect) => rect.width > 0 || rect.height > 0);
+    const end = rects[rects.length - 1];
+    if (!end) return;
+    const now = performance.now();
+    if (text) {
+      const seconds = Math.max(0.016, (now - lastAt) / 1000);
+      rate = lastAt ? rate * 0.7 + (text.length / seconds) * 0.3 : text.length / seconds;
+      lastAt = now;
+    }
+    last = { node, offset: node.length };
+    const block = node.parentElement?.closest('p, li, h1, h2, h3, h4, h5, h6, td, th, blockquote') ?? node.parentElement;
+    emit({ x: end.right, y: end.top, height: end.height, text, rects, block, node, start, source: 'ai', rate });
+  }
+  const schedule = () => { if (!scheduled) scheduled = requestAnimationFrame(flush); };
+  const observer = new MutationObserver(schedule);
+  observer.observe(root, { subtree: true, childList: true, characterData: true });
+  return { reposition: schedule, reset: () => { last = null; rate = 0; lastAt = 0; }, dispose: () => observer.disconnect() };
+}
+
+function createCard([id, name, effects, note]) {
+  const card = document.createElement('section');
+  card.className = 'card';
+  card.dataset.id = String(id);
+  card.innerHTML = `<h2><span>#${id}</span>${name}</h2><p class="uses">${note}</p><div class="reply"></div>`;
+  const reply = card.querySelector('.reply');
+  const inserts = [];
+  const ends = [];
+  const styles = [];
+  const ctx = {
+    host: 'playground',
+    params: PARAMS,
+    rainbow: RAINBOW,
+    layer: LAYER,
+    theme: () => ({ mode: theme.mode, stops: theme.stops, accent: theme.accent, accent2: theme.accent2, background: theme.bg, foreground: theme.fg }),
+    onInsert: (fn) => inserts.push(fn),
+    onStreamEnd: (fn) => ends.push(fn),
+    painter: (fn) => {
+      const painter = { fn, clip: card, awake: false };
+      painters.add(painter);
+      return { wake: () => wake(painter) };
+    },
+    style: (css) => {
+      const style = document.createElement('style');
+      style.textContent = css;
+      document.head.append(style);
+      styles.push(style);
+    },
+    simplified: () => PARAMS.simplified,
+  };
+  for (const key of effects) {
+    try {
+      EFFECTS[key](ctx);
+    } catch (error) {
+      console.warn(`[Woodfish] effect ${key} failed to start`, error);
+    }
+  }
+  const watcher = watchStream(reply, (event) => {
+    for (const fn of inserts) {
+      try { fn(event); } catch (error) { console.warn('[Woodfish] insert handler failed', error); }
+    }
+  });
+  card.addEventListener('click', () => select(id));
+  return {
+    card,
+    reply,
+    watcher,
+    end: () => ends.forEach((fn) => { try { fn(); } catch (error) { console.warn(error); } }),
+  };
+}
+
+const grid = document.getElementById('grid');
+const cards = SCHEMES.map(createCard);
+mouseTrail({
+  params: PARAMS,
+  theme: () => ({ mode: theme.mode, stops: theme.stops, accent: theme.accent }),
+  simplified: () => PARAMS.simplified,
+  painter: (fn) => {
+    const painter = { fn, clip: document.documentElement, awake: false };
+    painters.add(painter);
+    return { wake: () => wake(painter) };
+  },
+});
+cards.forEach(({ card }) => grid.append(card));
+addEventListener('scroll', () => cards.forEach(({ watcher }) => watcher.reposition()), { passive: true });
+
+/* 驱动：所有卡片同一节奏吐同一段文字，吐完停 2.4 秒再重播 */
+let steps = [];
+let stepIndex = 0;
+let timer = 0;
+let run = 0;
+const cursors = new Map();
+
+function startRun() {
+  clearTimeout(timer);
+  run += 1;
+  steps = planChunks(run * 7919);
+  stepIndex = 0;
+  for (const item of cards) {
+    item.end();
+    item.reply.replaceChildren();
+    item.watcher.reset();
+    cursors.set(item, { block: null, text: null, list: null });
+  }
+  tick();
+}
+
+let paused = false;
+function tick() {
+  if (paused) return;
+  if (stepIndex >= steps.length) {
+    cards.forEach((item) => item.end());
+    timer = setTimeout(startRun, 2400);
+    return;
+  }
+  const step = steps[stepIndex++];
+  for (const item of cards) {
+    const state = cursors.get(item);
+    if (step.type === 'block') {
+      let block;
+      if (step.tag === 'li') {
+        if (!state.list) {
+          state.list = document.createElement('ul');
+          item.reply.append(state.list);
+        }
+        block = document.createElement('li');
+        state.list.append(block);
+      } else {
+        state.list = null;
+        block = document.createElement(step.tag);
+        item.reply.append(block);
+      }
+      state.block = block;
+    } else if (step.type === 'inline') {
+      const holder = step.tag ? document.createElement(step.tag) : state.block;
+      if (step.tag) state.block.append(holder);
+      state.text = document.createTextNode('');
+      holder.append(state.text);
+    } else {
+      state.text.appendData(step.text);
+    }
+  }
+  const chars = step.type === 'text' ? step.text.length : 0;
+  timer = setTimeout(tick, chars ? (chars / PARAMS.speed) * 1000 : 0);
+}
+
+/* 控件 */
+const root = document.documentElement;
+const themeSelect = document.getElementById('theme');
+for (const name of Object.keys(THEMES)) themeSelect.add(new Option(name, name));
+let lastDark = 'Woodfish Dark';
+let lastLight = 'Woodfish Light';
+
+function applyTheme(name) {
+  theme = THEMES[name];
+  const set = (key, value) => root.style.setProperty(key, value);
+  set('--bg', theme.bg); set('--fg', theme.fg); set('--muted', theme.muted);
+  set('--accent', theme.accent); set('--accent2', theme.accent2); set('--on-accent', theme.on);
+  // 回复正文渐变：主题光标色向正文色收 58%（adapter-codex 的 bodyGradient 同一做法）
+  set('--body-gradient', `linear-gradient(135deg, ${theme.stops.map((color) => `color-mix(in oklab, ${color} 42%, ${theme.fg})`).join(', ')})`);
+  root.style.colorScheme = theme.mode;
+  if (theme.mode === 'dark') lastDark = name; else lastLight = name;
+  document.getElementById('mode').textContent = theme.mode === 'dark' ? '切到浅色' : '切到深色';
+  themeSelect.value = name;
+}
+themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
+document.getElementById('mode').addEventListener('click', () => applyTheme(theme.mode === 'dark' ? lastLight : lastDark));
+
+const UNITS = { speed: ' 字/秒', width: 'px', trail: '', fadeMs: 'ms', particles: '' };
+for (const key of Object.keys(UNITS)) {
+  const input = document.getElementById(key);
+  const out = input.nextElementSibling;
+  const update = () => {
+    PARAMS[key] = Number(input.value);
+    out.textContent = input.value + UNITS[key];
+  };
+  input.addEventListener('input', update);
+  update();
+}
+for (const key of ['mouseTrail', 'followTheme', 'simplified']) {
+  const input = document.getElementById(key);
+  input.addEventListener('change', () => { PARAMS[key] = input.checked; });
+}
+document.getElementById('replay').addEventListener('click', () => {
+  paused = false;
+  document.getElementById('pause').textContent = '暂停';
+  startRun();
+});
+document.getElementById('pause').addEventListener('click', (event) => {
+  paused = !paused;
+  event.currentTarget.textContent = paused ? '继续' : '暂停';
+  if (!paused) tick();
+});
+
+let picked = 1;
+function select(id) {
+  picked = id;
+  document.querySelectorAll('.card').forEach((card) => card.classList.toggle('picked', Number(card.dataset.id) === id));
+}
+function summary() {
+  const name = SCHEMES.find(([id]) => id === picked)[1];
+  return `方案 #${picked}「${name}」；光标颜色${PARAMS.followTheme ? '跟随主题' : ' Woodfish 彩虹'}，拖尾颜色${PARAMS.followTheme ? '跟随主题强调色' : ' #ffffff（Animations 插件默认）'}；光标粗细 ${PARAMS.width}px，拖尾长度 ${PARAMS.trail}，淡入时长 ${PARAMS.fadeMs}ms，粒子数量 ${PARAMS.particles}；试看速度 ${PARAMS.speed} 字/秒，主题 ${themeSelect.value}`;
+}
+document.getElementById('pick').addEventListener('click', () => { document.getElementById('result').value = summary(); });
+document.getElementById('copy').addEventListener('click', async () => {
+  const box = document.getElementById('result');
+  if (!box.value) box.value = summary();
+  try { await navigator.clipboard.writeText(box.value); } catch { box.select(); document.execCommand('copy'); }
+});
+
+applyTheme('Woodfish Dark');
+select(1);
+startRun();
+</script>
+</body>
+</html>

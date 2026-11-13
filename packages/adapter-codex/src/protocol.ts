@@ -1,5 +1,5 @@
 /** Version of the in-page overlay protocol; bump when the injected contract changes. */
-export const CODEX_ADAPTER_VERSION = '0.1.0';
+export const CODEX_ADAPTER_VERSION = '0.2.0';
 
 declare const __WOODFISH_CODEX_BUILD__: string | undefined;
 
@@ -15,6 +15,27 @@ export const CODEX_CONTROLLER_KEY = '__woodfishCodexController';
 
 /** Global a CDP injection stores the settings under before the bundle runs. */
 export const CODEX_CONFIG_KEY = '__woodfishCodexConfig';
+
+/**
+ * Global an injection stores the effect plugins under (the list `@woodfish/effects` builds
+ * from the user's effects folder) before the bundle runs.
+ */
+export const CODEX_EFFECTS_KEY = '__woodfishCodexEffects';
+
+/**
+ * Global holding how many times a reload was asked for (「刷新效果」, Ctrl+Alt+R,
+ * `woodfish reload`). When it changes, every effect is restarted, failed ones included.
+ */
+export const CODEX_EFFECTS_RELOAD_KEY = '__woodfishCodexEffectsReload';
+
+/**
+ * CDP binding the page calls to reload every effect from disk (the settings page's
+ * 「刷新效果」 button and Ctrl+Alt+R). The payload is ignored.
+ */
+export const CODEX_RELOAD_BINDING = '__woodfishCodexReload';
+
+/** CDP binding the page reports effect failures through, so they reach the watcher log. */
+export const CODEX_LOG_BINDING = '__woodfishCodexLog';
 
 /**
  * CDP binding (`Runtime.addBinding`) the watcher installs in each main window. The in-app

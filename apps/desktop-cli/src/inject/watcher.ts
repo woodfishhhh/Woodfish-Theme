@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import {
   CODEX_BACKGROUND_BINDING,
+  CODEX_EFFECTS_RELOAD_KEY,
+  CODEX_LOG_BINDING,
+  CODEX_RELOAD_BINDING,
   CODEX_SETTINGS_BINDING,
   CodexBackgroundEntry,
   CodexBackgroundReply,
@@ -104,6 +107,13 @@ export interface WatcherOptions {
   /** Called with a callback to invoke when settings change; returns an unsubscribe. */
   watchSettings?: (onChange: () => void) => () => void;
   /**
+   * The effect plugins as a page script (read from the effects folder on every refresh).
+   * When given, pages also get the reload and log bindings.
+   */
+  loadEffects?: () => string;
+  /** Like `watchSettings`, for the effects folder; `reload` restarts every effect. */
+  watchEffects?: (onChange: (reload: boolean) => void) => () => void;
+  /**
    * Saves a change made in the in-app settings panel (parsed, still untrusted JSON).
    * When given, every main window gets the settings binding.
    */
@@ -122,6 +132,8 @@ export interface RunningWatcher {
   pages(): number;
   /** Re-applies the current settings to every page; skipped when nothing changed. */
   refresh(force?: boolean): Promise<void>;
+  /** Re-reads the effects from disk and restarts all of them. */
+  reload(): Promise<void>;
   /** Removes the overlay from every page and closes the connection. */
   stop(): Promise<void>;
   /** Resolves when Codex closes the debugging connection. */
@@ -142,7 +154,20 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
   });
   const pages = new Map<string, AttachedPage>();
   const attaching = new Set<string>();
-  let script = buildInjectionScript(options.loadSettings(), options.bundle);
+  /** Asked-for reloads; the page restarts every effect when the number changes. */
+  let reloads = 0;
+  const buildScript = (): string =>
+    buildInjectionScript(
+      options.loadSettings(),
+      options.bundle,
+      options.loadEffects
+        ? [
+            options.loadEffects(),
+            `globalThis[${toScriptLiteral(CODEX_EFFECTS_RELOAD_KEY)}] = ${reloads};`,
+          ].join('\n')
+        : ''
+    );
+  let script = buildScript();
   let stopped = false;
 
   /** Saves a panel change sent through the binding, then updates every window. */
@@ -203,6 +228,23 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
     }
     if (options.backgrounds) {
       await connection.send('Runtime.addBinding', { name: CODEX_BACKGROUND_BINDING }, sessionId);
+    }
+    if (options.loadEffects) {
+      await connection.send('Runtime.addBinding', { name: CODEX_RELOAD_BINDING }, sessionId);
+      await connection.send('Runtime.addBinding', { name: CODEX_LOG_BINDING }, sessionId);
+    }
+  }
+
+  /** An effect failed in the page; keep the reason in the log. */
+  function onLogBinding(payload: unknown): void {
+    if (typeof payload !== 'string' || payload.length > MAX_BINDING_PAYLOAD) {
+      return;
+    }
+    try {
+      const { id, message } = JSON.parse(payload) as { id?: unknown; message?: unknown };
+      log(`效果 ${String(id)} 出错：${String(message)}`);
+    } catch {
+      // Not from the overlay.
     }
   }
 
@@ -294,6 +336,19 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
       [...pages.values()].some((page) => page.sessionId === event.sessionId)
     ) {
       onBackgroundBinding(event.sessionId, event.params.payload);
+    } else if (
+      event.method === 'Runtime.bindingCalled' &&
+      event.params.name === CODEX_RELOAD_BINDING &&
+      [...pages.values()].some((page) => page.sessionId === event.sessionId)
+    ) {
+      log('页面请求刷新效果');
+      void reload();
+    } else if (
+      event.method === 'Runtime.bindingCalled' &&
+      event.params.name === CODEX_LOG_BINDING &&
+      [...pages.values()].some((page) => page.sessionId === event.sessionId)
+    ) {
+      onLogBinding(event.params.payload);
     } else if (event.method === 'Page.loadEventFired' && event.sessionId) {
       // The new-document script normally re-injects; verify and repair if it did not.
       const entry = [...pages.entries()].find(([, page]) => page.sessionId === event.sessionId);
@@ -334,7 +389,13 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
   healthTimer.unref();
 
   async function refresh(force = false): Promise<void> {
-    const next = buildInjectionScript(options.loadSettings(), options.bundle);
+    let next: string;
+    try {
+      next = buildScript();
+    } catch (error) {
+      log(`读取设置或效果失败：${(error as Error).message}`);
+      return;
+    }
     if (next === script && !force) {
       return;
     }
@@ -350,11 +411,25 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
   const unwatch = options.watchSettings?.(() => {
     void refresh();
   });
+  /** Re-reads everything from disk and restarts every effect in every window. */
+  async function reload(): Promise<void> {
+    reloads += 1;
+    await refresh(true);
+  }
+
+  // Scanners touching the folder fire events too; refresh() only logs when the script changed.
+  const unwatchEffects = options.watchEffects?.((asked: boolean) => {
+    if (asked) {
+      log('收到刷新效果的请求');
+    }
+    void (asked ? reload() : refresh());
+  });
 
   const closed = new Promise<void>((resolve) => {
     connection.onClose(() => {
       clearInterval(healthTimer);
       unwatch?.();
+      unwatchEffects?.();
       log('Codex 已关闭调试连接，监视进程退出');
       resolve();
     });
@@ -363,10 +438,12 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
   return {
     pages: () => pages.size,
     refresh,
+    reload,
     async stop(): Promise<void> {
       stopped = true;
       clearInterval(healthTimer);
       unwatch?.();
+      unwatchEffects?.();
       for (const page of pages.values()) {
         if (page.scriptId) {
           await connection

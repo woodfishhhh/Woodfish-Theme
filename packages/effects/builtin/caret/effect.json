@@ -1,0 +1,84 @@
+{
+  "name": "输入框光标",
+  "description": "Codex 输入框里的光标换成作者 VS Code 里那套：6px 宽、不闪烁、平滑移动、Woodfish 彩虹慢慢流动。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 5,
+  "params": {
+    "width": {
+      "type": "number",
+      "default": 6,
+      "min": 1,
+      "max": 16,
+      "step": 0.5,
+      "unit": "px",
+      "label": "光标宽度",
+      "description": "VS Code 的 editor.cursorWidth（作者设的是 6）"
+    },
+    "blinking": {
+      "type": "select",
+      "default": "solid",
+      "options": [
+        { "value": "solid", "label": "不闪烁" },
+        { "value": "blink", "label": "闪烁" },
+        { "value": "smooth", "label": "柔和闪烁" },
+        { "value": "phase", "label": "渐隐渐现" },
+        { "value": "expand", "label": "伸缩" }
+      ],
+      "label": "闪烁方式",
+      "description": "VS Code 的 editor.cursorBlinking（作者设的是 solid）；打字时总是常亮"
+    },
+    "smoothCaretAnimation": {
+      "type": "select",
+      "default": "on",
+      "options": [
+        { "value": "on", "label": "总是平滑" },
+        { "value": "explicit", "label": "只在点击和方向键移动时" },
+        { "value": "off", "label": "关" }
+      ],
+      "label": "平滑移动",
+      "description": "VS Code 的 editor.cursorSmoothCaretAnimation（作者设的是 on），移动用 80 ms"
+    },
+    "colors": {
+      "type": "select",
+      "default": "auto",
+      "options": [
+        { "value": "auto", "label": "跟 VS Code 一样" },
+        { "value": "rainbow", "label": "Woodfish 彩虹" },
+        { "value": "theme", "label": "主题色" }
+      ],
+      "label": "颜色",
+      "description": "跟 VS Code 一样：主题自带光标色时用主题的，否则用 Woodfish 彩虹（Woodfish Dark 是彩虹）"
+    },
+    "flowSeconds": {
+      "type": "number",
+      "default": 8,
+      "min": 1,
+      "max": 60,
+      "step": 0.5,
+      "unit": "s",
+      "label": "变色周期",
+      "description": "woodfishTheme.cursor.animationDuration（默认 8 秒）"
+    },
+    "radius": {
+      "type": "number",
+      "default": 2,
+      "min": 0,
+      "max": 8,
+      "step": 0.5,
+      "unit": "px",
+      "label": "圆角",
+      "description": "woodfishTheme.cursor.borderRadius（默认 2）"
+    },
+    "glow": {
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "label": "发光",
+      "description": "光标外的一圈柔光；作者 VS Code 里关着发光，所以默认 0"
+    }
+  }
+}

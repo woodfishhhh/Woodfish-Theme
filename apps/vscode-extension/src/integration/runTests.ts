@@ -39,6 +39,8 @@ function createSpaceSafeExtensionPath(extensionPath: string): {
 
 async function main(): Promise<void> {
   const extensionPath = createSpaceSafeExtensionPath(path.resolve(__dirname, '../..'));
+  // Keeps the shared effects folder of the person running the tests untouched.
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'woodfish-data-'));
   const extensionDevelopmentPath = extensionPath.path;
   const extensionTestsPath = path.join(
     extensionDevelopmentPath,
@@ -61,6 +63,7 @@ async function main(): Promise<void> {
       ],
       extensionTestsEnv: {
         WOODFISH_INTEGRATION_TEST: '1',
+        WOODFISH_DATA_DIR: dataDir,
       },
     });
   } catch (error) {
@@ -69,6 +72,7 @@ async function main(): Promise<void> {
     process.exitCode = 1;
   } finally {
     extensionPath.dispose();
+    fs.rmSync(dataDir, { recursive: true, force: true });
   }
 }
 

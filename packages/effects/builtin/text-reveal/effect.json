@@ -1,0 +1,50 @@
+{
+  "name": "新字淡入",
+  "description": "流式输出时，刚出现的字有一个很短的出场：从淡到实、从模糊到清晰，或带一圈退去的微光。只改最近几段新字，不拆字、不改 DOM。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 50,
+  "params": {
+    "style": {
+      "type": "select",
+      "default": "fade",
+      "options": [
+        { "value": "fade", "label": "淡入" },
+        { "value": "blur", "label": "模糊变清晰" },
+        { "value": "glow", "label": "新字发光" }
+      ],
+      "label": "出场方式",
+      "description": "playground 里的 #1/#2 是淡入，#3 模糊变清晰，#8 新字发光"
+    },
+    "duration": {
+      "type": "number",
+      "default": 120,
+      "min": 40,
+      "max": 1200,
+      "step": 20,
+      "unit": "ms",
+      "label": "时长",
+      "description": "新字从出现到完全正常的时间"
+    },
+    "start": {
+      "type": "number",
+      "default": 0.15,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.05,
+      "label": "起始浓度",
+      "description": "淡入时新字一开始有多实（0 是完全透明）"
+    },
+    "sources": {
+      "type": "select",
+      "default": "ai",
+      "options": [
+        { "value": "ai", "label": "只在 AI 吐字时" },
+        { "value": "all", "label": "AI 吐字和你打字" }
+      ],
+      "label": "谁触发",
+      "description": "输入框里你自己打的字默认不做出场"
+    }
+  }
+}

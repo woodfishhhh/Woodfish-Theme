@@ -116,6 +116,194 @@
     return (high + 0.05) / (low + 0.05);
   }
 
+  // ../../packages/theme-core/src/color/validate.ts
+  var HEX_COLOR_PATTERN = /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i;
+  var CSS_NAMED_COLORS = /* @__PURE__ */ new Set([
+    "aliceblue",
+    "antiquewhite",
+    "aqua",
+    "aquamarine",
+    "azure",
+    "beige",
+    "bisque",
+    "black",
+    "blanchedalmond",
+    "blue",
+    "blueviolet",
+    "brown",
+    "burlywood",
+    "cadetblue",
+    "chartreuse",
+    "chocolate",
+    "coral",
+    "cornflowerblue",
+    "cornsilk",
+    "crimson",
+    "cyan",
+    "darkblue",
+    "darkcyan",
+    "darkgoldenrod",
+    "darkgray",
+    "darkgreen",
+    "darkgrey",
+    "darkkhaki",
+    "darkmagenta",
+    "darkolivegreen",
+    "darkorange",
+    "darkorchid",
+    "darkred",
+    "darksalmon",
+    "darkseagreen",
+    "darkslateblue",
+    "darkslategray",
+    "darkslategrey",
+    "darkturquoise",
+    "darkviolet",
+    "deeppink",
+    "deepskyblue",
+    "dimgray",
+    "dimgrey",
+    "dodgerblue",
+    "firebrick",
+    "floralwhite",
+    "forestgreen",
+    "fuchsia",
+    "gainsboro",
+    "ghostwhite",
+    "gold",
+    "goldenrod",
+    "gray",
+    "green",
+    "greenyellow",
+    "grey",
+    "honeydew",
+    "hotpink",
+    "indianred",
+    "indigo",
+    "ivory",
+    "khaki",
+    "lavender",
+    "lavenderblush",
+    "lawngreen",
+    "lemonchiffon",
+    "lightblue",
+    "lightcoral",
+    "lightcyan",
+    "lightgoldenrodyellow",
+    "lightgray",
+    "lightgreen",
+    "lightgrey",
+    "lightpink",
+    "lightsalmon",
+    "lightseagreen",
+    "lightskyblue",
+    "lightslategray",
+    "lightslategrey",
+    "lightsteelblue",
+    "lightyellow",
+    "lime",
+    "limegreen",
+    "linen",
+    "magenta",
+    "maroon",
+    "mediumaquamarine",
+    "mediumblue",
+    "mediumorchid",
+    "mediumpurple",
+    "mediumseagreen",
+    "mediumslateblue",
+    "mediumspringgreen",
+    "mediumturquoise",
+    "mediumvioletred",
+    "midnightblue",
+    "mintcream",
+    "mistyrose",
+    "moccasin",
+    "navajowhite",
+    "navy",
+    "oldlace",
+    "olive",
+    "olivedrab",
+    "orange",
+    "orangered",
+    "orchid",
+    "palegoldenrod",
+    "palegreen",
+    "paleturquoise",
+    "palevioletred",
+    "papayawhip",
+    "peachpuff",
+    "peru",
+    "pink",
+    "plum",
+    "powderblue",
+    "purple",
+    "rebeccapurple",
+    "red",
+    "rosybrown",
+    "royalblue",
+    "saddlebrown",
+    "salmon",
+    "sandybrown",
+    "seagreen",
+    "seashell",
+    "sienna",
+    "silver",
+    "skyblue",
+    "slateblue",
+    "slategray",
+    "slategrey",
+    "snow",
+    "springgreen",
+    "steelblue",
+    "tan",
+    "teal",
+    "thistle",
+    "tomato",
+    "transparent",
+    "turquoise",
+    "violet",
+    "wheat",
+    "white",
+    "whitesmoke",
+    "yellow",
+    "yellowgreen"
+  ]);
+  function validateAlpha(component, numeric) {
+    if (component === void 0) {
+      return true;
+    }
+    const maximum = component.endsWith("%") ? 100 : 1;
+    return numeric !== void 0 && numeric >= 0 && numeric <= maximum;
+  }
+  function isValidFunctionalColor(value) {
+    const match = /^(rgba?|hsla?)\((.*)\)$/i.exec(value);
+    if (!match || !/^[\d+\-.,%/.\s]+$/.test(match[2])) {
+      return false;
+    }
+    const normalized = match[2].replace(/\s*\/\s*/, ",").replace(/\s+/g, ",");
+    const components = normalized.split(",").filter(Boolean);
+    const isRgb = match[1].toLowerCase().startsWith("rgb");
+    const expected = match[1].toLowerCase().endsWith("a") ? 4 : components.length;
+    if (components.length < 3 || components.length > 4 || expected !== components.length) {
+      return false;
+    }
+    const numeric = components.map((component) => Number.parseFloat(component));
+    if (numeric.some((component) => !Number.isFinite(component))) {
+      return false;
+    }
+    if (isRgb) {
+      return components.slice(0, 3).every((component, index) => {
+        const maximum = component.endsWith("%") ? 100 : 255;
+        return numeric[index] >= 0 && numeric[index] <= maximum;
+      }) && validateAlpha(components[3], numeric[3]);
+    }
+    return numeric[1] >= 0 && numeric[1] <= 100 && components[1].endsWith("%") && numeric[2] >= 0 && numeric[2] <= 100 && components[2].endsWith("%") && validateAlpha(components[3], numeric[3]);
+  }
+  function isValidCssColor(value) {
+    return HEX_COLOR_PATTERN.test(value) || CSS_NAMED_COLORS.has(value.toLowerCase()) || isValidFunctionalColor(value);
+  }
+
   // ../../packages/theme-core/src/color/gamut.ts
   var CHROMA_CEILING = 0.4;
   var BISECTION_STEPS = 18;
@@ -400,6 +588,24 @@
     neutralChroma: 0.075,
     angle: 45
   });
+  var DEFAULT_CURSOR_GRADIENT_STOPS = /* @__PURE__ */ Object.freeze([
+    "#ff2d95",
+    "#ff4500",
+    "#ffd700",
+    "#7cfc00",
+    "#00ffff",
+    "#1e90ff",
+    "#9370db",
+    "#ff00ff",
+    "#ff1493"
+  ]);
+  var DEFAULT_CURSOR = /* @__PURE__ */ Object.freeze({
+    animationDuration: 8,
+    gradientStops: DEFAULT_CURSOR_GRADIENT_STOPS,
+    borderRadius: 2,
+    glowBlur: 0,
+    glowOpacity: 0.7
+  });
   var DEFAULT_GLASS = /* @__PURE__ */ Object.freeze({
     mode: "blur",
     blur: 30,
@@ -408,6 +614,54 @@
     noise: 0.02,
     borderRadius: 0
   });
+
+  // ../../packages/theme-core/src/effects/plugins.ts
+  function finite(value) {
+    return typeof value === "number" && Number.isFinite(value) ? value : void 0;
+  }
+  function normalizeValue(spec, value) {
+    switch (spec.type) {
+      case "number": {
+        const number = finite(value);
+        return number === void 0 ? spec.default : Math.min(spec.max ?? number, Math.max(spec.min ?? number, number));
+      }
+      case "boolean":
+        return typeof value === "boolean" ? value : spec.default;
+      case "select":
+        return typeof value === "string" && spec.options?.some((option) => option.value === value) ? value : spec.default;
+      case "color":
+        return typeof value === "string" && isValidCssColor(value) ? value : spec.default;
+    }
+  }
+  function normalizeEffectValues(manifest, raw) {
+    const input = raw !== null && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+    const values = {
+      enabled: typeof input.enabled === "boolean" ? input.enabled : manifest.enabled
+    };
+    for (const [key, spec] of Object.entries(manifest.params)) {
+      values[key] = normalizeValue(spec, input[key]);
+    }
+    return values;
+  }
+  function patchEffectValues(manifest, values, patch) {
+    if (patch === null || typeof patch !== "object" || Array.isArray(patch)) {
+      return normalizeEffectValues(manifest, values);
+    }
+    return normalizeEffectValues(manifest, { ...values, ...patch });
+  }
+  function effectCssVariables(id, manifest, values) {
+    const kebab = (key) => key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+    return Object.entries(manifest.params).flatMap(([key, spec]) => {
+      const value = values[key];
+      if (spec.type === "boolean") {
+        return [`--woodfish-${id}-${kebab(key)}: ${value ? 1 : 0};`];
+      }
+      if (spec.type === "number") {
+        return [`--woodfish-${id}-${kebab(key)}: ${String(value)}${spec.unit ?? ""};`];
+      }
+      return typeof value === "string" && (spec.type === "color" || /^[a-z0-9-]+$/i.test(value)) ? [`--woodfish-${id}-${kebab(key)}: ${value};`] : [];
+    });
+  }
 
   // ../../packages/theme-core/src/palettes/gradientPresets.ts
   var TOKEN_ANGLE = 45;
@@ -1002,6 +1256,51 @@
     };
   }
 
+  // ../../packages/renderer-runtime/src/styleManager.ts
+  function createStyleManager(options) {
+    const mounted = /* @__PURE__ */ new Map();
+    const container = options.container ?? (() => document.head);
+    function create(name) {
+      const element = document.createElement("style");
+      element.id = `${options.idPrefix}${name}`;
+      for (const [attribute, value] of Object.entries(options.nodeAttributes ?? {})) {
+        element.setAttribute(attribute, value);
+      }
+      return element;
+    }
+    function remove(name) {
+      mounted.get(name)?.remove();
+      mounted.delete(name);
+    }
+    return {
+      upsert(name, css) {
+        if (css.trim().length === 0) {
+          remove(name);
+          return;
+        }
+        let element = mounted.get(name);
+        if (!element || !element.isConnected) {
+          element = create(name);
+          mounted.set(name, element);
+          container().append(element);
+        }
+        if (element.textContent !== css) {
+          element.textContent = css;
+        }
+      },
+      remove,
+      removeAll() {
+        for (const element of mounted.values()) {
+          element.remove();
+        }
+        mounted.clear();
+      },
+      names() {
+        return [...mounted.keys()];
+      }
+    };
+  }
+
   // ../../packages/renderer-runtime/src/disposers.ts
   function createDisposerRegistry() {
     const disposers2 = [];
@@ -1129,6 +1428,21 @@
     return () => host2.remove();
   }
 
+  // ../../packages/renderer-runtime/src/tokenCss.ts
+  function formatCssNumber(value) {
+    return Number(value.toFixed(4)).toString();
+  }
+  function buildNoiseDataUri(opacity) {
+    const svg = [
+      "<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>",
+      "<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/>",
+      "<feColorMatrix type='saturate' values='0'/></filter>",
+      `<rect width='100%' height='100%' filter='url(#n)' opacity='${formatCssNumber(opacity)}'/>`,
+      "</svg>"
+    ].join("");
+    return `url("data:image/svg+xml,${encodeURIComponent(svg).replace(/'/g, "%27")}")`;
+  }
+
   // ../../packages/renderer-runtime/src/reveal.ts
   function startReveal(options) {
     const targetSelector = options.targets.join(",");
@@ -1183,6 +1497,688 @@
         cancelAnimationFrame(frame);
       }
       clear();
+    };
+  }
+
+  // ../../packages/renderer-runtime/src/effectHost.ts
+  var RAINBOW = Object.freeze([
+    "#ff2d95",
+    "#ff4500",
+    "#ffd700",
+    "#7cfc00",
+    "#00ffff",
+    "#1e90ff",
+    "#9370db",
+    "#ff00ff",
+    "#ff1493"
+  ]);
+  var MAX_ERRORS = 3;
+  var LAYER_Z_INDEX = "2147483000";
+  function message(error) {
+    return error instanceof Error ? error.message : String(error);
+  }
+  function sameValues(left, right) {
+    const keys = Object.keys(left);
+    return keys.length === Object.keys(right).length && keys.every((key) => left[key] === right[key]);
+  }
+  function startEffectHost(options) {
+    const styles = createStyleManager({
+      idPrefix: options.idPrefix,
+      nodeAttributes: options.nodeAttributes,
+      container: () => document.head ?? document.documentElement
+    });
+    const sources = /* @__PURE__ */ new Map();
+    const running = /* @__PURE__ */ new Map();
+    const failures = /* @__PURE__ */ new Map();
+    const painters = /* @__PURE__ */ new Set();
+    const motionQuery = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+    let layer = null;
+    let canvas = null;
+    let graphics = null;
+    let frame = 0;
+    let lastFrame = 0;
+    let painted = false;
+    let themeCache = null;
+    let disposed = false;
+    const reducedMotion = () => Boolean(motionQuery?.matches) || Boolean(options.reducedMotion?.());
+    const active = () => document.visibilityState !== "hidden" && document.hasFocus();
+    function theme() {
+      themeCache ??= options.theme();
+      return themeCache;
+    }
+    function ensureLayer() {
+      if (layer?.isConnected) {
+        return layer;
+      }
+      layer = document.createElement("div");
+      layer.setAttribute("data-woodfish-effects-layer", "true");
+      layer.setAttribute("aria-hidden", "true");
+      for (const [name, value] of Object.entries(options.nodeAttributes ?? {})) {
+        layer.setAttribute(name, value);
+      }
+      layer.style.cssText = `position:fixed;inset:0;z-index:${LAYER_Z_INDEX};pointer-events:none;overflow:hidden;contain:strict;`;
+      (document.body ?? document.documentElement).append(layer);
+      return layer;
+    }
+    function ensureCanvas() {
+      if (graphics && canvas?.isConnected) {
+        return graphics;
+      }
+      canvas = document.createElement("canvas");
+      canvas.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;";
+      ensureLayer().append(canvas);
+      graphics = canvas.getContext("2d");
+      resize();
+      return graphics;
+    }
+    function resize() {
+      if (!canvas) {
+        return;
+      }
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.round(innerWidth * ratio));
+      canvas.height = Math.max(1, Math.round(innerHeight * ratio));
+      painted = true;
+      schedule();
+    }
+    function clear() {
+      if (graphics && canvas && painted) {
+        graphics.setTransform(1, 0, 0, 1, 0, 0);
+        graphics.clearRect(0, 0, canvas.width, canvas.height);
+        painted = false;
+      }
+    }
+    function schedule() {
+      if (frame === 0 && !disposed && active()) {
+        frame = requestAnimationFrame(loop);
+      }
+    }
+    function loop() {
+      frame = 0;
+      const g = ensureCanvas();
+      if (!g || !active()) {
+        clear();
+        return;
+      }
+      const now = performance.now();
+      const dt = Math.min(64, now - lastFrame || 16.7);
+      lastFrame = now;
+      clear();
+      const ratio = window.devicePixelRatio || 1;
+      let busy = false;
+      for (const entry of painters) {
+        if (!entry.awake || entry.owner.stopped) {
+          continue;
+        }
+        g.setTransform(ratio, 0, 0, ratio, 0, 0);
+        g.save();
+        let keep = false;
+        try {
+          keep = entry.fn(g, now, dt) !== false;
+        } catch (error) {
+          report(entry.owner, error);
+        }
+        g.restore();
+        painted = true;
+        entry.awake = keep;
+        busy ||= keep;
+      }
+      if (busy || painted) {
+        schedule();
+      }
+    }
+    const PAUSED_ATTRIBUTE = "data-woodfish-paused";
+    function onFocusChange() {
+      document.documentElement.toggleAttribute(PAUSED_ATTRIBUTE, !active());
+      if (active()) {
+        lastFrame = performance.now();
+        schedule();
+      } else {
+        if (frame !== 0) {
+          cancelAnimationFrame(frame);
+          frame = 0;
+        }
+        clear();
+      }
+    }
+    document.documentElement.toggleAttribute(PAUSED_ATTRIBUTE, !active());
+    window.addEventListener("resize", resize);
+    window.addEventListener("focus", onFocusChange);
+    window.addEventListener("blur", onFocusChange);
+    document.addEventListener("visibilitychange", onFocusChange);
+    function report(owner, error) {
+      owner.errors += 1;
+      const text = message(error);
+      options.log?.(owner.source.id, text);
+      if (owner.errors >= MAX_ERRORS) {
+        fail(owner.source.id, `运行出错：${text}`);
+      }
+    }
+    function fail(id, text) {
+      stop(id);
+      failures.set(id, text);
+      options.onError?.(id, text);
+    }
+    function guard(owner, fn) {
+      return (...args) => {
+        if (owner.stopped) {
+          return;
+        }
+        try {
+          fn(...args);
+        } catch (error) {
+          report(owner, error);
+        }
+      };
+    }
+    function mountCss(source) {
+      const variables = effectCssVariables(source.id, source.manifest, source.values);
+      styles.upsert(
+        `${source.id}-vars`,
+        variables.length > 0 ? `:root {
+  ${variables.join("\n  ")}
+}` : ""
+      );
+      styles.upsert(`${source.id}-css`, source.css ?? "");
+    }
+    function unmountCss(id) {
+      styles.remove(`${id}-vars`);
+      styles.remove(`${id}-css`);
+      styles.remove(`${id}-js`);
+    }
+    function createContext(owner) {
+      const { source } = owner;
+      return {
+        id: source.id,
+        host: options.host,
+        get params() {
+          return owner.source.values;
+        },
+        theme,
+        rainbow: RAINBOW,
+        selectors: options.selectors ?? {},
+        lib: options.lib ?? {},
+        onInsert: (handler) => owner.handlers.insert.push(guard(owner, handler)),
+        onCaret: (handler) => owner.handlers.caret.push(guard(owner, handler)),
+        onStreamEnd: (handler) => owner.handlers.streamEnd.push(guard(owner, handler)),
+        onTheme: (handler) => owner.handlers.theme.push(guard(owner, handler)),
+        painter: (fn) => {
+          const entry = { fn, awake: false, owner };
+          painters.add(entry);
+          owner.painters.add(entry);
+          return {
+            wake: () => {
+              if (owner.stopped) {
+                return;
+              }
+              entry.awake = true;
+              ensureCanvas();
+              schedule();
+            }
+          };
+        },
+        get layer() {
+          return ensureLayer();
+        },
+        style: (css) => styles.upsert(`${source.id}-js`, css),
+        on: (target, type, listener, listenerOptions) => {
+          const wrapped = guard(owner, listener);
+          target.addEventListener(type, wrapped, listenerOptions);
+          owner.cleanups.push(() => target.removeEventListener(type, wrapped, listenerOptions));
+        },
+        later: (ms, fn) => {
+          const timer = globalThis.setTimeout(guard(owner, fn), ms);
+          const cancel = () => globalThis.clearTimeout(timer);
+          owner.cleanups.push(cancel);
+          return cancel;
+        },
+        simplified: () => reducedMotion() || !active(),
+        reducedMotion,
+        log: (text) => options.log?.(source.id, text)
+      };
+    }
+    function start2(source) {
+      failures.delete(source.id);
+      const owner = {
+        source,
+        instance: {},
+        handlers: { insert: [], caret: [], streamEnd: [], theme: [] },
+        painters: /* @__PURE__ */ new Set(),
+        cleanups: [],
+        errors: 0,
+        stopped: false
+      };
+      const context = createContext(owner);
+      running.set(source.id, owner);
+      mountCss(source);
+      if (!source.factory) {
+        return;
+      }
+      try {
+        const module = { exports: {} };
+        source.factory(module, module.exports);
+        if (typeof module.exports !== "function") {
+          throw new Error("effect.js 需要 module.exports = function (ctx) { … }");
+        }
+        const result = module.exports(context);
+        owner.instance = result !== null && typeof result === "object" ? result : {};
+      } catch (error) {
+        fail(source.id, `启动失败：${message(error)}`);
+      }
+    }
+    function stop(id) {
+      const owner = running.get(id);
+      running.delete(id);
+      unmountCss(id);
+      if (!owner) {
+        return;
+      }
+      owner.stopped = true;
+      for (const entry of owner.painters) {
+        painters.delete(entry);
+      }
+      for (const cleanup of owner.cleanups.splice(0)) {
+        try {
+          cleanup();
+        } catch {
+        }
+      }
+      try {
+        owner.instance.dispose?.();
+      } catch (error) {
+        options.log?.(id, `停止时出错：${message(error)}`);
+      }
+      painted = true;
+      schedule();
+    }
+    function update(owner, source) {
+      owner.source = source;
+      mountCss(source);
+      if (!owner.instance.update) {
+        stop(source.id);
+        start2(source);
+        return;
+      }
+      try {
+        owner.instance.update(source.values);
+      } catch (error) {
+        fail(source.id, `更新参数失败：${message(error)}`);
+      }
+    }
+    function applyOne(source) {
+      const owner = running.get(source.id);
+      const runs = source.manifest.hosts.includes(options.host);
+      if (source.error || !runs) {
+        if (owner) {
+          stop(source.id);
+        }
+        return;
+      }
+      if (source.manifest.core) {
+        options.core?.(source.manifest.core, source.values.enabled ? source.values : null);
+        if (source.values.enabled) {
+          mountCss(source);
+        } else {
+          unmountCss(source.id);
+        }
+        return;
+      }
+      if (!source.values.enabled) {
+        if (owner) {
+          stop(source.id);
+        }
+        failures.delete(source.id);
+        return;
+      }
+      if (owner && owner.source.hash === source.hash && !failures.has(source.id)) {
+        if (!sameValues(owner.source.values, source.values)) {
+          update(owner, source);
+        }
+        return;
+      }
+      if (owner) {
+        stop(source.id);
+      }
+      if (failures.has(source.id) && owner === void 0 && sources.get(source.id)?.hash === source.hash) {
+        return;
+      }
+      start2(source);
+    }
+    function owners() {
+      return [...running.values()];
+    }
+    return {
+      apply(next) {
+        if (disposed) {
+          return;
+        }
+        const seen = /* @__PURE__ */ new Set();
+        for (const source of next) {
+          if (seen.has(source.id)) {
+            continue;
+          }
+          seen.add(source.id);
+          const previous = sources.get(source.id);
+          if (previous && previous.hash !== source.hash) {
+            failures.delete(source.id);
+          }
+          applyOne(source);
+          sources.set(source.id, source);
+        }
+        for (const [id, source] of [...sources]) {
+          if (!seen.has(id)) {
+            sources.delete(id);
+            failures.delete(id);
+            if (source.manifest.core) {
+              options.core?.(source.manifest.core, null);
+            }
+            stop(id);
+          }
+        }
+      },
+      preview(id, patch) {
+        const source = sources.get(id);
+        if (!source || disposed) {
+          return null;
+        }
+        const values = patchEffectValues(source.manifest, source.values, patch);
+        const next = { ...source, values };
+        if (failures.has(id) && values.enabled !== source.values.enabled) {
+          failures.delete(id);
+        }
+        sources.set(id, next);
+        applyOne(next);
+        return values;
+      },
+      insert(event) {
+        owners().forEach((owner) => owner.handlers.insert.forEach((handler) => handler(event)));
+      },
+      caret(event) {
+        owners().forEach((owner) => owner.handlers.caret.forEach((handler) => handler(event)));
+      },
+      streamEnd(event) {
+        owners().forEach((owner) => owner.handlers.streamEnd.forEach((handler) => handler(event)));
+      },
+      themeChanged() {
+        themeCache = null;
+        owners().forEach((owner) => owner.handlers.theme.forEach((handler) => handler()));
+      },
+      status() {
+        return [...sources.values()].filter((source) => source.error || source.manifest.hosts.includes(options.host)).map((source) => {
+          const error = source.error ?? failures.get(source.id);
+          const state = error ? "failed" : source.manifest.core ? "core" : running.has(source.id) ? "running" : "off";
+          return {
+            id: source.id,
+            manifest: source.manifest,
+            values: normalizeEffectValues(source.manifest, source.values),
+            state,
+            ...error ? { error } : {}
+          };
+        }).sort(
+          (left, right) => left.manifest.order - right.manifest.order || left.id.localeCompare(right.id)
+        );
+      },
+      dispose() {
+        if (disposed) {
+          return;
+        }
+        for (const id of [...running.keys()]) {
+          stop(id);
+        }
+        for (const source of sources.values()) {
+          if (source.manifest.core) {
+            options.core?.(source.manifest.core, null);
+          }
+        }
+        disposed = true;
+        if (frame !== 0) {
+          cancelAnimationFrame(frame);
+        }
+        window.removeEventListener("resize", resize);
+        window.removeEventListener("focus", onFocusChange);
+        window.removeEventListener("blur", onFocusChange);
+        document.removeEventListener("visibilitychange", onFocusChange);
+        document.documentElement.removeAttribute(PAUSED_ATTRIBUTE);
+        styles.removeAll();
+        layer?.remove();
+        layer = null;
+        canvas = null;
+        graphics = null;
+        sources.clear();
+        failures.clear();
+      }
+    };
+  }
+
+  // browser/effects.ts
+  var POLL_MS = 1500;
+  var TYPING_WINDOW_MS = 250;
+  var HEX = /#[0-9a-f]{6}\b/gi;
+  var RAINBOW2 = DEFAULT_CURSOR.gradientStops.map((color) => color.toLowerCase());
+  function effectsUrl() {
+    const raw = readStringVariable("--woodfish-effects-url").replace(/^["']|["']$/g, "");
+    return raw.startsWith("vscode-file://") && raw.endsWith("/") ? raw : null;
+  }
+  function workbench() {
+    return document.querySelector(".monaco-workbench") ?? document.body;
+  }
+  function vscodeTheme() {
+    const host2 = workbench();
+    const style = getComputedStyle(host2);
+    const variable = (name) => style.getPropertyValue(name).trim();
+    const light = host2.classList.contains("vs") || host2.classList.contains("hc-light");
+    const root = getComputedStyle(document.documentElement);
+    const cursorStops = root.getPropertyValue("--woodfish-cursor-gradient").match(HEX) ?? [];
+    const tab = root.getPropertyValue("--woodfish-tab-border-gradient").match(HEX) ?? [];
+    const own = cursorStops.length > 1 && cursorStops.join().toLowerCase() !== RAINBOW2.join() ? cursorStops : null;
+    const accent = variable("--vscode-editorCursor-foreground") || variable("--vscode-focusBorder") || "#61afea";
+    const accent2 = variable("--vscode-textLink-foreground") || accent;
+    return {
+      mode: light ? "light" : "dark",
+      stops: own ?? (tab.length > 1 ? tab : cursorStops.length > 1 ? cursorStops : [accent, accent2]),
+      accent,
+      accent2,
+      background: variable("--vscode-editor-background") || (light ? "#ffffff" : "#1e1e1e"),
+      foreground: variable("--vscode-editor-foreground") || (light ? "#000000" : "#d4d4d4"),
+      cursor: own
+    };
+  }
+  function typedText(event) {
+    if (event.ctrlKey && !event.altKey) {
+      return null;
+    }
+    if (event.metaKey) {
+      return null;
+    }
+    if (event.key === "Enter") {
+      return "\n";
+    }
+    if (event.key === "Tab") {
+      return "	";
+    }
+    if (event.key === "Process" || event.isComposing) {
+      return "　";
+    }
+    return event.key.length === 1 ? event.key : null;
+  }
+  function watchMonaco(host2) {
+    let editor = null;
+    let observer = null;
+    let frame = 0;
+    let typed = null;
+    let lastKey = "";
+    let rate = 0;
+    let rateAt = 0;
+    function primaryCursor() {
+      const layer = editor?.querySelector(".cursors-layer");
+      if (!layer) {
+        return null;
+      }
+      return [...layer.querySelectorAll(".cursor")].find(
+        (cursor) => cursor.style.display !== "none" && cursor.style.visibility !== "hidden"
+      ) ?? null;
+    }
+    function hide() {
+      if (lastKey) {
+        lastKey = "";
+        host2.caret({ x: 0, y: 0, width: 0, height: 0, source: "user", visible: false });
+      }
+    }
+    function flush() {
+      frame = 0;
+      const cursor = editor?.classList.contains("focused") ? primaryCursor() : null;
+      const layer = cursor?.parentElement;
+      if (!cursor || !layer) {
+        hide();
+        return;
+      }
+      const box = layer.getBoundingClientRect();
+      const x = box.left + (Number.parseFloat(cursor.style.left) || 0);
+      const y = box.top + (Number.parseFloat(cursor.style.top) || 0);
+      const width = cursor.offsetWidth || Number.parseFloat(cursor.style.width) || 2;
+      const height = cursor.offsetHeight || Number.parseFloat(cursor.style.height) || 18;
+      const key = `${Math.round(x)},${Math.round(y)}`;
+      if (key === lastKey) {
+        return;
+      }
+      lastKey = key;
+      const now = performance.now();
+      if (typed && now - typed.at < TYPING_WINDOW_MS) {
+        const seconds = Math.max(0.016, (now - rateAt) / 1e3);
+        rate = rateAt === 0 ? typed.text.length / seconds : rate * 0.7 + typed.text.length / seconds * 0.3;
+        rateAt = now;
+        host2.insert({
+          x,
+          y,
+          height,
+          text: typed.text,
+          source: "user",
+          rate,
+          rects: [],
+          block: editor,
+          node: null,
+          start: 0
+        });
+        typed = null;
+      }
+      host2.caret({ x, y, width, height, source: "user", visible: true });
+    }
+    function schedule() {
+      if (frame === 0) {
+        frame = requestAnimationFrame(flush);
+      }
+    }
+    function follow() {
+      const next = document.activeElement?.closest(".monaco-editor") ?? null;
+      if (next !== editor) {
+        observer?.disconnect();
+        editor = next;
+        const layer = editor?.querySelector(".cursors-layer");
+        if (layer) {
+          observer = new MutationObserver(schedule);
+          observer.observe(layer, { attributes: true, childList: true, subtree: true });
+        }
+      }
+      schedule();
+    }
+    function onKeyDown(event) {
+      const keyboard = event;
+      if (!(keyboard.target instanceof Element) || !keyboard.target.closest(".monaco-editor")) {
+        return;
+      }
+      const text = typedText(keyboard);
+      if (text !== null) {
+        typed = { text, at: performance.now() };
+      }
+    }
+    function onPaste(event) {
+      if (event.target instanceof Element && event.target.closest(".monaco-editor")) {
+        typed = {
+          text: event.clipboardData?.getData("text") || " ",
+          at: performance.now()
+        };
+      }
+    }
+    const listeners = [
+      [document, "focusin", follow],
+      [document, "focusout", follow],
+      [document, "keydown", onKeyDown],
+      [document, "paste", onPaste],
+      [window, "resize", schedule]
+    ];
+    for (const [target, type, listener] of listeners) {
+      target.addEventListener(type, listener, { capture: true, passive: true });
+    }
+    follow();
+    return () => {
+      for (const [target, type, listener] of listeners) {
+        target.removeEventListener(type, listener, { capture: true });
+      }
+      observer?.disconnect();
+      if (frame !== 0) {
+        cancelAnimationFrame(frame);
+      }
+    };
+  }
+  function startEffects() {
+    const base = effectsUrl();
+    if (!base) {
+      return;
+    }
+    const host2 = startEffectHost({
+      host: "vscode",
+      theme: vscodeTheme,
+      selectors: { editorRoot: ".monaco-editor", editor: ".monaco-editor" },
+      lib: {
+        startReveal,
+        mountAcrylicFilter,
+        acrylicFilterId: ACRYLIC_FILTER_ID,
+        noiseDataUri: buildNoiseDataUri
+      },
+      idPrefix: "woodfish-fx-",
+      reducedMotion: () => workbench().classList.contains("monaco-reduce-motion"),
+      onError: (id, message2) => console.warn(`[Woodfish] 效果 ${id}：${message2}`),
+      log: (id, message2) => console.warn(`[Woodfish] 效果 ${id}：${message2}`)
+    });
+    const typing = watchMonaco(host2);
+    const themeObserver = new MutationObserver(() => host2.themeChanged());
+    themeObserver.observe(workbench(), { attributes: true, attributeFilter: ["class"] });
+    let version = "";
+    let reload;
+    let timer = 0;
+    let disposed = false;
+    async function poll() {
+      const active = document.visibilityState === "visible" && document.hasFocus();
+      if (!disposed && (active || version === "")) {
+        try {
+          const response = await fetch(`${base}effects.json?t=${Date.now()}`, { cache: "no-store" });
+          const next = await response.json();
+          const key = `${String(next.hash)}|${String(next.reload)}`;
+          if (response.ok && key !== version) {
+            const module = await import(`${base}effects.mjs?v=${encodeURIComponent(key)}`);
+            const list = Array.isArray(module.default) ? module.default : [];
+            if (next.reload !== reload) {
+              host2.apply([]);
+              reload = next.reload;
+            }
+            host2.apply(list);
+            version = key;
+          }
+        } catch (error) {
+          console.warn("[Woodfish] 加载效果失败", error);
+        }
+      }
+      if (!disposed) {
+        timer = window.setTimeout(() => void poll(), POLL_MS);
+      }
+    }
+    void poll();
+    return () => {
+      disposed = true;
+      window.clearTimeout(timer);
+      themeObserver.disconnect();
+      typing();
+      host2.dispose();
     };
   }
 
@@ -1287,13 +2283,19 @@
     }
     disposers.add(startReveal({ targets: REVEAL_TARGETS }));
   }
+  function startEffectPlugins() {
+    const stop = startEffects();
+    if (stop) {
+      disposers.add(stop);
+    }
+  }
   function start() {
     if (!document.body) {
       globalThis.setTimeout(start, 0);
       return;
     }
     const { refresh } = runSteps(
-      [startTokens, startAcrylicFilter, startRevealHighlight],
+      [startTokens, startAcrylicFilter, startRevealHighlight, startEffectPlugins],
       (failure) => console.warn("[Woodfish] overlay step failed", failure.error)
     );
     document.documentElement.dataset.woodfishOverlay = "active";

@@ -136,6 +136,7 @@ Search for `Woodfish` in the command palette:
 | 开启/关闭系统级透明窗口（实验） | Toggle system window transparency |
 | 设置背景图片 | Window background: your own picture, the default 《彩云》 or its gradient |
 | 选择效果预设, 将当前效果保存为预设 | Apply / save presets |
+| 刷新效果 (`Ctrl+Alt+R`), 打开效果文件夹 | Reload the effect plugins without reloading the window, open their folder |
 | 修复 Woodfish 注入 | Repair after an editor update |
 | 生成 Woodfish 诊断信息 | Copy a diagnostics report |
 | 彻底停用 Woodfish 叠层 | Remove every injection, backup and hook |
@@ -154,6 +155,10 @@ All settings live under `woodfishTheme.`. In the Settings UI they are grouped in
   "woodfishTheme.glass.mode": "acrylic"
 }
 ```
+
+### Effect plugins
+
+A mouse trail, a caret trail (both drawn like the VS Code Animations extension: a single-color band, length 12) and typing particles (theme-colored sparks like Power Mode, no shake or combo counter) are pluggable effects under `woodfishTheme.mouseTrail.*`, `woodfishTheme.caretTrail.*` and `woodfishTheme.typingParticles.*`, off by default. Each effect is a folder in `%APPDATA%\Woodfish\effects` (`~/Library/Application Support/Woodfish/effects` on macOS) whose `effect.js` you, or an AI following the folder's `AGENTS.md`, can edit; new folders become new effects. Changes reload by themselves, or run **刷新效果** (`Ctrl+Alt+R`) — no window reload. The Codex app uses the same folder.
 
 ## Troubleshooting
 
@@ -177,7 +182,8 @@ To restore everything, uninstall the extension and fully restart the editor, or 
 Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build) without modifying its installation:
 
 - **Native palette**: `woodfish codex theme apply --dark neon --light light` writes Codex's official theme settings (one palette per appearance mode) and opens no ports; `--appearance dark` pins Codex to dark mode.
-- **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow and a rainbow caret. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Once it runs, Codex's own **Settings → Appearance → Woodfish** section switches between all 15 themes and toggles each effect; assistant replies get the rainbow text and the selected sidebar thread a slowly turning ring of the theme's gradient (faster while it runs).
+- **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow, the same 6px rainbow caret as in VS Code, mouse and caret trails and typing particles. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Assistant replies get the rainbow text; while a reply streams, a rainbow cursor follows its end with a trail and new text fades in (AI output triggers the same effects as your typing); the selected sidebar thread gets a turning seven-band spectrum ring with a soft halo.
+- **Effect plugins**: every effect is a folder in `%APPDATA%\Woodfish\effects`. Codex's own **Settings → Appearance → Woodfish 外观** switches between all 15 themes and shows each effect's switch and every parameter; Codex itself can change an effect's code by following the folder's `AGENTS.md`. Saving reloads it, or run `woodfish reload` / press `Ctrl+Alt+R` in Codex, without restarting Codex.
 - **Always on**: `woodfish codex autostart on` registers a hidden logon task (normal rights) that brings the effects back within seconds after Codex restarts or a Store update; `woodfish codex autostart off` or `uninstall` removes it cleanly.
 
 - **Window background**: a picture under the whole window (the editor or thread shows it at 15 %, side panels are frosted glass at 35 % of the theme color, 10px blur). In VS Code run `设置背景图片`; in Codex it is on by default and **Settings → Appearance → Woodfish** uploads (or takes a dropped picture), previews and keeps several; the CLI is `woodfish codex background set <picture>`. Pictures stay on your machine. The default background 《彩云》 (Colorful Clouds) is made by the author, woodfish.

@@ -1,0 +1,81 @@
+{
+  "name": "窗口背景",
+  "description": "一张图铺在整个窗口底下（默认《彩云》），侧栏和输入框是叠在上面的毛玻璃。图片在设置页的背景区挑或上传。",
+  "version": 1,
+  "hosts": ["codex"],
+  "enabled": true,
+  "order": 100,
+  "core": "background",
+  "params": {
+    "opacity": {
+      "type": "number",
+      "default": 0.15,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "透明度",
+      "description": "背景图透出来的程度（作者 VS Code 里的 background 插件是 0.15）"
+    },
+    "blur": {
+      "type": "number",
+      "default": 10,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
+      "label": "模糊",
+      "description": "侧栏和输入框毛玻璃的模糊半径"
+    },
+    "mask": {
+      "type": "number",
+      "default": 0.35,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "label": "遮罩",
+      "description": "侧栏和输入框盖在背景上的主题色浓度"
+    },
+    "saturate": {
+      "type": "number",
+      "default": 150,
+      "min": 100,
+      "max": 250,
+      "step": 5,
+      "unit": "%",
+      "label": "饱和度",
+      "description": "毛玻璃里透出的颜色饱和度"
+    },
+    "luminosity": {
+      "type": "number",
+      "default": 0.1,
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01,
+      "label": "亮度层",
+      "description": "毛玻璃上叠的一层亮度（Frosted Glass 的 luminosity 10%）"
+    },
+    "size": {
+      "type": "select",
+      "default": "cover",
+      "options": [
+        { "value": "cover", "label": "铺满" },
+        { "value": "contain", "label": "完整显示" }
+      ],
+      "label": "图片缩放",
+      "description": "铺满会裁掉多出来的部分"
+    },
+    "position": {
+      "type": "select",
+      "default": "center",
+      "options": [
+        { "value": "center", "label": "居中" },
+        { "value": "top", "label": "靠上" },
+        { "value": "bottom", "label": "靠下" },
+        { "value": "left", "label": "靠左" },
+        { "value": "right", "label": "靠右" }
+      ],
+      "label": "图片位置",
+      "description": "图片对齐的位置"
+    }
+  }
+}

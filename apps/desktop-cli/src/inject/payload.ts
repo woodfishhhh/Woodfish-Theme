@@ -7,6 +7,8 @@ declare const __WOODFISH_CODEX_USERSCRIPT__: string | undefined;
 
 /** Global the Codex++ user script reads its baked-in settings from. */
 export const USERSCRIPT_CONFIG_KEY = '__woodfishCodexUserScriptConfig';
+/** Global the Codex++ user script reads its baked-in effects from. */
+export const USERSCRIPT_EFFECTS_KEY = '__woodfishCodexUserScriptEffects';
 
 export function readAsset(name: string): string {
   const candidates = [
@@ -48,10 +50,16 @@ export function toScriptLiteral(value: unknown): string {
 }
 
 /** Script evaluated in the Codex page: settings first, then the overlay bundle. */
-export function buildInjectionScript(settings: CodexSettings, bundle: string): string {
+export function buildInjectionScript(
+  settings: CodexSettings,
+  bundle: string,
+  effects = ''
+): string {
   const safe = normalizeCodexSettings(settings);
   return [
     `globalThis[${toScriptLiteral(CODEX_CONFIG_KEY)}] = ${toScriptLiteral(safe)};`,
+    // The effect plugins (see codex/effects.ts), stored before the overlay starts.
+    effects,
     bundle,
     '//# sourceURL=woodfish-codex-overlay.js',
   ].join('\n');
@@ -73,6 +81,9 @@ export const OVERLAY_STATE_EXPRESSION = `(() => {
     surface: style.getPropertyValue('--app-color-background-surface').trim(),
     styles: document.querySelectorAll('style[id^="woodfish-codex-"], style[id^="codex-plus-ext-woodfish-"]').length,
     painted: document.querySelectorAll('[data-woodfish-overlay-token]').length,
+    effects: controller && typeof controller.effects === 'function'
+      ? controller.effects().map((effect) => ({ id: effect.id, name: effect.manifest.name, enabled: effect.values.enabled, state: effect.state, error: effect.error || null }))
+      : [],
   };
 })()`;
 

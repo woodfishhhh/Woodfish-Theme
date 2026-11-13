@@ -1,0 +1,71 @@
+{
+  "name": "光标拖尾",
+  "description": "文字光标移动时身后拖一条单色带子（照抄 VS Code Animations 插件的 CursorAnimation）；你打字和 AI 吐字时都跟着。",
+  "version": 1,
+  "hosts": ["codex", "vscode"],
+  "enabled": true,
+  "order": 20,
+  "params": {
+    "length": {
+      "type": "number",
+      "default": 12,
+      "min": 2,
+      "max": 50,
+      "step": 1,
+      "label": "拖尾长度",
+      "description": "带子由多少个点连成（作者 VS Code 里 Animations 的 TrailLength 是 12）"
+    },
+    "style": {
+      "type": "select",
+      "default": "block",
+      "options": [
+        { "value": "block", "label": "实心带子" },
+        { "value": "line", "label": "四条细线" }
+      ],
+      "label": "样式",
+      "description": "Animations 插件的 CursorStyle"
+    },
+    "width": {
+      "type": "number",
+      "default": 6,
+      "min": 1,
+      "max": 24,
+      "step": 0.5,
+      "unit": "px",
+      "label": "宽度",
+      "description": "光标宽度（作者 VS Code 的 editor.cursorWidth 是 6）；宿主报告了光标宽度时用宿主的"
+    },
+    "color": {
+      "type": "color",
+      "default": "#ffffff",
+      "label": "颜色",
+      "description": "单色，Animations 插件默认白色"
+    },
+    "followTheme": {
+      "type": "boolean",
+      "default": false,
+      "label": "颜色跟随主题",
+      "description": "打开后用当前主题的强调色"
+    },
+    "opacity": {
+      "type": "number",
+      "default": 1,
+      "min": 0.05,
+      "max": 1,
+      "step": 0.05,
+      "label": "不透明度",
+      "description": "1 是插件原样"
+    },
+    "sources": {
+      "type": "select",
+      "default": "all",
+      "options": [
+        { "value": "all", "label": "你的光标和 AI 吐字" },
+        { "value": "user", "label": "只跟你的光标" },
+        { "value": "ai", "label": "只跟 AI 吐字" }
+      ],
+      "label": "跟随谁",
+      "description": "Codex 里 AI 流式吐字时，末尾也算一个光标"
+    }
+  }
+}
