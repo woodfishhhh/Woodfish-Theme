@@ -176,9 +176,16 @@ To restore everything, uninstall the extension and fully restart the editor, or 
 Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build) without modifying its installation:
 
 - **Native palette**: `woodfish codex theme apply --dark neon --light light` writes Codex's official theme settings (one palette per appearance mode) and opens no ports; `--appearance dark` pins Codex to dark mode.
-- **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow and a rainbow caret. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Once it runs, Codex's own **Settings → Appearance → Woodfish** section switches between the Woodfish Dark, Dracula, Black, Neon and Light themes and toggles each effect.
+- **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow and a rainbow caret. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Once it runs, Codex's own **Settings → Appearance → Woodfish** section switches between all 15 themes and toggles each effect; assistant replies get the rainbow text and the sidebar a gradient thread indicator that flows while a thread runs.
+- **Always on**: `woodfish codex autostart on` registers a hidden logon task (normal rights) that brings the effects back within seconds after Codex restarts or a Store update; `woodfish codex autostart off` or `uninstall` removes it cleanly.
 
 Codex++ users can run `woodfish codex install-userscript` instead. See [apps/desktop-cli/README.md](apps/desktop-cli/README.md) (Chinese).
+
+The DeepSeek Harness (dsh) Web UI is themed through a Tampermonkey / Violentmonkey user script: `woodfish dsh userscript`. See [docs/hosts/dsh.md](docs/hosts/dsh.md) (Chinese).
+
+## Bundled popular themes
+
+Besides the five Woodfish themes, the extension ships ten popular MIT-licensed themes unmodified, labelled `Woodfish …`: One Dark Pro, Tokyo Night, Catppuccin Mocha and Latte, Nord, GitHub Dark and Light, Night Owl, Ayu Mirage and Gruvbox Dark. Their gradients and glow are derived from each theme's own colors. Sources and licenses are listed in [THIRD_PARTY_NOTICES](apps/vscode-extension/THIRD_PARTY_NOTICES.md).
 
 ## Development
 

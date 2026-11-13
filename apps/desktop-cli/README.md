@@ -16,17 +16,18 @@ Woodfish 不修改 Codex 的安装文件。商店版的安装目录是只读的�
 
 ## 主题
 
-VS Code 扩展里的 5 套主题都能用在 Codex 上：
+VS Code 扩展里的 15 套主题都能用在 Codex 上（命令行里用括号中的名字）：
 
 | 主题 | 外观 | 来源 |
 | --- | --- | --- |
-| Woodfish Dark | 深色 | Bearded Theme Arc（GPL-3.0） |
-| Woodfish Dracula | 深色 | Dracula 官方主题（MIT） |
-| Woodfish Black | 深色 | Woodfish 原创 |
-| Woodfish Neon | 深色 | Woodfish 原创 |
-| Woodfish Light | 浅色 | Woodfish 原创 |
+| Woodfish Dark（`dark`） | 深色 | Bearded Theme Arc（GPL-3.0） |
+| Woodfish Dracula（`dracula`） | 深色 | Dracula 官方主题（MIT） |
+| Woodfish Black（`black`）、Neon（`neon`） | 深色 | Woodfish 原创 |
+| Woodfish Light（`light`） | 浅色 | Woodfish 原创 |
+| One Dark Pro（`onedark`）、Tokyo Night（`tokyonight`）、Catppuccin Mocha（`catppuccin-mocha`）、Nord（`nord`）、GitHub Dark（`github-dark`）、Night Owl（`nightowl`）、Ayu Mirage（`ayu-mirage`）、Gruvbox Dark（`gruvbox-dark`） | 深色 | 各自的官方主题（MIT） |
+| Catppuccin Latte（`catppuccin-latte`）、GitHub Light（`github-light`） | 浅色 | 各自的官方主题（MIT） |
 
-Dark 和 Dracula 的配色由 `apps/vscode-extension/scripts/port-palettes.js` 直接从扩展附带的主题文件读出，和 VS Code 里看到的一致。
+除原创的三套外，配色都由 `apps/vscode-extension/scripts/port-palettes.js` 直接从扩展附带的主题文件读出，和 VS Code 里看到的一致。Woodfish 自己的 5 套用特调渐变，其余按同样的规律从各自配色推导；回复正文的彩虹、侧栏指示条、标签页下划线和光标颜色也都取自当前主题。
 
 ## 在 Codex 里设置
 
@@ -64,6 +65,11 @@ woodfish codex settings --set bodyText.enabled=true --set glass.blur=24
 woodfish codex stop-inject                 # 立即撤下效果
 woodfish codex relaunch --normal           # 不带端口重启，关闭调试端口
 
+# 一直生效（Codex 重启、商店更新后自动恢复）
+woodfish codex autostart on                # 登录时启动的后台任务，无窗口、普通权限
+woodfish codex autostart                   # 查看状态
+woodfish codex autostart off               # 删除任务并停止后台进程
+
 # 诊断与清理
 woodfish codex status
 woodfish codex doctor                      # 检查效果是否生效、界面元素是否还能找到
@@ -75,15 +81,29 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 
 | 设置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `palette.dark` | `null` | `dark`、`dracula`、`black`、`neon`；`null` 表示保留 Codex 自己的颜色 |
-| `palette.light` | `null` | `light`；`null` 表示保留 Codex 自己的颜色 |
+| `palette.dark` | `null` | 任一深色主题（见上表）；`null` 表示保留 Codex 自己的颜色 |
+| `palette.light` | `null` | `light`、`catppuccin-latte`、`github-light`；`null` 表示保留 Codex 自己的颜色 |
 | `codeGradient.*` | 开 | `hueShift`、`lightnessDelta`、`neutralChroma`、`angle`，与 VS Code 扩展的参数一致 |
 | `codeGlow.*` | 开 | `intensity` |
-| `glass.*` | 开 | `blur`、`saturate`、`opacity`、`noise`、`borderRadius` |
-| `accent.enabled` | 开 | 输入框聚焦光晕、当前会话行高亮 |
-| `caret.*` | 开 | `animationDuration`、`gradientStops` |
-| `bodyText.enabled` | 关 | 助手回复正文渐变 |
+| `glass.*` | 开 | `mode`（`blur` / `acrylic`）、`blur`、`saturate`、`opacity`、`noise`、`borderRadius`、`animations`（菜单与弹窗淡入）、`reveal`（列表项跟随指针的柔光） |
+| `accent.enabled` | 开 | 输入框聚焦光晕、发送按钮渐变、侧栏会话指示条、当前标签页下划线 |
+| `caret.*` | 开 | `animationDuration`、`gradientStops`；不改时使用当前主题的光标配色 |
+| `bodyText.enabled` | 开 | 助手回复的段落、标题、列表和表格用当前主题的彩虹渐变（纯 CSS，流式输出时同样生效） |
 | `customCss` | `[]` | 追加的 CSS，会经过安全过滤 |
+
+## 和 VS Code 版的对照
+
+| VS Code 扩展 | Codex 桌面端 |
+| --- | --- |
+| 代码文字渐变、发光（特调表 + 自动推导） | 代码块、diff 视图（Shadow DOM 内）同样的渐变与发光；diff 的 token 颜色换成主题的语法色 |
+| 15 套主题的界面配色 | 覆盖 Codex 的整套主题变量（表面阶梯、强调色、选区、气泡、终端 16 色、语法 8 槽 + highlight.js 细分类名） |
+| 彩色光标（循环变色、圆角、光晕） | 输入框光标循环变色，颜色跟随主题；Codex 用的是原生文本光标，没有圆角和光晕可改 |
+| 毛玻璃浮层（blur / acrylic、淡入动画、跟随指针的柔光） | 菜单、弹出框、对话框同样三项都有 |
+| 活动栏徽章渐变 | Codex 没有计数徽章；未读圆点自动用主题强调色 |
+| 当前标签页顶部渐变边框 | 右侧面板（变更、文件）当前标签页的渐变下划线 |
+| — | Codex 独有：助手回复彩虹渐变字、侧栏会话指示条（悬停浮现、选中发光、运行中流动）、输入框聚焦光晕、发送按钮渐变 |
+| 系统窗口透明（亚克力 / 云母） | Codex 自带 Mica，Woodfish 只给外框叠一层主题底色 |
+| 小地图、行号、括号配对等编辑器区域 | Codex 没有这些区域 |
 
 ## 深色模式
 

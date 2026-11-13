@@ -1,5 +1,12 @@
 # 更新日志
 
+## [未发布]
+
+### 主题
+
+- 新增 10 套热门主题（均为 MIT 许可，原样收录上游文件）：One Dark Pro、Tokyo Night、Catppuccin Mocha / Latte、Nord、GitHub Dark / Light、Night Owl、Ayu Mirage、Gruvbox Dark，名字前带 `Woodfish`。渐变和发光顺着各自配色自动生成，强调色、标签页边框与光标颜色取自主题自己的色板
+- 主题文件按 VS Code 的方式解析（允许注释和尾逗号），发布前检查覆盖每一套贡献的主题
+
 ## [7.2.0] - 2026-11-03
 
 ### 彩色字体

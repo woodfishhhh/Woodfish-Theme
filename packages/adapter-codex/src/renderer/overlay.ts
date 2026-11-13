@@ -40,6 +40,7 @@ import {
   findCodexPalette,
   normalizeCodexSettings,
 } from '../settings';
+import { startCaretGlow, startStreamingTail } from './caretGlow';
 import { DIFF_TOKEN_SELECTOR, isDiffToken, mapDiffColor, startDiffDecorator } from './diffs';
 import { startSettingsPanel } from './settingsPanel';
 
@@ -198,6 +199,8 @@ export function startCodexOverlay(
     source === 'userscript' ? { [CODEX_PLUS_NODE_ATTRIBUTE]: 'woodfish' } : {};
   const diffs = startDiffDecorator(ownership);
   let reveal: Disposer | null = null;
+  let caretGlow: Disposer | null = null;
+  let streamingTail: Disposer | null = null;
   let acrylic: { blur: number; dispose: Disposer } | null = null;
 
   /** The Woodfish palette of the appearance mode Codex is in, if one is selected. */
@@ -280,6 +283,27 @@ export function startCodexOverlay(
     }
   }
 
+  /** The drawn glowing caret and the streaming-reply marker (both follow `caret`). */
+  function applyCaretRuntime(): void {
+    const wantGlow = settings.caret.enabled && settings.caret.glow;
+    if (wantGlow && !caretGlow) {
+      caretGlow = startCaretGlow({
+        editorSelector: CODEX_SELECTORS.composerEditor.selectors.join(', '),
+        nodeAttributes: ownership,
+      });
+      streamingTail = startStreamingTail({
+        runningSelector: `${CODEX_SELECTORS.sidebarRunningThread.selectors[0]}${CODEX_SELECTORS.sidebarActiveThread.selectors[0]}`,
+        replySelector: CODEX_SELECTORS.assistantMarkdown.selectors.join(', '),
+        userMessageSelector: CODEX_SELECTORS.userMessage.selectors.join(', '),
+      });
+    } else if (!wantGlow && caretGlow) {
+      caretGlow();
+      caretGlow = null;
+      streamingTail?.();
+      streamingTail = null;
+    }
+  }
+
   /** The pointer-following light and the acrylic SVG filter the glass CSS refers to. */
   function applyGlassRuntime(): void {
     const glass = settings.glass;
@@ -330,6 +354,7 @@ export function startCodexOverlay(
       applyStyles();
       applyEngines();
       applyGlassRuntime();
+      applyCaretRuntime();
       panel?.refresh();
     },
     settings: () => normalizeCodexSettings(settings),
@@ -349,6 +374,8 @@ export function startCodexOverlay(
         },
         (): void => panel?.dispose(),
         (): void => reveal?.(),
+        (): void => caretGlow?.(),
+        (): void => streamingTail?.(),
         (): void => acrylic?.dispose(),
         (): void => diffs.dispose(),
         (): void => diffEngine?.dispose(),
@@ -378,6 +405,7 @@ export function startCodexOverlay(
   applyStyles();
   applyEngines();
   applyGlassRuntime();
+  applyCaretRuntime();
   styles.upsert('settings', SETTINGS_PANEL_CSS);
   panel = startSettingsPanel({
     settings: () => settings,

@@ -32,7 +32,11 @@ export interface CodexSettings {
   /** `animations`: menus and dialogs fade in; `reveal`: pointer-following light on rows. */
   glass: { enabled: boolean; animations: boolean; reveal: boolean } & GlassParams;
   accent: { enabled: boolean };
-  caret: { enabled: boolean } & Pick<CursorParams, 'animationDuration' | 'gradientStops'>;
+  /** `glow`: draw the composer caret (and a cursor after streaming text) as a glowing bar. */
+  caret: { enabled: boolean; glow: boolean } & Pick<
+    CursorParams,
+    'animationDuration' | 'gradientStops'
+  >;
   /** Rainbow gradient on assistant reply text (pure CSS, also while it streams). */
   bodyText: { enabled: boolean };
   /** Extra CSS appended last, sanitized like the VS Code custom rules. */
@@ -91,6 +95,7 @@ export function normalizeCodexSettings(input: unknown = {}): CodexSettings {
     accent: { enabled: sanitizeBoolean(section(input, 'accent').enabled, true) },
     caret: {
       enabled: sanitizeBoolean(caret.enabled, true),
+      glow: sanitizeBoolean(caret.glow, true),
       animationDuration: cursor.animationDuration,
       gradientStops: cursor.gradientStops,
     },

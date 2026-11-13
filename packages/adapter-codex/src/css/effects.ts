@@ -335,9 +335,13 @@ export function buildCaretCss(settings: CodexSettings): string {
         `  caret-color: ${stops[0]} !important;`,
         `  animation: woodfish-codex-caret-${mode} ${formatCssNumber(settings.caret.animationDuration)}s linear infinite !important;`,
       ]),
+      rule(`[data-theme="${mode}"]`, [
+        `  --woodfish-codex-caret-gradient: linear-gradient(180deg, ${[...stops, stops[0]].join(', ')});`,
+        `  --woodfish-codex-caret-glow: ${stops[0]};`,
+      ]),
     ].join('\n\n');
   });
-  return [
+  const parts = [
     ...modes,
     rule(`:root[data-reduced-motion="true"] ${editor}`, [
       '  animation: none !important;',
@@ -348,6 +352,63 @@ export function buildCaretCss(settings: CodexSettings): string {
       `  ${editor} { animation: none !important; caret-color: ${ACCENT} !important; }`,
       '}',
     ].join('\n'),
+  ];
+  if (settings.caret.glow) {
+    parts.push(buildCaretGlowCss(settings, editor));
+  }
+  return parts.join('\n\n');
+}
+
+/**
+ * The glowing caret the overlay draws over the composer, and the same light at the end of
+ * a streaming reply: the theme's cursor colors flowing through a thin bar that breathes
+ * softly, solid again whenever the caret moves.
+ */
+function buildCaretGlowCss(settings: CodexSettings, editor: string): string {
+  const duration = formatCssNumber(settings.caret.animationDuration);
+  const bar = [
+    '  background-image: var(--woodfish-codex-caret-gradient);',
+    '  background-size: 100% 400%;',
+    '  border-radius: 2px;',
+    '  box-shadow:',
+    '    0 0 6px color-mix(in oklab, var(--woodfish-codex-caret-glow) 75%, transparent),',
+    '    0 0 14px color-mix(in oklab, var(--woodfish-codex-accent-alt, var(--woodfish-codex-caret-glow)) 45%, transparent);',
+    `  animation: woodfish-codex-caret-flow ${duration}s linear infinite, woodfish-codex-caret-breathe 1.2s ease-in-out 0.5s infinite alternate;`,
+  ];
+  const tail = '[data-woodfish-codex-streaming-tail="true"]';
+  const tailEnds = [
+    `${tail} > :is(p, h1, h2, h3, h4, h5, h6):last-child::after`,
+    `${tail} > :is(ul, ol):last-child > li:last-child::after`,
+  ].join(',\n');
+  const animated = `[data-woodfish-codex-caret], ${tailEnds}`;
+  return [
+    '@keyframes woodfish-codex-caret-flow {\n  from { background-position: 50% 0%; }\n  to { background-position: 50% 100%; }\n}',
+    '@keyframes woodfish-codex-caret-breathe {\n  from { opacity: 1; }\n  to { opacity: 0.45; }\n}',
+    rule(`:root[data-woodfish-codex-caret-glow] ${editor}`, [
+      '  caret-color: transparent !important;',
+      '  animation: none !important;',
+    ]),
+    rule('[data-woodfish-codex-caret]', [
+      '  position: fixed;',
+      '  left: 0;',
+      '  top: 0;',
+      '  width: 2px;',
+      '  z-index: 2147483000;',
+      '  pointer-events: none;',
+      '  will-change: transform;',
+      ...bar,
+    ]),
+    rule(tailEnds, [
+      '  content: "";',
+      '  display: inline-block;',
+      '  width: 2px;',
+      '  height: 1.05em;',
+      '  margin-inline-start: 3px;',
+      '  vertical-align: -0.15em;',
+      ...bar,
+    ]),
+    rule(`:root[data-reduced-motion="true"] :is(${animated})`, ['  animation: none;']),
+    `@media (prefers-reduced-motion: reduce) {\n  ${animated.replace(/\n/g, ' ')} { animation: none; }\n}`,
   ].join('\n\n');
 }
 

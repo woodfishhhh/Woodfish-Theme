@@ -1,3 +1,4 @@
+import { startStreamingTail } from '../renderer/caretGlow';
 import { CODEX_CONFIG_KEY, CODEX_CONTROLLER_KEY, CODEX_PLUS_NODE_ATTRIBUTE } from '../protocol';
 import {
   CodexOverlayController,
@@ -222,5 +223,32 @@ describe('boot entries', () => {
     });
     bootCodexOverlay({}, 'cdp');
     expect(controller()).toBeUndefined();
+  });
+});
+
+describe('streaming tail', () => {
+  it('marks the reply after the last user message only while the active thread runs', () => {
+    document.body.innerHTML = [
+      '<div data-app-action-sidebar-thread-row data-app-action-sidebar-thread-active="true"><div class="motion-safe:animate-spin"></div></div>',
+      '<div data-markdown-text-style="assistant-message" id="old"><p>old</p></div>',
+      '<div data-user-message-bubble>question</div>',
+    ].join('');
+    const stop = startStreamingTail({
+      runningSelector:
+        '[data-app-action-sidebar-thread-row]:has(.motion-safe\\:animate-spin)[data-app-action-sidebar-thread-active="true"]',
+      replySelector: '[data-markdown-text-style="assistant-message"]',
+      userMessageSelector: '[data-user-message-bubble]',
+    });
+    // Still thinking: the only reply is the previous one, before the question.
+    expect(document.querySelector('[data-woodfish-codex-streaming-tail]')).toBeNull();
+    const reply = document.createElement('div');
+    reply.setAttribute('data-markdown-text-style', 'assistant-message');
+    document.body.append(reply);
+    jest.advanceTimersByTime(500);
+    expect(reply.getAttribute('data-woodfish-codex-streaming-tail')).toBe('true');
+    document.querySelector('.motion-safe\\:animate-spin')?.remove();
+    jest.advanceTimersByTime(500);
+    expect(reply.hasAttribute('data-woodfish-codex-streaming-tail')).toBe(false);
+    stop();
   });
 });

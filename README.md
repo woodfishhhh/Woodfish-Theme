@@ -17,7 +17,7 @@
   <a href="./apps/vscode-extension/docs/TROUBLESHOOTING.md">故障排查</a>
 </p>
 
-Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和毛玻璃。自带 5 套主题，每套都有手工调好的渐变；换成别的颜色主题也能用，渐变会照着同样的规律自动算出来。VS Code、Cursor、Kiro、Windsurf、Trae、VSCodium 都能用。
+Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和毛玻璃。自带 5 套 Woodfish 主题（每套都有手工调好的渐变），另附 10 套热门主题；换成别的颜色主题也能用，渐变会照着同样的规律自动算出来。VS Code、Cursor、Kiro、Windsurf、Trae、VSCodium 都能用。
 
 本页所有图片都由扩展实际的渲染脚本和注入 CSS 生成（[生成脚本](./apps/vscode-extension/scripts/render-readme-images.js)）。
 
@@ -44,6 +44,16 @@ Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和�
 **Woodfish Light**：暖白底的浅色主题，渐变往深处走，发光是同色相的亮色。
 
 <img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-light.png" width="100%" alt="Woodfish Light">
+
+### 十套热门主题
+
+扩展还原样收录了 10 套热门的 MIT 许可主题，名字前加了 `Woodfish`，渐变和发光顺着各自的配色自动生成，效果开关同样适用（关掉就是纯配色）：
+
+| 深色 | 浅色 |
+| --- | --- |
+| Woodfish One Dark Pro、Woodfish Tokyo Night、Woodfish Catppuccin Mocha、Woodfish Nord、Woodfish GitHub Dark、Woodfish Night Owl、Woodfish Ayu Mirage、Woodfish Gruvbox Dark | Woodfish Catppuccin Latte、Woodfish GitHub Light |
+
+来源与许可见 [THIRD_PARTY_NOTICES](./apps/vscode-extension/THIRD_PARTY_NOTICES.md)。
 
 按 `Ctrl+K Ctrl+T`（macOS 为 `Cmd+K Cmd+T`）切换主题。
 
@@ -128,7 +138,7 @@ Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和�
 1. 安装 **Woodfish Theme**：
    - VS Code：从 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme) 安装。
    - Cursor、Kiro、Windsurf、Trae、VSCodium：在扩展面板里搜索 `Woodfish Theme`（来自 [Open VSX](https://open-vsx.org/extension/zhongjun/woodfish-theme)）。
-2. 选一个你喜欢的颜色主题，想要特调效果就选 `Woodfish` 开头的那五套。
+2. 选一个你喜欢的颜色主题，想要特调效果就选 Woodfish Dark / Dracula / Black / Neon / Light 这五套。
 3. 点右下角弹出的 **重新加载窗口**。
 
 叠层默认开启，不会替你切换颜色主题。点击状态栏右下角的 `Woodfish ...` 打开功能菜单，可以开关各项效果、选预设、开毛玻璃。
@@ -313,9 +323,14 @@ code --install-extension woodfish-theme-7.2.0.vsix
 Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和效果。它不修改 Codex 的安装文件，有两种方式：
 
 - **原生配色**：`woodfish codex theme apply --dark neon --light light`，写入 Codex 官方的主题设置，深色和浅色各一套，不开任何端口；加 `--appearance dark` 可把 Codex 固定为深色。
-- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕和彩色光标。需要以本机调试端口启动 Codex，首次使用前会说明风险。开启后可以直接在 Codex 的 **设置 → 外观 → Woodfish** 里切换五套主题和各项效果，特调渐变同样生效。
+- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕和彩色光标。需要以本机调试端口启动 Codex，首次使用前会说明风险。开启后可以直接在 Codex 的 **设置 → 外观 → Woodfish** 里切换全部 15 套主题和各项效果；助手回复是彩虹渐变字，侧栏会话有渐变指示条（运行中缓慢流动）。
+- **一直生效**：`woodfish codex autostart on` 注册一个登录时运行的后台任务（无窗口、普通权限）。Codex 重启或商店更新后，效果会在几秒内自动回来；`woodfish codex autostart off` 或 `woodfish codex uninstall` 干净移除。
 
 已经在用 Codex++ 的话，也可以运行 `woodfish codex install-userscript`，以用户脚本的形式加载。详见 [Woodfish 桌面工具](./apps/desktop-cli/README.md)。
+
+## DeepSeek Harness（dsh）Web 版
+
+dsh 的 Web 版（`dsh web`，本机 `127.0.0.1:3080`）可以通过油猴用户脚本换上同样的主题和效果：`woodfish dsh userscript` 输出脚本路径，装进 Tampermonkey / Violentmonkey 即可。详见 [dsh 适配说明](./docs/hosts/dsh.md)。
 
 ## 本地开发
 

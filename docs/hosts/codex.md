@@ -2,7 +2,38 @@
 
 使用方法见 [apps/desktop-cli/README.md](../../apps/desktop-cli/README.md)。本文记录实测结论，供维护适配器时参考。
 
-实测环境：Windows 11，商店版 `OpenAI.Codex` 26.1013.3656.0（应用版本 26.1013.31256），实测日期 2026-10-28。
+实测环境：Windows 11，商店版 `OpenAI.Codex` 26.1013.3656.0（应用版本 26.1013.31256），实测日期 2026-10-28，2026-11-13 复测。
+
+## 2026-11-13 复测
+
+版本没变（仍是 26.1013.3656.0），选择器和注入全部有效（`doctor` 无问题）。这次“效果没了”的根源不在 Woodfish：
+
+| 现象 | 根源与处理 |
+| --- | --- |
+| Codex 启动即弹“无法加载 ChatGPT 配置 / No such file or directory (os error 2)”，没有任何渲染进程，CDP 目标列表为空 | `[desktop] runCodexInWindowsSubsystemForLinux = true` 时 agent 在 WSL 里读 `~/.codex/config.toml`，而 CC Switch 4.0.27 把 `model_catalog_json` 写成 Windows 绝对路径，WSL 里找不到。改成裸文件名 `'cc-switch-model-catalog.json'`（Codex 按配置目录解析相对路径，Windows 原生的 Codex CLI 和 WSL 里的都能读）。CC Switch 4.0.29 起在 WSL 模式下自己就写裸文件名（上游 2026-11-10 的修复），旧版切换供应商会写回绝对路径 |
+| 从管理员终端（Orca 的终端就是）运行 `launch` 直接报错 | 旧代码一律拒绝。实测管理员身份下 `Invoke-CommandInDesktopPackage` 时好时坏（Chromium 会经 explorer 降权重启自己，加上 `--do-not-de-elevate`，有时根本起不来）。现在管理员身份下改为写一个转发批处理，交给 `explorer.exe` 以桌面的普通权限运行，Codex 始终以普通权限、带端口启动 |
+| 截图里效果“没生效”、渐变迟迟不出现 | Codex 窗口被挡住时 Chromium 会把 `requestAnimationFrame` 拖到几秒一次，`PrintWindow` 拿到的是旧帧，渐变引擎按帧上色也会停。截图前先把 Codex 切到前台（`SetForegroundWindow` 受前台锁限制，常常无效，用 UI 自动化切换），这不是用户可见的问题 |
+
+另外新增的界面定位点：
+
+- 运行中的会话：侧栏行内出现 `motion-safe:animate-spin` 的转圈（Tailwind 工具类，不是哈希类名），用 `:has(.motion-safe\:animate-spin)` 识别；出错是 `text-danger` 图标，未读是强调色圆点（Codex 自己用 `--app-color-accent-blue` 画，换主题自动跟随）。
+- 侧栏行左边有 8px 的空隙（滚动容器左缘到行左缘），会话指示条画在这条空隙的正中；行内文字距行左缘只有 8px，画在行内会贴字。
+- 右侧面板的标签页：`[data-app-shell-tab-controller] [role="tab"][aria-selected="true"]`（`role=tablist` 本身是 `sr-only` 的辅助节点）。
+- “思考中”的扫光是 CSS module 类（`_cadencedShimmer*`），按规则不碰；运行状态由侧栏指示条的流动渐变表达。
+- 菜单（Radix）没有入场动画，`data-state="open"` 可用来做淡入。
+
+## 一直生效：自动恢复
+
+`woodfish codex autostart on` 注册计划任务 `\Woodfish\Woodfish Codex`：当前用户登录时触发、`Interactive` + `Limited`（普通权限，管理员终端里注册也一样）、不限运行时长，动作是 `conhost.exe --headless node <runtimeDir>\woodfish.js codex daemon`（`--headless` 让控制台程序完全没有窗口；任务跑的是 CLI 的私有副本，移动或更新仓库不影响它）。
+
+常驻进程每 2 秒用 `tasklist` 看一眼 Codex（不起 PowerShell），发现新的主进程时才查命令行：
+
+- 带着活的调试端口：直接注入，等 Codex 关闭连接后继续巡视；`launch` 起的监视进程已在服务这个端口时不重复注入。
+- 没有端口、且启动不到 90 秒（用户刚从开始菜单、任务栏或开机自启打开）：结束它并带随机端口重新启动。每个进程只处理一次。实测从点开 Codex 到效果出现约 30 秒（发现 ~10 秒 + 重启 ~15 秒 + 注入）。
+- 没有端口、但已经运行一段时间：不打断，下次启动时生效。
+- 商店更新换了安装目录：每次发现新进程都重新 `Get-AppxPackage`，自动跟上。
+
+`autostart off` 停止常驻进程、删除任务和空的 `\Woodfish\` 文件夹；`uninstall` 也会做这一步。日志在 `%LOCALAPPDATA%\Woodfish\codex-daemon.log`（超过 1 MB 重新开始）。
 
 ## 安装形态
 

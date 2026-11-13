@@ -64,6 +64,11 @@ export const CODEX_SELECTORS = {
     alwaysPresent: false,
     description: '对话内容',
   },
+  userMessage: {
+    selectors: ['[data-user-message-bubble]'],
+    alwaysPresent: false,
+    description: '用户消息',
+  },
   assistantMarkdown: {
     selectors: ['[data-markdown-text-style="assistant-message"]'],
     alwaysPresent: false,

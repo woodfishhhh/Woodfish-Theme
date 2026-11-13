@@ -50,7 +50,7 @@ theme-core  ←  renderer-runtime  ←  adapter-codex  ←  desktop-cli
 | `gradient/` | 文字渐变：先查当前主题的特调表（`presets.ts`），查不到再按特调的规律推导（`tokenGradient.ts`），并保证每个色标在背景上不比原色难读；发光色（浅色背景上用同色相的亮色）；按调色板或强调色选取锚定色相 |
 | `effects/` | 渐变、发光、光标、毛玻璃、系统窗口材质的可调参数：默认值、取值范围、归一化；用户 CSS 与色标的安全过滤 |
 | `palettes/gradientPresets.ts` | 5 套内置主题的特调渐变表，按 token 颜色查。Woodfish Dark 是 5.x 手写的 Bearded 特调原样保留，其余四套按同一手法调出 |
-| `palettes/` | Woodfish 原创调色板（Light / Black / Neon）及可读性校验；从 VS Code 主题移植的 Dark / Dracula 调色板（`ported.ts`，由 `apps/vscode-extension/scripts/port-palettes.js` 生成） |
+| `palettes/` | Woodfish 原创调色板（Light / Black / Neon）及可读性校验；从 VS Code 主题移植的调色板（`ported.ts`，由 `apps/vscode-extension/scripts/port-palettes.js` 生成）：Woodfish Dark、Dracula，以及原样收录的 10 套热门 MIT 主题 |
 
 ### `@woodfish/renderer-runtime`
 
@@ -103,7 +103,7 @@ VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建�
 | 渲染端脚本 | `browser/overlay-bootstrap.ts` → `themes/shared/overlay-bootstrap.js` | `adapter-codex/src/renderer/` → `desktop-cli/assets/*.js` | `adapter-dsh/src/renderer/` → `desktop-cli/assets/woodfish-dsh.user.js` |
 | 原生配色 | 内置的 VS Code 颜色主题 | 按键修改 `~/.codex/config.toml` 的 chrome theme（`desktop-cli/src/codex/`） | 无；配色由脚本覆盖 dsh 的设计令牌 |
 | 系统窗口透明 | `nativeWindow.ts`（自行注入主进程） | Codex 自带 Mica（`opaqueWindows = false`），Woodfish 不改主进程 | 不适用（浏览器页面） |
-| 恢复与卸载 | `cleanup.ts`、`uninstall.ts` | `stop-inject`、`theme restore`、`uninstall` | 在油猴中删除脚本；`woodfish dsh uninstall` 删除本机生成的文件 |
+| 恢复与卸载 | `cleanup.ts`、`uninstall.ts` | `stop-inject`、`theme restore`、`autostart off`、`uninstall` | 在油猴中删除脚本；`woodfish dsh uninstall` 删除本机生成的文件 |
 
 ## 构建方式
 
