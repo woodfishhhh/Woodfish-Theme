@@ -2,7 +2,7 @@
   "name": "@woodfish/desktop-cli",
   "version": "0.1.0",
   "private": true,
-  "description": "Woodfish 桌面应用工具：为 Codex 桌面端应用原生配色、注入渐变与毛玻璃效果，以及安装 Codex++ 用户脚本。",
+  "description": "Woodfish 桌面应用工具：为 Codex 桌面端应用原生配色、注入渐变与毛玻璃效果，安装 Codex++ 用户脚本，以及生成 DeepSeek Harness（dsh）Web 版的油猴脚本。",
   "license": "MIT",
   "bin": {
     "woodfish": "./out/woodfish.js"
@@ -15,6 +15,8 @@
     "build": "node scripts/build.js",
     "codex:build": "node scripts/build.js --assets",
     "codex:check": "node scripts/build.js --check",
+    "dsh:build": "node scripts/build.js --assets",
+    "dsh:check": "node scripts/build.js --check",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "lint": "eslint src",
@@ -30,6 +32,7 @@
     "@types/node": "^22.10.0",
     "@types/ws": "^8.5.13",
     "@woodfish/adapter-codex": "workspace:*",
+    "@woodfish/adapter-dsh": "workspace:*",
     "@woodfish/renderer-runtime": "workspace:*",
     "@woodfish/theme-core": "workspace:*",
     "ws": "^8.18.0"

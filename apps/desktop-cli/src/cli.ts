@@ -1,6 +1,7 @@
 import { booleanFlag, parseArgs, stringFlag } from './cli/args';
 import { Io, createConsoleIo } from './cli/io';
 import { CommandContext, CommandError, EXIT } from './commands/context';
+import { dshUninstallCommand, dshUserScriptCommand } from './commands/dsh';
 import {
   launchCommand,
   relaunchNormalCommand,
@@ -21,11 +22,21 @@ import {
 import { resolvePaths } from './paths';
 import { currentPlatform } from './platform';
 
-const VALUE_FLAGS = new Set(['palette', 'dark', 'light', 'appearance', 'mode', 'port', 'set']);
+const VALUE_FLAGS = new Set([
+  'palette',
+  'dark',
+  'light',
+  'appearance',
+  'mode',
+  'port',
+  'set',
+  'out',
+]);
 
 export const HELP = `Woodfish 桌面工具
 
 用法：woodfish codex <命令> [选项]
+      woodfish dsh <命令> [选项]
 
 配色（不开调试端口）
   theme apply [--dark <dark|dracula|black|neon>] [--light light]
@@ -58,6 +69,13 @@ Codex++
   uninstall [--keep-settings]
                          撤销 Woodfish 对 Codex 的全部修改
 
+DeepSeek Harness（dsh）Web 版：油猴用户脚本
+  dsh userscript [--out <文件.user.js>] [--set 键=值]… [--reset]
+                         生成带当前设置的用户脚本（默认写到 Woodfish 数据目录），
+                         在 Tampermonkey / Violentmonkey 中导入即可，例如：
+                           --set palette.dark=neon --set glass.blur=24
+  dsh uninstall          删除 woodfish dsh 生成的脚本与设置
+
 选项
   --yes                  需要重启 Codex 时不再询问
   --accept-risk          非交互运行时同意调试端口的风险说明
@@ -83,7 +101,7 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
     io.out(HELP);
     return EXIT.ok;
   }
-  if (scope !== 'codex' || !command) {
+  if ((scope !== 'codex' && scope !== 'dsh') || !command) {
     io.err(`未知命令：${args.positionals.join(' ')}\n\n${HELP}`);
     return EXIT.usage;
   }
@@ -102,6 +120,19 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
   const json = booleanFlag(args, 'json');
 
   try {
+    if (scope === 'dsh') {
+      switch (command) {
+        case 'userscript':
+          return dshUserScriptCommand(context, args.sets, {
+            reset: booleanFlag(args, 'reset'),
+            out: stringFlag(args, 'out'),
+          });
+        case 'uninstall':
+          return dshUninstallCommand(context);
+        default:
+          throw new CommandError(`未知命令：dsh ${command}\n\n${HELP}`, EXIT.usage);
+      }
+    }
     switch (command) {
       case 'theme':
         if (subcommand === 'apply') {

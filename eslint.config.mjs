@@ -70,6 +70,7 @@ export default [
       'apps/*/browser/**/*.ts',
       'packages/renderer-runtime/src/**/*.ts',
       'packages/adapter-codex/src/renderer/**/*.ts',
+      'packages/adapter-dsh/src/renderer/**/*.ts',
     ],
     languageOptions: {
       globals: globals.browser,
@@ -81,6 +82,7 @@ export default [
       'packages/theme-core/src/**/*.ts',
       'packages/renderer-runtime/src/**/*.ts',
       'packages/adapter-codex/src/**/*.ts',
+      'packages/adapter-dsh/src/**/*.ts',
     ],
     ignores: TEST_FILES,
     rules: {

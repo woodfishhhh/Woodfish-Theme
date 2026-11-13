@@ -20,6 +20,8 @@
     "runtime:check": "pnpm --filter ./apps/vscode-extension run runtime:check",
     "codex:build": "pnpm --filter ./apps/desktop-cli run codex:build",
     "codex:check": "pnpm --filter ./apps/desktop-cli run codex:check",
+    "dsh:build": "pnpm --filter ./apps/desktop-cli run dsh:build",
+    "dsh:check": "pnpm --filter ./apps/desktop-cli run dsh:check",
     "woodfish": "node apps/desktop-cli/out/woodfish.js",
     "package": "pnpm --filter ./apps/vscode-extension run package",
     "pre-publish": "pnpm --filter ./apps/vscode-extension run pre-publish",

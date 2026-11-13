@@ -1,8 +1,8 @@
 # Woodfish (monorepo)
 
 **Type**: npm workspaces monorepo, TypeScript
-**Products**: VS Code extension (`apps/vscode-extension`, published as `zhongjun.woodfish-theme`); `woodfish` desktop CLI for the Codex app (`apps/desktop-cli`)
-**Shared packages**: `@woodfish/theme-core` (pure color/effect core), `@woodfish/renderer-runtime` (in-page engines), `@woodfish/adapter-codex` (Codex selectors, CSS, overlay)
+**Products**: VS Code extension (`apps/vscode-extension`, published as `zhongjun.woodfish-theme`); `woodfish` desktop CLI for the Codex app and the DeepSeek Harness (dsh) Web UI user script (`apps/desktop-cli`)
+**Shared packages**: `@woodfish/theme-core` (pure color/effect core), `@woodfish/renderer-runtime` (in-page engines), `@woodfish/adapter-codex` (Codex selectors, CSS, overlay), `@woodfish/adapter-dsh` (dsh Web UI selectors, CSS, overlay)
 
 ## Structure
 
@@ -25,11 +25,12 @@ Woodfish-Theme/
 │   │   ├── themes/shared/     # Injected CSS + built renderer scripts
 │   │   ├── scripts/           # Theme generation, renderer build, package, publish
 │   │   └── out/               # Compiled output
-│   └── desktop-cli/           # `woodfish codex …`: native theme, CDP injection, Codex++ user script
+│   └── desktop-cli/           # `woodfish codex …`: native theme, CDP injection, Codex++ user script; `woodfish dsh …`: dsh user script
 ├── packages/
 │   ├── theme-core/            # Host-agnostic color math, gradients, palettes, effect params
 │   ├── renderer-runtime/      # DOM engines shared by every host page (text gradient, styles)
-│   └── adapter-codex/         # Codex app selectors, CSS builders, native theme mapping, overlay
+│   ├── adapter-codex/         # Codex app selectors, CSS builders, native theme mapping, overlay
+│   └── adapter-dsh/           # dsh Web UI selectors, CSS builders (variable overrides), overlay
 ├── docs/ARCHITECTURE.md       # Boundaries and how to add a host app
 ├── package.json               # Workspace root (shared dev tooling only)
 └── tsconfig.base.json         # Shared strict TypeScript options
@@ -55,6 +56,9 @@ Woodfish-Theme/
 | Codex CLI commands | `apps/desktop-cli/src/commands/` |
 | Codex config.toml edits | `apps/desktop-cli/src/codex/tomlEdit.ts` |
 | Codex measurements | `docs/hosts/codex.md` |
+| dsh selectors / CSS | `packages/adapter-dsh/src/selectors.ts`, `packages/adapter-dsh/src/css/` |
+| dsh CLI commands, user script header | `apps/desktop-cli/src/commands/dsh.ts`, `apps/desktop-cli/scripts/build.js` |
+| dsh measurements | `docs/hosts/dsh.md` |
 | Woodfish Dark | `apps/vscode-extension/themes/bearded/Woodfish Dark.json` |
 | Woodfish Dracula | `apps/vscode-extension/themes/dracula/Woodfish Dracula.json` |
 
@@ -84,7 +88,9 @@ Woodfish-Theme/
 - **DO NOT** put host selectors, settings I/O or file patching into `packages/theme-core`
 - **DO NOT** modify Codex installation files (Store MSIX, asar integrity); use `woodfish codex` commands
 - **DO NOT** copy code from Codex++ (AGPL-3.0); reimplement from public CDP / Microsoft docs
-- **DO NOT** hand-edit `apps/desktop-cli/assets/*.js`; run `pnpm codex:build`
+- **DO NOT** hand-edit `apps/desktop-cli/assets/*.js`; run `pnpm codex:build` (same as `pnpm dsh:build`)
+- **DO NOT** modify dsh's files or `$DSH_HOME` config; dsh is themed only through the user script
+- **DO NOT** list palettes by hand in a new adapter; iterate `WOODFISH_PALETTES` so new themes appear automatically (adapter-dsh does)
 
 ## Commands (run from the repository root)
 
@@ -94,8 +100,10 @@ pnpm test                 # Jest in every workspace
 pnpm lint             # ESLint in every workspace
 pnpm themes:check     # Generated theme JSON is current
 pnpm runtime:check    # Built renderer scripts are current
-pnpm codex:check      # Built Codex renderer bundles are current
+pnpm codex:check      # Built renderer bundles in apps/desktop-cli/assets (Codex + dsh) are current
+pnpm dsh:check        # Same check, named for the dsh user script
 pnpm woodfish codex status   # Run the desktop CLI
+pnpm woodfish dsh userscript # Write the dsh user script with the saved settings
 pnpm test:integration # VS Code extension host tests
 pnpm package          # Build the VSIX
 ```
