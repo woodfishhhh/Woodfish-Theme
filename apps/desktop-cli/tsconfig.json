@@ -10,6 +10,7 @@
   "references": [
     { "path": "../../packages/theme-core" },
     { "path": "../../packages/renderer-runtime" },
-    { "path": "../../packages/adapter-codex" }
+    { "path": "../../packages/adapter-codex" },
+    { "path": "../../packages/adapter-dsh" }
   ]
 }

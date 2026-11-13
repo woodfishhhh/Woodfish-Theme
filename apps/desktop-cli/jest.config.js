@@ -11,6 +11,7 @@ module.exports = {
     '^@woodfish/renderer-runtime$': '<rootDir>/../../packages/renderer-runtime/src/index.ts',
     '^@woodfish/adapter-codex$': '<rootDir>/../../packages/adapter-codex/src/index.ts',
     '^@woodfish/adapter-codex/renderer$': '<rootDir>/../../packages/adapter-codex/src/renderer/index.ts',
+    '^@woodfish/adapter-dsh$': '<rootDir>/../../packages/adapter-dsh/src/index.ts',
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
   collectCoverageFrom: ['src/**/*.ts', '!src/**/__tests__/**'],

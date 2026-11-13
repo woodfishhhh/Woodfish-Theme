@@ -8,7 +8,7 @@ declare const __WOODFISH_CODEX_USERSCRIPT__: string | undefined;
 /** Global the Codex++ user script reads its baked-in settings from. */
 export const USERSCRIPT_CONFIG_KEY = '__woodfishCodexUserScriptConfig';
 
-function readAsset(name: string): string {
+export function readAsset(name: string): string {
   const candidates = [
     path.resolve(__dirname, '..', 'assets', name),
     path.resolve(__dirname, '..', '..', 'assets', name),
@@ -19,7 +19,7 @@ function readAsset(name: string): string {
       return fs.readFileSync(candidate, 'utf8');
     }
   }
-  throw new Error(`找不到渲染端脚本 ${name}，请先运行 npm run codex:build`);
+  throw new Error(`找不到渲染端脚本 ${name}，请先运行 pnpm codex:build`);
 }
 
 /** The in-page overlay for CDP injection (inlined in release builds). */

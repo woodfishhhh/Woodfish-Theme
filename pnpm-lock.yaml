@@ -72,6 +72,9 @@ importers:
       '@woodfish/adapter-codex':
         specifier: workspace:*
         version: link:../../packages/adapter-codex
+      '@woodfish/adapter-dsh':
+        specifier: workspace:*
+        version: link:../../packages/adapter-dsh
       '@woodfish/renderer-runtime':
         specifier: workspace:*
         version: link:../../packages/renderer-runtime
@@ -101,6 +104,15 @@ importers:
         version: link:../../packages/theme-core
 
   packages/adapter-codex:
+    dependencies:
+      '@woodfish/renderer-runtime':
+        specifier: workspace:*
+        version: link:../renderer-runtime
+      '@woodfish/theme-core':
+        specifier: workspace:*
+        version: link:../theme-core
+
+  packages/adapter-dsh:
     dependencies:
       '@woodfish/renderer-runtime':
         specifier: workspace:*
