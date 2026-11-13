@@ -107,6 +107,14 @@ export const CODEX_SELECTORS = {
     alwaysPresent: false,
     description: '跟随指针柔光的列表项与按钮',
   },
+  composerMenuHeader: {
+    // Section headers of the / and @ menu: opaque strips inside the floating panel.
+    selectors: [
+      '[data-composer-overlay-floating-ui="true"] [data-mention-section-id] > :not([data-mention-section-items])',
+    ],
+    alwaysPresent: false,
+    description: '输入框菜单分组标题',
+  },
   floatingLayer: {
     selectors: [
       '[data-radix-popper-content-wrapper] > *',
@@ -116,6 +124,8 @@ export const CODEX_SELECTORS = {
       '[role="dialog"]',
       // Sonner toasts (notifications in the corner).
       '[data-sonner-toast]',
+      // The composer's / command and @ mention menu.
+      '[data-composer-overlay-floating-ui="true"] > *',
     ],
     alwaysPresent: false,
     description: '菜单与浮层',

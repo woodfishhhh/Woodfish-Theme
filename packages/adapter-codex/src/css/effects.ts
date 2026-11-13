@@ -138,6 +138,10 @@ export function buildGlassCss(settings: CodexSettings): string {
     ),
     '}',
   ];
+  // Section headers in the composer menu are opaque strips; let the glass through.
+  parts.push(
+    rule(selectorOf('composerMenuHeader'), ['  background-color: transparent !important;'])
+  );
   if (glass.animations) {
     parts.push(buildGlassAnimationCss());
   }
