@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Woodfish · Codex 侧栏选中效果 Playground</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/*
+ * Codex 侧栏实测（Store 版 26.1013，Windows，1.5 倍缩放下的 CSS 像素）：
+ * 行高 30px，行宽约 212px，圆角 12.5px，行内文字距行左缘 8px，行左侧到侧栏边缘有 8px 空隙；
+ * 选中底色 rgba(255,255,255,.08)（浅色为 rgba(0,0,0,.06)）；运行中右侧是转圈，未读是强调色圆点，出错是红色 i。
+ */
+:root {
+  --bg: #1C2433; --bg-alt: #181F2C; --fg: #D0D7E4; --muted: #9AA2AF;
+  --accent: #EACD61; --accent2: #EA618E; --flow: #EACD61, #EA618E, #3CEC85, #61AFEA;
+  --selected: rgba(255,255,255,.08); --hover: rgba(255,255,255,.05); --danger: #E35535;
+  --t: 3px; --r: 12.5px; --g: 1; --angle: 135deg; --speed: 2.4s;
+  --glass-opacity: .4;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font: 14px/1.43 "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  overflow-x: hidden;
+}
+/* 彩云 15%，与负责人 VS Code 的观感一致 */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background: url("caiyun.jpg") center / cover no-repeat;
+  opacity: .15;
+}
+header {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center;
+  padding: 12px 20px;
+  background: color-mix(in oklab, var(--bg) 70%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+}
+header h1 { font-size: 15px; margin: 0 8px 0 0; font-weight: 600; }
+label.ctl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+label.ctl input[type=range] { width: 110px; accent-color: var(--accent); }
+label.ctl output { width: 46px; color: var(--fg); font-variant-numeric: tabular-nums; }
+select, button {
+  font: inherit; font-size: 12px; color: var(--fg);
+  background: color-mix(in oklab, var(--fg) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--fg) 16%, transparent);
+  border-radius: 8px; padding: 5px 10px; cursor: pointer;
+}
+main {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 18px; padding: 20px 20px 140px;
+}
+.card {
+  border-radius: 14px; padding: 12px 12px 10px;
+  border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+  cursor: pointer; transition: border-color .15s, box-shadow .15s;
+}
+.card.picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 8px 30px -12px var(--accent); }
+.card h2 { margin: 0 0 8px 6px; font-size: 13px; font-weight: 600; }
+.card h2 span { color: var(--muted); font-weight: 400; margin-right: 6px; }
+/* 侧栏：0.4 不透明度毛玻璃，左侧 8px 空隙 */
+.sidebar {
+  position: relative; padding: 6px 8px 8px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--bg-alt) calc(var(--glass-opacity) * 100%), transparent);
+  backdrop-filter: blur(10px) saturate(150%);
+}
+.section { font-size: 12.5px; color: var(--muted); margin: 6px 0 4px 8px; }
+.row {
+  position: relative; height: 30px; border-radius: var(--r);
+  display: flex; align-items: center; gap: 8px; padding: 0 8px;
+  color: var(--fg); white-space: nowrap; overflow: visible;
+  transition: background-color 30ms;
+}
+.row .title { flex: 1; overflow: hidden; text-overflow: ellipsis; position: relative; }
+.row .status { width: 20px; height: 20px; display: grid; place-items: center; flex: none; }
+.row.is-hover { background: var(--hover); }
+.row.is-selected { background: var(--selected); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.spin { width: 13px; height: 13px; border-radius: 50%; border: 2px solid color-mix(in oklab, var(--fg) 25%, transparent); border-top-color: var(--fg); animation: spin 0.9s linear infinite; }
+.err { width: 14px; height: 14px; border-radius: 50%; border: 1.6px solid var(--danger); color: var(--danger); font: 700 9px/11px sans-serif; text-align: center; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes flowY { from { background-position: 50% 0%; } to { background-position: 50% 100%; } }
+@keyframes flowX { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+@keyframes rotateBorder { to { --spin: 360deg; } }
+@keyframes breathe { from { opacity: 1; } to { opacity: .55; } }
+@property --spin { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+/* 公共：发光颜色 */
+.card { --glow-a: color-mix(in oklab, var(--accent) calc(55% * var(--g)), transparent); --glow-b: color-mix(in oklab, var(--accent2) calc(40% * var(--g)), transparent); }
+.flowing { background-image: linear-gradient(180deg, var(--flow), var(--accent)); background-size: 100% 300%; animation: flowY var(--speed) linear infinite; }
+
+/* ---------- 方案 ---------- */
+/* 1 渐变竖条（空隙内，当前实现） */
+.v1 .row::before { content: ""; position: absolute; left: -5.5px; top: 50%; width: var(--t); height: 0; border-radius: 999px; transform: translateY(-50%); background-image: linear-gradient(180deg, var(--accent), var(--accent2)); opacity: 0; transition: height .22s cubic-bezier(.22,1,.36,1), opacity .16s; }
+.v1 .row.is-hover::before { height: 10px; opacity: .5; }
+.v1 .row.is-selected::before { height: 20px; opacity: 1; background-image: linear-gradient(180deg, var(--flow)); box-shadow: 0 0 calc(6px * var(--g)) var(--glow-a), 0 0 calc(14px * var(--g)) var(--glow-b); }
+.v1 .row.is-running::before { height: 14px; opacity: .9; background-image: linear-gradient(180deg, var(--flow), var(--accent)); background-size: 100% 300%; animation: flowY var(--speed) linear infinite; }
+.v1 .row.is-selected.is-running::before { height: 20px; }
+
+/* 2 行内发光竖条 */
+.v2 .row.is-selected, .v2 .row.is-running { padding-left: calc(14px + var(--t)); }
+.v2 .row::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: var(--t); border-radius: 999px; background: var(--accent); opacity: 0; transition: opacity .16s; }
+.v2 .row.is-hover::before { opacity: .35; }
+.v2 .row.is-selected::before, .v2 .row.is-running::before { opacity: 1; background-image: linear-gradient(180deg, var(--accent), var(--accent2)); box-shadow: 0 0 calc(10px * var(--g)) var(--glow-a), 0 0 calc(22px * var(--g)) var(--glow-b); }
+.v2 .row.is-running::before { background-image: linear-gradient(180deg, var(--flow), var(--accent)); background-size: 100% 300%; animation: flowY var(--speed) linear infinite; }
+
+/* 3 整行渐变底色 */
+.v3 .row.is-selected { background: linear-gradient(var(--angle), color-mix(in oklab, var(--accent) 30%, transparent), color-mix(in oklab, var(--accent2) 22%, transparent)); }
+.v3 .row.is-hover { background: linear-gradient(var(--angle), color-mix(in oklab, var(--accent) 12%, transparent), color-mix(in oklab, var(--accent2) 8%, transparent)); }
+.v3 .row.is-running { background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 22%, transparent), color-mix(in oklab, var(--accent2) 18%, transparent), color-mix(in oklab, var(--accent) 22%, transparent)); background-size: 200% 100%; animation: flowX var(--speed) linear infinite alternate; }
+
+/* 4 渐变描边胶囊 */
+.v4 .row::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: calc(var(--t) / 2); background: linear-gradient(var(--angle), var(--flow)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; pointer-events: none; transition: opacity .16s; }
+.v4 .row.is-hover::after { opacity: .35; }
+.v4 .row.is-selected::after { opacity: 1; filter: drop-shadow(0 0 calc(4px * var(--g)) var(--glow-a)); }
+.v4 .row.is-selected { background: color-mix(in oklab, var(--accent) 6%, transparent); }
+.v4 .row.is-running::after { opacity: .9; background-size: 300% 300%; animation: flowX var(--speed) linear infinite alternate; }
+
+/* 5 毛玻璃卡片浮起 */
+.v5 .row { transition: transform .2s, box-shadow .2s, background-color .2s; }
+.v5 .row.is-hover { background: color-mix(in oklab, var(--fg) 7%, transparent); }
+.v5 .row.is-selected { background: color-mix(in oklab, var(--fg) 13%, transparent); backdrop-filter: blur(12px) saturate(160%); box-shadow: inset 0 1px 0 color-mix(in oklab, #fff 22%, transparent), 0 6px calc(18px * var(--g)) -6px var(--glow-a), 0 2px 8px -2px rgba(0,0,0,.35); transform: translateX(2px); }
+.v5 .row.is-running { box-shadow: inset 0 -2px 0 -0px color-mix(in oklab, var(--accent) 60%, transparent); }
+
+/* 6 左侧光点 */
+.v6 .row.is-selected, .v6 .row.is-running, .v6 .row.is-hover { padding-left: 22px; }
+.v6 .row::before { content: ""; position: absolute; left: 9px; top: 50%; width: calc(var(--t) + 3px); height: calc(var(--t) + 3px); border-radius: 50%; transform: translateY(-50%) scale(0); background: radial-gradient(circle at 35% 35%, #fff 0 18%, var(--accent) 45%, var(--accent2)); transition: transform .2s cubic-bezier(.22,1,.36,1); }
+.v6 .row.is-hover::before { transform: translateY(-50%) scale(.6); opacity: .6; }
+.v6 .row.is-selected::before { transform: translateY(-50%) scale(1); box-shadow: 0 0 calc(8px * var(--g)) var(--glow-a), 0 0 calc(16px * var(--g)) var(--glow-b); }
+.v6 .row.is-running::before { transform: translateY(-50%) scale(1); animation: breathe calc(var(--speed) / 2) ease-in-out infinite alternate; }
+
+/* 7 文字渐变 + 细线 */
+.v7 .row.is-selected .title, .v7 .row.is-running .title { background: linear-gradient(var(--angle), var(--flow)); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 600; }
+.v7 .row.is-selected .title::after { content: ""; position: absolute; left: 0; right: 30%; bottom: 3px; height: max(1px, calc(var(--t) / 2)); border-radius: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+.v7 .row.is-running .title { background-size: 200% 100%; animation: flowX var(--speed) linear infinite alternate; }
+
+/* 8 流动渐变边框（旋转） */
+.v8 .row::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: calc(var(--t) / 2); background: conic-gradient(from var(--spin), var(--flow), var(--accent)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; pointer-events: none; }
+.v8 .row.is-selected::after { opacity: .85; animation: rotateBorder calc(var(--speed) * 2) linear infinite; filter: drop-shadow(0 0 calc(5px * var(--g)) var(--glow-a)); }
+.v8 .row.is-running::after { opacity: 1; animation: rotateBorder var(--speed) linear infinite; }
+.v8 .row.is-hover::after { opacity: .25; }
+
+/* 9 霓虹下划线 */
+.v9 .row::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 2px; height: var(--t); border-radius: 999px; background: linear-gradient(90deg, var(--flow)); transform: scaleX(0); transform-origin: left; transition: transform .25s cubic-bezier(.22,1,.36,1); }
+.v9 .row.is-hover::after { transform: scaleX(.35); opacity: .6; }
+.v9 .row.is-selected::after { transform: scaleX(1); box-shadow: 0 0 calc(8px * var(--g)) var(--glow-a), 0 0 calc(16px * var(--g)) var(--glow-b); }
+.v9 .row.is-running::after { transform: scaleX(1); background-size: 300% 100%; animation: flowX var(--speed) linear infinite alternate; }
+
+/* 10 柔和内阴影凹陷 */
+.v10 .row.is-selected { background: color-mix(in oklab, var(--bg) 60%, #000 10%); box-shadow: inset 0 2px 6px rgba(0,0,0,.45), inset 0 -1px 0 color-mix(in oklab, var(--accent) calc(45% * var(--g)), transparent), inset 3px 0 0 -1px var(--accent); }
+.v10 .row.is-hover { box-shadow: inset 0 1px 3px rgba(0,0,0,.3); }
+.v10 .row.is-running { box-shadow: inset 0 -2px 0 -1px var(--accent2); }
+
+/* 11 只改文字 */
+.v11 .row.is-selected { background: transparent; }
+.v11 .row.is-selected .title { color: var(--accent); font-weight: 600; text-shadow: 0 0 calc(10px * var(--g)) var(--glow-a); }
+.v11 .row.is-hover .title { color: color-mix(in oklab, var(--accent) 55%, var(--fg)); }
+.v11 .row.is-running .title { animation: breathe calc(var(--speed) / 2) ease-in-out infinite alternate; }
+
+/* 12 从左往右淡出的渐变底 */
+.v12 .row.is-selected { background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 34%, transparent), color-mix(in oklab, var(--accent2) 14%, transparent) 45%, transparent 90%); }
+.v12 .row.is-hover { background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 14%, transparent), transparent 70%); }
+.v12 .row.is-running { background: linear-gradient(90deg, color-mix(in oklab, var(--accent2) 22%, transparent), transparent 80%); }
+.v12 .row.is-selected::before, .v12 .row.is-running::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: var(--t); border-radius: 0 999px 999px 0; background: linear-gradient(180deg, var(--accent), var(--accent2)); box-shadow: 0 0 calc(10px * var(--g)) var(--glow-a); }
+
+/* 13 背光晕 */
+.v13 .row.is-selected { background: radial-gradient(120px 40px at 0% 50%, color-mix(in oklab, var(--accent) calc(42% * var(--g)), transparent), transparent 70%), var(--selected); }
+.v13 .row.is-hover { background: radial-gradient(80px 30px at 0% 50%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 70%); }
+.v13 .row.is-running { background: radial-gradient(120px 40px at var(--pos, 0%) 50%, color-mix(in oklab, var(--accent2) 36%, transparent), transparent 70%); animation: sweep var(--speed) ease-in-out infinite alternate; }
+@keyframes sweep { from { --pos: 0%; } to { --pos: 100%; } }
+@property --pos { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+
+/* 14 顶部渐变细线（VS Code 标签页式） */
+.v14 .row.is-selected { background: var(--selected); }
+.v14 .row::before { content: ""; position: absolute; left: 12px; right: 12px; top: 0; height: var(--t); border-radius: 0 0 4px 4px; background: linear-gradient(90deg, var(--flow)); opacity: 0; }
+.v14 .row.is-selected::before { opacity: 1; box-shadow: 0 2px calc(10px * var(--g)) var(--glow-a); }
+.v14 .row.is-hover::before { opacity: .3; }
+.v14 .row.is-running::before { opacity: 1; background-size: 300% 100%; animation: flowX var(--speed) linear infinite alternate; }
+
+/* 15 渐变胶囊实心（文字反白） */
+.v15 .row.is-selected { background: linear-gradient(var(--angle), var(--accent), var(--accent2)); color: var(--on-accent); box-shadow: 0 4px calc(16px * var(--g)) -6px var(--glow-a); }
+.v15 .row.is-selected .spin { border-color: color-mix(in oklab, var(--on-accent) 30%, transparent); border-top-color: var(--on-accent); }
+.v15 .row.is-hover { background: color-mix(in oklab, var(--accent) 14%, transparent); }
+.v15 .row.is-running:not(.is-selected) { background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 16%, transparent), transparent); background-size: 200% 100%; animation: flowX var(--speed) linear infinite alternate; }
+
+/* 16 左缘弧形光（贴着圆角的半月光） */
+.v16 .row::before { content: ""; position: absolute; inset: 0; border-radius: inherit; border-left: var(--t) solid transparent; background: linear-gradient(90deg, var(--accent), transparent) border-box; -webkit-mask: linear-gradient(90deg, #000 0, #000 var(--t), transparent calc(var(--t) + 1px)); mask: linear-gradient(90deg, #000 0, #000 var(--t), transparent calc(var(--t) + 1px)); opacity: 0; }
+.v16 .row.is-selected::before { opacity: 1; background: linear-gradient(180deg, var(--accent), var(--accent2)) border-box; filter: drop-shadow(0 0 calc(5px * var(--g)) var(--glow-a)); }
+.v16 .row.is-hover::before { opacity: .4; }
+.v16 .row.is-running::before { opacity: 1; background: linear-gradient(180deg, var(--flow), var(--accent)) border-box; background-size: 100% 300%; animation: flowY var(--speed) linear infinite; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+
+footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: flex; gap: 12px; align-items: center; padding: 12px 20px;
+  background: color-mix(in oklab, var(--bg) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-top: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+}
+footer textarea { flex: 1; height: 54px; resize: none; font: 12px/1.5 ui-monospace, Consolas, monospace; color: var(--fg); background: color-mix(in oklab, var(--fg) 6%, transparent); border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent); border-radius: 8px; padding: 6px 10px; }
+footer .pick { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--on-accent); border: 0; font-weight: 600; padding: 9px 18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Codex 侧栏 · 选中效果</h1>
+  <label class="ctl">主题 <select id="theme"></select></label>
+  <button id="mode" type="button">切到浅色</button>
+  <label class="ctl">粗细 <input id="t" type="range" min="1" max="8" step="0.5" value="3"><output></output></label>
+  <label class="ctl">圆角 <input id="r" type="range" min="0" max="16" step="0.5" value="12.5"><output></output></label>
+  <label class="ctl">发光 <input id="g" type="range" min="0" max="2" step="0.05" value="1"><output></output></label>
+  <label class="ctl">渐变角度 <input id="angle" type="range" min="0" max="360" step="5" value="135"><output></output></label>
+  <label class="ctl">动画周期 <input id="speed" type="range" min="0.6" max="8" step="0.1" value="2.4"><output></output></label>
+  <label class="ctl">面板不透明度 <input id="glass" type="range" min="0.1" max="1" step="0.05" value="0.4"><output></output></label>
+</header>
+<main id="grid"></main>
+<footer>
+  <textarea id="result" readonly placeholder="点一个方案卡片，调好参数，再点“我选这个”"></textarea>
+  <button id="copy" type="button">复制</button>
+  <button id="pick" class="pick" type="button">我选这个</button>
+</footer>
+<script>
+// 主题取自 Woodfish 的配色（packages/theme-core 的调色板与 theme.meta.json）
+const THEMES = {
+  'Woodfish Dark':       { mode: 'dark',  bg: '#1C2433', alt: '#181F2C', fg: '#D0D7E4', muted: '#9AA2AF', accent: '#EACD61', accent2: '#EA618E', on: '#464646', flow: ['#EACD61', '#EA618E', '#3CEC85', '#61AFEA'] },
+  'Woodfish Dracula':    { mode: 'dark',  bg: '#282A36', alt: '#21222C', fg: '#F8F8F2', muted: '#B9BAB5', accent: '#FF79C6', accent2: '#BD93F9', on: '#282A36', flow: ['#FF79C6', '#BD93F9', '#8BE9FD', '#50FA7B'] },
+  'Woodfish Black':      { mode: 'dark',  bg: '#0A0A0A', alt: '#050505', fg: '#E6E6E6', muted: '#A0A0A0', accent: '#5FB3FF', accent2: '#FF6FB5', on: '#0A0A0A', flow: ['#5FB3FF', '#FF6FB5', '#FFD166', '#7CF29A'] },
+  'Woodfish Neon':       { mode: 'dark',  bg: '#120B24', alt: '#0E0820', fg: '#E8E3FF', muted: '#A79FC8', accent: '#FF2E97', accent2: '#00E5FF', on: '#120B24', flow: ['#FF2E97', '#00E5FF', '#F9F871', '#7CFF6B'] },
+  'One Dark Pro':        { mode: 'dark',  bg: '#282C34', alt: '#21252B', fg: '#ABB2BF', muted: '#7F848E', accent: '#61AFEF', accent2: '#C678DD', on: '#282C34', flow: ['#61AFEF', '#C678DD', '#E06C75', '#98C379'] },
+  'Tokyo Night':         { mode: 'dark',  bg: '#1A1B26', alt: '#16161E', fg: '#A9B1D6', muted: '#787C99', accent: '#7AA2F7', accent2: '#BB9AF7', on: '#1A1B26', flow: ['#7AA2F7', '#BB9AF7', '#F7768E', '#9ECE6A'] },
+  'Catppuccin Mocha':    { mode: 'dark',  bg: '#1E1E2E', alt: '#181825', fg: '#CDD6F4', muted: '#9399B2', accent: '#CBA6F7', accent2: '#F5C2E7', on: '#1E1E2E', flow: ['#CBA6F7', '#F5C2E7', '#89B4FA', '#A6E3A1'] },
+  'Nord':                { mode: 'dark',  bg: '#2E3440', alt: '#2E3440', fg: '#D8DEE9', muted: '#9AA2B1', accent: '#88C0D0', accent2: '#B48EAD', on: '#2E3440', flow: ['#8FBCBB', '#88C0D0', '#81A1C1', '#B48EAD'] },
+  'GitHub Dark':         { mode: 'dark',  bg: '#0D1117', alt: '#010409', fg: '#E6EDF3', muted: '#8B949E', accent: '#4493F8', accent2: '#AB7DF8', on: '#0D1117', flow: ['#4493F8', '#AB7DF8', '#F778BA', '#3FB950'] },
+  'Night Owl':           { mode: 'dark',  bg: '#011627', alt: '#011627', fg: '#D6DEEB', muted: '#8EA0B5', accent: '#82AAFF', accent2: '#C792EA', on: '#011627', flow: ['#82AAFF', '#C792EA', '#7FDBCA', '#ADDB67'] },
+  'Ayu Mirage':          { mode: 'dark',  bg: '#242936', alt: '#1F2430', fg: '#CCCAC2', muted: '#8A919C', accent: '#FFCC66', accent2: '#F28779', on: '#1F2430', flow: ['#FFCC66', '#F28779', '#73D0FF', '#D5FF80'] },
+  'Gruvbox Dark':        { mode: 'dark',  bg: '#282828', alt: '#282828', fg: '#EBDBB2', muted: '#A89984', accent: '#FABD2F', accent2: '#FE8019', on: '#282828', flow: ['#FABD2F', '#FE8019', '#FB4934', '#B8BB26'] },
+  'Woodfish Light':      { mode: 'light', bg: '#FBFAF7', alt: '#F3F1EC', fg: '#24292F', muted: '#57606A', accent: '#1F5FBF', accent2: '#B4235A', on: '#FFFFFF', flow: ['#1F5FBF', '#7B3FC4', '#B4235A', '#0B7568'] },
+  'Catppuccin Latte':    { mode: 'light', bg: '#EFF1F5', alt: '#E6E9EF', fg: '#4C4F69', muted: '#6C6F85', accent: '#8839EF', accent2: '#EA76CB', on: '#EFF1F5', flow: ['#8839EF', '#EA76CB', '#1E66F5', '#40A02B'] },
+  'GitHub Light':        { mode: 'light', bg: '#FFFFFF', alt: '#F6F8FA', fg: '#1F2328', muted: '#59636E', accent: '#0969DA', accent2: '#8250DF', on: '#FFFFFF', flow: ['#0969DA', '#8250DF', '#BF3989', '#1A7F37'] },
+};
+const VARIANTS = [
+  [1, '渐变竖条（空隙内，现状）'], [2, '行内发光竖条'], [3, '整行渐变底色'], [4, '渐变描边胶囊'],
+  [5, '毛玻璃卡片浮起'], [6, '左侧光点'], [7, '文字渐变 + 细线'], [8, '旋转流光边框'],
+  [9, '霓虹下划线'], [10, '柔和内阴影凹陷'], [11, '只改文字'], [12, '左往右淡出底色 + 边条'],
+  [13, '左侧背光晕'], [14, '顶部渐变细线'], [15, '渐变实心胶囊'], [16, '左缘弧形光'],
+];
+const ROWS = [
+  ['生成 Markdown 渲染测试内容', 'is-running', 'spin'],
+  ['更新 EventBus 与界面样式', 'is-selected', ''],
+  ['规划 Electron AI 应用扩展', 'is-hover', ''],
+  ['查找之前 VPS 的购买金额', '', 'dot'],
+  ['生成界面渲染测试标题', '', 'err'],
+  ['撰写四段界面测试短文', 'is-selected is-running', 'spin'],
+  ['每次执行先阅读 reports', '', ''],
+];
+const STATE_NOTE = '依次是：运行中、选中、悬停、未读、出错、选中+运行中、普通';
+const root = document.documentElement;
+const grid = document.getElementById('grid');
+let picked = 1;
+
+for (const [id, name] of VARIANTS) {
+  const card = document.createElement('section');
+  card.className = `card v${id}`;
+  card.dataset.id = id;
+  card.innerHTML = `<h2><span>#${id}</span>${name}</h2><div class="sidebar"><div class="section">最近</div>${ROWS.map(([title, cls, status]) => `<div class="row ${cls}"><span class="title">${title}</span><span class="status">${status ? `<span class="${status}">${status === 'err' ? 'i' : ''}</span>` : ''}</span></div>`).join('')}</div>`;
+  card.title = STATE_NOTE;
+  card.addEventListener('click', () => select(id));
+  // Real hover on top of the demo states.
+  card.querySelectorAll('.row').forEach((row) => {
+    row.addEventListener('mouseenter', () => row.classList.add('is-hover', 'live-hover'));
+    row.addEventListener('mouseleave', () => { if (row.classList.contains('live-hover')) row.classList.remove('is-hover', 'live-hover'); });
+  });
+  grid.append(card);
+}
+
+const themeSelect = document.getElementById('theme');
+for (const name of Object.keys(THEMES)) themeSelect.add(new Option(name, name));
+let lastDark = 'Woodfish Dark', lastLight = 'Woodfish Light';
+
+function applyTheme(name) {
+  const t = THEMES[name];
+  const set = (k, v) => root.style.setProperty(k, v);
+  set('--bg', t.bg); set('--bg-alt', t.alt); set('--fg', t.fg); set('--muted', t.muted);
+  set('--accent', t.accent); set('--accent2', t.accent2); set('--on-accent', t.on); set('--flow', t.flow.join(', '));
+  set('--selected', t.mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)');
+  set('--hover', t.mode === 'dark' ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.035)');
+  root.style.colorScheme = t.mode;
+  if (t.mode === 'dark') lastDark = name; else lastLight = name;
+  document.getElementById('mode').textContent = t.mode === 'dark' ? '切到浅色' : '切到深色';
+  themeSelect.value = name;
+}
+themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
+document.getElementById('mode').addEventListener('click', () => applyTheme(THEMES[themeSelect.value].mode === 'dark' ? lastLight : lastDark));
+
+const UNITS = { t: 'px', r: 'px', g: '', angle: 'deg', speed: 's', glass: '' };
+for (const key of Object.keys(UNITS)) {
+  const input = document.getElementById(key);
+  const out = input.nextElementSibling;
+  const update = () => {
+    const value = input.value + UNITS[key];
+    root.style.setProperty(key === 'glass' ? '--glass-opacity' : `--${key}`, value);
+    out.textContent = value;
+  };
+  input.addEventListener('input', update);
+  update();
+}
+
+function select(id) {
+  picked = id;
+  document.querySelectorAll('.card').forEach((card) => card.classList.toggle('picked', Number(card.dataset.id) === id));
+}
+
+function summary() {
+  const name = VARIANTS.find(([id]) => id === picked)[1];
+  const values = Object.keys(UNITS).map((key) => `${{ t: '粗细', r: '圆角', g: '发光', angle: '渐变角度', speed: '动画周期', glass: '面板不透明度' }[key]} ${document.getElementById(key).value}${UNITS[key]}`).join('，');
+  return `方案 #${picked}「${name}」；主题 ${themeSelect.value}；${values}`;
+}
+document.getElementById('pick').addEventListener('click', () => { document.getElementById('result').value = summary(); });
+document.getElementById('copy').addEventListener('click', async () => {
+  const box = document.getElementById('result');
+  if (!box.value) box.value = summary();
+  try { await navigator.clipboard.writeText(box.value); } catch { box.select(); document.execCommand('copy'); }
+});
+
+applyTheme('Woodfish Dark');
+select(1);
+</script>
+</body>
+</html>
