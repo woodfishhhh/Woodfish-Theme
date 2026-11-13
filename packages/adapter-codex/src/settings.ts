@@ -85,7 +85,8 @@ export function normalizeCodexSettings(input: unknown = {}): CodexSettings {
       enabled: sanitizeBoolean(codeGradient.enabled, true),
       ...normalizeTextGradient(codeGradient),
     },
-    codeGlow: { enabled: sanitizeBoolean(codeGlow.enabled, true), ...normalizeGlow(codeGlow) },
+    // Large-area glow is off by default (the owner keeps it off in VS Code); the caret glows.
+    codeGlow: { enabled: sanitizeBoolean(codeGlow.enabled, false), ...normalizeGlow(codeGlow) },
     glass: {
       enabled: sanitizeBoolean(glass.enabled, true),
       animations: sanitizeBoolean(glass.animations, true),

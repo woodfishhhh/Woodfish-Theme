@@ -23,10 +23,10 @@ import {
 } from '../index';
 
 describe('normalizeCodexSettings', () => {
-  it('enables every effect by default and keeps Codex colors', () => {
+  it('enables every effect but the large-area code glow by default and keeps Codex colors', () => {
     expect(DEFAULT_CODEX_SETTINGS.palette).toEqual({ dark: null, light: null });
     expect(DEFAULT_CODEX_SETTINGS.codeGradient.enabled).toBe(true);
-    expect(DEFAULT_CODEX_SETTINGS.codeGlow.enabled).toBe(true);
+    expect(DEFAULT_CODEX_SETTINGS.codeGlow.enabled).toBe(false);
     expect(DEFAULT_CODEX_SETTINGS.glass.enabled).toBe(true);
     expect(DEFAULT_CODEX_SETTINGS.accent.enabled).toBe(true);
     expect(DEFAULT_CODEX_SETTINGS.caret.enabled).toBe(true);
