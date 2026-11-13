@@ -131,6 +131,7 @@ describe('pre-publish package hygiene', () => {
       'themes/shared/cursor-core.css',
       'themes/shared/cursor-glow.css',
       'themes/shared/native-window-main.mjs',
+      'themes/shared/backgrounds/caiyun.webp',
       'themes/black/Woodfish Black.json',
       'themes/black/theme.meta.json',
       'themes/neon/Woodfish Neon.json',

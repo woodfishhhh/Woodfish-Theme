@@ -26,6 +26,16 @@ const DSH_PACKAGES = ['theme-core', 'renderer-runtime', 'adapter-dsh'];
 // Chromium 155 ships in the tested Codex build; target an older baseline for safety.
 const BROWSER_TARGET = 'chrome120';
 
+/*
+ * The default background 《彩云》 (by woodfish), committed once in renderer-runtime. The
+ * CLI serves it to the CDP overlay on request; the Codex++ user script has no watcher, so
+ * it carries the picture itself. The CDP overlay never inlines it, so re-injecting on a
+ * settings change stays small.
+ */
+const DEFAULT_BACKGROUND_BASE64 = fs
+  .readFileSync(path.join(REPO_ROOT, 'packages', 'renderer-runtime', 'assets', 'caiyun.webp'))
+  .toString('base64');
+
 const DSH_VERSION = JSON.parse(
   fs.readFileSync(path.join(REPO_ROOT, 'packages', 'adapter-dsh', 'package.json'), 'utf8')
 ).version;
@@ -79,6 +89,7 @@ const ASSETS = [
     banner: 'Woodfish Codex overlay (Codex++ user script)',
     packages: CODEX_PACKAGES,
     buildDefine: '__WOODFISH_CODEX_BUILD__',
+    define: { __WOODFISH_CODEX_DEFAULT_BACKGROUND__: JSON.stringify(DEFAULT_BACKGROUND_BASE64) },
   },
   {
     output: 'assets/woodfish-dsh.user.js',
@@ -127,7 +138,7 @@ async function buildAsset(asset, buildId) {
     platform: 'browser',
     target: BROWSER_TARGET,
     conditions: ['source'],
-    define: { [asset.buildDefine]: JSON.stringify(buildId) },
+    define: { ...asset.define, [asset.buildDefine]: JSON.stringify(buildId) },
     banner: {
       js: [
         // A user script manager reads its metadata block only at the very top.
@@ -182,6 +193,7 @@ async function buildCli(contents) {
       __WOODFISH_CODEX_USERSCRIPT__: JSON.stringify(contents['assets/codex-userscript.js']),
       __WOODFISH_DSH_USERSCRIPT__: JSON.stringify(contents['assets/woodfish-dsh.user.js']),
       __WOODFISH_CLI_VERSION__: JSON.stringify(pkg.version),
+      __WOODFISH_DEFAULT_BACKGROUND__: JSON.stringify(DEFAULT_BACKGROUND_BASE64),
     },
     banner: {
       js: '#!/usr/bin/env node\n/* Woodfish desktop CLI. Bundles smol-toml (BSD-3-Clause), see THIRD_PARTY_NOTICES.md. */',

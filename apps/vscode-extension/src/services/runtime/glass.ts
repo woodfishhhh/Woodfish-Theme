@@ -337,10 +337,20 @@ export function buildGlassCss(settings: GlassSettings): string {
   return parts.join('\n\n');
 }
 
-type NativePart = { selectors: string[]; colorVariable: string };
+/**
+ * Workbench parts that paint an opaque theme color. Both the native window material and
+ * the window background make them translucent. `kind` tells the background how to treat
+ * each: the editor stays clear, side panels are frosted, thin strips get a light blur.
+ */
+export type NativePart = {
+  selectors: string[];
+  colorVariable: string;
+  kind: 'main' | 'panel' | 'strip';
+};
 
-const NATIVE_PARTS: NativePart[] = [
+export const NATIVE_PARTS: NativePart[] = [
   {
+    kind: 'main',
     colorVariable: '--vscode-editor-background',
     selectors: [
       '.monaco-workbench .part.editor > .content',
@@ -352,6 +362,7 @@ const NATIVE_PARTS: NativePart[] = [
     ],
   },
   {
+    kind: 'strip',
     colorVariable: '--vscode-editorGroupHeader-tabsBackground',
     selectors: [
       '.monaco-workbench .part.editor > .content .editor-group-container > .title',
@@ -359,30 +370,37 @@ const NATIVE_PARTS: NativePart[] = [
     ],
   },
   {
+    kind: 'strip',
     colorVariable: '--vscode-tab-inactiveBackground',
     selectors: ['.monaco-workbench .tabs-container > .tab:not(.active)'],
   },
   {
+    kind: 'strip',
     colorVariable: '--vscode-tab-activeBackground',
     selectors: ['.monaco-workbench .tabs-container > .tab.active'],
   },
   {
+    kind: 'panel',
     colorVariable: '--vscode-sideBar-background',
     selectors: ['.monaco-workbench .part.sidebar', '.monaco-workbench .part.auxiliarybar'],
   },
   {
+    kind: 'strip',
     colorVariable: '--vscode-activityBar-background',
     selectors: ['.monaco-workbench .part.activitybar'],
   },
   {
+    kind: 'panel',
     colorVariable: '--vscode-panel-background',
     selectors: ['.monaco-workbench .part.panel'],
   },
   {
+    kind: 'strip',
     colorVariable: '--vscode-statusBar-background',
     selectors: ['.monaco-workbench .part.statusbar'],
   },
   {
+    kind: 'strip',
     colorVariable: '--vscode-titleBar-activeBackground',
     selectors: ['.monaco-workbench .part.titlebar'],
   },

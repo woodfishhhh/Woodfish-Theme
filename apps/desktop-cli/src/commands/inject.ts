@@ -7,9 +7,11 @@ import { fetchTargets, isDebugPortAlive } from '../cdp/http';
 import { isMainWindowTarget, looksLikeCodexTargets } from '../cdp/targets';
 import { evaluateInMainWindows } from '../inject/pages';
 import { DISPOSE_EXPRESSION, OVERLAY_STATE_EXPRESSION, loadOverlayBundle } from '../inject/payload';
+import { listBackgrounds, readBackground, saveBackground } from '../codex/backgrounds';
 import { startWatcher, watchFile } from '../inject/watcher';
 import { CodexInstallation, CodexPlatform, CodexRuntimeState } from '../platform';
 import { loadSettings, loadWatcherState, saveSettings, saveWatcherState, sha256 } from '../store';
+import { forgetBackground } from './background';
 import {
   CommandContext,
   CommandError,
@@ -279,6 +281,14 @@ export async function runWatcher(
         ...stored,
         codex: applyCodexSettingsPatch(stored.codex, patch),
       });
+    },
+    backgrounds: {
+      list: () => listBackgrounds(context.paths),
+      get: (id: string) => readBackground(context.paths, id),
+      save: (name: string, data: Buffer) => saveBackground(context.paths, data, name).id,
+      remove: (id: string): void => {
+        forgetBackground(context, id);
+      },
     },
     log,
     fetchImpl: context.fetchImpl,

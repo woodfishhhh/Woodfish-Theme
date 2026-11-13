@@ -190,6 +190,12 @@
         "icon": "$(beaker)"
       },
       {
+        "command": "woodfish-theme.setBackgroundImage",
+        "title": "设置背景图片",
+        "category": "Woodfish Theme",
+        "icon": "$(file-media)"
+      },
+      {
         "command": "woodfish-theme.applyPreset",
         "title": "选择效果预设",
         "category": "Woodfish Theme",
@@ -605,9 +611,57 @@
         }
       },
       {
+        "id": "woodfishTheme.background",
+        "title": "窗口背景",
+        "order": 6,
+        "properties": {
+          "woodfishTheme.background.enabled": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "markdownDescription": "在窗口底下铺一张图片，编辑器透出背景，侧边栏和面板用毛玻璃叠在上面。默认图片是作者 woodfish 制作的《彩云》；用命令 **Woodfish Theme: 设置背景图片** 换成自己的图片。改动后需要重新加载窗口。",
+            "order": 0
+          },
+          "woodfishTheme.background.image": {
+            "type": "string",
+            "default": "",
+            "scope": "application",
+            "markdownDescription": "由 **设置背景图片** 命令写入：留空是《彩云》，`gradient` 是彩云渐变，其他值是复制到 Woodfish 存储目录的图片。",
+            "order": 1
+          },
+          "woodfishTheme.background.opacity": {
+            "type": "number",
+            "default": 0.15,
+            "minimum": 0,
+            "maximum": 1,
+            "scope": "application",
+            "markdownDescription": "背景图透出来的程度。默认 `0.15`，范围 `0`–`1`。",
+            "order": 2
+          },
+          "woodfishTheme.background.blur": {
+            "type": "number",
+            "default": 10,
+            "minimum": 0,
+            "maximum": 60,
+            "scope": "application",
+            "markdownDescription": "侧边栏和面板毛玻璃的模糊半径（像素）。默认 `10`，范围 `0`–`60`。",
+            "order": 3
+          },
+          "woodfishTheme.background.mask": {
+            "type": "number",
+            "default": 0.35,
+            "minimum": 0,
+            "maximum": 1,
+            "scope": "application",
+            "markdownDescription": "遮罩：侧边栏和面板盖在背景上的主题色浓度，越大越不透明、文字越清楚。默认 `0.35`，范围 `0`–`1`。",
+            "order": 4
+          }
+        }
+      },
+      {
         "id": "woodfishTheme.advanced",
         "title": "高级",
-        "order": 6,
+        "order": 7,
         "properties": {
           "woodfishTheme.syntaxGradient.customRules": {
             "type": "array",

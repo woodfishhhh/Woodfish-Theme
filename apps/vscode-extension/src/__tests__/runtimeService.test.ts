@@ -82,6 +82,10 @@ jest.mock('../config/featureFlags', () => ({
         opacity: 0.78,
       },
     },
+    background: {
+      enabled: false,
+      image: '',
+    },
     runtime: {
       fixChecksums: true,
     },

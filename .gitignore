@@ -62,3 +62,6 @@ apps/vscode-extension/LICENSE
 
 # Rendered media (promo video, stills)
 output/
+
+# Staged into the VSIX while packaging (scripts/paths.js)
+apps/vscode-extension/themes/shared/backgrounds/

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import {
+  BACKGROUND_SETTING_KEYS,
   CONFIG_SECTION,
   CURSOR_SETTING_KEYS,
   FEATURE_SETTING_KEYS,
@@ -148,6 +149,19 @@ export function readRuntimeSettings(): ThemeRuntimeSettings {
           DEFAULT_RUNTIME_SETTINGS.glass.nativeWindow.opacity
         ),
       },
+    },
+    background: {
+      enabled: readSetting(
+        BACKGROUND_SETTING_KEYS.enabled,
+        DEFAULT_RUNTIME_SETTINGS.background.enabled
+      ),
+      image: readSetting(BACKGROUND_SETTING_KEYS.image, DEFAULT_RUNTIME_SETTINGS.background.image),
+      opacity: readSetting(
+        BACKGROUND_SETTING_KEYS.opacity,
+        DEFAULT_RUNTIME_SETTINGS.background.opacity
+      ),
+      blur: readSetting(BACKGROUND_SETTING_KEYS.blur, DEFAULT_RUNTIME_SETTINGS.background.blur),
+      mask: readSetting(BACKGROUND_SETTING_KEYS.mask, DEFAULT_RUNTIME_SETTINGS.background.mask),
     },
     runtime: {
       fixChecksums: readSetting(

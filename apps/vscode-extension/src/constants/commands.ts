@@ -10,6 +10,7 @@ export const COMMANDS = {
   repairWorkbench: 'woodfish-theme.repairWorkbench',
   toggleGlass: 'woodfish-theme.toggleGlass',
   toggleNativeWindow: 'woodfish-theme.toggleNativeWindow',
+  setBackgroundImage: 'woodfish-theme.setBackgroundImage',
   applyPreset: 'woodfish-theme.applyPreset',
   savePreset: 'woodfish-theme.savePreset',
   pickCursorPalette: 'woodfish-theme.pickCursorPalette',

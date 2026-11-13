@@ -51,6 +51,14 @@ export const GLASS_SETTING_KEYS = {
   nativeWindowOpacity: 'glass.nativeWindow.opacity',
 } as const;
 
+export const BACKGROUND_SETTING_KEYS = {
+  enabled: 'background.enabled',
+  image: 'background.image',
+  opacity: 'background.opacity',
+  blur: 'background.blur',
+  mask: 'background.mask',
+} as const;
+
 export const RUNTIME_SETTING_KEYS = {
   fixChecksums: 'runtime.fixChecksums',
 } as const;

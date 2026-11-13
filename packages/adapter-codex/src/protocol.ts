@@ -52,3 +52,26 @@ export const CODEX_DATASET = {
   source: 'woodfishCodexSource',
   degraded: 'woodfishCodexDegraded',
 } as const;
+
+/**
+ * CDP binding for background pictures, separate from the settings binding (which stays
+ * capped at a few KB). The page sends a JSON `CodexBackgroundRequest`; the watcher answers
+ * by calling the controller's `backgroundReply(nonce, reply)`.
+ */
+export const CODEX_BACKGROUND_BINDING = '__woodfishCodexBackground';
+
+export type CodexBackgroundRequest =
+  | { type: 'list'; nonce: string }
+  | { type: 'get'; nonce: string; id: string }
+  | { type: 'upload'; nonce: string; name: string; data: string }
+  | { type: 'remove'; nonce: string; id: string };
+
+/** A saved picture as the panel lists it. */
+export interface CodexBackgroundEntry {
+  id: string;
+  name: string;
+}
+
+export type CodexBackgroundReply =
+  | { ok: true; entries?: CodexBackgroundEntry[]; id?: string; type?: string; data?: string }
+  | { ok: false; error: string };

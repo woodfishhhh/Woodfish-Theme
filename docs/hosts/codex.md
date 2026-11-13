@@ -22,6 +22,21 @@
 - “思考中”的扫光是 CSS module 类（`_cadencedShimmer*`），按规则不碰；运行状态由侧栏流光边框转得更快来表达。
 - 菜单（Radix）没有入场动画，`data-state="open"` 可用来做淡入。
 
+## 窗口背景（2026-11-13 实测）
+
+| 项目 | 结论 |
+| --- | --- |
+| 图片怎么进页面 | CSP 是 `img-src 'self' app: blob: data: https:`，但 `connect-src` 没有 `data:`，所以页面不能 `fetch` data URL。做法：监视进程把图片 base64 交给页面，页面用 `atob` 解成 `Blob`、`URL.createObjectURL` 得到 `blob:` 地址写进 CSS 变量。注入脚本只带图片编号，改设置不会重传整张图；CDP overlay 产物不内嵌图片（约 190 KB），Codex++ 用户脚本内嵌《彩云》（约 500 KB） |
+| binding 刷新后会丢 | `Runtime.addBinding` 注册的函数在 `location.reload()` 后**不在了**（设置用的 `__woodfishCodexSaveSettings` 也一样，之前没发现）。监视进程现在每次 `Page.loadEventFired` 都重新注册，页面端发请求前最多等 10 秒 binding 出现 |
+| 哪些元素要清掉底色 | `main.bg-surface`、`[data-app-shell-main-surface]`、设置等页面的容器 `[data-codex-history-swipe-page] > .electron\:bg-surface`（Tailwind 变体类）。侧栏 `[data-sidebar-navigation-root]` 原本是 65% 表面色，改成 35% 毛玻璃 |
+| 内容会滚到下面的地方 | 顶部渐隐 `[data-app-shell-main-content-top-fade] > [aria-hidden="true"]`、输入框后方底条 `[data-thread-scroll-footer] > .bg-surface.pointer-events-none` 和它上面的 `.from-surface` 渐隐。半透明底色会在底条右边缘留下一道接缝；改成背景层的副本（同一张图、同样的遮罩，`background-attachment: fixed` 对齐窗口），和底下逐像素一致、没有接缝，又能挡住滚过去的内容；渐隐用 `mask-image` 柔化 |
+| 输入框 | Codex 自己有 `--composer-layout-surface-background` / `--composer-layout-surface-backdrop-filter` 两个变量（变体 `default` / `opaque`）。Woodfish 把两者清空，改画背景的模糊副本加 35% 主题色 |
+| 拖入图片 | 只在设置 → 外观页打开时拦截（捕获阶段，且只拦图片文件），不影响平时把图片拖进输入框当附件 |
+| 性能：不用实时 backdrop-filter | 第一版给侧栏、输入框和底条用 `backdrop-filter: blur(10px)`。滚动没有差别，但**流式输出时帧时间约翻倍**（4 秒一段交替测：开 10.9 / 11.5 / 20.6 ms，关 6.7 / 7.5 / 11.9 ms）：侧栏里运行中的指示条、输入框的光标动画、滚到输入框下面的新文字，每一帧都逼它重算。背景本身是静止的，所以改成**预先模糊的静态副本**：页面拿到图片后用 canvas 生成一张 640px 的模糊副本（`--woodfish-background-image-soft`），侧栏和输入框画副本加 35% 主题色和 10% 亮度层，全程没有 `backdrop-filter`。等待模型思考时（指示条和光标在动）开 / 关都是 4.2–4.5 ms，没有差别 |
+| 性能：实测 | 32000px 的长会话，每帧滚 30px：前 12000px 背景开 7.5 / 8.5 ms、关 6.5 / 7.0 ms，p95 都是 16.7 ms。流式输出（3.5 秒一段交替）：开 8.4 / 7.3 / 9.5 ms，关 7.6 / 6.8 / 5.0 ms；把底条和输入框换成纯色不更快（8.5 / 9.8 / 12.6 ms），剩下的 1–4 ms 是“对话区透明、底下有图”本身的代价，都在 60 Hz 的帧预算内。显示器是高刷屏，帧间隔基准约 4 ms |
+
+截图（窗口切到前台后用 `PrintWindow` 截取）：[深色，关闭背景](codex-screenshots/background-before-dark.jpg)、[深色，默认《彩云》](codex-screenshots/background-after-dark.jpg)、[浅色](codex-screenshots/background-after-light.jpg)、[设置页的背景区](codex-screenshots/background-panel.jpg)。和负责人 VS Code 的观感对比：VS Code 里是 shalldie.background 把图以 15% 盖在**整个界面上面**（深色用 `screen` 混合，文字也被染上一层）；这里图在**底下**，同样 15% 的浓度，文字和代码块不被覆盖，侧栏多了一层磨砂。
+
 ## 一直生效：自动恢复
 
 `woodfish codex autostart on` 注册计划任务 `\Woodfish\Woodfish Codex`：当前用户登录时触发、`Interactive` + `Limited`（普通权限，管理员终端里注册也一样）、不限运行时长，动作是 `conhost.exe --headless node <runtimeDir>\woodfish.js codex daemon`（`--headless` 让控制台程序完全没有窗口；任务跑的是 CLI 的私有副本，移动或更新仓库不影响它）。

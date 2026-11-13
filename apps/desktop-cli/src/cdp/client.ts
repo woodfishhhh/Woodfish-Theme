@@ -188,11 +188,12 @@ export class CdpConnection {
 export async function evaluate(
   connection: CdpConnection,
   expression: string,
-  sessionId?: string
+  sessionId?: string,
+  awaitPromise = false
 ): Promise<unknown> {
   const response = await connection.send(
     'Runtime.evaluate',
-    { expression, returnByValue: true, awaitPromise: false },
+    { expression, returnByValue: true, awaitPromise },
     sessionId
   );
   const exception = response.exceptionDetails as

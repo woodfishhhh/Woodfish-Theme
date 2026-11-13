@@ -8,6 +8,12 @@ import {
   codexPaletteMode,
   findCodexPalette,
 } from '../settings';
+import {
+  BackgroundPanelOptions,
+  BackgroundSection,
+  buildBackgroundSection,
+} from './backgroundPanel';
+import { Look, element, labelBlock, readLook } from './panelDom';
 
 /** Marks the Woodfish settings section, so styles, dispose and tests can find it. */
 export const SETTINGS_PANEL_ATTRIBUTE = 'data-woodfish-codex-settings';
@@ -44,92 +50,14 @@ export interface SettingsPanelOptions {
   footnote: string;
   /** Extra attributes on the section (e.g. the Codex++ ownership marker). */
   nodeAttributes?: Readonly<Record<string, string>>;
+  /** Picture storage and live preview for the background rows. */
+  background: Pick<BackgroundPanelOptions, 'store' | 'preview'>;
 }
 
 export interface SettingsPanel {
   /** Re-reads the settings into the controls. */
   refresh: () => void;
   dispose: () => void;
-}
-
-/** Class names copied from Codex's own settings section, or Woodfish fallbacks. */
-interface Look {
-  section: string;
-  header: string;
-  title: string;
-  body: string;
-  card: string;
-  cardStyle: string;
-  row: string;
-  rowLeft: string;
-  labelWrap: string;
-  label: string;
-  description: string;
-  rowRight: string;
-}
-
-function classOf(element: Element | null | undefined, fallback: string): string {
-  const value = element?.getAttribute('class');
-  return value && value.trim() ? value : fallback;
-}
-
-/**
- * Reads the layout classes of the Appearance page so the Woodfish section looks native,
- * even after Codex restyles its settings. Anything missing falls back to Woodfish CSS.
- */
-function readLook(anchorSection: Element): Look {
-  const header = anchorSection.children[0];
-  const body = anchorSection.children[1];
-  const card = body?.querySelector('[class*="rounded-2xl"]') ?? body?.firstElementChild;
-  const rows = [...document.querySelectorAll('[class*="settings-row"]')].filter(
-    (row) => row.children.length === 2 && row.querySelector('[class*="font-medium"]')
-  );
-  const row = rows[rows.length - 1];
-  const left = row?.children[0];
-  const labelWrap = left?.firstElementChild;
-  return {
-    section: classOf(anchorSection, 'woodfish-settings-fallback-section'),
-    header: classOf(header, ''),
-    title: classOf(
-      header?.querySelector('[class*="font-medium"]'),
-      'woodfish-settings-fallback-title'
-    ),
-    body: classOf(body, 'woodfish-settings-fallback-section'),
-    card: classOf(card, 'woodfish-settings-fallback-card'),
-    cardStyle: card?.getAttribute('style') ?? '',
-    row: classOf(row, 'woodfish-settings-fallback-row'),
-    rowLeft: classOf(left, ''),
-    labelWrap: classOf(labelWrap, ''),
-    label: classOf(labelWrap?.firstElementChild, 'woodfish-settings-label'),
-    description: 'woodfish-settings-description',
-    rowRight: classOf(row?.children[1], ''),
-  };
-}
-
-function element<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className: string,
-  attributes: Record<string, string> = {},
-  children: Array<Node | string> = []
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  if (className) {
-    node.className = className;
-  }
-  for (const [name, value] of Object.entries(attributes)) {
-    node.setAttribute(name, value);
-  }
-  node.append(...children);
-  return node;
-}
-
-function labelBlock(look: Look, label: string, description: string): HTMLElement {
-  return element('div', look.rowLeft, {}, [
-    element('div', look.labelWrap, {}, [
-      element('div', look.label, {}, [label]),
-      element('div', look.description, {}, [description]),
-    ]),
-  ]);
 }
 
 /** A small preview: the theme's background with a few lines in its syntax colors. */
@@ -216,6 +144,7 @@ function switchRow(look: Look, key: CodexFeatureKey): HTMLElement {
  */
 export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel {
   let root: HTMLElement | null = null;
+  let background: BackgroundSection | null = null;
   let timer: ReturnType<typeof globalThis.setTimeout> | null = null;
   let disposed = false;
 
@@ -262,6 +191,17 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
       galleryRow(look, 'light'),
       ...CODEX_FEATURE_KEYS.map((key) => switchRow(look, key)),
     ]);
+    background = buildBackgroundSection(look, {
+      ...options.background,
+      settings: options.settings,
+      change: options.change,
+    });
+    const backgroundCard = element(
+      'div',
+      `${look.card} woodfish-background-card`,
+      look.cardStyle ? { style: look.cardStyle } : {},
+      background.rows
+    );
     const section = element(
       'section',
       look.section,
@@ -270,6 +210,7 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
         element('div', look.header, {}, [element('div', look.title, {}, ['Woodfish'])]),
         element('div', look.body, {}, [
           card,
+          backgroundCard,
           element('div', 'woodfish-settings-footnote', {}, [options.footnote]),
         ]),
       ]
@@ -286,17 +227,23 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
     }
     const anchorSection = document.querySelector(APPEARANCE_ANCHOR)?.closest('section') ?? null;
     if (!anchorSection) {
-      root?.remove();
-      root = null;
+      unmount();
       return;
     }
     if (root && root.isConnected && root.previousElementSibling === anchorSection) {
       return;
     }
-    root?.remove();
+    unmount();
     root = build(anchorSection);
     anchorSection.after(root);
     sync();
+  }
+
+  function unmount(): void {
+    background?.dispose();
+    background = null;
+    root?.remove();
+    root = null;
   }
 
   function schedule(): void {
@@ -310,15 +257,17 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
   check();
 
   return {
-    refresh: sync,
+    refresh: (): void => {
+      sync();
+      background?.sync();
+    },
     dispose: (): void => {
       disposed = true;
       observer.disconnect();
       if (timer !== null) {
         globalThis.clearTimeout(timer);
       }
-      root?.remove();
-      root = null;
+      unmount();
     },
   };
 }

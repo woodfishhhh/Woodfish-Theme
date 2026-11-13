@@ -59,6 +59,7 @@ export class FeatureStateController {
         targets: [...this.settings.glass.targets],
         nativeWindow: { ...this.settings.glass.nativeWindow },
       },
+      background: { ...this.settings.background, fill: [...this.settings.background.fill] },
       runtime: { ...this.settings.runtime },
       ...(this.settings.explicitSettings
         ? {

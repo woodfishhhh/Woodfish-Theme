@@ -1,4 +1,5 @@
 import {
+  BackgroundParams,
   CursorParams,
   DEFAULT_CURSOR,
   GlassParams,
@@ -6,6 +7,7 @@ import {
   TextGradientParams,
   WOODFISH_PALETTES,
   WoodfishPalette,
+  normalizeBackground,
   normalizeCursor,
   normalizeGlass,
   normalizeGlow,
@@ -39,8 +41,36 @@ export interface CodexSettings {
   >;
   /** Rainbow gradient on assistant reply text (pure CSS, also while it streams). */
   bodyText: { enabled: boolean };
+  /**
+   * The window background: a picture under the window, panels frosted over it. `image` is
+   * `caiyun` (the bundled 《彩云》), `gradient` (the `fill` colors) or the id of a picture
+   * the user saved (kept by the watcher, never in this file).
+   */
+  background: { enabled: boolean; image: CodexBackgroundId } & BackgroundParams;
   /** Extra CSS appended last, sanitized like the VS Code custom rules. */
   customCss: string[];
+}
+
+export type CodexBackgroundId = string;
+/** The bundled default picture 《彩云》 by woodfish. */
+export const CODEX_DEFAULT_BACKGROUND_ID = 'caiyun';
+/** The `fill` gradient instead of a picture. */
+export const CODEX_GRADIENT_BACKGROUND_ID = 'gradient';
+/** Saved pictures are named by the first 12 hex digits of their SHA-256. */
+const SAVED_BACKGROUND_ID = /^[0-9a-f]{12}$/;
+
+export function isCodexBackgroundId(value: unknown): value is CodexBackgroundId {
+  return (
+    typeof value === 'string' &&
+    (value === CODEX_DEFAULT_BACKGROUND_ID ||
+      value === CODEX_GRADIENT_BACKGROUND_ID ||
+      SAVED_BACKGROUND_ID.test(value))
+  );
+}
+
+/** True for a picture the user saved (as opposed to the bundled ones). */
+export function isSavedBackgroundId(value: string): boolean {
+  return SAVED_BACKGROUND_ID.test(value);
 }
 
 type Loose = Record<string, unknown>;
@@ -82,6 +112,7 @@ export function normalizeCodexSettings(input: unknown = {}): CodexSettings {
   const codeGlow = section(input, 'codeGlow');
   const glass = section(input, 'glass');
   const caret = section(input, 'caret');
+  const background = section(input, 'background');
   const cursor = normalizeCursor(caret);
   const customCss =
     input !== null && typeof input === 'object' ? (input as Loose).customCss : undefined;
@@ -109,6 +140,11 @@ export function normalizeCodexSettings(input: unknown = {}): CodexSettings {
       gradientStops: cursor.gradientStops,
     },
     bodyText: { enabled: sanitizeBoolean(section(input, 'bodyText').enabled, true) },
+    background: {
+      enabled: sanitizeBoolean(background.enabled, true),
+      image: isCodexBackgroundId(background.image) ? background.image : CODEX_DEFAULT_BACKGROUND_ID,
+      ...normalizeBackground(background),
+    },
     customCss: sanitizeCustomCssRules(customCss),
   };
 }
@@ -148,7 +184,13 @@ export interface CodexSettingsPatch {
   accent?: { enabled: boolean };
   caret?: { enabled: boolean };
   bodyText?: { enabled: boolean };
+  background?: Partial<
+    Pick<CodexSettings['background'], 'enabled' | 'image' | 'opacity' | 'blur' | 'mask'>
+  >;
 }
+
+/** Background fields the panel may change; colors and the rest stay file-only. */
+const PANEL_BACKGROUND_NUMBERS = ['opacity', 'blur', 'mask'] as const;
 
 /**
  * Applies an untrusted patch from the page (the in-app settings panel). Only the themes
@@ -172,6 +214,18 @@ export function applyCodexSettingsPatch(settings: CodexSettings, patch: unknown)
     const enabled = section(patch, key).enabled;
     if (typeof enabled === 'boolean') {
       next[key].enabled = enabled;
+    }
+  }
+  const background = section(patch, 'background');
+  if (typeof background.enabled === 'boolean') {
+    next.background.enabled = background.enabled;
+  }
+  if (isCodexBackgroundId(background.image)) {
+    next.background.image = background.image;
+  }
+  for (const key of PANEL_BACKGROUND_NUMBERS) {
+    if (typeof background[key] === 'number') {
+      next.background[key] = normalizeBackground({ [key]: background[key] })[key];
     }
   }
   return next;
