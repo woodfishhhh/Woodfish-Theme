@@ -6,6 +6,7 @@ import { mergeSettings, parseArgs, parseSetting } from '../cli/args';
 import { RISK_TEXT, RISK_TEXT_SHA256 } from '../cli/consent';
 import { Io } from '../cli/io';
 import { HELP, run } from '../cli';
+import { FRESH_START_SECONDS, decideDaemonAction } from '../commands/autostart';
 import {
   USERSCRIPT_KEY,
   buildUserScript,
@@ -140,11 +141,15 @@ function fakePlatform(overrides: Partial<CodexPlatform> = {}): CodexPlatform & {
     name: 'windows',
     discover: () => installation,
     inspect: () => stopped,
+    isRunning: () => false,
     launchWithPort: () => calls.push('launchWithPort'),
     launchNormal: () => calls.push('launchNormal'),
     stop: () => calls.push('stop'),
     isElevated: () => false,
     createShortcut: () => 'C:\\link.lnk',
+    installAutostart: (command) => calls.push(`installAutostart ${command.args.join(' ')}`),
+    removeAutostart: () => calls.push('removeAutostart') > 0,
+    readAutostart: () => null,
     ...overrides,
   };
 }
@@ -250,7 +255,7 @@ describe('run', () => {
     expect(loadSettings(paths).consent).toBeUndefined();
   });
 
-  it('refuses to run elevated and refuses to restart Codex without confirmation', async () => {
+  it('refuses to restart Codex without confirmation', async () => {
     fs.mkdirSync(paths.dataDir, { recursive: true });
     fs.writeFileSync(
       paths.settingsFile,
@@ -260,16 +265,9 @@ describe('run', () => {
         consent: { riskTextSha256: RISK_TEXT_SHA256, acceptedAt: 'x' },
       })
     );
-    const elevated = fakePlatform({ isElevated: () => true });
-    const io = memoryIo();
-    expect(
-      await run(['codex', 'launch'], { io, context: { paths, platform: () => elevated } })
-    ).toBe(1);
-    expect(io.output.join('\n')).toContain('管理员');
-
     const running = fakePlatform({
       inspect: () => ({
-        main: { pid: 1, commandLine: 'ChatGPT.exe' },
+        main: { pid: 1, commandLine: 'ChatGPT.exe', ageSeconds: 5 },
         processCount: 3,
         debugPort: null,
       }),
@@ -288,5 +286,60 @@ describe('run', () => {
     expect(
       await run(['codex', 'shortcut'], { io, context: { paths, platform: () => platform } })
     ).toBe(3);
+  });
+
+  it('registers the hidden logon daemon only after consent and removes it on uninstall', async () => {
+    const platform = fakePlatform();
+    const cliPath = path.join(paths.dataDir, 'checkout-woodfish.js');
+    fs.mkdirSync(paths.dataDir, { recursive: true });
+    fs.writeFileSync(cliPath, '// cli');
+    const context = { paths, platform: () => platform, nodePath: 'C:\\node.exe', cliPath };
+    const refused = memoryIo();
+    expect(await run(['codex', 'autostart', 'on'], { io: refused, context })).toBe(3);
+    expect(platform.calls).toEqual([]);
+
+    const io = memoryIo();
+    expect(await run(['codex', 'autostart', 'on', '--accept-risk'], { io, context })).toBe(0);
+    // The task runs a private copy of the CLI, independent of the checkout.
+    const installed = path.join(paths.runtimeDir, 'woodfish.js');
+    expect(platform.calls).toEqual([
+      `installAutostart --headless C:\\node.exe ${installed} codex daemon`,
+    ]);
+    expect(fs.readFileSync(installed, 'utf8')).toBe('// cli');
+    expect(io.output.join('\n')).toContain('不会被打断');
+
+    expect(await run(['codex', 'autostart', 'sideways'], { io, context })).toBe(2);
+    expect(await run(['codex', 'uninstall'], { io, context })).toBe(0);
+    expect(platform.calls).toContain('removeAutostart');
+  });
+});
+
+describe('decideDaemonAction', () => {
+  const base = {
+    running: true,
+    mainPid: 7,
+    ageSeconds: 3,
+    debugPortAlive: false,
+    otherWatcherAlive: false,
+    handledPid: null,
+  };
+
+  it('restarts only a fresh Codex start without a port, once', () => {
+    expect(decideDaemonAction(base)).toBe('restart');
+    expect(decideDaemonAction({ ...base, handledPid: 7 })).toBe('leave');
+    expect(decideDaemonAction({ ...base, ageSeconds: FRESH_START_SECONDS + 1 })).toBe('leave');
+    expect(decideDaemonAction({ ...base, ageSeconds: null })).toBe('leave');
+  });
+
+  it('injects into Codex with a port unless a launch watcher already does', () => {
+    expect(decideDaemonAction({ ...base, debugPortAlive: true, ageSeconds: 9999 })).toBe('attach');
+    expect(decideDaemonAction({ ...base, debugPortAlive: true, otherWatcherAlive: true })).toBe(
+      'wait'
+    );
+  });
+
+  it('idles while Codex is closed', () => {
+    expect(decideDaemonAction({ ...base, running: false })).toBe('idle');
+    expect(decideDaemonAction({ ...base, mainPid: null })).toBe('idle');
   });
 });

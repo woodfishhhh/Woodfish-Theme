@@ -4,9 +4,12 @@ import {
   PageController,
   StyleManager,
   TextGradientEngine,
+  Disposer,
   clearTextGradientMarks,
   createStyleManager,
   installController,
+  mountAcrylicFilter,
+  startReveal,
   startTextGradientEngine,
   uninstallController,
 } from '@woodfish/renderer-runtime';
@@ -25,8 +28,6 @@ import {
   CodexOverlaySource,
 } from '../protocol';
 import {
-  BODY_ROOT_SELECTOR,
-  BODY_TEXT_SELECTOR,
   CODE_ROOT_SELECTOR,
   CODE_TOKEN_SELECTOR,
   CODEX_SELECTORS,
@@ -192,11 +193,12 @@ export function startCodexOverlay(
   let settings = normalizeCodexSettings(input);
   const styles = createStyles(source);
   let codeEngine: TextGradientEngine | null = null;
-  let bodyEngine: TextGradientEngine | null = null;
   let diffEngine: TextGradientEngine | null = null;
-  const diffs = startDiffDecorator(
-    source === 'userscript' ? { [CODEX_PLUS_NODE_ATTRIBUTE]: 'woodfish' } : {}
-  );
+  const ownership: Readonly<Record<string, string>> =
+    source === 'userscript' ? { [CODEX_PLUS_NODE_ATTRIBUTE]: 'woodfish' } : {};
+  const diffs = startDiffDecorator(ownership);
+  let reveal: Disposer | null = null;
+  let acrylic: { blur: number; dispose: Disposer } | null = null;
 
   /** The Woodfish palette of the appearance mode Codex is in, if one is selected. */
   function activePalette(): WoodfishPalette | null {
@@ -273,19 +275,31 @@ export function startCodexOverlay(
       diffs.setEngine(null);
     }
 
-    if (settings.bodyText.enabled && !bodyEngine) {
-      bodyEngine = startEngine(BODY_TEXT_SELECTOR, BODY_ROOT_SELECTOR, settings, {
-        gradientContext,
-      });
-    } else if (settings.bodyText.enabled && bodyEngine) {
-      bodyEngine.update(settings.codeGradient);
-    } else if (!settings.bodyText.enabled && bodyEngine) {
-      bodyEngine.dispose();
-      bodyEngine = null;
-    }
-
-    if (!codeEngine && !bodyEngine) {
+    if (!codeEngine) {
       clearTextGradientMarks();
+    }
+  }
+
+  /** The pointer-following light and the acrylic SVG filter the glass CSS refers to. */
+  function applyGlassRuntime(): void {
+    const glass = settings.glass;
+    const wantReveal = glass.enabled && glass.reveal;
+    if (wantReveal && !reveal) {
+      reveal = startReveal({ targets: CODEX_SELECTORS.revealTarget.selectors });
+    } else if (!wantReveal && reveal) {
+      reveal();
+      reveal = null;
+    }
+    const acrylicBlur = glass.enabled && glass.mode === 'acrylic' ? glass.blur : null;
+    if (acrylic && acrylic.blur !== acrylicBlur) {
+      acrylic.dispose();
+      acrylic = null;
+    }
+    if (acrylicBlur !== null && !acrylic) {
+      acrylic = {
+        blur: acrylicBlur,
+        dispose: mountAcrylicFilter({ blur: acrylicBlur, nodeAttributes: ownership }),
+      };
     }
   }
 
@@ -315,6 +329,7 @@ export function startCodexOverlay(
       settings = normalizeCodexSettings(next);
       applyStyles();
       applyEngines();
+      applyGlassRuntime();
       panel?.refresh();
     },
     settings: () => normalizeCodexSettings(settings),
@@ -333,10 +348,11 @@ export function startCodexOverlay(
           }
         },
         (): void => panel?.dispose(),
+        (): void => reveal?.(),
+        (): void => acrylic?.dispose(),
         (): void => diffs.dispose(),
         (): void => diffEngine?.dispose(),
         (): void => codeEngine?.dispose(),
-        (): void => bodyEngine?.dispose(),
         (): void => clearTextGradientMarks(),
         (): void => styles.removeAll(),
         (): void => {
@@ -354,7 +370,6 @@ export function startCodexOverlay(
         }
       }
       codeEngine = null;
-      bodyEngine = null;
       diffEngine = null;
       uninstallController(CODEX_CONTROLLER_KEY, controller);
     },
@@ -362,6 +377,7 @@ export function startCodexOverlay(
 
   applyStyles();
   applyEngines();
+  applyGlassRuntime();
   styles.upsert('settings', SETTINGS_PANEL_CSS);
   panel = startSettingsPanel({
     settings: () => settings,
@@ -370,7 +386,7 @@ export function startCodexOverlay(
       persistPatch(source, patch);
     },
     footnote: PANEL_FOOTNOTE[source],
-    nodeAttributes: source === 'userscript' ? { [CODEX_PLUS_NODE_ATTRIBUTE]: 'woodfish' } : {},
+    nodeAttributes: ownership,
   });
   document.documentElement.dataset[CODEX_DATASET.active] = CODEX_ADAPTER_VERSION;
   document.documentElement.dataset[CODEX_DATASET.source] = source;

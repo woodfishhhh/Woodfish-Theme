@@ -35,10 +35,20 @@ describe('original palettes', () => {
 });
 
 describe('ported palettes', () => {
-  it('carries Woodfish Dark and Dracula over from the VS Code themes', () => {
+  it('carries Woodfish Dark, Dracula and the popular themes over from the VS Code themes', () => {
     expect(PORTED_PALETTES.map((palette) => [palette.slug, palette.label, palette.type])).toEqual([
       ['dark', 'Woodfish Dark', 'dark'],
       ['dracula', 'Woodfish Dracula', 'dark'],
+      ['onedark', 'Woodfish One Dark Pro', 'dark'],
+      ['tokyonight', 'Woodfish Tokyo Night', 'dark'],
+      ['catppuccin-mocha', 'Woodfish Catppuccin Mocha', 'dark'],
+      ['catppuccin-latte', 'Woodfish Catppuccin Latte', 'light'],
+      ['nord', 'Woodfish Nord', 'dark'],
+      ['github-dark', 'Woodfish GitHub Dark', 'dark'],
+      ['github-light', 'Woodfish GitHub Light', 'light'],
+      ['nightowl', 'Woodfish Night Owl', 'dark'],
+      ['ayu-mirage', 'Woodfish Ayu Mirage', 'dark'],
+      ['gruvbox-dark', 'Woodfish Gruvbox Dark', 'dark'],
     ]);
     const dracula = PORTED_PALETTES[1];
     // The official Dracula colors, read from the shipped theme file.
@@ -46,6 +56,11 @@ describe('ported palettes', () => {
     expect(dracula.tokens.keyword).toBe('#FF79C6');
     expect(dracula.tokens.string).toBe('#F1FA8C');
     expect(dracula.tokens.comment).toBe('#6272A4');
+    // Read from the shipped JSONC files (comments and trailing commas) the way VS Code does.
+    const tokyo = PORTED_PALETTES.find((palette) => palette.slug === 'tokyonight');
+    expect(tokyo?.ui.bg).toBe('#1A1B26');
+    const nord = PORTED_PALETTES.find((palette) => palette.slug === 'nord');
+    expect(nord?.tokens.function).toBe('#88C0D0');
   });
 
   it('uses opaque colors where hosts need them and 16 ANSI entries', () => {
@@ -67,16 +82,36 @@ describe('ported palettes', () => {
       expect(Object.values(palette.tokens).every((color) => opaque.test(color))).toBe(true);
       expect(palette.ansi.every((color) => opaque.test(color))).toBe(true);
       expect(palette.ansi).toHaveLength(16);
-      // Elevated surfaces sit above the editor in these dark themes.
-      expect(paletteContrast(ui.bgWidget, '#000000')).toBeGreaterThan(
-        paletteContrast(ui.bg, '#000000')
-      );
+      // Elevated surfaces sit above the editor: lighter in dark themes, white in light ones.
+      if (palette.type === 'dark') {
+        expect(paletteContrast(ui.bgWidget, '#000000')).toBeGreaterThan(
+          paletteContrast(ui.bg, '#000000')
+        );
+      } else {
+        expect(ui.bgWidget).toBe('#FFFFFF');
+      }
     }
   });
 
   it('lists every palette once', () => {
     const slugs = WOODFISH_PALETTES.map((palette) => palette.slug);
-    expect(slugs).toEqual(['dark', 'dracula', 'light', 'black', 'neon']);
+    expect(slugs).toEqual([
+      'dark',
+      'dracula',
+      'light',
+      'black',
+      'neon',
+      'onedark',
+      'tokyonight',
+      'catppuccin-mocha',
+      'catppuccin-latte',
+      'nord',
+      'github-dark',
+      'github-light',
+      'nightowl',
+      'ayu-mirage',
+      'gruvbox-dark',
+    ]);
     expect(new Set(slugs).size).toBe(slugs.length);
   });
 });

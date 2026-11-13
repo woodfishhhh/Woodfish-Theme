@@ -1,5 +1,7 @@
+import { CODEX_PALETTE_SLUGS, codexPaletteMode } from '@woodfish/adapter-codex';
 import { booleanFlag, parseArgs, stringFlag } from './cli/args';
 import { Io, createConsoleIo } from './cli/io';
+import { autostartCommand, daemonCommand } from './commands/autostart';
 import { CommandContext, CommandError, EXIT } from './commands/context';
 import {
   launchCommand,
@@ -23,12 +25,18 @@ import { currentPlatform } from './platform';
 
 const VALUE_FLAGS = new Set(['palette', 'dark', 'light', 'appearance', 'mode', 'port', 'set']);
 
+function themesFor(mode: 'dark' | 'light'): string {
+  return CODEX_PALETTE_SLUGS.filter((slug) => codexPaletteMode(slug) === mode).join(' ');
+}
+const DARK_THEMES = themesFor('dark');
+const LIGHT_THEMES = themesFor('light');
+
 export const HELP = `Woodfish 桌面工具
 
 用法：woodfish codex <命令> [选项]
 
 配色（不开调试端口）
-  theme apply [--dark <dark|dracula|black|neon>] [--light light]
+  theme apply [--dark <深色主题>] [--light <浅色主题>]
               [--appearance <system|light|dark>]
               [--palette <名称>] [--restart]
                          把 Woodfish 配色写入 Codex 官方主题设置（自动备份）；
@@ -42,6 +50,9 @@ export const HELP = `Woodfish 桌面工具
   stop-inject            立即撤下注入效果
   relaunch --normal [--yes]
                          不带调试端口重启 Codex（关闭端口）
+  autostart [on|off] [--accept-risk]
+                         登录后常驻：Codex 重启、商店更新后自动恢复效果；
+                         不带参数时查看状态
   settings [--set 键=值]… [--reset]
                          查看或修改效果设置，例如：
                            --set palette.dark=neon --set bodyText.enabled=true
@@ -50,6 +61,10 @@ export const HELP = `Woodfish 桌面工具
 Codex++
   install-userscript [--force]
   uninstall-userscript
+
+主题
+  深色：${DARK_THEMES}
+  浅色：${LIGHT_THEMES}
 
 其他
   status [--json]        当前状态
@@ -150,6 +165,12 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
         return await uninstallCommand(context, {
           keepSettings: booleanFlag(args, 'keep-settings'),
         });
+      case 'autostart':
+        return await autostartCommand(context, subcommand, {
+          acceptRisk: booleanFlag(args, 'accept-risk'),
+        });
+      case 'daemon':
+        return await daemonCommand(context);
       case 'watch': {
         const port = Number(stringFlag(args, 'port'));
         if (!Number.isInteger(port) || port < 1024 || port > 65535) {

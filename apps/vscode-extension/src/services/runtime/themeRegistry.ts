@@ -1,4 +1,19 @@
-export type WoodfishThemeSlug = 'bearded' | 'dracula' | 'light' | 'black' | 'neon';
+export type WoodfishThemeSlug =
+  | 'bearded'
+  | 'dracula'
+  | 'light'
+  | 'black'
+  | 'neon'
+  | 'onedark'
+  | 'tokyonight'
+  | 'catppuccin-mocha'
+  | 'catppuccin-latte'
+  | 'nord'
+  | 'github-dark'
+  | 'github-light'
+  | 'nightowl'
+  | 'ayu-mirage'
+  | 'gruvbox-dark';
 
 export type WoodfishThemeDefinition = {
   slug: WoodfishThemeSlug;
@@ -9,38 +24,27 @@ export type WoodfishThemeDefinition = {
 
 export const DEFAULT_WOODFISH_THEME_LABEL = 'Woodfish Dark';
 
-const BUILT_IN_WOODFISH_THEMES: WoodfishThemeDefinition[] = [
-  {
-    label: 'Woodfish Dark',
-    slug: 'bearded',
-    directory: 'bearded',
-    metaFile: 'theme.meta.json',
-  },
-  {
-    label: 'Woodfish Dracula',
-    slug: 'dracula',
-    directory: 'dracula',
-    metaFile: 'theme.meta.json',
-  },
-  {
-    label: 'Woodfish Black',
-    slug: 'black',
-    directory: 'black',
-    metaFile: 'theme.meta.json',
-  },
-  {
-    label: 'Woodfish Neon',
-    slug: 'neon',
-    directory: 'neon',
-    metaFile: 'theme.meta.json',
-  },
-  {
-    label: 'Woodfish Light',
-    slug: 'light',
-    directory: 'light',
-    metaFile: 'theme.meta.json',
-  },
-];
+/** Every bundled theme lives in `themes/<directory>/` next to its `theme.meta.json`. */
+const BUILT_IN_WOODFISH_THEMES: WoodfishThemeDefinition[] = (
+  [
+    ['Woodfish Dark', 'bearded'],
+    ['Woodfish Dracula', 'dracula'],
+    ['Woodfish Black', 'black'],
+    ['Woodfish Neon', 'neon'],
+    ['Woodfish Light', 'light'],
+    // Popular MIT themes, bundled unmodified (see THIRD_PARTY_NOTICES.md).
+    ['Woodfish One Dark Pro', 'onedark'],
+    ['Woodfish Tokyo Night', 'tokyonight'],
+    ['Woodfish Catppuccin Mocha', 'catppuccin-mocha'],
+    ['Woodfish Catppuccin Latte', 'catppuccin-latte'],
+    ['Woodfish Nord', 'nord'],
+    ['Woodfish GitHub Dark', 'github-dark'],
+    ['Woodfish GitHub Light', 'github-light'],
+    ['Woodfish Night Owl', 'nightowl'],
+    ['Woodfish Ayu Mirage', 'ayu-mirage'],
+    ['Woodfish Gruvbox Dark', 'gruvbox-dark'],
+  ] as const
+).map(([label, slug]) => ({ label, slug, directory: slug, metaFile: 'theme.meta.json' }));
 
 export function listWoodfishThemes(): WoodfishThemeDefinition[] {
   return [...BUILT_IN_WOODFISH_THEMES];

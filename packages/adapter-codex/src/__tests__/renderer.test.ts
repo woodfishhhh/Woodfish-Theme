@@ -68,6 +68,7 @@ describe('startCodexOverlay', () => {
     const ids = [...document.head.querySelectorAll('style')].map((element) => element.id).sort();
     expect(ids).toEqual([
       'woodfish-codex-accent',
+      'woodfish-codex-body',
       'woodfish-codex-caret',
       'woodfish-codex-code',
       'woodfish-codex-glass',
@@ -82,14 +83,19 @@ describe('startCodexOverlay', () => {
     expect(controller()).toBe(overlay);
   });
 
-  it('updates in place: enabling the body gradient, removing the palette', () => {
-    const overlay = startCodexOverlay({ palette: { dark: 'neon' } }, 'cdp');
+  it('updates in place: switching the body gradient, removing the palette', () => {
+    const overlay = startCodexOverlay(
+      { palette: { dark: 'neon' }, bodyText: { enabled: false } },
+      'cdp'
+    );
     settle();
+    expect(document.getElementById('woodfish-codex-body')).toBeNull();
     overlay.update({ bodyText: { enabled: true } });
     settle();
     expect(document.getElementById('woodfish-codex-palette')).toBeNull();
     expect(document.getElementById('woodfish-codex-body')).not.toBeNull();
-    expect(document.querySelector('p')?.getAttribute('data-woodfish-overlay-token')).toBe('true');
+    // Reply text is painted by CSS alone; no script marks paragraphs.
+    expect(document.querySelector('p')?.hasAttribute('data-woodfish-overlay-token')).toBe(false);
 
     overlay.update({ codeGradient: { enabled: false }, codeGlow: { enabled: false } });
     settle();

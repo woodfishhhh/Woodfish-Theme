@@ -16,26 +16,24 @@ import {
 
 /**
  * The Woodfish themes that can recolor Codex (`null` keeps the user's Codex theme), in the
- * order the VS Code extension lists them.
+ * order the VS Code extension lists them. Every Woodfish palette qualifies, so a theme added
+ * to theme-core shows up here without changes.
  */
-export type CodexPaletteSlug = 'dark' | 'dracula' | 'black' | 'neon' | 'light';
-export const CODEX_PALETTE_SLUGS: readonly CodexPaletteSlug[] = Object.freeze([
-  'dark',
-  'dracula',
-  'black',
-  'neon',
-  'light',
-]);
+export type CodexPaletteSlug = string;
+export const CODEX_PALETTE_SLUGS: readonly CodexPaletteSlug[] = Object.freeze(
+  WOODFISH_PALETTES.map((palette) => palette.slug)
+);
 
 export interface CodexSettings {
   /** Palette per Codex appearance mode; `null` keeps Codex's own colors for that mode. */
   palette: { dark: CodexPaletteSlug | null; light: CodexPaletteSlug | null };
   codeGradient: { enabled: boolean } & TextGradientParams;
   codeGlow: { enabled: boolean } & GlowParams;
-  glass: { enabled: boolean } & GlassParams;
+  /** `animations`: menus and dialogs fade in; `reveal`: pointer-following light on rows. */
+  glass: { enabled: boolean; animations: boolean; reveal: boolean } & GlassParams;
   accent: { enabled: boolean };
   caret: { enabled: boolean } & Pick<CursorParams, 'animationDuration' | 'gradientStops'>;
-  /** Gradient on assistant reply text. Off by default: most visible, most fragile. */
+  /** Rainbow gradient on assistant reply text (pure CSS, also while it streams). */
   bodyText: { enabled: boolean };
   /** Extra CSS appended last, sanitized like the VS Code custom rules. */
   customCss: string[];
@@ -52,9 +50,7 @@ function section(input: unknown, key: string): Loose {
 }
 
 function paletteSlug(value: unknown): CodexPaletteSlug | null {
-  return typeof value === 'string' && (CODEX_PALETTE_SLUGS as readonly string[]).includes(value)
-    ? (value as CodexPaletteSlug)
-    : null;
+  return typeof value === 'string' && CODEX_PALETTE_SLUGS.includes(value) ? value : null;
 }
 
 /** The Codex appearance mode a Woodfish theme is made for. */
@@ -86,14 +82,19 @@ export function normalizeCodexSettings(input: unknown = {}): CodexSettings {
       ...normalizeTextGradient(codeGradient),
     },
     codeGlow: { enabled: sanitizeBoolean(codeGlow.enabled, true), ...normalizeGlow(codeGlow) },
-    glass: { enabled: sanitizeBoolean(glass.enabled, true), ...normalizeGlass(glass) },
+    glass: {
+      enabled: sanitizeBoolean(glass.enabled, true),
+      animations: sanitizeBoolean(glass.animations, true),
+      reveal: sanitizeBoolean(glass.reveal, true),
+      ...normalizeGlass(glass),
+    },
     accent: { enabled: sanitizeBoolean(section(input, 'accent').enabled, true) },
     caret: {
       enabled: sanitizeBoolean(caret.enabled, true),
       animationDuration: cursor.animationDuration,
       gradientStops: cursor.gradientStops,
     },
-    bodyText: { enabled: sanitizeBoolean(section(input, 'bodyText').enabled, false) },
+    bodyText: { enabled: sanitizeBoolean(section(input, 'bodyText').enabled, true) },
     customCss: sanitizeCustomCssRules(customCss),
   };
 }

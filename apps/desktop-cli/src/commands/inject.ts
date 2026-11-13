@@ -34,7 +34,7 @@ export interface OverlayState {
   painted: number;
 }
 
-async function ensureConsent(context: CommandContext, acceptRisk: boolean): Promise<void> {
+export async function ensureConsent(context: CommandContext, acceptRisk: boolean): Promise<void> {
   const settings = loadSettings(context.paths);
   if (settings.consent?.riskTextSha256 === RISK_TEXT_SHA256) {
     return;
@@ -60,7 +60,7 @@ async function ensureConsent(context: CommandContext, acceptRisk: boolean): Prom
   });
 }
 
-function requireInstallation(platform: CodexPlatform): CodexInstallation {
+export function requireInstallation(platform: CodexPlatform): CodexInstallation {
   const installation = platform.discover();
   if (!installation) {
     throw new CommandError('没有找到 Codex 桌面端，请先从 Microsoft Store 安装');
@@ -68,7 +68,7 @@ function requireInstallation(platform: CodexPlatform): CodexInstallation {
   return installation;
 }
 
-async function waitForExit(
+export async function waitForExit(
   platform: CodexPlatform,
   installation: CodexInstallation
 ): Promise<void> {
@@ -144,6 +144,35 @@ export async function readOverlayStates(
   })) as OverlayState[];
 }
 
+/** Starts Codex (already stopped) on a random loopback port and waits for its main window. */
+export async function startCodexWithPort(
+  context: CommandContext,
+  platform: CodexPlatform,
+  installation: CodexInstallation
+): Promise<number> {
+  const port = await pickFreePort();
+  context.io.out(`正在以本机调试端口 ${port} 启动 Codex……`);
+  platform.launchWithPort(installation, port);
+  const ready = await waitFor(async () => {
+    try {
+      const targets = await fetchTargets(port, context.fetchImpl);
+      return looksLikeCodexTargets(targets) && targets.some(isMainWindowTarget);
+    } catch {
+      return false;
+    }
+  }, 45000);
+  if (!ready) {
+    throw new CommandError(
+      'Codex 启动后没有打开调试端口，可能是 Codex 更新后不再支持。可改用 `woodfish codex theme apply`。'
+    );
+  }
+  const relaunched = platform.inspect(installation);
+  if (relaunched.debugPort !== port) {
+    throw new CommandError(`端口 ${port} 上响应的不是刚启动的 Codex，已停止`);
+  }
+  return port;
+}
+
 export interface LaunchOptions {
   assumeYes: boolean;
   acceptRisk: boolean;
@@ -156,9 +185,6 @@ export async function launchCommand(
 ): Promise<number> {
   await ensureConsent(context, options.acceptRisk);
   const platform = context.platform();
-  if (platform.isElevated()) {
-    throw new CommandError('请不要以管理员身份运行：商店版 Codex 在管理员权限下无法带参数启动');
-  }
   const installation = requireInstallation(platform);
   const state = platform.inspect(installation);
   let port: number;
@@ -188,26 +214,7 @@ export async function launchCommand(
       context.io.out('已取消。');
       return EXIT.failure;
     }
-    port = await pickFreePort();
-    context.io.out(`正在以本机调试端口 ${port} 启动 Codex……`);
-    platform.launchWithPort(installation, port);
-    const ready = await waitFor(async () => {
-      try {
-        const targets = await fetchTargets(port, context.fetchImpl);
-        return looksLikeCodexTargets(targets) && targets.some(isMainWindowTarget);
-      } catch {
-        return false;
-      }
-    }, 45000);
-    if (!ready) {
-      throw new CommandError(
-        'Codex 启动后没有打开调试端口，可能是 Codex 更新后不再支持。可改用 `woodfish codex theme apply`。'
-      );
-    }
-    const relaunched = platform.inspect(installation);
-    if (relaunched.debugPort !== port) {
-      throw new CommandError(`端口 ${port} 上响应的不是刚启动的 Codex，已停止`);
-    }
+    port = await startCodexWithPort(context, platform, installation);
   }
 
   const bundleSha256 = sha256(loadOverlayBundle());
@@ -251,12 +258,19 @@ export async function launchCommand(
   return EXIT.ok;
 }
 
-/** Hidden `woodfish codex watch --port P`: the long-running injector. */
-export async function watchCommand(context: CommandContext, port: number): Promise<number> {
-  const log = (message: string): void => context.io.out(`[${new Date().toISOString()}] ${message}`);
+/**
+ * Injects into Codex on `port` until Codex closes the debugging connection. Used by the
+ * hidden `watch` command and by the autostart daemon.
+ */
+export async function runWatcher(
+  context: CommandContext,
+  port: number,
+  log: (message: string) => void
+): Promise<void> {
+  const bundle = loadOverlayBundle();
   const watcher = await startWatcher({
     port,
-    bundle: loadOverlayBundle(),
+    bundle,
     loadSettings: () => loadSettings(context.paths).codex,
     watchSettings: watchFile(context.paths.settingsFile),
     saveSettingsPatch: (patch: unknown): void => {
@@ -273,13 +287,20 @@ export async function watchCommand(context: CommandContext, port: number): Promi
     pid: process.pid,
     port,
     startedAt: new Date().toISOString(),
-    bundleSha256: sha256(loadOverlayBundle()),
+    bundleSha256: sha256(bundle),
   });
   log(`监视进程已启动，端口 ${port}，已注入 ${watcher.pages()} 个窗口`);
   await watcher.closed;
   if (loadWatcherState(context.paths)?.pid === process.pid) {
     saveWatcherState(context.paths, undefined);
   }
+}
+
+/** Hidden `woodfish codex watch --port P`: the long-running injector. */
+export async function watchCommand(context: CommandContext, port: number): Promise<number> {
+  await runWatcher(context, port, (message) =>
+    context.io.out(`[${new Date().toISOString()}] ${message}`)
+  );
   return EXIT.ok;
 }
 

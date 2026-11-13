@@ -1,6 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ORIGINAL_PALETTES, WOODFISH_PALETTES, validatePalette } from '@woodfish/theme-core';
+import {
+  ORIGINAL_PALETTES,
+  WOODFISH_PALETTES,
+  findGradientPreset,
+  validatePalette,
+} from '@woodfish/theme-core';
 import {
   CHROME_THEME_COLOR,
   CODEX_ADAPTER_VERSION,
@@ -18,14 +23,14 @@ import {
 } from '../index';
 
 describe('normalizeCodexSettings', () => {
-  it('enables every effect except the body gradient by default and keeps Codex colors', () => {
+  it('enables every effect by default and keeps Codex colors', () => {
     expect(DEFAULT_CODEX_SETTINGS.palette).toEqual({ dark: null, light: null });
     expect(DEFAULT_CODEX_SETTINGS.codeGradient.enabled).toBe(true);
     expect(DEFAULT_CODEX_SETTINGS.codeGlow.enabled).toBe(true);
     expect(DEFAULT_CODEX_SETTINGS.glass.enabled).toBe(true);
     expect(DEFAULT_CODEX_SETTINGS.accent.enabled).toBe(true);
     expect(DEFAULT_CODEX_SETTINGS.caret.enabled).toBe(true);
-    expect(DEFAULT_CODEX_SETTINGS.bodyText.enabled).toBe(false);
+    expect(DEFAULT_CODEX_SETTINGS.bodyText.enabled).toBe(true);
     expect(DEFAULT_CODEX_SETTINGS.customCss).toEqual([]);
   });
 
@@ -130,6 +135,7 @@ describe('buildCodexCss', () => {
         glass: { enabled: false },
         accent: { enabled: false },
         caret: { enabled: false },
+        bodyText: { enabled: false },
       })
     );
     for (const name of CODEX_STYLE_NAMES) {
@@ -149,6 +155,8 @@ describe('buildCodexCss', () => {
         selector.startsWith('[data-woodfish') ||
         selector.startsWith('[data-theme') ||
         selector === '[data-reduced-motion="true"]' ||
+        // Radix marks open menus and dialogs; only used to time their entrance.
+        selector === '[data-state="open"]' ||
         selector === '[data-code-block]';
       expect({ selector, allowed }).toEqual({ selector, allowed: true });
     }
@@ -252,13 +260,90 @@ describe('buildCodexCss', () => {
     expect(css).toContain('data:image/svg+xml');
     expect(css).not.toContain('[data-app-shell-main-surface]');
   });
+
+  it('follows the VS Code glass options: acrylic mode, entrance animations, reveal light', () => {
+    const blur = buildCodexCss(normalizeCodexSettings({})).glass;
+    expect(blur).toContain('blur(30px) saturate(125%)');
+    expect(blur).toContain('@keyframes woodfish-codex-drop');
+    expect(blur).toContain('[role="menu"][data-state="open"]');
+    expect(blur).toContain('[data-woodfish-reveal="true"]');
+    const acrylic = buildCodexCss(
+      normalizeCodexSettings({ glass: { mode: 'acrylic', animations: false, reveal: false } })
+    ).glass;
+    expect(acrylic).toContain('url(#woodfish-acrylic) saturate(125%)');
+    expect(acrylic).not.toContain('@keyframes');
+    expect(acrylic).not.toContain('data-woodfish-reveal');
+  });
+
+  it("underlines the active panel tab with the theme's tab gradient", () => {
+    const accent = buildCodexCss(normalizeCodexSettings({})).accent;
+    expect(accent).toContain(
+      '[data-app-shell-tab-controller] [role="tab"][aria-selected="true"]::after'
+    );
+    expect(accent).toContain('--woodfish-codex-tab-gradient,');
+    const palette = buildCodexCss(normalizeCodexSettings({ palette: { dark: 'nord' } })).palette;
+    expect(palette).toContain(
+      `--woodfish-codex-tab-gradient: ${findCodexPalette('nord').meta.tabBorderGradient};`
+    );
+  });
+
+  it("paints reply text with each theme's rainbow in pure CSS", () => {
+    const css = buildCodexCss(
+      normalizeCodexSettings({ palette: { dark: 'dark', light: 'github-light' } })
+    ).body;
+    // Woodfish Dark keeps its hand-tuned foreground rainbow.
+    const tuned = findGradientPreset('dark')?.tokens['#D0D7E4'];
+    expect(css).toContain(
+      `--woodfish-codex-body-gradient: linear-gradient(${tuned?.angle}deg, ${tuned?.stops.join(', ')});`
+    );
+    // Other themes soften their own cursor colors toward their text color.
+    expect(css).toContain('color-mix(in oklab, #0969DA 42%, #1F2328)');
+    expect(css).toContain('[data-markdown-text-style="assistant-message"] td');
+    expect(css).toContain('-webkit-text-fill-color: transparent !important;');
+    expect(css).not.toContain('data-woodfish-overlay-token');
+    // With Codex's own theme the rainbow is softened toward Codex's text color.
+    expect(buildCodexCss(normalizeCodexSettings({})).body).toContain(
+      'var(--app-color-text-foreground, currentColor)'
+    );
+  });
+
+  it('marks the running thread with a flowing theme gradient and keeps motion optional', () => {
+    const accent = buildCodexCss(normalizeCodexSettings({})).accent;
+    expect(accent).toContain(':has(.motion-safe\\:animate-spin)::before');
+    expect(accent).toContain('animation: woodfish-codex-thread-flow 2.4s linear infinite;');
+    expect(accent).toContain('[data-app-action-sidebar-thread-active="true"]::before');
+    expect(accent).toContain(
+      ':root[data-reduced-motion="true"] [data-app-action-sidebar-thread-row]::before'
+    );
+    const palette = buildCodexCss(normalizeCodexSettings({ palette: { dark: 'nord' } })).palette;
+    expect(palette).toContain(
+      '--woodfish-codex-flow-gradient: linear-gradient(180deg, #8FBCBB, #88C0D0, #81A1C1, #B48EAD, #8FBCBB);'
+    );
+  });
+
+  it("gives the caret the theme's cursor colors unless the user picked some", () => {
+    const themed = buildCodexCss(
+      normalizeCodexSettings({ palette: { dark: 'catppuccin-mocha' } })
+    ).caret;
+    const mocha = findCodexPalette('catppuccin-mocha').meta.runtime?.cursorDefaults?.gradientStops;
+    expect(themed).toContain(`[data-theme="dark"] [data-codex-composer-root]`);
+    expect(themed).toContain(`0% { caret-color: ${mocha?.[0]}; }`);
+    const custom = buildCodexCss(
+      normalizeCodexSettings({
+        palette: { dark: 'catppuccin-mocha' },
+        caret: { gradientStops: ['#111111', '#222222'] },
+      })
+    ).caret;
+    expect(custom).not.toContain(`caret-color: ${mocha?.[1]};`);
+    expect(custom).toContain('0% { caret-color: #111111; }');
+  });
 });
 
 describe('paletteToChromeTheme', () => {
   it('offers every Woodfish theme the VS Code extension ships', () => {
-    expect(CODEX_PALETTE_SLUGS).toEqual(['dark', 'dracula', 'black', 'neon', 'light']);
-    expect(WOODFISH_PALETTES.map((palette) => palette.slug).sort()).toEqual(
-      [...CODEX_PALETTE_SLUGS].sort()
+    expect(CODEX_PALETTE_SLUGS).toEqual(WOODFISH_PALETTES.map((palette) => palette.slug));
+    expect(CODEX_PALETTE_SLUGS).toEqual(
+      expect.arrayContaining(['dark', 'dracula', 'onedark', 'catppuccin-latte', 'gruvbox-dark'])
     );
   });
 

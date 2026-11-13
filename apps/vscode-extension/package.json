@@ -82,6 +82,56 @@
         "label": "Woodfish Light",
         "uiTheme": "vs",
         "path": "./themes/light/Woodfish Light.json"
+      },
+      {
+        "label": "Woodfish One Dark Pro",
+        "uiTheme": "vs-dark",
+        "path": "./themes/onedark/Woodfish One Dark Pro.json"
+      },
+      {
+        "label": "Woodfish Tokyo Night",
+        "uiTheme": "vs-dark",
+        "path": "./themes/tokyonight/Woodfish Tokyo Night.json"
+      },
+      {
+        "label": "Woodfish Catppuccin Mocha",
+        "uiTheme": "vs-dark",
+        "path": "./themes/catppuccin-mocha/Woodfish Catppuccin Mocha.json"
+      },
+      {
+        "label": "Woodfish Catppuccin Latte",
+        "uiTheme": "vs",
+        "path": "./themes/catppuccin-latte/Woodfish Catppuccin Latte.json"
+      },
+      {
+        "label": "Woodfish Nord",
+        "uiTheme": "vs-dark",
+        "path": "./themes/nord/Woodfish Nord.json"
+      },
+      {
+        "label": "Woodfish GitHub Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/github-dark/Woodfish GitHub Dark.json"
+      },
+      {
+        "label": "Woodfish GitHub Light",
+        "uiTheme": "vs",
+        "path": "./themes/github-light/Woodfish GitHub Light.json"
+      },
+      {
+        "label": "Woodfish Night Owl",
+        "uiTheme": "vs-dark",
+        "path": "./themes/nightowl/Woodfish Night Owl.json"
+      },
+      {
+        "label": "Woodfish Ayu Mirage",
+        "uiTheme": "vs-dark",
+        "path": "./themes/ayu-mirage/Woodfish Ayu Mirage.json"
+      },
+      {
+        "label": "Woodfish Gruvbox Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/gruvbox-dark/Woodfish Gruvbox Dark.json"
       }
     ],
     "commands": [

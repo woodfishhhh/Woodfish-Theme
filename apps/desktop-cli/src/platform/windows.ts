@@ -1,8 +1,16 @@
+import { spawnSync } from 'child_process';
 import { randomBytes } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PowerShellRunner, psQuote, runPowerShell, runPowerShellJson } from './powershell';
 import {
+  PowerShellRunner,
+  encodeCommand,
+  psQuote,
+  runPowerShell,
+  runPowerShellJson,
+} from './powershell';
+import {
+  AutostartCommand,
   CodexInstallation,
   CodexPlatform,
   CodexProcess,
@@ -24,7 +32,12 @@ interface ProcessRecord {
   ProcessId: number;
   ExecutablePath: string | null;
   CommandLine: string | null;
+  AgeSeconds?: number | null;
 }
+
+/** Task Scheduler location of the logon task `woodfish codex autostart` registers. */
+export const AUTOSTART_TASK_PATH = '\\Woodfish\\';
+export const AUTOSTART_TASK_NAME = 'Woodfish Codex';
 
 function asArray<T>(value: T | T[] | null): T[] {
   if (value === null) {
@@ -81,7 +94,11 @@ export function summarizeProcesses(
   );
   const mainRecord = own.find((record) => !(record.CommandLine ?? '').includes('--type='));
   const main: CodexProcess | null = mainRecord
-    ? { pid: mainRecord.ProcessId, commandLine: mainRecord.CommandLine ?? '' }
+    ? {
+        pid: mainRecord.ProcessId,
+        commandLine: mainRecord.CommandLine ?? '',
+        ageSeconds: typeof mainRecord.AgeSeconds === 'number' ? mainRecord.AgeSeconds : null,
+      }
     : null;
   const match = main ? DEBUG_PORT_ARGUMENT.exec(main.commandLine) : null;
   const port = match ? Number(match[1]) : null;
@@ -125,6 +142,42 @@ export function buildLaunchScript(installation: CodexInstallation, wrapperPath: 
   ].join(' `\n');
 }
 
+/**
+ * A batch file that runs `script` with PowerShell. Opened through `explorer.exe`, it runs in
+ * the desktop shell's (non-elevated) context: started from an elevated shell, Store Codex
+ * does not reliably come up with the extra arguments.
+ */
+export function buildDeelevatedRelay(script: string): string {
+  return [
+    '@echo off',
+    `powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand ${encodeCommand(script)}`,
+    '',
+  ].join('\r\n');
+}
+
+/** The logon task's argument string; every part is quoted for the task's command line. */
+export function buildAutostartArguments(args: readonly string[]): string {
+  for (const arg of args) {
+    if (arg.includes('"') || /[\r\n]/.test(arg)) {
+      throw new PlatformError(`自启命令包含不安全的字符：${arg}`);
+    }
+  }
+  return args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ');
+}
+
+/** PowerShell that registers and starts the logon task (normal rights, interactive session). */
+export function buildAutostartScript(command: AutostartCommand): string {
+  return [
+    `$action = New-ScheduledTaskAction -Execute ${psQuote(command.execute)} -Argument ${psQuote(buildAutostartArguments(command.args))}`,
+    '$user = [Security.Principal.WindowsIdentity]::GetCurrent().Name',
+    '$trigger = New-ScheduledTaskTrigger -AtLogOn -User $user',
+    '$principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited',
+    '$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)',
+    `Register-ScheduledTask -TaskPath ${psQuote(AUTOSTART_TASK_PATH)} -TaskName ${psQuote(AUTOSTART_TASK_NAME)} -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description ${psQuote('Woodfish：让 Codex 桌面端的配色与效果在重启、更新后自动恢复')} -Force | Out-Null`,
+    `Start-ScheduledTask -TaskPath ${psQuote(AUTOSTART_TASK_PATH)} -TaskName ${psQuote(AUTOSTART_TASK_NAME)}`,
+  ].join('\n');
+}
+
 export interface WindowsPlatformOptions {
   runner?: PowerShellRunner;
   runtimeDir: string;
@@ -151,21 +204,43 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
     inspect(installation: CodexInstallation): CodexRuntimeState {
       const records = runPowerShellJson<ProcessRecord | ProcessRecord[]>(
         runner,
-        'Get-CimInstance Win32_Process -Filter "Name=\'ChatGPT.exe\'" | Select-Object ProcessId, ExecutablePath, CommandLine | ConvertTo-Json -Compress'
+        "Get-CimInstance Win32_Process -Filter \"Name='ChatGPT.exe'\" | Select-Object ProcessId, ExecutablePath, CommandLine, @{n='AgeSeconds';e={[int]((Get-Date) - $_.CreationDate).TotalSeconds}} | ConvertTo-Json -Compress"
       );
       return summarizeProcesses(installation, asArray(records));
+    },
+
+    isRunning(): boolean {
+      const result = spawnSync(
+        'tasklist.exe',
+        ['/FI', 'IMAGENAME eq ChatGPT.exe', '/NH', '/FO', 'CSV'],
+        { encoding: 'utf8', windowsHide: true, timeout: 10000 }
+      );
+      return /"ChatGPT\.exe"/i.test(result.stdout ?? '');
     },
 
     launchWithPort(installation: CodexInstallation, port: number): void {
       const runDir = path.join(options.runtimeDir, 'run');
       fs.mkdirSync(runDir, { recursive: true });
-      const wrapperPath = path.join(runDir, `launch-${randomBytes(8).toString('hex')}.cmd`);
+      const id = randomBytes(8).toString('hex');
+      const wrapperPath = path.join(runDir, `launch-${id}.cmd`);
+      const relayPath = path.join(runDir, `relay-${id}.cmd`);
       fs.writeFileSync(wrapperPath, buildLaunchWrapper(installation.executable, port), 'ascii');
+      const script = buildLaunchScript(installation, wrapperPath);
       try {
-        runner(buildLaunchScript(installation, wrapperPath));
+        if (this.isElevated()) {
+          fs.writeFileSync(relayPath, buildDeelevatedRelay(script), 'ascii');
+          runner(
+            `Start-Process -FilePath 'explorer.exe' -ArgumentList ${psQuote(`"${relayPath}"`)}`
+          );
+        } else {
+          runner(script);
+        }
       } finally {
-        // cmd.exe reads the whole script before `start /b` returns; give it a moment.
-        setTimeout(() => fs.rmSync(wrapperPath, { force: true }), 5000).unref();
+        // The relay and cmd.exe read their scripts within seconds; the caller waits longer.
+        setTimeout(() => {
+          fs.rmSync(wrapperPath, { force: true });
+          fs.rmSync(relayPath, { force: true });
+        }, 20000).unref();
       }
     },
 
@@ -211,6 +286,41 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
         ].join('\n')
       );
       return output;
+    },
+
+    installAutostart(command: AutostartCommand): void {
+      runner(buildAutostartScript(command));
+    },
+
+    removeAutostart(): boolean {
+      const output = runner(
+        [
+          `$task = Get-ScheduledTask -TaskPath ${psQuote(AUTOSTART_TASK_PATH)} -TaskName ${psQuote(AUTOSTART_TASK_NAME)} -ErrorAction SilentlyContinue`,
+          'if ($task) {',
+          '  $task | Stop-ScheduledTask -ErrorAction SilentlyContinue',
+          '  $task | Unregister-ScheduledTask -Confirm:$false',
+          "  'removed'",
+          '}',
+          // Leave nothing behind: drop the Woodfish folder once it is empty.
+          '$service = New-Object -ComObject Schedule.Service',
+          '$service.Connect()',
+          "try { $service.GetFolder('\\').DeleteFolder('Woodfish', 0) } catch { }",
+          // A missing task leaves $? false, which would turn into exit code 1.
+          'exit 0',
+        ].join('\n')
+      );
+      return output.includes('removed');
+    },
+
+    readAutostart(): string | null {
+      const output = runner(
+        [
+          `$task = Get-ScheduledTask -TaskPath ${psQuote(AUTOSTART_TASK_PATH)} -TaskName ${psQuote(AUTOSTART_TASK_NAME)} -ErrorAction SilentlyContinue`,
+          'if ($task) { $task.Actions | ForEach-Object { "$($_.Execute) $($_.Arguments)" } }',
+          'exit 0',
+        ].join('\n')
+      );
+      return output === '' ? null : output;
     },
   };
 }

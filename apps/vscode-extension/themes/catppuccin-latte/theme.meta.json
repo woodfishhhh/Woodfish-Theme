@@ -1,0 +1,29 @@
+{
+  "label": "Woodfish Catppuccin Latte",
+  "slug": "catppuccin-latte",
+  "activityBadgeGradient": "linear-gradient(45deg, #8839EF, #EA76CB)",
+  "activityBadgeTextColor": "#EFF1F5",
+  "tabBorderGradient": "linear-gradient(to right, #8839EF, #EA76CB, #1E66F5, #40A02B)",
+  "runtime": {
+    "activityBadgeShadow": "none",
+    "tabBorderShadow": "none",
+    "tabBorderAnimationDuration": "6s",
+    "cursorDefaults": {
+      "animationDuration": 10,
+      "gradientStops": [
+        "#8839EF",
+        "#EA76CB",
+        "#D20F39",
+        "#FE640B",
+        "#DF8E1D",
+        "#40A02B",
+        "#04A5E5",
+        "#1E66F5",
+        "#8839EF"
+      ],
+      "borderRadius": 1,
+      "glowBlur": 0,
+      "glowOpacity": 0.35
+    }
+  }
+}

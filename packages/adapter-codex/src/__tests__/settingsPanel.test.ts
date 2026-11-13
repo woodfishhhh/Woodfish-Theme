@@ -115,15 +115,28 @@ describe('settings panel', () => {
       'dracula',
       'black',
       'neon',
+      'onedark',
+      'tokyonight',
+      'catppuccin-mocha',
+      'nord',
+      'github-dark',
+      'nightowl',
+      'ayu-mirage',
+      'gruvbox-dark',
     ]);
     const light = [
       ...document.querySelectorAll<HTMLElement>('[data-woodfish-mode="light"] [role="radio"]'),
     ];
-    expect(light.map((button) => button.dataset.woodfishPalette)).toEqual(['', 'light']);
+    expect(light.map((button) => button.dataset.woodfishPalette)).toEqual([
+      '',
+      'light',
+      'catppuccin-latte',
+      'github-light',
+    ]);
     expect(tile('dark', 'dracula').getAttribute('aria-checked')).toBe('true');
     expect(tile('light', '').getAttribute('aria-checked')).toBe('true');
     expect(feature('codeGradient').getAttribute('aria-checked')).toBe('true');
-    expect(feature('bodyText').getAttribute('aria-checked')).toBe('false');
+    expect(feature('bodyText').getAttribute('aria-checked')).toBe('true');
   });
 
   it('applies a click at once and hands the change to the watcher binding', () => {

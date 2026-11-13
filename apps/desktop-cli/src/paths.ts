@@ -10,6 +10,9 @@ export interface WoodfishPaths {
   stateFile: string;
   backupsDir: string;
   watcherLog: string;
+  /** The autostart daemon's lock (pid) and log. */
+  daemonStateFile: string;
+  daemonLog: string;
   /** Codex home: `CODEX_HOME` or `~/.codex`. */
   codexHome: string;
   codexConfig: string;
@@ -31,6 +34,8 @@ export function resolvePaths(env: NodeJS.ProcessEnv = process.env): WoodfishPath
     stateFile: path.join(runtimeDir, 'codex-state.json'),
     backupsDir: path.join(dataDir, 'backups'),
     watcherLog: path.join(runtimeDir, 'codex-watcher.log'),
+    daemonStateFile: path.join(runtimeDir, 'codex-daemon.json'),
+    daemonLog: path.join(runtimeDir, 'codex-daemon.log'),
     codexHome,
     codexConfig: path.join(codexHome, 'config.toml'),
     codexPlusDir: env.WOODFISH_CODEX_PLUS_DIR ?? path.join(appData, 'Codex++'),

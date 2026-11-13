@@ -1,0 +1,28 @@
+{
+  "label": "Woodfish Gruvbox Dark",
+  "slug": "gruvbox-dark",
+  "activityBadgeGradient": "linear-gradient(45deg, #FABD2F, #FE8019)",
+  "activityBadgeTextColor": "#282828",
+  "tabBorderGradient": "linear-gradient(to right, #FABD2F, #FE8019, #FB4934, #B8BB26)",
+  "runtime": {
+    "activityBadgeShadow": "none",
+    "tabBorderShadow": "none",
+    "tabBorderAnimationDuration": "6s",
+    "cursorDefaults": {
+      "animationDuration": 10,
+      "gradientStops": [
+        "#FB4934",
+        "#FE8019",
+        "#FABD2F",
+        "#B8BB26",
+        "#8EC07C",
+        "#83A598",
+        "#D3869B",
+        "#FB4934"
+      ],
+      "borderRadius": 1,
+      "glowBlur": 0,
+      "glowOpacity": 0.45
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "label": "Woodfish One Dark Pro",
+  "slug": "onedark",
+  "activityBadgeGradient": "linear-gradient(45deg, #61AFEF, #C678DD)",
+  "activityBadgeTextColor": "#282C34",
+  "tabBorderGradient": "linear-gradient(to right, #61AFEF, #C678DD, #E06C75, #98C379)",
+  "runtime": {
+    "activityBadgeShadow": "none",
+    "tabBorderShadow": "none",
+    "tabBorderAnimationDuration": "6s",
+    "cursorDefaults": {
+      "animationDuration": 10,
+      "gradientStops": [
+        "#61AFEF",
+        "#C678DD",
+        "#E06C75",
+        "#E5C07B",
+        "#98C379",
+        "#56B6C2",
+        "#61AFEF"
+      ],
+      "borderRadius": 1,
+      "glowBlur": 0,
+      "glowOpacity": 0.45
+    }
+  }
+}

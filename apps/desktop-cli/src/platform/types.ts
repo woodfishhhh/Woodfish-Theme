@@ -13,6 +13,14 @@ export interface CodexInstallation {
 export interface CodexProcess {
   pid: number;
   commandLine: string;
+  /** Seconds since the process started, if known. */
+  ageSeconds: number | null;
+}
+
+/** A command the per-user logon task runs. */
+export interface AutostartCommand {
+  execute: string;
+  args: readonly string[];
 }
 
 export interface CodexRuntimeState {
@@ -28,7 +36,12 @@ export interface CodexPlatform {
   readonly name: 'windows' | 'darwin';
   discover(): CodexInstallation | null;
   inspect(installation: CodexInstallation): CodexRuntimeState;
-  /** Starts Codex with a loopback-only debugging port. */
+  /** Cheap check whether any Codex process runs (does not read command lines). */
+  isRunning(): boolean;
+  /**
+   * Starts Codex with a loopback-only debugging port. From an elevated shell it hands the
+   * launch to the desktop shell first, so Codex runs with the user's normal rights.
+   */
   launchWithPort(installation: CodexInstallation, port: number): void;
   /** Starts Codex the normal way (no debugging port). */
   launchNormal(installation: CodexInstallation): void;
@@ -37,6 +50,12 @@ export interface CodexPlatform {
   isElevated(): boolean;
   /** Creates a desktop or Start menu shortcut that runs the given command. */
   createShortcut(name: string, target: string, args: readonly string[]): string;
+  /** Registers the per-user logon task (normal rights, no window) and starts it now. */
+  installAutostart(command: AutostartCommand): void;
+  /** Removes the logon task; true if it existed. */
+  removeAutostart(): boolean;
+  /** The logon task's command line, or null when it is not registered. */
+  readAutostart(): string | null;
 }
 
 export class PlatformError extends Error {

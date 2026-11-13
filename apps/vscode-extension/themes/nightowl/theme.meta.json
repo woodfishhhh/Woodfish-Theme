@@ -1,0 +1,28 @@
+{
+  "label": "Woodfish Night Owl",
+  "slug": "nightowl",
+  "activityBadgeGradient": "linear-gradient(45deg, #82AAFF, #C792EA)",
+  "activityBadgeTextColor": "#011627",
+  "tabBorderGradient": "linear-gradient(to right, #82AAFF, #C792EA, #7FDBCA, #ADDB67)",
+  "runtime": {
+    "activityBadgeShadow": "none",
+    "tabBorderShadow": "none",
+    "tabBorderAnimationDuration": "6s",
+    "cursorDefaults": {
+      "animationDuration": 10,
+      "gradientStops": [
+        "#82AAFF",
+        "#C792EA",
+        "#FF5874",
+        "#F78C6C",
+        "#ECC48D",
+        "#ADDB67",
+        "#7FDBCA",
+        "#82AAFF"
+      ],
+      "borderRadius": 1,
+      "glowBlur": 0,
+      "glowOpacity": 0.45
+    }
+  }
+}

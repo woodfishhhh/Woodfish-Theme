@@ -32,16 +32,17 @@ import {
 import { loadUserScriptBundle } from '../inject/payload';
 import { loadSettings, loadWatcherState, saveSettings } from '../store';
 import { CommandContext, CommandError, EXIT, isProcessAlive } from './context';
+import { removeAutostart } from './autostart';
 import { readOverlayStates, restartForNativeTheme, stopInjectCommand } from './inject';
 
 function parsePalette(value: string | undefined, flag: string): CodexPaletteSlug | undefined {
   if (value === undefined) {
     return undefined;
   }
-  if (!(CODEX_PALETTE_SLUGS as readonly string[]).includes(value)) {
+  if (!CODEX_PALETTE_SLUGS.includes(value)) {
     throw new CommandError(`${flag} 只能是：${CODEX_PALETTE_SLUGS.join(' / ')}`, EXIT.usage);
   }
-  return value as CodexPaletteSlug;
+  return value;
 }
 
 function parseAppearance(value: string | undefined): CodexAppearance | undefined {
@@ -103,7 +104,7 @@ export async function themeApplyCommand(
     [options.light, 'light'],
   ];
   for (const [value, mode] of expected) {
-    if (value && paletteMode(findCodexPalette(value as CodexPaletteSlug)) !== mode) {
+    if (value && paletteMode(findCodexPalette(value)) !== mode) {
       throw new CommandError(
         `${value} 是${mode === 'dark' ? '浅色' : '深色'}配色，不能用于${MODE_LABELS[mode]}`,
         EXIT.usage
@@ -230,6 +231,7 @@ export async function uninstallCommand(
   context: CommandContext,
   options: { keepSettings: boolean }
 ): Promise<number> {
+  removeAutostart(context);
   await stopInjectCommand(context);
   uninstallUserScriptCommand(context);
   await themeRestoreCommand(context, { restart: false, assumeYes: false });
@@ -270,6 +272,7 @@ interface StatusReport {
   nativeTheme: Array<{ id: ManagedChangeId; value: string; appliedAt: string }>;
   userScript: boolean;
   consent: boolean;
+  autostart: string | null;
 }
 
 async function collectStatus(context: CommandContext): Promise<StatusReport> {
@@ -298,6 +301,7 @@ async function collectStatus(context: CommandContext): Promise<StatusReport> {
     })),
     userScript: isUserScriptInstalled(context.paths),
     consent: loadSettings(context.paths).consent?.riskTextSha256 === RISK_TEXT_SHA256,
+    autostart: platform.readAutostart(),
   };
 }
 
@@ -321,6 +325,7 @@ function printStatus(context: CommandContext, status: StatusReport): void {
     }`
   );
   io.out(`Codex++ 用户脚本：${status.userScript ? '已安装' : '未安装'}`);
+  io.out(`自动恢复：${status.autostart ? '已开启' : '未开启'}`);
 }
 
 /** `woodfish codex status`. */

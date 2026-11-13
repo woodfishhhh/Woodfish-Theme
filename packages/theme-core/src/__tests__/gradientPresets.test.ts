@@ -19,11 +19,11 @@ function contrastOn(cssColor: string, background: string): number {
 }
 
 describe('built-in gradient presets', () => {
-  it('has one preset per built-in palette, recognised by its editor colors', () => {
-    expect(GRADIENT_PRESETS.map((preset) => preset.slug).sort()).toEqual(
-      WOODFISH_PALETTES.map((palette) => palette.slug).sort()
-    );
-    for (const palette of WOODFISH_PALETTES) {
+  it('has one preset per Woodfish theme, recognised by its editor colors', () => {
+    // The bundled popular themes have no hand tuning; their gradients are derived.
+    const own = ['dark', 'dracula', 'light', 'black', 'neon'];
+    expect(GRADIENT_PRESETS.map((preset) => preset.slug).sort()).toEqual([...own].sort());
+    for (const palette of WOODFISH_PALETTES.filter((entry) => own.includes(entry.slug))) {
       const preset = findGradientPreset(palette.slug);
       expect(preset?.background).toBe(palette.ui.bg);
       expect(preset?.foreground).toBe(palette.ui.fg);

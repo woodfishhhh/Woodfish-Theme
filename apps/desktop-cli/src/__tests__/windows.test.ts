@@ -1,4 +1,7 @@
 import { spawn } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { decodeCommand } from './helpers/powershell';
 import {
   encodeCommand,
@@ -8,6 +11,9 @@ import {
   runPowerShellJson,
 } from '../platform/powershell';
 import {
+  buildAutostartArguments,
+  buildAutostartScript,
+  buildDeelevatedRelay,
   buildLaunchScript,
   buildLaunchWrapper,
   createWindowsPlatform,
@@ -122,6 +128,66 @@ describe('process inspection', () => {
   });
 });
 
+describe('launching from an elevated shell', () => {
+  const runtimeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'woodfish-relay-'));
+  afterAll(() => fs.rmSync(runtimeDir, { recursive: true, force: true }));
+
+  it('hands the package launch to the desktop shell through a relay', () => {
+    const scripts: string[] = [];
+    const platform = createWindowsPlatform({
+      runtimeDir,
+      runner: (script) => {
+        scripts.push(script);
+        return script.includes('IsInRole') ? 'True' : '';
+      },
+    });
+    platform.launchWithPort(installation, 24680);
+    expect(scripts.some((script) => script.includes('Invoke-CommandInDesktopPackage'))).toBe(false);
+    const relayCall = scripts.find((script) => script.includes("-FilePath 'explorer.exe'"));
+    expect(relayCall).toMatch(/relay-[0-9a-f]{16}\.cmd/);
+  });
+
+  it('wraps the launch script so cmd.exe never sees its quotes', () => {
+    const script = buildLaunchScript(installation, String.raw`C:\r\launch-ab.cmd`);
+    const relay = buildDeelevatedRelay(script);
+    expect(relay.startsWith('@echo off\r\npowershell.exe ')).toBe(true);
+    expect(relay).toContain('-WindowStyle Hidden -EncodedCommand ');
+    const encoded = /-EncodedCommand (\S+)/.exec(relay)?.[1] ?? '';
+    expect(decodeCommand(encoded)).toContain(script);
+  });
+});
+
+describe('autostart task', () => {
+  it('quotes paths with spaces and refuses quotes or line breaks', () => {
+    expect(
+      buildAutostartArguments(['--headless', String.raw`C:\Program Files\n.exe`, 'codex'])
+    ).toBe(String.raw`--headless "C:\Program Files\n.exe" codex`);
+    expect(() => buildAutostartArguments(['a"b'])).toThrow('不安全');
+    expect(() => buildAutostartArguments(['a\nb'])).toThrow('不安全');
+  });
+
+  it('runs at logon for the current user with normal rights and no time limit', () => {
+    const script = buildAutostartScript({ execute: 'conhost.exe', args: ['--headless', 'node'] });
+    expect(script).toContain('-AtLogOn -User $user');
+    expect(script).toContain('-LogonType Interactive -RunLevel Limited');
+    expect(script).toContain('-ExecutionTimeLimit ([TimeSpan]::Zero)');
+    expect(script).toContain("-TaskPath '\\Woodfish\\' -TaskName 'Woodfish Codex'");
+    expect(script).toContain('Start-ScheduledTask');
+  });
+
+  it('reads the age of the Codex main process', () => {
+    const state = summarizeProcesses(installation, [
+      {
+        ProcessId: 10,
+        ExecutablePath: `${INSTALL}\\app\\ChatGPT.exe`,
+        CommandLine: '"ChatGPT.exe"',
+        AgeSeconds: 12,
+      },
+    ]);
+    expect(state.main?.ageSeconds).toBe(12);
+  });
+});
+
 describe('stopping', () => {
   it('ignores taskkill errors for children that already exited', () => {
     const scripts: string[] = [];
@@ -133,7 +199,7 @@ describe('stopping', () => {
       },
     });
     platform.stop(installation, {
-      main: { pid: 42, commandLine: '' },
+      main: { pid: 42, commandLine: '', ageSeconds: null },
       processCount: 3,
       debugPort: null,
     });
@@ -215,7 +281,7 @@ onWindows('generated PowerShell is syntactically valid', () => {
     platform.isElevated();
     platform.launchNormal(installation);
     platform.stop(installation, {
-      main: { pid: 42, commandLine: '' },
+      main: { pid: 42, commandLine: '', ageSeconds: null },
       processCount: 1,
       debugPort: null,
     });
@@ -224,13 +290,19 @@ onWindows('generated PowerShell is syntactically valid', () => {
       'codex',
       'launch',
     ]);
+    platform.installAutostart({
+      execute: 'conhost.exe',
+      args: ['--headless', String.raw`C:\Program Files\nodejs\node.exe`, 'codex', 'daemon'],
+    });
+    platform.removeAutostart();
+    platform.readAutostart();
     scripts.push(
       buildLaunchScript(
         installation,
         String.raw`C:\Users\me\AppData\Local\Woodfish\run\launch-ab.cmd`
       )
     );
-    expect(scripts.length).toBe(7);
+    expect(scripts.length).toBe(10);
     for (const script of scripts) {
       expect({ script, errors: parseErrors(prepareScript(script)) }).toEqual({
         script,
@@ -249,7 +321,11 @@ onWindows('stopping a real process tree', () => {
     const pid = child.pid ?? 0;
     const exited = new Promise<void>((resolve) => child.once('exit', () => resolve()));
     const platform = createWindowsPlatform({ runtimeDir: String.raw`C:\tmp` });
-    const state = { main: { pid, commandLine: '' }, processCount: 2, debugPort: null };
+    const state = {
+      main: { pid, commandLine: '', ageSeconds: null },
+      processCount: 2,
+      debugPort: null,
+    };
     expect(() => platform.stop(installation, state)).not.toThrow();
     await exited;
     expect(() => platform.stop(installation, state)).not.toThrow();

@@ -10,8 +10,10 @@ const {
   VSCE_ENTRY: VSCE_ENTRY_ABSOLUTE,
   withStagedRepoFiles,
 } = require('./paths');
+const { parseJsonc } = require('./lib/jsonc');
 
-const MAX_PACKAGE_SOURCE_BYTES = 400 * 1024;
+// 15 套主题 JSON（其中 10 套为原样收录的上游主题）约占 650 KB，压缩进 VSIX 后约 1/8
+const MAX_PACKAGE_SOURCE_BYTES = 1024 * 1024;
 const FORBIDDEN_PACKAGE_PATHS = [
   /^AGENTS\.md$/i,
   /\/AGENTS\.md$/i,
@@ -211,15 +213,15 @@ function checkThemeFiles() {
 
   let allGood = true;
 
-  const themeConfigs = [
-    'themes/bearded/Woodfish Dark.json',
-    'themes/dracula/Woodfish Dracula.json',
-  ];
-
-  themeConfigs.forEach((file) => {
+  // 每个贡献的主题：文件可解析（VS Code 接受带注释的 JSON）、带 theme.meta.json；
+  // 原样收录的上游主题还要带 NOTICE.md 与 LICENSE.txt
+  const { contributes } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  contributes.themes.forEach(({ path: themePath }) => {
+    const file = path.posix.normalize(themePath);
+    const directory = path.posix.dirname(file);
     try {
-      const themeConfig = JSON.parse(fs.readFileSync(file, 'utf8'));
-      if (themeConfig.name && themeConfig.colors && themeConfig.tokenColors) {
+      const themeConfig = parseJsonc(fs.readFileSync(file, 'utf8'));
+      if (themeConfig.colors && themeConfig.tokenColors) {
         console.log(`✅ ${file} 格式正确`);
       } else {
         console.log(`❌ ${file} 格式不完整`);
@@ -228,6 +230,16 @@ function checkThemeFiles() {
     } catch (error) {
       console.log(`❌ ${file} 解析失败:`, error.message);
       allGood = false;
+    }
+    const companions = [`${directory}/theme.meta.json`];
+    if (fs.existsSync(`${directory}/NOTICE.md`) || fs.existsSync(`${directory}/LICENSE.txt`)) {
+      companions.push(`${directory}/NOTICE.md`, `${directory}/LICENSE.txt`);
+    }
+    for (const companion of companions) {
+      if (!fs.existsSync(companion)) {
+        console.log(`❌ ${companion} (缺失)`);
+        allGood = false;
+      }
     }
   });
 
@@ -238,12 +250,8 @@ function checkThemeFiles() {
     'themes/shared/overlay-bootstrap.js',
     'themes/shared/cursor-core.css',
     'themes/shared/cursor-glow.css',
-    'themes/bearded/theme.meta.json',
     'themes/bearded/NOTICE.md',
     'themes/bearded/LICENSE.txt',
-    'themes/dracula/theme.meta.json',
-    'themes/dracula/NOTICE.md',
-    'themes/dracula/LICENSE.txt',
   ];
 
   moduleFiles.forEach((file) => {

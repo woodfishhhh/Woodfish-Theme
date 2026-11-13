@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /*
- * Ports the upstream VS Code themes Woodfish ships unmodified (Woodfish Dark, Woodfish
- * Dracula) into Woodfish palettes, so other hosts (the Codex desktop app) can use them.
+ * Ports the upstream VS Code themes Woodfish ships unmodified (Woodfish Dark, Dracula and
+ * the other bundled MIT themes) into Woodfish palettes, so other hosts (the Codex desktop
+ * app) can use them.
  * The reverse of generate-themes.js, which renders the original palettes into themes.
  *
  *   node scripts/port-palettes.js          write packages/theme-core/src/palettes/ported.ts
@@ -13,6 +14,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { parseJsonc } = require('./lib/jsonc');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUTPUT = path.resolve(ROOT, '..', '..', 'packages', 'theme-core', 'src', 'palettes', 'ported.ts');
@@ -23,6 +25,7 @@ const SOURCES = [
     folder: 'bearded',
     file: 'Woodfish Dark.json',
     upstream: 'Bearded Theme Arc 10.1.0 (GPL-3.0-only)',
+    type: 'dark',
     overrides: {},
   },
   {
@@ -30,10 +33,31 @@ const SOURCES = [
     folder: 'dracula',
     file: 'Woodfish Dracula.json',
     upstream: 'Dracula for Visual Studio Code 2.25.1 (MIT)',
+    type: 'dark',
     // The Dracula specification uses orange for warnings; the theme's cyan
     // editorWarning reads as "info" next to the other state colors in Codex.
     overrides: { warning: '#FFB86C' },
   },
+  // Popular MIT themes, copied unmodified into themes/<slug>/ like Dracula.
+  ...[
+    ['onedark', 'Woodfish One Dark Pro', 'One Dark Pro 3.20.6 (MIT)', 'dark'],
+    ['tokyonight', 'Woodfish Tokyo Night', 'Tokyo Night 1.1.2 (MIT)', 'dark'],
+    ['catppuccin-mocha', 'Woodfish Catppuccin Mocha', 'Catppuccin for VSCode 3.19.0 (MIT)', 'dark'],
+    ['catppuccin-latte', 'Woodfish Catppuccin Latte', 'Catppuccin for VSCode 3.19.0 (MIT)', 'light'],
+    ['nord', 'Woodfish Nord', 'Nord Visual Studio Code 0.19.0 (MIT)', 'dark'],
+    ['github-dark', 'Woodfish GitHub Dark', 'GitHub Theme 6.3.5 (MIT)', 'dark'],
+    ['github-light', 'Woodfish GitHub Light', 'GitHub Theme 6.3.5 (MIT)', 'light'],
+    ['nightowl', 'Woodfish Night Owl', 'Night Owl 2.1.1 (MIT)', 'dark'],
+    ['ayu-mirage', 'Woodfish Ayu Mirage', 'Ayu 1.6.0 (MIT)', 'dark'],
+    ['gruvbox-dark', 'Woodfish Gruvbox Dark', 'Gruvbox Theme 1.29.2 (MIT)', 'dark'],
+  ].map(([slug, label, upstream, type]) => ({
+    slug,
+    folder: slug,
+    file: `${label}.json`,
+    upstream,
+    type,
+    overrides: {},
+  })),
 ];
 
 // ---------- colors ----------
@@ -195,7 +219,7 @@ function gradientColors(gradient) {
   return (String(gradient).match(/#[0-9a-f]{3,8}\b/gi) || []).map((color) => toHex(parseColor(color)));
 }
 
-function uiRoles(theme, meta, overrides) {
+function uiRoles(theme, meta, source) {
   const c = theme.colors;
   const bg = toHex(parseColor(c['editor.background']));
   const fg = over(pick(c, ['editor.foreground', 'foreground']), bg);
@@ -217,7 +241,8 @@ function uiRoles(theme, meta, overrides) {
     .filter((value) => parseColor(value))
     .map((value) => over(value, bg));
   const bgDeep = [bg, ...chrome].sort((left, right) => luminance(left) - luminance(right))[0];
-  // Elevated surfaces (menus, the composer) must sit above the editor in a dark theme.
+  // Elevated surfaces (menus, the composer) sit above the editor: lighter in a dark theme,
+  // white in a light one (like Codex's own light surfaces).
   const widget = ['editorWidget.background', 'dropdown.background', 'quickInput.background', 'input.background']
     .map((key) => c[key])
     .filter((value) => parseColor(value))
@@ -232,7 +257,7 @@ function uiRoles(theme, meta, overrides) {
     bg,
     bgAlt: over(pick(c, ['sideBar.background']) || bg, bg),
     bgDeep,
-    bgWidget: widget || mix(fg, 0.08, bg),
+    bgWidget: widget || (source.type === 'light' ? '#FFFFFF' : mix(fg, 0.08, bg)),
     border: border || mix(fg, 0.12, bg),
     fg,
     // Codex's secondary and tertiary text levels (71% and 50% ink).
@@ -252,16 +277,16 @@ function uiRoles(theme, meta, overrides) {
     info: over(pick(c, ['editorInfo.foreground', 'textLink.foreground']) || ansi[4], bg),
     success: over(pick(c, ['gitDecoration.untrackedResourceForeground']) || ansi[2], bg),
   };
-  return { ui: { ...ui, ...overrides }, ansi };
+  return { ui: { ...ui, ...source.overrides }, ansi };
 }
 
 // ---------- output ----------
 
 function portPalette(source) {
   const folder = path.join(ROOT, 'themes', source.folder);
-  const theme = JSON.parse(fs.readFileSync(path.join(folder, source.file), 'utf8'));
+  const theme = parseJsonc(fs.readFileSync(path.join(folder, source.file), 'utf8'));
   const meta = JSON.parse(fs.readFileSync(path.join(folder, 'theme.meta.json'), 'utf8'));
-  const { ui, ansi } = uiRoles(theme, meta, source.overrides);
+  const { ui, ansi } = uiRoles(theme, meta, source);
   const metaOut = {
     activityBadgeGradient: meta.activityBadgeGradient,
     ...(meta.activityBadgeTextColor ? { activityBadgeTextColor: meta.activityBadgeTextColor } : {}),
@@ -271,7 +296,7 @@ function portPalette(source) {
   return {
     slug: source.slug,
     label: meta.label,
-    type: 'dark',
+    type: source.type,
     ui,
     tokens: tokenRoles(theme, ui),
     ansi,

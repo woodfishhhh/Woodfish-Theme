@@ -22,7 +22,10 @@ const MOUNT_DELAY_MS = 120;
 const FEATURE_TEXT: Readonly<Record<CodexFeatureKey, { label: string; description: string }>> = {
   codeGradient: { label: '代码渐变', description: '代码块中的每个 token 按 OKLCH 渐变着色' },
   codeGlow: { label: '代码发光', description: '代码文字带一层柔和的光晕' },
-  glass: { label: '毛玻璃浮层', description: '菜单、弹窗和浮层使用磨砂玻璃效果' },
+  glass: {
+    label: '毛玻璃浮层',
+    description: '菜单、弹窗和浮层使用磨砂玻璃，弹出时淡入，列表项跟随指针微微发亮',
+  },
   accent: { label: '强调色点缀', description: '输入框聚焦光晕、发送按钮渐变与当前会话标记' },
   caret: { label: '彩色光标', description: '输入框里的光标循环变换颜色' },
   bodyText: { label: '回复正文渐变', description: '助手回复的正文也使用渐变，比较醒目' },
@@ -240,7 +243,7 @@ export function startSettingsPanel(options: SettingsPanelOptions): SettingsPanel
     const group = paletteButton?.closest<HTMLElement>('[data-woodfish-mode]');
     if (paletteButton && group) {
       const mode = group.dataset.woodfishMode === 'light' ? 'light' : 'dark';
-      const slug = (paletteButton.dataset.woodfishPalette || null) as CodexPaletteSlug | null;
+      const slug = paletteButton.dataset.woodfishPalette || null;
       options.change({ palette: { [mode]: slug } });
       return;
     }

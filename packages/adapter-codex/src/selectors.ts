@@ -31,6 +31,12 @@ export const CODEX_SELECTORS = {
     alwaysPresent: false,
     description: '当前会话',
   },
+  sidebarRunningThread: {
+    // Codex shows a spinner (Tailwind `motion-safe:animate-spin`) while a thread runs.
+    selectors: ['[data-app-action-sidebar-thread-row]:has(.motion-safe\\:animate-spin)'],
+    alwaysPresent: false,
+    description: '运行中的会话',
+  },
   // The composer is absent on settings, plugin and other non-chat pages.
   composer: {
     selectors: ['[data-codex-composer-root]'],
@@ -78,6 +84,24 @@ export const CODEX_SELECTORS = {
     alwaysPresent: false,
     description: 'diff 视图',
   },
+  activeTab: {
+    // Tabs of the right-hand panel (Changes, files, browser).
+    selectors: ['[data-app-shell-tab-controller] [role="tab"][aria-selected="true"]'],
+    alwaysPresent: false,
+    description: '当前标签页',
+  },
+  revealTarget: {
+    selectors: [
+      '[data-app-action-sidebar-thread-row]',
+      '[data-app-action-sidebar-project-row]',
+      'nav[data-app-navigation-rail] button',
+      '[role="menuitem"]',
+      '[role="option"]',
+      '[role="tab"]',
+    ],
+    alwaysPresent: false,
+    description: '跟随指针柔光的列表项与按钮',
+  },
   floatingLayer: {
     selectors: [
       '[data-radix-popper-content-wrapper] > *',
@@ -103,7 +127,19 @@ export const CODE_TOKEN_SELECTOR = selectorOf('codeToken');
 /** Roots observed by the code gradient engine. */
 export const CODE_ROOT_SELECTOR = selectorOf('codeBlockSource');
 /** Assistant text blocks painted when the optional body gradient is on. */
-export const BODY_TEXT_SELECTOR = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote']
+export const BODY_TEXT_SELECTOR = [
+  'p',
+  'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'blockquote',
+  'td',
+  'th',
+]
   .map((tag) => `[data-markdown-text-style="assistant-message"] ${tag}`)
   .join(', ');
 /** Roots observed by the body gradient engine. */

@@ -138,7 +138,15 @@ export function buildPaletteVariables(palette: WoodfishPalette): Record<string, 
     ...terminalVariables(palette),
     // Woodfish effects
     '--woodfish-codex-accent-2': ui.accent2,
+    '--woodfish-codex-tab-gradient': palette.meta.tabBorderGradient,
+    '--woodfish-codex-flow-gradient': flowGradient(palette),
   };
+}
+
+/** The tab gradient's colors running top to bottom and back, for the running indicator. */
+function flowGradient(palette: WoodfishPalette): string {
+  const stops = palette.meta.tabBorderGradient.match(/#[0-9a-f]{3,8}/gi) ?? [palette.ui.accent];
+  return `linear-gradient(180deg, ${[...stops, stops[0]].join(', ')})`;
 }
 
 function block(selector: string, variables: Record<string, string>): string {

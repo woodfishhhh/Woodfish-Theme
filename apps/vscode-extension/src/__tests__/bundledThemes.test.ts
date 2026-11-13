@@ -48,6 +48,32 @@ describe('bundled Woodfish themes', () => {
     expect(meta.runtime.cursorDefaults.gradientStops.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('ships every bundled upstream theme unmodified with its license and accents', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { parseJsonc } = require(path.join(root, 'scripts', 'lib', 'jsonc.js')) as {
+      parseJsonc: (text: string) => { colors?: object; tokenColors?: unknown[] };
+    };
+    expect(parseJsonc('{"url": "a//b", // note\n /* x */ "list": [1, 2,],}')).toEqual({
+      url: 'a//b',
+      list: [1, 2],
+    });
+    const upstream = listWoodfishThemes().filter((theme) =>
+      fs.existsSync(path.join(root, 'themes', theme.directory, 'LICENSE.txt'))
+    );
+    expect(upstream.length).toBeGreaterThanOrEqual(12);
+    for (const theme of upstream) {
+      const folder = path.join(root, 'themes', theme.directory);
+      const parsed = parseJsonc(fs.readFileSync(path.join(folder, `${theme.label}.json`), 'utf-8'));
+      expect(parsed.colors).toBeDefined();
+      expect(parsed.tokenColors?.length).toBeGreaterThan(0);
+      expect(fs.readFileSync(path.join(folder, 'NOTICE.md'), 'utf-8')).toMatch(
+        /License: (MIT|GPL)/
+      );
+      const meta = JSON.parse(fs.readFileSync(path.join(folder, 'theme.meta.json'), 'utf-8'));
+      expect(meta).toMatchObject({ label: theme.label, slug: theme.slug });
+    }
+  });
+
   it('separates keywords from variables and functions in every generated palette (issue #6)', () => {
     for (const palette of generator.PALETTES) {
       const { keyword, variable, function: fn } = palette.tokens;
