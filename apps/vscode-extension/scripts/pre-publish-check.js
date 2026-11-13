@@ -12,8 +12,9 @@ const {
 } = require('./paths');
 const { parseJsonc } = require('./lib/jsonc');
 
-// 15 套主题 JSON（其中 10 套为原样收录的上游主题）约占 650 KB，压缩进 VSIX 后约 1/8
-const MAX_PACKAGE_SOURCE_BYTES = 1024 * 1024;
+// 15 套主题 JSON（其中 10 套为原样收录的上游主题）约占 650 KB，压缩进 VSIX 后约 1/8；
+// 默认窗口背景《彩云》（themes/shared/backgrounds/caiyun.webp）另占 232 KB，已是压缩格式
+const MAX_PACKAGE_SOURCE_BYTES = 1280 * 1024;
 const FORBIDDEN_PACKAGE_PATHS = [
   /^AGENTS\.md$/i,
   /\/AGENTS\.md$/i,
@@ -59,6 +60,8 @@ const REQUIRED_PACKAGE_PATHS = [
   'themes/shared/cursor-core.css',
   'themes/shared/cursor-glow.css',
   'themes/shared/native-window-main.mjs',
+  // Staged from packages/renderer-runtime/assets while packaging (scripts/paths.js).
+  'themes/shared/backgrounds/caiyun.webp',
   'themes/black/Woodfish Black.json',
   'themes/black/theme.meta.json',
   'themes/neon/Woodfish Neon.json',

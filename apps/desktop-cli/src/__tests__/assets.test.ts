@@ -11,6 +11,7 @@ interface Asset {
   /** Shared packages the bundle is built from; the last one is the adapter. */
   packages: string[];
   buildDefine: string;
+  define?: Record<string, string>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

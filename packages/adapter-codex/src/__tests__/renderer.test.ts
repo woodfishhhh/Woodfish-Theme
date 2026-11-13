@@ -69,6 +69,7 @@ describe('startCodexOverlay', () => {
     const ids = [...document.head.querySelectorAll('style')].map((element) => element.id).sort();
     expect(ids).toEqual([
       'woodfish-codex-accent',
+      'woodfish-codex-background',
       'woodfish-codex-body',
       'woodfish-codex-caret',
       'woodfish-codex-code',

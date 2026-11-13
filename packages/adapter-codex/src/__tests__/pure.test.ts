@@ -137,6 +137,7 @@ describe('buildCodexCss', () => {
         accent: { enabled: false },
         caret: { enabled: false },
         bodyText: { enabled: false },
+        background: { enabled: false },
       })
     );
     for (const name of CODEX_STYLE_NAMES) {

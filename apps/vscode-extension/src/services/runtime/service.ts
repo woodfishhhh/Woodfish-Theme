@@ -26,6 +26,7 @@ import {
   stripWoodfishPayloads,
 } from './cleanup';
 import { describeWriteFailure } from './errors';
+import { resolveBackgroundFile, toWorkbenchFileUrl } from './background';
 import { isNativeWindowActive } from './glass';
 import { recordInstallation } from './installManifest';
 import { locateWorkbench, WorkbenchLocation } from './locator';
@@ -122,7 +123,8 @@ export function shouldInstallRuntime(settings: ThemeRuntimeSettings): boolean {
     (settings.syntaxGradient.enabled ||
       settings.glow.enabled ||
       settings.cursor.enabled ||
-      settings.glass.enabled)
+      settings.glass.enabled ||
+      settings.background.enabled)
   );
 }
 
@@ -323,7 +325,16 @@ export class IntegratedThemeService {
   }
 
   private buildPayload(settings: ThemeRuntimeSettings): RuntimePayload {
-    return buildRuntimePayload(settings, readRuntimeAssets(this.context, readCurrentColorTheme()));
+    const backgroundFile = settings.background.enabled
+      ? resolveBackgroundFile(settings.background, {
+          extensionPath: this.context.extensionPath,
+          storagePath: this.context.globalStorageUri.fsPath,
+        })
+      : null;
+    return buildRuntimePayload(settings, {
+      ...readRuntimeAssets(this.context, readCurrentColorTheme()),
+      backgroundImage: backgroundFile ? toWorkbenchFileUrl(backgroundFile) : null,
+    });
   }
 
   private hasExpectedPayload(

@@ -1,9 +1,17 @@
 import * as fs from 'fs';
-import { CODEX_SETTINGS_BINDING, CodexSettings } from '@woodfish/adapter-codex';
+import {
+  CODEX_BACKGROUND_BINDING,
+  CODEX_SETTINGS_BINDING,
+  CodexBackgroundEntry,
+  CodexBackgroundReply,
+  CodexSettings,
+  isCodexBackgroundId,
+} from '@woodfish/adapter-codex';
+import { BACKGROUND_IMAGE_LIMITS } from '@woodfish/theme-core';
 import { CdpConnection, CdpEvent, WebSocketConstructor, evaluate } from '../cdp/client';
 import { fetchVersion } from '../cdp/http';
 import { isMainWindowTarget, validateDebuggerUrl } from '../cdp/targets';
-import { DISPOSE_EXPRESSION, buildInjectionScript } from './payload';
+import { DISPOSE_EXPRESSION, buildInjectionScript, toScriptLiteral } from './payload';
 
 interface TargetInfo {
   targetId: string;
@@ -18,6 +26,76 @@ interface AttachedPage {
 
 /** A settings patch is a few hundred bytes; anything far larger is not from the panel. */
 const MAX_BINDING_PAYLOAD = 4096;
+/** A prepared picture in base64 plus the JSON around it. */
+const MAX_BACKGROUND_PAYLOAD = Math.ceil((BACKGROUND_IMAGE_LIMITS.maxStoredBytes * 4) / 3) + 1024;
+const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
+const NONCE = /^[A-Za-z0-9-]{1,64}$/;
+
+/** Where the watcher keeps background pictures (see codex/backgrounds.ts). */
+export interface WatcherBackgrounds {
+  list: () => CodexBackgroundEntry[];
+  get: (id: string) => { type: string; data: Buffer } | null;
+  /** Validates and keeps a picture; returns its id. Throws with a message for the user. */
+  save: (name: string, data: Buffer) => string;
+  remove: (id: string) => void;
+}
+
+/**
+ * Answers one background request from a page (untrusted JSON). Pure apart from `store`,
+ * so it is tested without a browser.
+ */
+export function answerBackgroundRequest(
+  store: WatcherBackgrounds,
+  request: unknown
+): { nonce: string; reply: CodexBackgroundReply } | null {
+  if (request === null || typeof request !== 'object') {
+    return null;
+  }
+  const { type, nonce, id, name, data } = request as Record<string, unknown>;
+  if (typeof nonce !== 'string' || !NONCE.test(nonce)) {
+    return null;
+  }
+  const fail = (error: string): { nonce: string; reply: CodexBackgroundReply } => ({
+    nonce,
+    reply: { ok: false, error },
+  });
+  try {
+    if (type === 'list') {
+      return {
+        nonce,
+        reply: {
+          ok: true,
+          entries: store
+            .list()
+            .map(({ id: entryId, name: entryName }) => ({ id: entryId, name: entryName })),
+        },
+      };
+    }
+    if (type === 'get') {
+      const picture = isCodexBackgroundId(id) ? store.get(id) : null;
+      return picture
+        ? { nonce, reply: { ok: true, type: picture.type, data: picture.data.toString('base64') } }
+        : fail('找不到这张背景图片');
+    }
+    if (type === 'upload') {
+      if (typeof data !== 'string' || !BASE64.test(data)) {
+        return fail('图片数据无效');
+      }
+      const saved = store.save(typeof name === 'string' ? name : '', Buffer.from(data, 'base64'));
+      return { nonce, reply: { ok: true, id: saved } };
+    }
+    if (type === 'remove') {
+      if (!isCodexBackgroundId(id)) {
+        return fail('图片编号无效');
+      }
+      store.remove(id);
+      return { nonce, reply: { ok: true } };
+    }
+  } catch (error) {
+    return fail((error as Error).message);
+  }
+  return fail('不支持的操作');
+}
 
 export interface WatcherOptions {
   port: number;
@@ -30,6 +108,8 @@ export interface WatcherOptions {
    * When given, every main window gets the settings binding.
    */
   saveSettingsPatch?: (patch: unknown) => void;
+  /** Background picture storage; when given, every main window gets the background binding. */
+  backgrounds?: WatcherBackgrounds;
   log?: (message: string) => void;
   WebSocketCtor?: WebSocketConstructor;
   fetchImpl?: typeof fetch;
@@ -84,6 +164,48 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
     void refresh();
   }
 
+  /** Answers a background request from the page that sent it. */
+  function onBackgroundBinding(sessionId: string, payload: unknown): void {
+    if (!options.backgrounds || typeof payload !== 'string') {
+      return;
+    }
+    if (payload.length > MAX_BACKGROUND_PAYLOAD) {
+      log('忽略过大的背景图片');
+      return;
+    }
+    let request: unknown;
+    try {
+      request = JSON.parse(payload);
+    } catch {
+      return;
+    }
+    const answer = answerBackgroundRequest(options.backgrounds, request);
+    if (!answer) {
+      return;
+    }
+    const kind = (request as { type?: unknown }).type;
+    if (kind === 'upload' || kind === 'remove') {
+      log(answer.reply.ok ? `背景图片：${String(kind)} 完成` : `背景图片：${answer.reply.error}`);
+    }
+    const expression = `globalThis.__woodfishCodexController?.backgroundReply?.(${toScriptLiteral(answer.nonce)}, ${toScriptLiteral(answer.reply)})`;
+    void evaluate(connection, expression, sessionId).catch((error: Error) =>
+      log(`回复背景图片请求失败：${error.message}`)
+    );
+  }
+
+  /**
+   * `Runtime.bindingCalled` arrives without Runtime.enable, but a reloaded page comes back
+   * without the binding functions (measured on Codex 26.1013), so every load adds them again.
+   */
+  async function addBindings(sessionId: string): Promise<void> {
+    if (options.saveSettingsPatch) {
+      await connection.send('Runtime.addBinding', { name: CODEX_SETTINGS_BINDING }, sessionId);
+    }
+    if (options.backgrounds) {
+      await connection.send('Runtime.addBinding', { name: CODEX_BACKGROUND_BINDING }, sessionId);
+    }
+  }
+
   async function inject(targetId: string, page: AttachedPage): Promise<void> {
     if (page.scriptId) {
       await connection
@@ -123,10 +245,7 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
       const page: AttachedPage = { sessionId, scriptId: null };
       pages.set(info.targetId, page);
       await connection.send('Page.enable', {}, sessionId);
-      if (options.saveSettingsPatch) {
-        // Bindings survive reloads; `Runtime.bindingCalled` arrives without Runtime.enable.
-        await connection.send('Runtime.addBinding', { name: CODEX_SETTINGS_BINDING }, sessionId);
-      }
+      await addBindings(sessionId);
       await inject(info.targetId, page);
     } catch (error) {
       pages.delete(info.targetId);
@@ -168,11 +287,20 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
       [...pages.values()].some((page) => page.sessionId === event.sessionId)
     ) {
       onSettingsBinding(event.params.payload);
+    } else if (
+      event.method === 'Runtime.bindingCalled' &&
+      event.params.name === CODEX_BACKGROUND_BINDING &&
+      event.sessionId &&
+      [...pages.values()].some((page) => page.sessionId === event.sessionId)
+    ) {
+      onBackgroundBinding(event.sessionId, event.params.payload);
     } else if (event.method === 'Page.loadEventFired' && event.sessionId) {
       // The new-document script normally re-injects; verify and repair if it did not.
       const entry = [...pages.entries()].find(([, page]) => page.sessionId === event.sessionId);
       if (entry) {
-        void ensureActive(entry[0], entry[1]);
+        void addBindings(entry[1].sessionId)
+          .catch((error: Error) => log(`重新注册 binding 失败：${error.message}`))
+          .then(() => ensureActive(entry[0], entry[1]));
       }
     }
   });

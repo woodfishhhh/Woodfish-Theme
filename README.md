@@ -180,6 +180,17 @@ code --install-extension woodfish-theme-7.2.0.vsix
 - **Reveal 光效**：鼠标划过列表、按钮、标签页时跟随指针的柔光。
 - **系统级透明窗口（实验）**：运行 `开启/关闭系统级透明窗口（实验）`，让整个窗口透出桌面。它会在编辑器的 `out/main.js` 开头加一行受保护的加载语句，需要完全退出编辑器才会生效，编辑器更新后要重新开启。目前只支持 macOS 和 Windows 11。
 
+## 窗口背景
+
+运行 `Woodfish Theme: 设置背景图片`，选一张自己的图片（JPG、PNG 或 WebP），或者用默认背景《彩云》、彩云渐变。图片铺在窗口底下，编辑器直接透出背景，侧边栏和面板用毛玻璃叠在上面，文字始终清楚。
+
+- **默认观感**：背景图透出 15%，铺满居中；侧边栏和面板按 35% 的主题色叠在上面，模糊 10px、饱和度 150%，外加 10% 的亮度层。深色主题被压暗，浅色主题被提亮，颜色都跟着当前主题走。
+- **可调项**：`woodfishTheme.background.opacity`（透明度）、`woodfishTheme.background.blur`（模糊）、`woodfishTheme.background.mask`（遮罩，越大越不透明），`woodfishTheme.background.enabled` 开关。改完重新加载窗口。
+- **图片放在哪**：选中的图片会复制到 Woodfish 自己的存储目录，原图之后可以删除或移动。长边超过 2560 像素或体积超过 3 MB 的图片会先缩小并转成 WebP。
+- 背景是窗口底下的一张静态图，滚动和输入时不做额外计算。
+
+默认背景《彩云》由作者 woodfish 制作。
+
 ## 效果预设
 
 运行 `Woodfish Theme: 选择效果预设`：
@@ -325,6 +336,8 @@ Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和�
 - **原生配色**：`woodfish codex theme apply --dark neon --light light`，写入 Codex 官方的主题设置，深色和浅色各一套，不开任何端口；加 `--appearance dark` 可把 Codex 固定为深色。
 - **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕和彩色光标。需要以本机调试端口启动 Codex，首次使用前会说明风险。开启后可以直接在 Codex 的 **设置 → 外观 → Woodfish** 里切换全部 15 套主题和各项效果；助手回复是彩虹渐变字，选中的会话外圈是一道缓慢旋转的主题渐变光边（运行中转得更快）。
 - **一直生效**：`woodfish codex autostart on` 注册一个登录时运行的后台任务（无窗口、普通权限）。Codex 重启或商店更新后，效果会在几秒内自动回来；`woodfish codex autostart off` 或 `woodfish codex uninstall` 干净移除。
+
+- **窗口背景**：默认铺上《彩云》，侧栏和输入框是毛玻璃。在 **设置 → 外观 → Woodfish** 里点“上传图片”或把图片拖进窗口就能换成自己的，实时预览，可调透明度、模糊、遮罩，保存多张随时切换；命令行是 `woodfish codex background set <图片>`。图片只存在本机。
 
 已经在用 Codex++ 的话，也可以运行 `woodfish codex install-userscript`，以用户脚本的形式加载。详见 [Woodfish 桌面工具](./apps/desktop-cli/README.md)。
 

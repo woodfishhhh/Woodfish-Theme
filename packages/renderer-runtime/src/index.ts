@@ -29,6 +29,20 @@ export { runSteps } from './steps';
 export type { StartStep, StepFailure } from './steps';
 export { ACRYLIC_FILTER_ID, mountAcrylicFilter } from './acrylic';
 export type { AcrylicFilterOptions } from './acrylic';
+export {
+  BACKGROUND_IMAGE_VARIABLE,
+  BACKGROUND_SOFT_IMAGE_VARIABLE,
+  BackgroundImageError,
+  base64ToBlob,
+  blobToBase64,
+  blurBackgroundImage,
+  buildBackgroundCopyDeclarations,
+  buildBackgroundFillImage,
+  buildBackgroundLayerCss,
+  buildFrostedPanelDeclarations,
+  resizeBackgroundImage,
+} from './background';
+export type { BackgroundCopyOptions, BackgroundLayerOptions } from './background';
 export { startReveal } from './reveal';
 export type { RevealOptions } from './reveal';
 export { readThemeMode, watchThemeMode } from './themeMode';

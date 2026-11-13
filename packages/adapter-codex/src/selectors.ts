@@ -21,6 +21,17 @@ export const CODEX_SELECTORS = {
     alwaysPresent: true,
     description: '主界面',
   },
+  page: {
+    // Pages other than the thread (Settings, plugins) paint the surface on this container.
+    selectors: ['[data-codex-history-swipe-page] > .electron\\:bg-surface'],
+    alwaysPresent: false,
+    description: '设置等页面',
+  },
+  sidebar: {
+    selectors: ['[data-sidebar-navigation-root]'],
+    alwaysPresent: false,
+    description: '侧栏',
+  },
   sidebarThreadRow: {
     selectors: ['[data-app-action-sidebar-thread-row]'],
     alwaysPresent: false,
@@ -106,6 +117,26 @@ export const CODEX_SELECTORS = {
     ],
     alwaysPresent: false,
     description: '跟随指针柔光的列表项与按钮',
+  },
+  // Codex's own fades and the strip behind the composer, which the window background
+  // turns into blur-only bands (content scrolls under them).
+  mainTopFade: {
+    selectors: ['[data-app-shell-main-content-top-fade] > [aria-hidden="true"]'],
+    alwaysPresent: false,
+    description: '主区顶部渐隐',
+  },
+  threadFooter: {
+    selectors: ['[data-thread-scroll-footer] > .bg-surface.pointer-events-none'],
+    alwaysPresent: false,
+    description: '输入框后方的底条',
+  },
+  composerLayout: {
+    selectors: [
+      '[data-codex-composer-root] [data-composer-surface-variant="default"]',
+      '[data-codex-composer-root] [data-composer-surface-variant="opaque"]',
+    ],
+    alwaysPresent: false,
+    description: '输入框底板',
   },
   floatingLayer: {
     selectors: [

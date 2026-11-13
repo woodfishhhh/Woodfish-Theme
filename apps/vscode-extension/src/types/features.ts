@@ -1,4 +1,6 @@
 import {
+  BackgroundParams,
+  DEFAULT_BACKGROUND,
   DEFAULT_CURSOR,
   DEFAULT_GLASS,
   DEFAULT_GLOW,
@@ -11,6 +13,7 @@ import {
   NATIVE_WINDOWS_MATERIALS,
   NativeMacVibrancy,
   NativeWindowsMaterial,
+  normalizeBackground,
   normalizeCursor,
   normalizeGlass,
   normalizeGlow,
@@ -107,6 +110,23 @@ export type GlassSettings = {
   nativeWindow: NativeWindowSettings;
 };
 
+/**
+ * The window background. `image` is `''` (the bundled 《彩云》), `gradient` (the `fill`
+ * colors) or the file name of a picture copied into the extension's global storage.
+ */
+export type BackgroundSettings = { enabled: boolean; image: string } & BackgroundParams;
+
+export const BACKGROUND_GRADIENT_IMAGE = 'gradient';
+const BACKGROUND_FILE_NAME = /^[0-9a-f]{12}\.(?:webp|png|jpg)$/;
+
+/** Keeps only the values the extension itself writes, so the setting cannot name other files. */
+export function sanitizeBackgroundImage(value: unknown): string {
+  return typeof value === 'string' &&
+    (value === BACKGROUND_GRADIENT_IMAGE || BACKGROUND_FILE_NAME.test(value))
+    ? value
+    : '';
+}
+
 export type RuntimeOptions = {
   fixChecksums: boolean;
 };
@@ -126,6 +146,7 @@ export type ThemeRuntimeSettings = {
   glow: GlowSettings;
   cursor: CursorSettings;
   glass: GlassSettings;
+  background: BackgroundSettings;
   runtime: RuntimeOptions;
   explicitSettings?: ThemeRuntimeExplicitSettings;
 };
@@ -138,6 +159,7 @@ export type PartialRuntimeSettings = {
   glass?: Partial<Omit<GlassSettings, 'nativeWindow'>> & {
     nativeWindow?: Partial<NativeWindowSettings>;
   };
+  background?: Partial<BackgroundSettings>;
   runtime?: Partial<RuntimeOptions>;
   explicitSettings?: Partial<ThemeRuntimeExplicitSettings>;
 };
@@ -178,6 +200,13 @@ export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
       enabled: false,
       ...DEFAULT_NATIVE_WINDOW,
     },
+  },
+  // Off by default: the extension is public; users opt in with the command or the setting.
+  background: {
+    enabled: false,
+    image: '',
+    ...DEFAULT_BACKGROUND,
+    fill: [...DEFAULT_BACKGROUND.fill],
   },
   runtime: {
     fixChecksums: true,
@@ -234,6 +263,14 @@ export function normalizeRuntimeSettings(
       customRules: sanitizeCustomCssRules(partial.cursor?.customRules),
     },
     glass: normalizeGlassSettings(partial.glass),
+    background: {
+      enabled: sanitizeBoolean(
+        partial.background?.enabled,
+        DEFAULT_RUNTIME_SETTINGS.background.enabled
+      ),
+      image: sanitizeBackgroundImage(partial.background?.image),
+      ...normalizeBackground(partial.background),
+    },
     runtime: {
       fixChecksums: sanitizeBoolean(
         partial.runtime?.fixChecksums,

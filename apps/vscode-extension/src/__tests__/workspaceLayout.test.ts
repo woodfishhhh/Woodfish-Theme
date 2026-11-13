@@ -72,6 +72,9 @@ describe('withStagedRepoFiles', () => {
     fs.mkdirSync(fakeExtension, { recursive: true });
     fs.writeFileSync(path.join(fakeRepo, 'README.md'), '# readme');
     fs.writeFileSync(path.join(fakeRepo, 'LICENSE'), 'MIT');
+    const assets = path.join(fakeRepo, 'packages', 'renderer-runtime', 'assets');
+    fs.mkdirSync(assets, { recursive: true });
+    fs.writeFileSync(path.join(assets, 'caiyun.webp'), 'webp');
   });
 
   afterEach(() => {
@@ -84,11 +87,16 @@ describe('withStagedRepoFiles', () => {
   });
 
   it('copies repository files for the task and removes them afterwards', () => {
+    const background = path.join(fakeExtension, 'themes', 'shared', 'backgrounds', 'caiyun.webp');
     const seen = paths.withStagedRepoFiles(
-      () => fs.readFileSync(path.join(fakeExtension, 'README.md'), 'utf-8'),
+      () => [
+        fs.readFileSync(path.join(fakeExtension, 'README.md'), 'utf-8'),
+        fs.readFileSync(background, 'utf-8'),
+      ],
       roots()
     );
-    expect(seen).toBe('# readme');
+    expect(seen).toEqual(['# readme', 'webp']);
+    expect(fs.readdirSync(fakeExtension)).toEqual([]);
     expect(fs.existsSync(path.join(fakeExtension, 'README.md'))).toBe(false);
     expect(fs.existsSync(path.join(fakeExtension, 'LICENSE'))).toBe(false);
   });

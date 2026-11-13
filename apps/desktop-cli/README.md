@@ -36,7 +36,16 @@ VS Code 扩展里的 15 套主题都能用在 Codex 上（命令行里用括号�
 - **深色主题 / 浅色主题**：点预览卡切换，“Codex 默认”表示保留 Codex 自己的配色。整个界面立刻换色，所有 Codex 窗口同步。
 - **效果开关**：代码渐变、代码发光、毛玻璃浮层、强调色点缀、彩色光标、回复正文渐变。
 
-改动由后台监视进程保存到 Woodfish 的设置文件，和 `woodfish codex settings` 改的是同一份。页面只能改主题和开关，模糊半径、渐变参数、自定义 CSS 等仍只能通过命令行修改。使用 Codex++ 用户脚本时，改动保存在 Codex 本机的 localStorage 中。
+- **窗口背景**：一张图片铺在窗口底下，对话区直接透出，侧栏和输入框是毛玻璃。默认开启，用的是作者 woodfish 制作的《彩云》。点“上传图片…”选文件，或者把图片直接拖进 Codex 窗口（设置页打开时），窗口立刻预览；拖动透明度、模糊、遮罩三个滑块也是实时预览，满意再点“保存”，“取消”回到原样，“恢复默认”回到《彩云》和默认数值。保存过的图片都留在图库里，点一下切换，悬停后点 × 删除。
+
+改动由后台监视进程保存到 Woodfish 的设置文件，和 `woodfish codex settings` 改的是同一份。页面只能改主题、开关和背景的图片与三个滑块，模糊半径、渐变参数、自定义 CSS 等仍只能通过命令行修改。使用 Codex++ 用户脚本时，改动保存在 Codex 本机的 localStorage 中。
+
+### 窗口背景是怎么存的
+
+- 上传的图片先在 Codex 页面里用 canvas 缩到长边 2560 像素以内并转成 WebP，再通过一个**单独的** CDP binding（`__woodfishCodexBackground`）交给监视进程；设置用的 binding 仍然只收 4 KB 以内的改动。
+- 监视进程按文件内容校验（只认 JPG、PNG、WebP 的文件头，6 MB 以内，长边不超过 2560），按内容哈希命名后存进 `%APPDATA%\Woodfish\backgrounds\`，最多保存 30 张。不上传任何服务器；原图删了也不影响。
+- 设置里只记图片编号。页面需要哪张图时向监视进程要一次，转成 `blob:` 地址当作背景（Codex 的 CSP 允许 `img-src blob:`），不会每次改设置都把整张图塞进注入脚本。
+- **Codex++ 用户脚本模式**没有监视进程：脚本里自带《彩云》，可以切换《彩云》和彩云渐变、调三个滑块（存在 localStorage），不能上传自己的图片。
 
 ## 构建与运行
 
@@ -62,6 +71,14 @@ woodfish codex theme restore                                         # 撤销全
 woodfish codex launch                      # 首次运行会说明风险并请你确认
 woodfish codex settings --set palette.dark=neon --set palette.light=light
 woodfish codex settings --set bodyText.enabled=true --set glass.blur=24
+
+# 窗口背景
+woodfish codex background set D:\图片\海边.jpg   # 保存一张图片并使用（超大图片借助正在运行的 Codex 页面缩小）
+woodfish codex background list                  # 当前背景和保存的图片（* 是正在用的）
+woodfish codex background use caiyun            # 切换：caiyun 是《彩云》，gradient 是彩云渐变，其他是图片编号
+woodfish codex background reset                 # 恢复《彩云》和默认数值
+woodfish codex background clear                 # 关闭窗口背景
+woodfish codex background remove <编号>          # 删除保存的图片
 woodfish codex stop-inject                 # 立即撤下效果
 woodfish codex relaunch --normal           # 不带端口重启，关闭调试端口
 
@@ -89,6 +106,7 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 | `accent.enabled` | 开 | 输入框聚焦光晕、发送按钮渐变、侧栏会话的旋转流光边框、当前标签页下划线 |
 | `caret.*` | 开 | `animationDuration`、`gradientStops`；不改时使用当前主题的光标配色 |
 | `bodyText.enabled` | 开 | 助手回复的段落、标题、列表和表格用当前主题的彩虹渐变（纯 CSS，流式输出时同样生效） |
+| `background.*` | 开 | `image`（`caiyun` / `gradient` / 图片编号）、`opacity` 0.15（背景图透出程度）、`blur` 10（侧栏和输入框毛玻璃的模糊）、`mask` 0.35（遮罩：面板盖在背景上的主题色浓度）、`saturate` 150、`luminosity` 0.1（亮度层）、`secondaryBlur` 10（输入框后方底条的模糊）、`size`（`cover` / `contain`）、`position`、`transition` 30（毫秒）、`fill`（没有图片时的渐变色，两个相同颜色即纯色） |
 | `customCss` | `[]` | 追加的 CSS，会经过安全过滤 |
 
 ## 和 VS Code 版的对照

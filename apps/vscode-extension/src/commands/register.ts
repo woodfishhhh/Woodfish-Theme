@@ -6,6 +6,7 @@ import { registerEnableThemeCommand } from './enableTheme';
 import { registerOpenSettingsCommand } from './openSettings';
 import { registerPresetCommands } from './presets';
 import { registerRepairWorkbenchCommand } from './repairWorkbench';
+import { registerSetBackgroundImageCommand } from './setBackgroundImage';
 import { registerShowDiagnosticsCommand } from './showDiagnostics';
 import { registerShowFeatureMenuCommand } from './showFeatureMenu';
 import { registerToggleGlassCommand, registerToggleNativeWindowCommand } from './toggleGlass';
@@ -27,6 +28,7 @@ export function registerCommands(context: vscode.ExtensionContext, deps: Command
     registerCompleteUninstallCommand(deps),
     registerToggleGlassCommand(deps),
     registerToggleNativeWindowCommand(deps),
+    registerSetBackgroundImageCommand(deps),
     ...registerPresetCommands(deps),
     registerShowDiagnosticsCommand(deps),
     registerOpenSettingsCommand(),

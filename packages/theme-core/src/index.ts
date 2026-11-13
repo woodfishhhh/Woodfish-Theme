@@ -37,6 +37,14 @@ export {
   sanitizeNumber,
 } from './effects/sanitize';
 export type { NumericRange } from './effects/sanitize';
+export {
+  BACKGROUND_IMAGE_LIMITS,
+  BACKGROUND_IMAGE_TYPES,
+  backgroundImageExtension,
+  needsBackgroundCompression,
+  readBackgroundImageInfo,
+} from './effects/backgroundImage';
+export type { BackgroundImageInfo, BackgroundImageType } from './effects/backgroundImage';
 
 export * from './palettes/types';
 export { ORIGINAL_PALETTES } from './palettes/originals';

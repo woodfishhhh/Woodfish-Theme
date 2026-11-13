@@ -134,6 +134,7 @@ Search for `Woodfish` in the command palette:
 | 开启/关闭彩色光标, 选择彩色光标配色 | Toggle the rainbow cursor, pick a palette |
 | 开启/关闭 Woodfish 毛玻璃 | Toggle frosted glass |
 | 开启/关闭系统级透明窗口（实验） | Toggle system window transparency |
+| 设置背景图片 | Window background: your own picture, the default 《彩云》 or its gradient |
 | 选择效果预设, 将当前效果保存为预设 | Apply / save presets |
 | 修复 Woodfish 注入 | Repair after an editor update |
 | 生成 Woodfish 诊断信息 | Copy a diagnostics report |
@@ -178,6 +179,8 @@ Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build) wit
 - **Native palette**: `woodfish codex theme apply --dark neon --light light` writes Codex's official theme settings (one palette per appearance mode) and opens no ports; `--appearance dark` pins Codex to dark mode.
 - **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow and a rainbow caret. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Once it runs, Codex's own **Settings → Appearance → Woodfish** section switches between all 15 themes and toggles each effect; assistant replies get the rainbow text and the selected sidebar thread a slowly turning ring of the theme's gradient (faster while it runs).
 - **Always on**: `woodfish codex autostart on` registers a hidden logon task (normal rights) that brings the effects back within seconds after Codex restarts or a Store update; `woodfish codex autostart off` or `uninstall` removes it cleanly.
+
+- **Window background**: a picture under the whole window (the editor or thread shows it at 15 %, side panels are frosted glass at 35 % of the theme color, 10px blur). In VS Code run `设置背景图片`; in Codex it is on by default and **Settings → Appearance → Woodfish** uploads (or takes a dropped picture), previews and keeps several; the CLI is `woodfish codex background set <picture>`. Pictures stay on your machine. The default background 《彩云》 (Colorful Clouds) is made by the author, woodfish.
 
 Codex++ users can run `woodfish codex install-userscript` instead. See [apps/desktop-cli/README.md](apps/desktop-cli/README.md) (Chinese).
 

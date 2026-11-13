@@ -11,6 +11,10 @@ import {
   mountAcrylicFilter,
   startReveal,
   startTextGradientEngine,
+  base64ToBlob,
+  blobToBase64,
+  blurBackgroundImage,
+  resizeBackgroundImage,
   uninstallController,
 } from '@woodfish/renderer-runtime';
 import { CODEX_STYLE_NAMES, buildCodexCss, buildDiffCss } from '../css';
@@ -34,12 +38,16 @@ import {
   CodexSelectorGroup,
 } from '../selectors';
 import {
+  CODEX_DEFAULT_BACKGROUND_ID,
+  CODEX_GRADIENT_BACKGROUND_ID,
   CodexSettings,
   CodexSettingsPatch,
   applyCodexSettingsPatch,
   findCodexPalette,
   normalizeCodexSettings,
 } from '../settings';
+import { createBackgroundLayer, createBackgroundStore } from './background';
+import { BackgroundDraft, LOCAL_BACKGROUND } from './backgroundPanel';
 import { startCaretGlow, startStreamingTail } from './caretGlow';
 import { DIFF_TOKEN_SELECTOR, isDiffToken, mapDiffColor, startDiffDecorator } from './diffs';
 import { startSettingsPanel } from './settingsPanel';
@@ -59,6 +67,10 @@ export interface CodexOverlayController extends PageController {
   probe: () => SelectorReport;
   /** Groups that should always be on screen but are missing (selector drift). */
   degraded: () => string[];
+  /** The watcher's answer to a background picture request. */
+  backgroundReply: (nonce: string, reply: unknown) => void;
+  /** Scales a picture for `woodfish codex background set` (base64 in, WebP base64 out). */
+  resizeBackground: (base64: string, type: string) => Promise<string>;
   dispose: () => void;
 }
 
@@ -209,6 +221,11 @@ export function startCodexOverlay(
   markFocus();
   let streamingTail: Disposer | null = null;
   let acrylic: { blur: number; dispose: Disposer } | null = null;
+  const backgrounds = createBackgroundStore(source);
+  const backgroundLayer = createBackgroundLayer(styles);
+  /** A background the settings panel previews before it is saved. */
+  let backgroundDraft: BackgroundDraft | null = null;
+  let localPicture: { picture: Blob; key: string } | null = null;
 
   /** The Woodfish palette of the appearance mode Codex is in, if one is selected. */
   function activePalette(): WoodfishPalette | null {
@@ -248,8 +265,63 @@ export function startCodexOverlay(
   // Assigned right below; the panel only calls back after the controller exists.
   let panel: { refresh: () => void; dispose: () => void } | null = null;
 
+  /** The settings on screen: the saved ones, or the panel's background draft over them. */
+  function shown(): CodexSettings {
+    if (!backgroundDraft) {
+      return settings;
+    }
+    const { image, opacity, blur, mask } = backgroundDraft;
+    return {
+      ...settings,
+      background: {
+        ...settings.background,
+        enabled: true,
+        image: image === LOCAL_BACKGROUND ? CODEX_DEFAULT_BACKGROUND_ID : image,
+        opacity,
+        blur,
+        mask,
+      },
+    };
+  }
+
+  /** Loads the picture the layer should show; a missing saved picture falls back to 《彩云》. */
+  function applyBackgroundImage(): void {
+    const background = shown().background;
+    const draftPicture =
+      backgroundDraft?.image === LOCAL_BACKGROUND ? backgroundDraft.picture : null;
+    if (draftPicture && localPicture?.picture !== draftPicture) {
+      localPicture = { picture: draftPicture, key: `local-${Date.now().toString(36)}` };
+    }
+    // shortcut: the blurred copy is sized for the window at the time it is made; a later
+    // resize keeps it slightly off until the picture or blur changes.
+    const softKey = `${background.blur}|${background.saturate}|${background.size}`;
+    const soften = (picture: Blob): Promise<Blob> =>
+      blurBackgroundImage(picture, background, {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    let request: Promise<void>;
+    if (!background.enabled || background.image === CODEX_GRADIENT_BACKGROUND_ID) {
+      request = backgroundLayer.show(null, () => Promise.reject(new Error('none')), soften);
+    } else if (draftPicture && localPicture) {
+      request = backgroundLayer.show(
+        `${localPicture.key}|${softKey}`,
+        () => Promise.resolve(draftPicture),
+        soften
+      );
+    } else {
+      const id = background.image;
+      request = backgroundLayer.show(
+        `${id}|${softKey}`,
+        () => backgrounds.get(id).catch(() => backgrounds.get(CODEX_DEFAULT_BACKGROUND_ID)),
+        soften
+      );
+    }
+    request.catch(() => undefined);
+  }
+
   function applyStyles(): void {
-    const css = buildCodexCss(settings);
+    const css = buildCodexCss(shown());
     for (const name of CODEX_STYLE_NAMES) {
       styles.upsert(name, css[name]);
     }
@@ -359,6 +431,7 @@ export function startCodexOverlay(
       }
       settings = normalizeCodexSettings(next);
       applyStyles();
+      applyBackgroundImage();
       applyEngines();
       applyGlassRuntime();
       applyCaretRuntime();
@@ -367,6 +440,9 @@ export function startCodexOverlay(
     settings: () => normalizeCodexSettings(settings),
     probe: probeSelectors,
     degraded: () => missingAlwaysPresentGroups(probeSelectors()),
+    backgroundReply: (nonce: string, reply: unknown): void => backgrounds.reply(nonce, reply),
+    resizeBackground: async (base64: string, type: string): Promise<string> =>
+      blobToBase64(await resizeBackgroundImage(base64ToBlob(base64, type))),
     dispose: (): void => {
       if (disposed) {
         return;
@@ -389,6 +465,8 @@ export function startCodexOverlay(
         },
         (): void => streamingTail?.(),
         (): void => acrylic?.dispose(),
+        (): void => backgroundLayer.dispose(),
+        (): void => backgrounds.dispose(),
         (): void => diffs.dispose(),
         (): void => diffEngine?.dispose(),
         (): void => codeEngine?.dispose(),
@@ -415,6 +493,7 @@ export function startCodexOverlay(
   };
 
   applyStyles();
+  applyBackgroundImage();
   applyEngines();
   applyGlassRuntime();
   applyCaretRuntime();
@@ -427,6 +506,20 @@ export function startCodexOverlay(
     },
     footnote: PANEL_FOOTNOTE[source],
     nodeAttributes: ownership,
+    background: {
+      store: backgrounds,
+      preview: (draft: BackgroundDraft | null): void => {
+        if (disposed) {
+          return;
+        }
+        backgroundDraft = draft;
+        if (!draft) {
+          localPicture = null;
+        }
+        applyStyles();
+        applyBackgroundImage();
+      },
+    },
   });
   document.documentElement.dataset[CODEX_DATASET.active] = CODEX_ADAPTER_VERSION;
   document.documentElement.dataset[CODEX_DATASET.source] = source;

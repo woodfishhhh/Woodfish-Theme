@@ -2,6 +2,7 @@ import { CODEX_PALETTE_SLUGS, codexPaletteMode } from '@woodfish/adapter-codex';
 import { booleanFlag, parseArgs, stringFlag } from './cli/args';
 import { Io, createConsoleIo } from './cli/io';
 import { autostartCommand, daemonCommand } from './commands/autostart';
+import { backgroundCommand } from './commands/background';
 import { CommandContext, CommandError, EXIT } from './commands/context';
 import { dshUninstallCommand, dshUserScriptCommand } from './commands/dsh';
 import {
@@ -68,6 +69,16 @@ export const HELP = `Woodfish 桌面工具
                          查看或修改效果设置，例如：
                            --set palette.dark=neon --set bodyText.enabled=true
                            --set glass.blur=24 --set caret.enabled=false
+
+窗口背景（图片铺在窗口底下，侧栏和输入框用毛玻璃叠在上面）
+  background [list]      查看背景设置和保存的图片
+  background set <路径>  保存一张 JPG / PNG / WebP 并使用（超大图片借助 Codex 页面缩小）
+  background use <编号>  切换到保存的图片；caiyun 是默认《彩云》，gradient 是彩云渐变
+  background reset       恢复默认背景《彩云》和默认数值
+  background clear       关闭窗口背景
+  background remove <编号>
+                         删除保存的图片
+                         透明度等数值：settings --set background.opacity=0.2
 
 Codex++
   install-userscript [--force]
@@ -182,6 +193,8 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
         return await relaunchNormalCommand(context, assumeYes);
       case 'settings':
         return settingsCommand(context, args.sets, { reset: booleanFlag(args, 'reset') });
+      case 'background':
+        return await backgroundCommand(context, subcommand, args.positionals[3]);
       case 'install-userscript':
         return installUserScriptCommand(context, booleanFlag(args, 'force'));
       case 'uninstall-userscript':

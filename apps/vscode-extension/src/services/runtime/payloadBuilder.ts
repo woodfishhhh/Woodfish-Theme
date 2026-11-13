@@ -5,6 +5,7 @@ import {
   ThemeRuntimeSettings,
   normalizeRuntimeSettings,
 } from '../../types/features';
+import { buildBackgroundCss } from './background';
 import { buildGlassCss, buildNativeWindowCss } from './glass';
 import { buildUniversalOverlayCss, shouldInstallOverlayBootstrap } from './overlay';
 
@@ -17,6 +18,8 @@ export type RuntimeCssAssets = {
   nativeWindowHook: string;
   cursorCore: string;
   cursorGlow: string;
+  /** `vscode-file:` URL of the background picture, resolved from the settings. */
+  backgroundImage?: string | null;
 };
 
 export type RuntimePayload = {
@@ -219,6 +222,7 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
 
   parts.push(buildGlassCss(safeSettings.glass));
   parts.push(buildNativeWindowCss(safeSettings.glass));
+  parts.push(buildBackgroundCss(safeSettings.background, assets.backgroundImage ?? null));
 
   return `${parts.filter((part) => part.length > 0).join('\n\n')}\n`;
 }

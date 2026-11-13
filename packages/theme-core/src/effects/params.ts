@@ -74,6 +74,38 @@ export interface NativeWindowParams {
   opacity: number;
 }
 
+export const BACKGROUND_SIZES = ['cover', 'contain'] as const;
+export type BackgroundSize = (typeof BACKGROUND_SIZES)[number];
+
+export const BACKGROUND_POSITIONS = ['center', 'top', 'bottom', 'left', 'right'] as const;
+export type BackgroundPosition = (typeof BACKGROUND_POSITIONS)[number];
+
+/**
+ * A picture (or a gradient) under the whole window, with the host's panels laid over it
+ * as frosted glass. The picture shows through the theme's own background color at
+ * `opacity`; main content areas stay clear, panels take the theme tint at `mask`.
+ */
+export interface BackgroundParams {
+  /** How strongly the picture shows over the theme background. */
+  opacity: number;
+  /** Backdrop blur of the frosted panels, px. */
+  blur: number;
+  /** Theme tint of the panels over the picture (the mask). */
+  mask: number;
+  /** Backdrop saturation of the frosted panels, %. */
+  saturate: number;
+  /** Neutral luminosity layer under the tint (Fluent acrylic). */
+  luminosity: number;
+  /** Cheaper backdrop blur for secondary areas (strips behind the composer, fades), px. */
+  secondaryBlur: number;
+  size: BackgroundSize;
+  position: BackgroundPosition;
+  /** Panel color transitions, ms. */
+  transition: number;
+  /** Gradient used instead of a picture; two equal stops make a solid color. */
+  fill: string[];
+}
+
 type Ranges<T> = { readonly [K in keyof T as T[K] extends number ? K : never]: NumericRange };
 
 /** Freezes a range table and every range in it, so no consumer can widen limits for others. */
@@ -158,6 +190,43 @@ export const DEFAULT_NATIVE_WINDOW: Readonly<NativeWindowParams> = /* @__PURE__ 
 
 export const NATIVE_WINDOW_RANGES: Ranges<NativeWindowParams> = /* @__PURE__ */ freezeRanges({
   opacity: { minimum: 0.3, maximum: 1 },
+});
+
+/** Sky blue, cloud gold and sunset pink of the default picture 《彩云》, top to bottom. */
+export const DEFAULT_BACKGROUND_FILL: readonly string[] = /* @__PURE__ */ Object.freeze([
+  '#2990bd',
+  '#e2ab5b',
+  '#e384be',
+]);
+
+/**
+ * The owner's look: the picture at 15 % cover / center (his VS Code background), panels at
+ * 35 % of the theme color with blur(10px) saturate(150%) (picked in the Codex playground),
+ * a 10 % luminosity layer and 30 ms transitions (his Frosted Glass Theme settings).
+ */
+export const DEFAULT_BACKGROUND: Readonly<Omit<BackgroundParams, 'fill'>> & {
+  readonly fill: readonly string[];
+} = /* @__PURE__ */ Object.freeze({
+  opacity: 0.15,
+  blur: 10,
+  mask: 0.35,
+  saturate: 150,
+  luminosity: 0.1,
+  secondaryBlur: 10,
+  size: 'cover',
+  position: 'center',
+  transition: 30,
+  fill: DEFAULT_BACKGROUND_FILL,
+});
+
+export const BACKGROUND_RANGES: Ranges<BackgroundParams> = /* @__PURE__ */ freezeRanges({
+  opacity: { minimum: 0, maximum: 1 },
+  blur: { minimum: 0, maximum: 60 },
+  mask: { minimum: 0, maximum: 1 },
+  saturate: { minimum: 100, maximum: 250 },
+  luminosity: { minimum: 0, maximum: 0.6 },
+  secondaryBlur: { minimum: 0, maximum: 40 },
+  transition: { minimum: 0, maximum: 1000 },
 });
 
 /** Untrusted settings input: any value per key; `null`/`undefined` mean "use the default". */
@@ -253,5 +322,23 @@ export function normalizeNativeWindow(
       DEFAULT_NATIVE_WINDOW.opacity,
       NATIVE_WINDOW_RANGES.opacity
     ),
+  };
+}
+
+export function normalizeBackground(input?: Loose<BackgroundParams> | null): BackgroundParams {
+  const partial = input ?? {};
+  const number = (key: keyof typeof BACKGROUND_RANGES): number =>
+    sanitizeNumber(partial[key], DEFAULT_BACKGROUND[key], BACKGROUND_RANGES[key]);
+  return {
+    opacity: number('opacity'),
+    blur: number('blur'),
+    mask: number('mask'),
+    saturate: number('saturate'),
+    luminosity: number('luminosity'),
+    secondaryBlur: number('secondaryBlur'),
+    size: sanitizeEnum(partial.size, BACKGROUND_SIZES, DEFAULT_BACKGROUND.size),
+    position: sanitizeEnum(partial.position, BACKGROUND_POSITIONS, DEFAULT_BACKGROUND.position),
+    transition: number('transition'),
+    fill: sanitizeGradientStops(partial.fill, DEFAULT_BACKGROUND.fill),
   };
 }
