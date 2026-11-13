@@ -27,7 +27,7 @@ VS Code 扩展里的 15 套主题都能用在 Codex 上（命令行里用括号�
 | One Dark Pro（`onedark`）、Tokyo Night（`tokyonight`）、Catppuccin Mocha（`catppuccin-mocha`）、Nord（`nord`）、GitHub Dark（`github-dark`）、Night Owl（`nightowl`）、Ayu Mirage（`ayu-mirage`）、Gruvbox Dark（`gruvbox-dark`） | 深色 | 各自的官方主题（MIT） |
 | Catppuccin Latte（`catppuccin-latte`）、GitHub Light（`github-light`） | 浅色 | 各自的官方主题（MIT） |
 
-除原创的三套外，配色都由 `apps/vscode-extension/scripts/port-palettes.js` 直接从扩展附带的主题文件读出，和 VS Code 里看到的一致。Woodfish 自己的 5 套用特调渐变，其余按同样的规律从各自配色推导；回复正文的彩虹、侧栏指示条、标签页下划线和光标颜色也都取自当前主题。
+除原创的三套外，配色都由 `apps/vscode-extension/scripts/port-palettes.js` 直接从扩展附带的主题文件读出，和 VS Code 里看到的一致。Woodfish 自己的 5 套用特调渐变，其余按同样的规律从各自配色推导；回复正文的彩虹、侧栏会话的流光边框、标签页下划线和光标颜色也都取自当前主题。
 
 ## 在 Codex 里设置
 
@@ -86,7 +86,7 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 | `codeGradient.*` | 开 | `hueShift`、`lightnessDelta`、`neutralChroma`、`angle`，与 VS Code 扩展的参数一致 |
 | `codeGlow.*` | 开 | `intensity` |
 | `glass.*` | 开 | `mode`（`blur` / `acrylic`）、`blur`、`saturate`、`opacity`、`noise`、`borderRadius`、`animations`（菜单与弹窗淡入）、`reveal`（列表项跟随指针的柔光） |
-| `accent.enabled` | 开 | 输入框聚焦光晕、发送按钮渐变、侧栏会话指示条、当前标签页下划线 |
+| `accent.enabled` | 开 | 输入框聚焦光晕、发送按钮渐变、侧栏会话的旋转流光边框、当前标签页下划线 |
 | `caret.*` | 开 | `animationDuration`、`gradientStops`；不改时使用当前主题的光标配色 |
 | `bodyText.enabled` | 开 | 助手回复的段落、标题、列表和表格用当前主题的彩虹渐变（纯 CSS，流式输出时同样生效） |
 | `customCss` | `[]` | 追加的 CSS，会经过安全过滤 |
@@ -101,7 +101,7 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 | 毛玻璃浮层（blur / acrylic、淡入动画、跟随指针的柔光） | 菜单、弹出框、对话框同样三项都有 |
 | 活动栏徽章渐变 | Codex 没有计数徽章；未读圆点自动用主题强调色 |
 | 当前标签页顶部渐变边框 | 右侧面板（变更、文件）当前标签页的渐变下划线 |
-| — | Codex 独有：助手回复彩虹渐变字、侧栏会话指示条（悬停浮现、选中发光、运行中流动）、输入框聚焦光晕、发送按钮渐变 |
+| — | Codex 独有：助手回复彩虹渐变字、侧栏会话旋转流光边框（悬停淡现、选中 16 秒一圈、运行中 8 秒一圈）、发光光标、输入框聚焦光晕、发送按钮渐变 |
 | 系统窗口透明（亚克力 / 云母） | Codex 自带 Mica，Woodfish 只给外框叠一层主题底色 |
 | 小地图、行号、括号配对等编辑器区域 | Codex 没有这些区域 |
 

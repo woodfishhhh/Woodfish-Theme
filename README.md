@@ -323,7 +323,7 @@ code --install-extension woodfish-theme-7.2.0.vsix
 Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和效果。它不修改 Codex 的安装文件，有两种方式：
 
 - **原生配色**：`woodfish codex theme apply --dark neon --light light`，写入 Codex 官方的主题设置，深色和浅色各一套，不开任何端口；加 `--appearance dark` 可把 Codex 固定为深色。
-- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕和彩色光标。需要以本机调试端口启动 Codex，首次使用前会说明风险。开启后可以直接在 Codex 的 **设置 → 外观 → Woodfish** 里切换全部 15 套主题和各项效果；助手回复是彩虹渐变字，侧栏会话有渐变指示条（运行中缓慢流动）。
+- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕和彩色光标。需要以本机调试端口启动 Codex，首次使用前会说明风险。开启后可以直接在 Codex 的 **设置 → 外观 → Woodfish** 里切换全部 15 套主题和各项效果；助手回复是彩虹渐变字，选中的会话外圈是一道缓慢旋转的主题渐变光边（运行中转得更快）。
 - **一直生效**：`woodfish codex autostart on` 注册一个登录时运行的后台任务（无窗口、普通权限）。Codex 重启或商店更新后，效果会在几秒内自动回来；`woodfish codex autostart off` 或 `woodfish codex uninstall` 干净移除。
 
 已经在用 Codex++ 的话，也可以运行 `woodfish codex install-userscript`，以用户脚本的形式加载。详见 [Woodfish 桌面工具](./apps/desktop-cli/README.md)。
