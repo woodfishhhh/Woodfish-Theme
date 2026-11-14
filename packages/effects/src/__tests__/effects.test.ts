@@ -10,6 +10,7 @@ import {
   builtinEffectFiles,
   readUserCss,
   readUserEffects,
+  removeShippedEffects,
   resetEffectValues,
   restoreBuiltinEffect,
   seedEffectValues,
@@ -93,6 +94,28 @@ describe('syncUserEffects', () => {
     expect(read('demo/effect.js')).toBe(SCRIPT);
     expect(read('demo/effect.js.bak')).toBe('broken(');
     expect(() => restoreBuiltinEffect(dir, 'nope', v1)).toThrow(/没有自带/);
+  });
+
+  it('removes what it shipped on uninstall and keeps what the user made (#29)', () => {
+    const files = { ...v1, 'other/effect.json': MANIFEST, [USER_CSS_FILE]: '/* v1 */\n' };
+    syncUserEffects(dir, files);
+    write('demo/effect.js', '// mine\n');
+    write('demo/params.json', '{"size":3}');
+    write('other/params.json', '{"size":4}');
+    write('mine/effect.js', SCRIPT);
+    write('.reload', '1');
+    expect(removeShippedEffects(dir).sort()).toEqual([
+      'demo/effect.js',
+      'demo/params.json',
+      'mine/effect.js',
+    ]);
+    expect(fs.readdirSync(dir).sort()).toEqual(['demo', 'mine']);
+
+    fs.rmSync(path.join(dir, 'demo'), { recursive: true });
+    fs.rmSync(path.join(dir, 'mine'), { recursive: true });
+    syncUserEffects(dir, files);
+    expect(removeShippedEffects(dir)).toEqual([]);
+    expect(fs.existsSync(dir)).toBe(false);
   });
 
   it('keeps an edited user.css on upgrade and restores the template on request', () => {

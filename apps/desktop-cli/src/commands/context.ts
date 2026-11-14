@@ -83,6 +83,12 @@ export function installPrivateCopy(context: CommandContext): SelfCommand {
       // Still running; removed next time.
     }
   }
+  // `woodfish.cmd` tells the VS Code extension the task runs on its editor (it restarts or
+  // uninstalls it), so it must not outlive a switch to the exe or to Node.
+  const batch = path.join(dir, 'woodfish.cmd');
+  if (!context.electronRunAsNode || !context.cliPath) {
+    fs.rmSync(batch, { force: true });
+  }
   if (!context.cliPath) {
     const exe = path.join(dir, 'woodfish.exe');
     refreshCopy(context.nodePath, exe);
@@ -95,7 +101,6 @@ export function installPrivateCopy(context: CommandContext): SelfCommand {
   }
   // A logon task or a shortcut cannot set environment variables; a batch file can. cmd.exe
   // reads it in the console code page, so switch to UTF-8 before the line with the path.
-  const batch = path.join(dir, 'woodfish.cmd');
   const lines = [
     '@echo off',
     'chcp 65001 >nul',

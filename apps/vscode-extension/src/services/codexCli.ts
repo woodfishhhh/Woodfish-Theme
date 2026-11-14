@@ -78,6 +78,28 @@ function isAlive(pid: number): boolean {
   }
 }
 
+/** The CLI's runtime folder (`%LOCALAPPDATA%\Woodfish`): private copy, daemon state, logs. */
+export function codexRuntimeDir(env: NodeJS.ProcessEnv = process.env): string {
+  const localAppData = env.LOCALAPPDATA ?? path.join(os.homedir(), 'AppData', 'Local');
+  return env.WOODFISH_RUNTIME_DIR ?? path.join(localAppData, 'Woodfish');
+}
+
+/**
+ * Whether the Codex part runs on this editor: 「为 Codex 启用 Woodfish」 leaves a
+ * `woodfish.cmd` that starts the CLI with the editor's executable.
+ */
+export function codexRunsOnEditor(
+  executablePath: string = process.execPath,
+  env: NodeJS.ProcessEnv = process.env
+): boolean {
+  try {
+    const batch = fs.readFileSync(path.join(codexRuntimeDir(env), 'woodfish.cmd'), 'utf8');
+    return batch.toLowerCase().includes(`"${executablePath.toLowerCase()}"`);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * VS Code's updater ends every process that runs its Code.exe, including the Codex daemon
  * 「为 Codex 启用 Woodfish」 runs on it (its batch file `woodfish.cmd` is the sign). When
@@ -91,8 +113,7 @@ export function restartCodexDaemonIfStopped(
   if (platform !== 'win32') {
     return false;
   }
-  const localAppData = env.LOCALAPPDATA ?? path.join(os.homedir(), 'AppData', 'Local');
-  const runtimeDir = env.WOODFISH_RUNTIME_DIR ?? path.join(localAppData, 'Woodfish');
+  const runtimeDir = codexRuntimeDir(env);
   if (!fs.existsSync(path.join(runtimeDir, 'woodfish.cmd'))) {
     return false;
   }

@@ -30,7 +30,8 @@ import {
   uninstallNativeWindow,
 } from '../services/runtime/nativeWindow';
 import { injectWorkbenchPayload } from '../services/runtime/workbenchPatcher';
-import { collectAppRoots } from '../uninstall';
+import { syncUserEffects } from '@woodfish/effects';
+import { cleanSharedData, collectAppRoots } from '../uninstall';
 
 const RELATIVE = 'vs/code/electron-browser/workbench/workbench.html';
 const ORIGINAL_HTML = '<!DOCTYPE html>\n<html>\n<head></head>\n<body></body>\n</html>\n';
@@ -245,5 +246,43 @@ describe('offline cleanup used by uninstall', () => {
     const appRoot = makeAppRoot();
     const roots = collectAppRoots(extensionRoot, path.join(path.dirname(appRoot), 'Code'));
     expect(roots.slice(0, 2)).toEqual(['/apps/code-a', '/apps/code-b']);
+  });
+
+  it('undoes the Codex part this editor runs and the effects it shipped (#29)', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'woodfish-shared-'));
+    const env = {
+      WOODFISH_RUNTIME_DIR: path.join(root, 'local'),
+      WOODFISH_DATA_DIR: path.join(root, 'roaming'),
+    };
+    const extensionRoot = path.join(root, 'ext');
+    fs.mkdirSync(path.join(extensionRoot, 'out'), { recursive: true });
+    fs.writeFileSync(path.join(extensionRoot, 'out', 'woodfish.js'), '// cli');
+    const effects = path.join(env.WOODFISH_DATA_DIR, 'effects');
+    syncUserEffects(effects, { 'demo/effect.js': '// shipped' });
+    fs.mkdirSync(env.WOODFISH_RUNTIME_DIR);
+    const code = 'C:\Program Files\Microsoft VS Code\Code.exe';
+    fs.writeFileSync(
+      path.join(env.WOODFISH_RUNTIME_DIR, 'woodfish.cmd'),
+      `"${code}" "%~dp0woodfish.js" %*`
+    );
+    fs.writeFileSync(path.join(env.WOODFISH_RUNTIME_DIR, 'woodfish.js'), '// copy');
+
+    // Another editor set Codex up: its task and the CLI's copy stay, and so do the effects.
+    const run = jest.fn();
+    expect(cleanSharedData(extensionRoot, 'C:\Cursor\Cursor.exe', env, run)).toBe(0);
+    expect(run).not.toHaveBeenCalled();
+    expect(fs.existsSync(path.join(effects, 'demo', 'effect.js'))).toBe(true);
+
+    // This editor did: the CLI uninstalls Codex (removing its runtime folder), then the shipped
+    // effects and the empty data folder go.
+    run.mockImplementation(() => fs.rmSync(env.WOODFISH_RUNTIME_DIR, { recursive: true }));
+    expect(cleanSharedData(extensionRoot, code, env, run)).toBe(0);
+    expect(run).toHaveBeenCalledWith(path.join(extensionRoot, 'out', 'woodfish.js'), [
+      'codex',
+      'uninstall',
+      '--keep-settings',
+    ]);
+    expect(fs.existsSync(env.WOODFISH_DATA_DIR)).toBe(false);
+    fs.rmSync(root, { recursive: true, force: true });
   });
 });

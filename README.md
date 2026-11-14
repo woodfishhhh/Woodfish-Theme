@@ -367,6 +367,9 @@ code --install-extension woodfish-theme-7.2.0.vsix
 
 - **直接卸载就行**：卸载扩展后，下次完全重启编辑器时会自动还原 `workbench.html`、校验和与系统级窗口钩子。
 - **想立刻恢复原样**：先运行 `彻底停用 Woodfish 叠层` 再卸载。
+- **用这个扩展给 Codex 开过 Woodfish**：卸载扩展时一并撤下 Codex 里的效果、登录任务和开始菜单的“Woodfish Codex”，和 `从 Codex 卸载 Woodfish` 一样。
+- **效果文件夹**：Woodfish 放进 `%APPDATA%\Woodfish\effects` 的文件卸载时删掉，你自己写过或改过的留下（还装着 `woodfish` 命令行时整个保留）。Codex 的外观设置和上传的背景图也留在 `%APPDATA%\Woodfish`，不需要的话直接删掉这个文件夹。
+- 你的 `settings.json` 不会被改动。
 - Woodfish 只清理自己写入的内容，其他扩展的注入不会被改动。
 
 ## 排查问题

@@ -219,7 +219,7 @@ A mouse trail, a caret trail (both drawn like the VS Code Animations extension: 
 - **"Your installation appears to be corrupt"**: shown until the editor is fully quit after Woodfish changes `workbench.html`; reloading the window is not enough.
 - **Reporting a bug**: run **生成 Woodfish 诊断信息** and paste the report into an [issue](https://github.com/woodfishhhh/Woodfish-Theme/issues).
 
-To restore everything, uninstall the extension and fully restart the editor, or run **彻底停用 Woodfish 叠层** first for an immediate cleanup.
+To restore everything, uninstall the extension and fully restart the editor, or run **彻底停用 Woodfish 叠层** first for an immediate cleanup. If you turned Woodfish on for Codex from this extension, uninstalling it also removes the Codex effects, the logon task and the “Woodfish Codex” Start menu entry, The effect files Woodfish shipped into `%APPDATA%\Woodfish\effects` are deleted too; files you wrote or changed stay (and everything stays while the `woodfish` CLI is still installed). Codex appearance settings and uploaded background pictures remain in `%APPDATA%\Woodfish`; delete that folder if you don't need them. Your `settings.json` is never touched.
 
 ## Known limitations
 

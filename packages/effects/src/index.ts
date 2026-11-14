@@ -191,6 +191,48 @@ export function syncUserEffects(
 }
 
 /**
+ * Undoes `syncUserEffects` when the last Woodfish install goes away (#29): deletes every file
+ * that still has the content Woodfish shipped, the ledger, the reload marker, the values of an
+ * effect nothing else is left of, and then empty folders. Files the user wrote or edited stay.
+ * Returns what is left, relative to `dir`.
+ */
+export function removeShippedEffects(dir: string): string[] {
+  for (const [relative, entry] of Object.entries(readLedger(dir).files)) {
+    const target = path.join(dir, ...relative.split('/'));
+    if (fs.existsSync(target) && sha256(fs.readFileSync(target)) === entry.sha256) {
+      fs.rmSync(target);
+    }
+  }
+  fs.rmSync(path.join(dir, EFFECTS_LEDGER_FILE), { force: true });
+  fs.rmSync(path.join(dir, EFFECTS_RELOAD_FILE), { force: true });
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
+  const left: string[] = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      left.push(entry.name);
+      continue;
+    }
+    const folder = path.join(dir, entry.name);
+    const files = fs.readdirSync(folder);
+    if (files.length === 1 && files[0] === EFFECT_VALUES_FILE) {
+      fs.rmSync(path.join(folder, EFFECT_VALUES_FILE));
+      files.length = 0;
+    }
+    if (files.length === 0) {
+      fs.rmdirSync(folder);
+    } else {
+      left.push(...files.map((file) => `${entry.name}/${file}`));
+    }
+  }
+  if (left.length === 0) {
+    fs.rmdirSync(dir);
+  }
+  return left;
+}
+
+/**
  * Puts the shipped files of one effect (or one root file such as `user.css`) back, after the
  * user broke or deleted it. Edited files are kept next to it as `<name>.bak`.
  */

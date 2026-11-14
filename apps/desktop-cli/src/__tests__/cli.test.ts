@@ -463,6 +463,11 @@ describe('run', () => {
       `"${code}" "%~dp0woodfish.js" %*`,
       '',
     ]);
+
+    // Switching back to the exe drops the batch file, the VS Code extension's sign that the
+    // task runs on its editor.
+    expect(await run(['codex', 'autostart', 'on'], { io, context: seaContext })).toBe(0);
+    expect(fs.existsSync(batch)).toBe(false);
   });
 
   it('registers the hidden logon daemon only after consent and removes it on uninstall', async () => {
