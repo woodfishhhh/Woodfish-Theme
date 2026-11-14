@@ -13,13 +13,15 @@
  *   node apps/vscode-extension/scripts/promo/render-promo-video.js --bgm <music.mp3>
  *     [--out output/promo/woodfish-8.0-promo.mp4] [--fps 60] [--from <s>] [--to <s>]
  *     [--still 12.3,40] (writes PNG stills instead of a video)
+ *     [--also-30fps] (also writes <out>-30fps.mp4 from the 60 fps master)
+ *   node …/render-promo-video.js --only-30fps <master.mp4>   (30 fps copy of a finished video)
  *
  * Times are seconds of the BGM; the video starts at the storyboard's START.
  * Needs ffmpeg on PATH and Chrome / Edge (CHROME_PATH to override).
  */
 'use strict';
 
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -75,6 +77,8 @@ function parseArgs(argv) {
     to: END,
     bgm: null,
     stills: null,
+    also30: false,
+    only30: null,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const [key, value] = [argv[index], argv[index + 1]];
@@ -84,10 +88,14 @@ function parseArgs(argv) {
     else if (key === '--from') options.from = Number(value);
     else if (key === '--to') options.to = Number(value);
     else if (key === '--still') options.stills = value.split(',').map(Number);
+    else if (key === '--also-30fps') {
+      options.also30 = true;
+      index -= 1;
+    } else if (key === '--only-30fps') options.only30 = path.resolve(value);
     else throw new Error(`Unknown option ${key}`);
     index += 1;
   }
-  if (!options.stills && !options.bgm) {
+  if (!options.stills && !options.bgm && !options.only30) {
     throw new Error('--bgm <music> is required to render the video');
   }
   return options;
@@ -388,12 +396,11 @@ async function capture({ stage, clip }, format, width = WIDTH) {
 }
 
 /**
- * Range and matrix conversion appended to the scale filter (JPEG → broadcast H.264); the
- * frames carry the BT.709 tags too, or ffmpeg writes primaries and transfer as unknown.
+ * JPEG frames (sRGB, full-range BT.601 YCbCr) → limited-range BT.709 for H.264. Only the
+ * matrix and range change, the primaries are sRGB's own. The colorspace filter round-trips
+ * within ±2 levels; swscale's in/out_color_matrix darkened everything by 2–4 levels.
  */
-const STANDARD_VIDEO_FILTER =
-  'in_range=pc:out_range=tv:in_color_matrix=bt601:out_color_matrix=bt709,format=yuv420p,' +
-  'setparams=range=tv:colorspace=bt709:color_primaries=bt709:color_trc=bt709';
+const JPEG_TO_BT709 = 'colorspace=all=bt709:iall=bt709:ispace=bt470bg:irange=pc:range=tv:format=yuv420p';
 
 /** H.264 settings every player decodes in hardware: High 4.2, a keyframe every 2 s, BT.709 tags. */
 function standardVideoArgs(fps) {
@@ -401,6 +408,26 @@ function standardVideoArgs(fps) {
     '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.2', '-g', String(fps * 2),
     '-color_range', 'tv', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709',
   ];
+}
+
+/** A copy of a finished (already BT.709) video at `fps`: frames dropped evenly, audio copied. */
+function writeFrameRateCopy(input, fps) {
+  const output = input.replace(/.mp4$/i, `-${fps}fps.mp4`);
+  const result = spawnSync(
+    'ffmpeg',
+    [
+      '-y', '-loglevel', 'error', '-i', input,
+      '-vf', `fps=${fps}`,
+      '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', ...standardVideoArgs(fps),
+      '-c:a', 'copy', '-movflags', '+faststart',
+      output,
+    ],
+    { stdio: 'inherit' }
+  );
+  if (result.status !== 0) {
+    throw new Error(`ffmpeg could not write ${output}`);
+  }
+  return output;
 }
 
 function startEncoder(options) {
@@ -416,7 +443,7 @@ function startEncoder(options) {
       // Every frame goes out at exactly 1920×1080 (a clip can round a pixel off). The JPEG
       // frames are full-range BT.601; players hardware-decode limited-range BT.709 H.264 at
       // level 4.2, and stutter on the full-range level 5.0 stream an mjpeg pipe gives by default.
-      '-vf', `scale=${WIDTH}:${HEIGHT}:flags=lanczos:${STANDARD_VIDEO_FILTER}`,
+      '-vf', `scale=${WIDTH}:${HEIGHT}:flags=lanczos,${JPEG_TO_BT709}`,
       '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', ...standardVideoArgs(options.fps),
       '-c:a', 'aac', '-b:a', '192k',
       '-af', `afade=t=in:st=0:d=0.3,afade=t=out:st=${fadeStart}:d=${FADE_OUT}`,
@@ -481,6 +508,10 @@ async function openStages() {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  if (options.only30) {
+    console.log(`✓ ${path.relative(REPO_ROOT, writeFrameRateCopy(options.only30, 30))}`);
+    return;
+  }
   const { stages, close } = await openStages();
   try {
     const scenes = storyboard();
@@ -515,6 +546,9 @@ async function main() {
     }
     await encoder.end();
     console.log(`✓ ${path.relative(REPO_ROOT, options.out)}`);
+    if (options.also30) {
+      console.log(`✓ ${path.relative(REPO_ROOT, writeFrameRateCopy(options.out, 30))}`);
+    }
   } finally {
     await close();
   }
