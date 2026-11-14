@@ -93,7 +93,7 @@ Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和�
 
 ## 效果一览
 
-每个效果一张聚焦的图，会动的效果是动图。Codex 桌面版的效果用 `woodfish codex launch` 等方式启用后默认就开着（装法见下面的 [Codex 桌面端](#codex-桌面端)），在 Codex 的 **设置 → 外观 → Woodfish 外观** 里能逐个开关、调参数；只想改颜色、大小、速度，在效果文件夹（`%APPDATA%\Woodfish\effects`）的 `user.css` 里写一行变量就行，变量清单在同一文件夹的 `README.md`。
+每个效果一张聚焦的图，会动的效果是动图。Codex 桌面版装好 Woodfish 后这些效果默认就开着（装法见下面的 [Codex 桌面端](#codex-桌面端)，一句话就能让 AI 帮你装），在 Codex 的 **设置 → 外观 → Woodfish 外观** 里能逐个开关、调参数；只想改颜色、大小、速度，在效果文件夹（`%APPDATA%\Woodfish\effects`）的 `user.css` 里写一行变量就行，变量清单在同一文件夹的 `README.md`。
 
 <table>
   <tr>
@@ -208,6 +208,7 @@ Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和�
 1. 安装 **Woodfish Theme**：
    - VS Code：从 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme) 安装。
    - Cursor、Kiro、Windsurf、Trae、VSCodium：在扩展面板里搜索 `Woodfish Theme`（来自 [Open VSX](https://open-vsx.org/extension/zhongjun/woodfish-theme)）。
+   - 让 AI 装：把这句话发给你的 AI：“运行 `code --install-extension zhongjun.woodfish-theme` 帮我装上 Woodfish Theme。”（Cursor 把 `code` 换成 `cursor`，其他编辑器同理）
 2. 选一个你喜欢的颜色主题，想要特调效果就选 Woodfish Dark / Dracula / Black / Neon / Light 这五套。
 3. 点右下角弹出的 **重新加载窗口**。
 
@@ -413,24 +414,34 @@ code --install-extension woodfish-theme-7.2.0.vsix
 
 ## Codex 桌面端
 
-Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和效果。三种装法效果相同，任选一种：
+Woodfish 也能给 OpenAI Codex 桌面版换上同样的配色和效果：彩虹回复字、吐字光标和拖尾、选中会话的光环、毛玻璃、《彩云》背景（见上面的[效果一览](#效果一览)）。需要 Windows 10 / 11 上的 Microsoft Store 版 Codex。
 
-- **在这个扩展里一键启用**：命令面板运行 `Woodfish Theme: 为 Codex 启用 Woodfish`（停用、卸载也各有一条命令）。用扩展自带的 Codex 工具和编辑器自带的运行时，不用另装 Node.js；第一次会先说明调试端口的风险。
-- **下载单文件**：[GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) 里的 `woodfish.exe`，双击即可，什么都不用装（没有代码签名，Windows 可能提示“已保护你的电脑”，点“更多信息 → 仍要运行”）。
-- **npm**：即将上线。已经装了 Node.js 22+ 的话，现在可以下载同一页的 `woodfish.js`，运行 `node woodfish.js codex launch`。
+**让 AI 帮你装**：把这句话发给你正在用的 AI（Codex、Claude Code、Cursor……都行），它会装好 Woodfish，让效果在 Codex 重启、更新、重新开机之后一直都在；要你拍板的地方（同意调试端口的风险说明、重启 Codex）会停下来问你。
 
-Woodfish 不会修改、替换你原来的 Codex 快捷方式。开了“登录后自动恢复”时，用原来的快捷方式打开的 Codex 会在窗口出现前被带调试端口重启一次，看不到闪烁，只是比平时晚两三秒出窗口；想省掉这一步，可以在开始菜单另加一个直接带效果启动的“Woodfish Codex”。
+```text
+读 https://github.com/woodfishhhh/Woodfish-Theme/blob/main/docs/agent-install.md ，照里面的步骤帮我给 Codex 装上 Woodfish。
+```
 
-它不修改 Codex 的安装文件，有两种方式：
+AI 打不开 GitHub 的话，把地址换成 `https://cdn.jsdelivr.net/gh/woodfishhhh/Woodfish-Theme@main/docs/agent-install.md`。
 
-- **原生配色**：`woodfish codex theme apply --dark neon --light light`，写入 Codex 官方的主题设置，深色和浅色各一套，不开任何端口；加 `--appearance dark` 可把 Codex 固定为深色。
-- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕、和 VS Code 一样的 6px 彩虹光标、光标拖尾、打字粒子。需要以本机调试端口启动 Codex，首次使用前会说明风险。助手回复是彩虹渐变字；AI 吐字时末尾跟着一根彩虹光标、身后拖一段拖尾、新字轻轻淡入（AI 吐字和你打字触发的是同一套效果）；选中的会话外圈是一道旋转的七色光谱环加柔光晕。
-- **效果插件**：每个效果是 `%APPDATA%\Woodfish\effects` 里的一个文件夹，在 Codex 的 **设置 → 外观 → Woodfish 外观** 里能切换 15 套主题、开关每个效果、调它的全部参数；也可以让 Codex 照文件夹里的 `AGENTS.md` 改效果代码。保存即刷新，或 `woodfish reload` / Codex 里按 `Ctrl+Alt+R`，不用重启 Codex。颜色、粗细、速度这类样子也能在同一文件夹的 `user.css` 里用 CSS 变量改（设置页有「打开 user.css」）。
-- **一直生效**：`woodfish codex autostart on` 注册一个登录时运行的后台任务（无窗口、普通权限）。Codex 重启或商店更新后，效果会在几秒内自动回来；`woodfish codex autostart off` 或 `woodfish codex uninstall` 干净移除。
+**自己装**，三步：
 
-- **窗口背景**：默认铺上《彩云》，侧栏和输入框是毛玻璃。在 **设置 → 外观 → Woodfish** 里点“上传图片”或把图片拖进窗口就能换成自己的，实时预览，可调透明度、模糊、遮罩，保存多张随时切换；命令行是 `woodfish codex background set <图片>`。图片只存在本机。
+1. 二选一：
+   - **用 VS Code**：装好本扩展，按 `Ctrl+Shift+P`，运行 **Woodfish Theme: 为 Codex 启用 Woodfish**。
+   - **不用 VS Code**：从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) 下载 `woodfish.exe`，双击。它没有代码签名，Windows 提示“Windows 已保护你的电脑”时，点“更多信息”，再点“仍要运行”。
+2. 读一遍调试端口的风险说明，同意（exe 里输入 `yes`）。Codex 正开着的话，会先问你能不能重启它。
+3. Codex 带着效果重新打开。exe 最后问“登录 Windows 后自动恢复效果吗”时输入 `y`（VS Code 的启用命令会自己开好），以后 Codex 重启、商店更新、重新开机，效果都会自己回来。
 
-已经在用 Codex++ 的话，也可以运行 `woodfish codex install-userscript`，以用户脚本的形式加载。详见 [Woodfish 桌面工具](./apps/desktop-cli/README.md)。
+**装好以后**
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-settings.webp" width="60%" alt="Codex 设置页里的 Woodfish 外观：深色、浅色主题卡片和效果插件">
+
+- **换主题、开关效果**：Codex 的 **设置 → 外观 → Woodfish 外观**。15 套主题点一下就换，每个效果一行开关，「参数」里有它的全部滑块和取色。
+- **让 AI 改效果**：对 Codex 或 Claude 说“把打字粒子改成金色，效果文件夹在 %APPDATA%\Woodfish\effects”，它会照文件夹里写给 AI 的 `AGENTS.md` 改好并刷新。
+- **停用和卸载**：VS Code 里运行 **为 Codex 停用 Woodfish** 或 **从 Codex 卸载 Woodfish**。用 exe 的话，在 `woodfish.exe` 所在的文件夹打开终端：停用是 `.\woodfish.exe codex autostart off` 再 `.\woodfish.exe codex stop-inject`，全部撤销是 `.\woodfish.exe codex uninstall`。之后重启一次 Codex，调试端口就关了。
+- **不碰你的 Codex**：Woodfish 不修改 Codex 的安装文件，也不修改、替换或删除你开始菜单、桌面、任务栏上的 Codex 快捷方式。用原来的快捷方式打开 Codex 时，它会在窗口出现前被带效果重启一次，所以比平时晚两三秒出窗口；想省掉这一步，`woodfish codex shortcut`（VS Code 启用成功的提示上也有这个按钮）在开始菜单另加一个直接带效果启动的“Woodfish Codex”。
+
+只换配色、不开调试端口的原生配色，Codex++ 用户脚本，全部命令和效果插件的细节，见 [Woodfish 桌面工具](./apps/desktop-cli/README.md)。
 
 ## DeepSeek Harness（dsh）Web 版
 
@@ -459,7 +470,7 @@ pnpm package
 
 [![Contributors](https://contrib.rocks/image?repo=woodfishhhh/Woodfish-Theme)](https://github.com/woodfishhhh/Woodfish-Theme/graphs/contributors)
 
-用 Claude Code、Codex 这类 AI 写代码的话，推荐顺手装上作者的另一个小工具 [讣告 · AI 的回收站](https://obituary.woodfish.site)（[GitHub](https://github.com/woodfishhhh/obituary)）：AI 留下的调试脚本、日志、截图到期自己走，AI 删掉的东西七天内都能找回，提 PR 前工作区也干净。最省事的装法是把这句话发给你的 agent：“读 https://obituary.woodfish.site/agent-install.md ，照里面的步骤帮我安装讣告并接入你自己。”想自己装：Windows 用 Scoop（`scoop bucket add obituary https://github.com/woodfishhhh/scoop-bucket`，再 `scoop install obituary`），macOS 用 Homebrew（`brew install --cask woodfishhhh/tap/obituary`），其他方式见讣告的[安装文档](https://github.com/woodfishhhh/obituary/blob/main/docs/install.md)。
+用 Claude Code、Codex 这类 AI 写代码的话，推荐顺手装上 [讣告 · AI 的回收站](https://obituary.woodfish.site)（[GitHub](https://github.com/woodfishhhh/obituary)）：AI 留下的调试脚本、日志、截图到期自己走，AI 删掉的东西七天内都能找回，提 PR 前工作区也干净。最省事的装法是把这句话发给你的 agent：“读 https://obituary.woodfish.site/agent-install.md ，照里面的步骤帮我安装讣告并接入你自己。”想自己装：Windows 用 Scoop（`scoop bucket add obituary https://github.com/woodfishhhh/scoop-bucket`，再 `scoop install obituary`），macOS 用 Homebrew（`brew install --cask woodfishhhh/tap/obituary`），其他方式见讣告的[安装文档](https://github.com/woodfishhhh/obituary/blob/main/docs/install.md)。
 
 ## 项目信息
 

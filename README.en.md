@@ -59,7 +59,7 @@ Every picture on this page is rendered by the extension's own code: the code pic
 
 ## Effects at a glance
 
-One focused picture per effect; moving effects are short animations. In the Codex desktop app the effects are on once Woodfish is enabled (see [Codex desktop app](#codex-desktop-app)); **Settings → Appearance → Woodfish 外观** toggles each one and exposes all of its parameters. To change only a color, size or speed, add one CSS variable to `user.css` in the effects folder (`%APPDATA%\Woodfish\effects`); the folder's `README.md` lists every variable.
+One focused picture per effect; moving effects are short animations. In the Codex desktop app the effects are on once Woodfish is installed (see [Codex desktop app](#codex-desktop-app); one sentence lets your AI install it); **Settings → Appearance → Woodfish 外观** toggles each one and exposes all of its parameters. To change only a color, size or speed, add one CSS variable to `user.css` in the effects folder (`%APPDATA%\Woodfish\effects`); the folder's `README.md` lists every variable.
 
 <table>
   <tr>
@@ -142,6 +142,7 @@ One focused picture per effect; moving effects are short animations. In the Code
 
 - **VS Code**: install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=zhongjun.woodfish-theme).
 - **Cursor, Kiro, Windsurf, Trae, VSCodium**: search for `Woodfish Theme` in the extension panel (served from [Open VSX](https://open-vsx.org/extension/zhongjun/woodfish-theme)).
+- **Let your AI install it**: send it "Run `code --install-extension zhongjun.woodfish-theme` to install Woodfish Theme for me." (use `cursor` instead of `code` for Cursor, and so on).
 - **VSIX**: download it from [GitHub Releases](https://github.com/woodfishhhh/Woodfish-Theme/releases), then run `code --install-extension woodfish-theme-7.2.0.vsix` (use `cursor`, `kiro`, … for other editors).
 
 Pick any color theme, then click **重新加载窗口** (Reload Window) when prompted. The overlay is on by default and never switches your color theme. Click `Woodfish ...` in the status bar for the feature menu.
@@ -230,24 +231,34 @@ To restore everything, uninstall the extension and fully restart the editor, or 
 
 ## Codex desktop app
 
-Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build). Three ways to get it, all with the same effects:
+Woodfish can give the OpenAI Codex desktop app the same colors and effects: rainbow reply text, the streaming cursor and its trail, the ring around the selected thread, frosted glass and the 《彩云》 background (see [Effects at a glance](#effects-at-a-glance)). It needs the Microsoft Store build of Codex on Windows 10 / 11.
 
-- **From this extension**: run `Woodfish Theme: 为 Codex 启用 Woodfish` from the command palette (there are commands to turn it off and to uninstall, too). It uses the Codex tool bundled with the extension and the editor's own runtime, so no Node.js install is needed; the debugging-port risk is explained first.
-- **Single file**: download `woodfish.exe` from the [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) and double-click it; nothing else to install (it is unsigned, so Windows may show "Windows protected your PC": More info → Run anyway).
-- **npm**: coming soon. With Node.js 22+ you can already download `woodfish.js` from the same release and run `node woodfish.js codex launch`.
+**Let your AI install it**: send this sentence to the AI you use (Codex, Claude Code, Cursor, …). It installs Woodfish and keeps the effects on after Codex restarts, updates and reboots, and stops to ask you wherever a decision is yours (accepting the debugging-port risk, restarting Codex).
 
-Woodfish never changes or replaces your own Codex shortcuts. With "restore after logon" on, a Codex opened from them is restarted with the debugging port before its window appears: no flicker, the window just shows up two or three seconds later. A separate Start menu entry "Woodfish Codex" starts it with the effects directly.
+```text
+Read https://github.com/woodfishhhh/Woodfish-Theme/blob/main/docs/agent-install.md and follow it to install Woodfish for my Codex app.
+```
 
-It never modifies Codex's installation:
+If the AI cannot open GitHub, use `https://cdn.jsdelivr.net/gh/woodfishhhh/Woodfish-Theme@main/docs/agent-install.md` instead.
 
-- **Native palette**: `woodfish codex theme apply --dark neon --light light` writes Codex's official theme settings (one palette per appearance mode) and opens no ports; `--appearance dark` pins Codex to dark mode.
-- **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow, the same 6px rainbow caret as in VS Code, a caret trail and typing particles. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Assistant replies get the rainbow text; while a reply streams, a rainbow cursor follows its end with a trail and new text fades in (AI output triggers the same effects as your typing); the selected sidebar thread gets a turning seven-band spectrum ring with a soft halo.
-- **Effect plugins**: Every effect is a folder in `%APPDATA%\Woodfish\effects`. Codex's own **Settings → Appearance → Woodfish 外观** switches between all 15 themes and shows each effect's switch and every parameter; Codex itself can change an effect's code by following the folder's `AGENTS.md`. Saving reloads it, or run `woodfish reload` / press `Ctrl+Alt+R` in Codex, without restarting Codex. Colors, sizes and speeds can also be changed with CSS variables in `user.css` in the same folder (the settings page has 「打开 user.css」).
-- **Always on**: `woodfish codex autostart on` registers a hidden logon task (normal rights) that brings the effects back within seconds after Codex restarts or a Store update; `woodfish codex autostart off` or `uninstall` removes it cleanly.
+**Install it yourself** in three steps:
 
-- **Window background**: a picture under the whole window (the editor or thread shows it at 15 %, side panels are frosted glass at 35 % of the theme color, 10px blur). In VS Code run `设置背景图片`; in Codex it is on by default and **Settings → Appearance → Woodfish** uploads (or takes a dropped picture), previews and keeps several; the CLI is `woodfish codex background set <picture>`. Pictures stay on your machine.
+1. Either:
+   - **With VS Code**: install this extension, press `Ctrl+Shift+P` and run **Woodfish Theme: 为 Codex 启用 Woodfish** (turn on Woodfish for Codex).
+   - **Without VS Code**: download `woodfish.exe` from the [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) and double-click it. It is unsigned, so if Windows says "Windows protected your PC", click "More info", then "Run anyway".
+2. Read the notice about the debugging port and accept it (type `yes` in the exe). If Codex is open, you are asked whether it may be restarted.
+3. Codex opens again with the effects. When the exe finally asks whether to restore the effects after signing in to Windows, type `y` (the VS Code command turns this on by itself); from then on the effects come back after Codex restarts, Store updates and reboots.
 
-Codex++ users can run `woodfish codex install-userscript` instead. See [apps/desktop-cli/README.md](apps/desktop-cli/README.md) (Chinese).
+**Once installed**
+
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-settings.webp" width="60%" alt="Woodfish 外观 in Codex's settings: dark and light theme cards and the effect plugins">
+
+- **Themes and effect switches**: Codex **Settings → Appearance → Woodfish 外观**. Click any of the 15 themes; every effect has a switch, and 参数 (parameters) holds all its sliders and color pickers.
+- **Let an AI change an effect**: tell Codex or Claude "make the typing particles gold; the effects folder is %APPDATA%\Woodfish\effects". It follows the folder's `AGENTS.md`, which is written for AIs, and reloads the effect.
+- **Turn off or uninstall**: in VS Code run **为 Codex 停用 Woodfish** (turn off) or **从 Codex 卸载 Woodfish** (uninstall). With the exe, open a terminal in the folder that holds `woodfish.exe`: `.\woodfish.exe codex autostart off`, then `.\woodfish.exe codex stop-inject` turns it off; `.\woodfish.exe codex uninstall` undoes everything. Restart Codex once afterwards to close the debugging port.
+- **Your Codex stays yours**: Woodfish never modifies Codex's installation and never changes, replaces or deletes your Codex shortcuts in the Start menu, on the desktop or on the taskbar. A Codex opened from them is restarted with the effects before its window appears, so the window shows up two or three seconds later; to skip that, `woodfish codex shortcut` (also a button on VS Code's success message) adds a separate Start menu entry "Woodfish Codex" that starts it with the effects directly.
+
+The native palette that opens no debugging port, the Codex++ user script, every command and the effect plugins in detail: [apps/desktop-cli/README.md](apps/desktop-cli/README.md) (Chinese).
 
 The DeepSeek Harness (dsh) Web UI is themed through a Tampermonkey / Violentmonkey user script: `woodfish dsh userscript`. See [docs/hosts/dsh.md](docs/hosts/dsh.md) (Chinese).
 
@@ -295,7 +306,7 @@ Contributions are always welcome: every PR gets read, and every contributor show
 
 [![Contributors](https://contrib.rocks/image?repo=woodfishhhh/Woodfish-Theme)](https://github.com/woodfishhhh/Woodfish-Theme/graphs/contributors)
 
-If you write code with an AI agent such as Claude Code or Codex, you may like the author's other small tool, [Obituary — the trash bin for AI agents](https://obituary.woodfish.site) ([GitHub](https://github.com/woodfishhhh/obituary)): the debug scripts, logs and screenshots an agent leaves behind expire on their own, and anything it deletes can be brought back for seven days, so your working tree stays clean before a PR. The easiest way to install it is to tell your agent: “Read https://obituary.woodfish.site/agent-install.md and follow it to install Obituary and connect it to yourself.” To install it yourself: Scoop on Windows (`scoop bucket add obituary https://github.com/woodfishhhh/scoop-bucket`, then `scoop install obituary`), Homebrew on macOS (`brew install --cask woodfishhhh/tap/obituary`); other ways are in its [install guide](https://github.com/woodfishhhh/obituary/blob/main/docs/install.en.md).
+If you write code with an AI agent such as Claude Code or Codex, you may like [Obituary — the trash bin for AI agents](https://obituary.woodfish.site) ([GitHub](https://github.com/woodfishhhh/obituary)): the debug scripts, logs and screenshots an agent leaves behind expire on their own, and anything it deletes can be brought back for seven days, so your working tree stays clean before a PR. The easiest way to install it is to tell your agent: “Read https://obituary.woodfish.site/agent-install.md and follow it to install Obituary and connect it to yourself.” To install it yourself: Scoop on Windows (`scoop bucket add obituary https://github.com/woodfishhhh/scoop-bucket`, then `scoop install obituary`), Homebrew on macOS (`brew install --cask woodfishhhh/tap/obituary`); other ways are in its [install guide](https://github.com/woodfishhhh/obituary/blob/main/docs/install.en.md).
 
 ## License
 

@@ -6,6 +6,8 @@ Woodfish 不修改 Codex 的安装文件。商店版的安装目录是只读的�
 
 ## 安装：三种方式，效果相同
 
+最省事的是让 AI 帮你装：把“读 https://github.com/woodfishhhh/Woodfish-Theme/blob/main/docs/agent-install.md ，照里面的步骤帮我给 Codex 装上 Woodfish。”发给你正在用的 AI，步骤见 [docs/agent-install.md](../../docs/agent-install.md)。
+
 三种方式运行的是同一个 `woodfish.js`，版本号和 VS Code 扩展一致（8.0.0 起），功能、效果、设置文件完全一样，选一种即可。都需要 Windows 上的 Microsoft Store 版 Codex。
 
 | 方式 | 怎么用 | 需要 |

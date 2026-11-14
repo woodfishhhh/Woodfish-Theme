@@ -145,7 +145,8 @@ Playground：[`docs/playground/promo-titles.html`](playground/promo-titles.html)
 Woodfish 8.1 · Codex 桌面版：回复变成彩虹字，AI 吐字时彩虹光标领着字走、身后拖一段尾巴；选中的会话转着七色光环，菜单是毛玻璃，窗口底下铺《彩云》（也能换成你自己的图），15 套主题点一下就换。每个效果都是一个文件夹，对 Codex 说一句就能改。
 
 怎么装（Windows 商店版 Codex）：
-· 装好 VS Code 扩展 Woodfish Theme，命令面板运行「Woodfish Theme: 为 Codex 启用 Woodfish」一键启用
+· 最省事：把这句话发给你的 AI（Codex、Claude Code 都行）：“读 https://github.com/woodfishhhh/Woodfish-Theme/blob/main/docs/agent-install.md ，照里面的步骤帮我给 Codex 装上 Woodfish。”
+· 或者装好 VS Code 扩展 Woodfish Theme，命令面板运行「Woodfish Theme: 为 Codex 启用 Woodfish」一键启用
 · 或从 GitHub Release 下载 woodfish.exe 双击
 不改你原来的 Codex 快捷方式；Codex 重启或更新后效果自己回来。
 
