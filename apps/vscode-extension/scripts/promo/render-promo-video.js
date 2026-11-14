@@ -281,6 +281,34 @@ function captionOpacity(caption, sceneTime, sceneEnd) {
   return Math.max(0, Math.min(1, caption.at / CAPTION_FADE, (sceneEnd - sceneTime) / 0.2));
 }
 
+/** The centered title: in (zoom down, blur to sharp), hold, out (fade, shrink a little). */
+const TITLE_IN = 0.45;
+const TITLE_HOLD = 1.05;
+const TITLE_OUT = 0.4;
+const TITLE_TOTAL = TITLE_IN + TITLE_HOLD + TITLE_OUT;
+
+/** The title's look `seconds` after it starts, or null once it has left. */
+function titleFrame(title, seconds) {
+  if (!title || seconds < 0 || seconds > TITLE_TOTAL) {
+    return null;
+  }
+  const enter = 1 - Math.pow(1 - Math.min(1, seconds / TITLE_IN), 3);
+  const exit = Math.pow(Math.max(0, (seconds - TITLE_IN - TITLE_HOLD) / TITLE_OUT), 2);
+  return {
+    main: title.main,
+    sub: title.sub,
+    opacity: enter * (1 - exit),
+    scale: (1.14 - 0.14 * enter) * (1 - 0.06 * exit),
+    blur: 16 * (1 - enter) + 8 * exit,
+    sweep: seconds / TITLE_TOTAL,
+  };
+}
+
+/** The corner caption waits for the title to leave, then fades in. */
+function captionGate(title, seconds) {
+  return title ? Math.max(0, Math.min(1, (seconds - TITLE_TOTAL + 0.15) / CAPTION_FADE)) : 1;
+}
+
 /** Everything one frame needs: the shot for the stage, the camera and the overlay. */
 function frameState(cut, scenes, t) {
   let index = scenes.findIndex((candidate) => t >= candidate.start && t < candidate.end);
@@ -321,9 +349,12 @@ function frameState(cut, scenes, t) {
             main: shot.caption.main,
             sub: shot.caption.sub,
             at: shot.caption.position,
-            opacity: captionOpacity(shot.caption, local, scene.end - scene.start),
+            opacity:
+              captionOpacity(shot.caption, local, scene.end - scene.start) *
+              captionGate(shot.heading, local - (shot.heading?.delay ?? 0)),
           }
         : null,
+      title: titleFrame(shot.heading, local - (shot.heading?.delay ?? 0)),
       badge: shot.badge ? cut.badge : null,
       end: shot.end ?? null,
       fade: Math.max(0, 1 - (t - cut.start) / FADE_IN, (t - (cut.end - FADE_OUT)) / FADE_OUT),

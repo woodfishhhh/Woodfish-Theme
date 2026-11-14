@@ -123,6 +123,7 @@ function askCodex(t) {
       ? { zoom: glide(t, 4, 5, 1.6, 1.4), focus: 'stream', fallback: ['reply', 'column'], alignX: 'column', lag: 0.4 }
       : { zoom: glide(t, 0, 1.5, 1, 1.6), focus: 'composer' },
     badge: true,
+    heading: { main: '一句话让 Codex 改效果', sub: '它照效果文件夹里的 AGENTS.md 改', delay: 0 },
     caption: { main: '对 Codex 说一句：把打字粒子改成金色', sub: '效果文件夹里有写给 AI 的 AGENTS.md，它照着改 user.css', at: t - 0.3, position: 'top' },
   });
 }
@@ -138,6 +139,7 @@ function codexCut() {
     codex({
       ...stream(t),
       camera: { zoom: glide(t, START / BEAT, bar(2) / BEAT, 1, 1.06), focus: 'window' },
+      heading: { main: 'Woodfish 8.0', sub: 'Codex 桌面版', delay: START + 0.3 },
       caption: t > START + 0.5 ? { main: 'Woodfish 8.0 · Codex 桌面版', sub: '给 Codex 换上彩虹回复字、吐字光标和七色光环', at: t - START - 0.5 } : null,
     })
   );
@@ -148,6 +150,7 @@ function codexCut() {
     css: 'base',
     panes: [{ code: ENABLE_CODEX, typed: revealed(t - 0.3, 18), cursor: true, large: true, centered: true }],
     caption: {
+      heading: { main: '一键启用', sub: 'VS Code 扩展里一条命令，或下载 woodfish.exe', delay: 0 },
       main: '装上 Woodfish Theme，一条命令为 Codex 启用',
       sub: '或从 GitHub Release 下载 woodfish.exe 双击；不改你原来的 Codex 快捷方式，Codex 重启后效果自己回来',
       at: t - 0.3,
@@ -160,6 +163,7 @@ function codexCut() {
       ...stream(bar(3) + t),
       camera: { zoom: glide(t, 0, 1.5, 1.06, 1.85), focus: 'stream', fallback: 'reply', alignX: 'column', lag: 0.3 },
       badge: true,
+      heading: { main: '彩虹回复字', sub: 'AI 吐字时彩虹光标领着字走', delay: 0 },
       caption: { main: '彩虹回复字 + 吐字光标', sub: 'AI 吐字时彩虹光标领着字走，身后拖一段尾巴，新字轻轻淡入', at: t - 0.3 },
     })
   );
@@ -175,6 +179,7 @@ function codexCut() {
       messages: conversation(chats[active]),
       camera: { zoom: glide(t, 0.25, 1.25, 1, 2.5), focus: 'thread', lag: 0.3 },
       badge: true,
+      heading: { main: '七色光环', sub: '选中的会话外圈慢慢转', delay: 0 },
       caption: { main: '选中的会话：七色光环', sub: '光谱环慢慢转，外面一圈柔光；运行中的会话亮一圈弱光', at: t - 0.3 },
     });
   });
@@ -193,6 +198,7 @@ function codexCut() {
       slash: open ? Math.min(3, Math.floor((t - 0.5 * BEAT) / (0.75 * BEAT))) : null,
       camera: { zoom: glide(t, 0.25, 1.5, 1.25, 1.45), focus: open ? 'menu' : 'composer', dy: open ? -30 : 0, lag: 0.3 },
       badge: true,
+      heading: { main: '毛玻璃浮层', sub: '菜单后面的字透出来', delay: 0 },
       caption: { main: '毛玻璃浮层', sub: '菜单弹出来，后面的彩虹字透出来', at: t - 0.3 },
     });
   });
@@ -217,6 +223,7 @@ function codexCut() {
       scrollBack: glide(t, 0, 4, 300, 0),
       camera: { zoom: 1, focus: 'window' },
       badge: true,
+      heading: { main: '彩云背景', sub: '也能换成你自己的图', delay: 0 },
       caption: { ...shown, at: beat === 0 ? t : beat === 3 ? t - 3 * BEAT : t - BEAT },
     });
   });
@@ -240,6 +247,7 @@ function codexCut() {
       composer: { focus: true, text, caret },
       camera: { zoom: glide(t, 0, 1.25, 1.25, 1.85), focus: 'composer', dy: -20 },
       badge: true,
+      heading: { main: '打字粒子 · 光标拖尾', sub: '输入框里是 VS Code 同款彩虹光标', delay: 0 },
       caption: { main: '输入框：彩虹光标、拖尾、打字粒子', sub: '和 VS Code 里一样的 6px 光标；光标一跳就拖出一段尾巴', at: t - 0.3, position: 'top' },
     });
   });
@@ -253,6 +261,7 @@ function codexCut() {
       threads: { items: THREADS, active: 2, running: CI_THREAD },
       title: REACT.title,
       messages: conversation(REACT),
+      heading: { main: '15 套主题', sub: '整个界面跟着换色', delay: 0 },
       caption: { main: 'Codex 能用全部 15 套主题', sub: `整个界面跟着换色 · ${themes[index][1]}`, at: index === 0 ? t : 1 },
     });
   });
@@ -268,6 +277,7 @@ function codexCut() {
       picture: { src: SETTINGS_SCREENSHOT, viewBox: 'inset(80px 330px 250px 600px)' },
       camera: { zoom: glide(t, 0, 4, 1, 1.1), focus: 'window' },
       badge: true,
+      heading: { main: 'Woodfish 外观', sub: '设置 → 外观，开关和参数都在这里', delay: 0 },
       caption: { main: '设置 → 外观 → Woodfish 外观', sub: '15 套主题点一下就换，每个效果有开关和全部参数（真机截图）', at: t - 0.3 },
     })
   );
@@ -285,6 +295,7 @@ function codexCut() {
       composer: { focus: true, text: tryText.slice(0, revealed(t - 0.35, 5.5)) },
       camera: { zoom: 2, focus: 'caret', fallback: 'composer', dy: -60, lag: 0.45 },
       badge: true,
+      heading: { main: '保存即生效', sub: '金色粒子，不用重启 Codex', delay: 0 },
       caption: { main: '保存即生效', sub: 'user.css 写一行变量，一两秒后自动刷新，不用重启 Codex', at: t - 0.3, position: 'top' },
     })
   );
@@ -307,6 +318,7 @@ function vscodeCut() {
       css: 'base',
       panes: [{ code: CODE.greet, typed: revealed(u - 0.3, 14), cursor: true, large: true }],
       camera: { zoom: glide(u, 0, 4, 1, 1.25), focus: 'cursor', fallback: 'code', x: 430, lag: 0.45 },
+      heading: { main: 'Woodfish Theme 8.0', sub: 'VS Code 新功能', delay: BAR + 0.3 },
       caption: u > 0.5 ? { main: 'Woodfish Theme 8.0', sub: 'VS Code 新版本：10 套热门主题、窗口背景、光标拖尾、打字粒子、效果插件', at: u - 0.5 } : null,
     };
   });
@@ -320,6 +332,7 @@ function vscodeCut() {
       css: 'base',
       panes: [{ code: CODE.typescript, cursor: true }],
       camera: { zoom: glide(t, 0, 2, 1, 1.2), focus: 'code' },
+      heading: { main: '10 套热门主题', sub: '原样收录上游配色，渐变自动生成', delay: 0 },
       caption: { main: label, sub: '新增 10 套热门主题，原样收录上游配色，渐变按各自配色自动生成', at: index === 0 ? t : 1 },
     };
   });
@@ -333,6 +346,7 @@ function vscodeCut() {
       panes: [{ code: CODE.typescript, cursor: true }],
       camera: { zoom: 1, focus: 'window' },
       badge: true,
+      heading: { main: '彩云背景', sub: '窗口背景，换成你的图也行', delay: 0 },
       caption: on
         ? { main: '窗口背景《彩云》', sub: '运行「设置背景图片」换成你的图；编辑器透出背景，侧栏和面板是毛玻璃', at: t - 2 * BEAT }
         : { main: '没有背景', sub: '', at: t },
@@ -346,6 +360,7 @@ function vscodeCut() {
     panes: [{ code: CODE.greet, typed: revealed(t - 0.3, 15), cursor: true, large: true }],
     camera: { zoom: glide(t, 0, 1.5, 1, 1.7), focus: 'cursor', fallback: 'code', x: 350, lag: 0.45 },
     badge: true,
+    heading: { main: '光标拖尾 · 打字粒子', sub: '照 VS Code Animations 插件画的带子', delay: 0 },
     caption: { main: '光标拖尾和打字粒子', sub: '照 VS Code Animations 插件画的单色带子；打字迸出主题色光点。设置里打开', at: t - 0.3 },
   }));
 
@@ -357,6 +372,7 @@ function vscodeCut() {
     pointer: { x: 480 + 300 * Math.sin(t * 1.9), y: 200 + 90 * Math.sin(t * 3.1 + 0.6) },
     camera: { zoom: 1, focus: 'window' },
     badge: true,
+    heading: { main: '鼠标拖尾', sub: '默认关闭，设置里打开', delay: 0 },
     caption: { main: '鼠标拖尾', sub: '指针身后一条单色带子，默认关闭：woodfishTheme.mouseTrail.enabled', at: t - 0.3 },
   }));
 
@@ -372,6 +388,7 @@ function vscodeCut() {
       panes: [{ code: USER_CSS, typed: saved ? USER_CSS_SAVED_AT + revealed(t - 4.8 * BEAT, 8) : shown, cursor: true, large: true }],
       camera: { zoom: glide(t, 0, 1.5, 1, 1.45), focus: 'cursor', fallback: 'code', x: 400, lag: 0.45 },
       badge: true,
+      heading: { main: 'user.css 一行改样子', sub: '保存即生效，不用重新加载窗口', delay: 0 },
       caption: saved
         ? { main: '保存即生效', sub: '不用重新加载窗口；升级也不会覆盖你的 user.css', at: t - 4.6 * BEAT }
         : { main: '效果插件 + user.css', sub: '每个效果参数都是一个 CSS 变量，写进效果文件夹的 user.css', at: t - 0.3 },
@@ -385,6 +402,7 @@ function vscodeCut() {
     panes: [{ code: AGENTS_MD, compact: true }],
     camera: { zoom: 1.15, focus: 'code' },
     badge: true,
+    heading: { main: '让 AI 改效果', sub: '效果文件夹里有写给 AI 的 AGENTS.md', delay: 0 },
     caption: { main: '让 AI 改效果', sub: '效果文件夹里有写给 AI 的 AGENTS.md：对 Codex、Claude 说“把拖尾改成红色”就行', at: t - 0.3 },
   }));
 
@@ -395,6 +413,7 @@ function vscodeCut() {
     panes: [{ code: EFFECTS_FOLDER, compact: true }],
     camera: { zoom: 1.15, focus: 'code' },
     badge: true,
+    heading: { main: '和 Codex 共用', sub: '同一个效果文件夹，改一次两边都变', delay: 0 },
     caption: { main: '和 Codex 共用一个效果文件夹', sub: 'VS Code 和 Codex 桌面版读同一份效果，改一次两边都变', at: t - 0.3 },
   }));
 
@@ -403,6 +422,7 @@ function vscodeCut() {
     palette: 'dark',
     css: 'base',
     panes: [{ code: INSTALL_VSCODE, typed: revealed(t - 0.3, 18), cursor: true, large: true, centered: true }],
+    heading: { main: '安装', sub: '扩展商店 / Open VSX 搜 Woodfish Theme', delay: 0 },
     caption: { main: 'Woodfish Theme 8.0', sub: 'VS Code 扩展商店 / Open VSX 搜 Woodfish Theme', at: t - 0.3 },
   }));
 
