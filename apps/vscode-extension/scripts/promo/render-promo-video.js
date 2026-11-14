@@ -366,11 +366,12 @@ async function renderFrame(stages, state) {
   return { stage, clip };
 }
 
-async function capture({ stage, clip }, format) {
+/** The frame as an image `width` pixels wide (1920 for the video). */
+async function capture({ stage, clip }, format, width = WIDTH) {
   const shot = await stage.session.send('Page.captureScreenshot', {
     format,
     quality: format === 'jpeg' ? 94 : undefined,
-    clip: { ...clip, scale: WIDTH / (clip.width * PIXEL_RATIO) },
+    clip: { ...clip, scale: width / (clip.width * PIXEL_RATIO) },
   });
   return Buffer.from(shot.data, 'base64');
 }
@@ -411,21 +412,30 @@ function startEncoder(options) {
   };
 }
 
-/** Renders without capturing from `from` up to (not including) `to`. */
-async function warm(stages, scenes, from, to, fps) {
+/**
+ * Renders without capturing from `from` up to (not including) `to`. `adjust` may change
+ * each frame's state (the README renders use their own camera and no overlay).
+ */
+async function warm(stages, scenes, from, to, fps, adjust = (state) => state) {
   for (let frame = 0; from + frame / fps < to - 1e-6; frame += 1) {
-    await renderFrame(stages, frameState(scenes, from + frame / fps));
+    await renderFrame(stages, adjust(frameState(scenes, from + frame / fps)));
   }
 }
 
-async function main() {
-  const options = parseArgs(process.argv.slice(2));
+/** Opens both stages in a scratch folder; `close()` shuts Chrome and removes the folder. */
+async function openStages() {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'woodfish-promo-'));
-  const bundle = path.join(workDir, 'codex-overlay.js');
-  fs.writeFileSync(bundle, await buildOverlayBundle());
-  const stageUrl = (file) => pathToFileURL(path.join(__dirname, file)).href;
   const stages = {};
+  const close = async () => {
+    for (const stage of Object.values(stages)) {
+      await stage.browser.close();
+    }
+    fs.rmSync(workDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+  };
   try {
+    const bundle = path.join(workDir, 'codex-overlay.js');
+    fs.writeFileSync(bundle, await buildOverlayBundle());
+    const stageUrl = (file) => pathToFileURL(path.join(__dirname, file)).href;
     const overlayUrl = stageUrl('overlay-page.js');
     stages.vscode = await openStage('vscode', workDir, vscodePageHtml(stageUrl('stage.js'), overlayUrl));
     stages.codex = await openStage(
@@ -433,6 +443,17 @@ async function main() {
       workDir,
       codexPageHtml({ stageUrl: stageUrl('codex-stage.js'), bundleUrl: pathToFileURL(bundle).href, overlayUrl })
     );
+  } catch (error) {
+    await close();
+    throw error;
+  }
+  return { stages, close };
+}
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  const { stages, close } = await openStages();
+  try {
     const scenes = storyboard();
 
     if (options.stills) {
@@ -466,14 +487,15 @@ async function main() {
     await encoder.end();
     console.log(`✓ ${path.relative(REPO_ROOT, options.out)}`);
   } finally {
-    for (const stage of Object.values(stages)) {
-      await stage.browser.close();
-    }
-    fs.rmSync(workDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+    await close();
   }
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+module.exports = { PREROLL, capture, frameState, openStages, renderFrame, warm };
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
