@@ -98,8 +98,7 @@ BGM：Sleepy Fish - no more fires（Chillhop Music）
 | 0:04–0:15 | 10 套新主题，每拍一套，背景不变只换配色；标题走后左下角出主题名 | 主题 / 10 套热门主题 / 原样收录上游配色，代码渐变自动生成 |
 | 0:15–0:19 | 背景关半拍 → 《彩云》 | 背景 / 窗口背景 / 默认是《彩云》；运行「设置背景图片」换成你自己的图 |
 | 0:19–0:27 | 镜头跟着光标打一段 TypeScript，约 3 秒后停住出标题，标题走后接着打 | 编辑器 / 光标拖尾 · 打字粒子 / 拖尾颜色、长度，一行 CSS 就能改（→ 光标） |
-| 0:27–0:31 | 指针在代码上划过（画了一个指针，截图里没有系统指针） | 鼠标 / 鼠标拖尾 / 指针身后一条带子；默认关闭，设置里打开 |
-| 0:31–0:40 | user.css：先出标题（线指到空行的光标），再打 `--woodfish-caret-trail-color: #ff4d4f;` 并保存，接着打字，拖尾变红（页面像扩展一样轮询到新的 user.css） | 自定义 / 一行 CSS 改样子 / 每个参数都是一个 CSS 变量，写进 user.css，保存就生效（→ 光标） |
+| 0:27–0:40 | user.css：先出标题（线指到空行的光标），再打 `--woodfish-caret-trail-color: #ffd700;` 并保存，接着打字，拖尾变金色（页面像扩展一样每 1.5 秒轮询到新的 user.css，所以第二个标题在保存 1.7 秒后才进）；第二个标题不停打字，金色拖尾换行时扫过整行。原来这里有 4 秒鼠标拖尾镜头，8.1.1 删掉鼠标拖尾时让给了这个镜头 | 自定义 / 一行 CSS 改样子 / 每个参数都是一个 CSS 变量，写进 user.css，保存就生效（→ 光标）；保存即生效 / 金色拖尾 / 拖尾颜色一行 CSS 就能改，不用重新加载窗口 |
 | 0:40–0:44 | 编辑器里的 AGENTS.md 开头 | 交给 AI / 让 AI 改效果 / 效果文件夹里有写给 AI 的说明；对 Codex、Claude 说一句“把拖尾改成红色”就行 |
 | 0:44–0:48 | 效果文件夹的结构 | 共用 / 和 Codex 共用一套效果 / 同一个效果文件夹，改一次两边都变 |
 | 0:48–0:52 | 打出 `ext install zhongjun.woodfish-theme` | 安装 / Woodfish Theme 8.1 / VS Code 扩展商店 / Open VSX 搜 Woodfish Theme |
@@ -134,7 +133,7 @@ Playground：[`docs/playground/promo-titles.html`](playground/promo-titles.html)
 
 ### 音效
 
-全部用代码合成（`sfx.js`：种子固定的噪声和正弦加包络，没有素材），事件从和画面同一份逐帧状态里算出来，所以每一声都落在对应的帧上：打字和吐字每出一个字一声轻柔的键盘咔哒（音高、音量小幅随机，连打成细碎的连击），有粒子的地方加一点 sparkle（金色粒子更亮）；切镜和推拉开始时一声很轻的 whoosh；光环出现、选中切换一声 shimmer；背景打开、保存 user.css 一声柔和的 swell；菜单弹出一声 pop，换主题一声小 tick；片尾求 Star 一声 chime。分两轨：轻的（咔哒、sparkle、tick、pop）和重点（whoosh、shimmer、swell、chime），重点那一轨轻微压低 BGM（sidechaincompress）。混好后两遍 loudnorm 到 -14 LUFS，峰值目标 -2.5 dBTP：AAC 编码在合成的咔哒声上会把峰值抬高最多 2 dB，而且不单调（VS Code 版 -1.5 编码后是 +0.5，-3 是 -1.6），-2.5 编码后实测 Codex 版 -1.8、VS Code 版 -2.2 dBTP，都低于要求的 -1。
+全部用代码合成（`sfx.js`：种子固定的噪声和正弦加包络，没有素材），事件从和画面同一份逐帧状态里算出来，所以每一声都落在对应的帧上（打字和吐字的键盘声、粒子的风铃声 2026-11-14 去掉了，负责人觉得吵）：切镜和推拉开始时一声很轻的 whoosh；光环出现、选中切换一声 shimmer；背景打开、保存 user.css 一声柔和的 swell；菜单弹出一声 pop，换主题一声小 tick；片尾求 Star 一声 chime。分两轨：轻的（tick、pop）和重点（whoosh、shimmer、swell、chime），重点那一轨轻微压低 BGM（sidechaincompress）。混好后两遍 loudnorm 到 -14 LUFS，峰值目标 -2.5 dBTP：AAC 编码在合成的瞬态上会把峰值抬高最多 2 dB，而且不单调（VS Code 版 -1.5 编码后是 +0.5，-3 是 -1.6），-2.5 编码后实测 Codex 版 -1.8、VS Code 版 -2.2 dBTP，都低于要求的 -1。
 
 ### 置顶文案：Codex 版
 
@@ -160,7 +159,7 @@ BGM：Sleepy Fish - no more fires（Chillhop Music）
 欢迎共建~会看PR！
 要 fork 来提 PR 的话，推荐装上讣告 · AI 的回收站：https://obituary.woodfish.site
 
-Woodfish Theme 8.1 · VS Code 新功能：10 套热门主题（One Dark Pro、Tokyo Night、Catppuccin、Nord、GitHub、Night Owl、Ayu Mirage、Gruvbox）、窗口背景《彩云》、光标拖尾和鼠标拖尾、打字粒子。效果都做成了插件，在 user.css 里写一行变量就能改，也可以让 AI 照效果文件夹里的 AGENTS.md 帮你改；和 Codex 桌面版共用同一个效果文件夹。
+Woodfish Theme 8.1 · VS Code 新功能：10 套热门主题（One Dark Pro、Tokyo Night、Catppuccin、Nord、GitHub、Night Owl、Ayu Mirage、Gruvbox）、窗口背景《彩云》、光标拖尾、打字粒子。效果都做成了插件，在 user.css 里写一行变量就能改，也可以让 AI 照效果文件夹里的 AGENTS.md 帮你改；和 Codex 桌面版共用同一个效果文件夹。
 
 安装：VS Code / Cursor / Kiro / Trae 的扩展商店或 Open VSX 搜「Woodfish Theme」，或在 VS Code 里按 Ctrl+P 输入 ext install zhongjun.woodfish-theme
 

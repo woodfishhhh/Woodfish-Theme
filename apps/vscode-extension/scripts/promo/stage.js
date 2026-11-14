@@ -15,25 +15,6 @@
   const scale = window.__PROMO_SCALE ?? 1;
   const born = new WeakMap();
   let last = { palette: null, css: null, panes: [] };
-  // The OS pointer is not in screenshots; draw one where the mouse trail shot moves it.
-  const pointer = document.createElement('div');
-  pointer.hidden = true;
-  pointer.innerHTML =
-    '<svg width="14" height="21" viewBox="0 0 14 21"><path d="M1 1v16l4-4 3 7 3-1.4-3-6.6h5.5z" fill="#fff" stroke="#111" stroke-width="1.2" stroke-linejoin="round"/></svg>';
-  pointer.style.cssText = 'position:fixed;left:0;top:0;z-index:2147483500;pointer-events:none;';
-  document.body.append(pointer);
-
-  /** Moves the drawn pointer and tells the page, like a real mouse move. */
-  function applyPointer(spot) {
-    pointer.hidden = !spot;
-    if (spot) {
-      pointer.style.transform = `translate(${spot.x}px, ${spot.y}px)`;
-      document.documentElement.dispatchEvent(
-        new PointerEvent('pointermove', { clientX: spot.x, clientY: spot.y, bubbles: true, pointerType: 'mouse' })
-      );
-    }
-  }
-
   function paneSignature(pane) {
     return `${pane.woodfish}|${pane.label ?? ''}|${pane.className ?? ''}`;
   }
@@ -158,7 +139,6 @@
     applyPanes(state.panes);
     // The effects module to load, as if user.css had just been saved (the bootstrap polls it).
     window.__promoEffectsHash = state.effectsHash ?? window.__promoEffectsHash;
-    applyPointer(state.pointer);
     if (paletteChanged) {
       // The engine re-reads the editor colors (and with them the hand-tuned preset).
       globalThis.__woodfishOverlayController?.refresh();

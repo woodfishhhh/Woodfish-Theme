@@ -63,7 +63,7 @@ const PREROLL = 2;
 const CODE_FONT = "Consolas, 'Microsoft YaHei', monospace";
 const UI_FONT = "'Microsoft YaHei UI', 'Segoe UI', sans-serif";
 /** The VS Code effects Woodfish ships, on as in the owner's setup (they default to off). */
-const VSCODE_EFFECTS_ON = new Set(['caret-trail', 'typing-particles', 'mouse-trail']);
+const VSCODE_EFFECTS_ON = new Set(['caret-trail', 'typing-particles']);
 /** user.css as the effects module carries it; a shot switches by hash, like saving the file. */
 const VSCODE_USER_CSS = ['', ...USER_CSS_VARIANTS];
 const effectsHash = (userCss) => `promo-${Math.max(0, VSCODE_USER_CSS.indexOf(userCss ?? ''))}`;
@@ -356,7 +356,6 @@ function frameState(cut, scenes, t) {
             typed: Number.isFinite(pane.typed) ? pane.typed : null,
             suggest: pane.suggest ?? null,
           })),
-          pointer: shot.pointer ?? null,
           effectsHash: effectsHash(shot.userCss),
         };
   return {

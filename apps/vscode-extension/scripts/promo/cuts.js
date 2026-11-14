@@ -53,13 +53,14 @@ const INSTALL_VSCODE = [[T('ext install', 'keyword'), T(' ', 'fg'), T('zhongjun.
 const USER_CSS = [
   [T('/* user.css：一行一个变量，保存即生效 */', 'comment')],
   [T(':root', 'tag'), T(' {', 'punctuation')],
-  [T('  --woodfish-caret-trail-color', 'property'), T(': ', 'punctuation'), T('#ff4d4f', 'number'), T(';', 'punctuation')],
+  [T('  --woodfish-caret-trail-color', 'property'), T(': ', 'punctuation'), T('#ffd700', 'number'), T(';', 'punctuation')],
   [T('}', 'punctuation')],
-  [T('/* 拖尾已经是红色了 */', 'comment')],
+  [T('/* 拖尾已经是金色了 */', 'comment')],
+  [T('/* 长度、粗细、透明度也是一行 CSS */', 'comment')],
 ];
 /** Characters up to the end of the closing brace, when the file is saved. */
 const USER_CSS_SAVED_AT = USER_CSS.slice(0, 4).reduce((sum, line) => sum + line.reduce((s, [text]) => s + text.length, 0) + 1, 0);
-const RED_TRAIL_CSS = ':root {\n  --woodfish-caret-trail-color: #ff4d4f;\n}\n';
+const GOLD_TRAIL_CSS = ':root {\n  --woodfish-caret-trail-color: #ffd700;\n}\n';
 
 /** The opening lines of the effects folder's AGENTS.md (packages/effects/builtin/AGENTS.md). */
 const AGENTS_MD = [
@@ -77,8 +78,7 @@ const EFFECTS_FOLDER = [
   [T('%APPDATA%\\Woodfish\\effects', 'string')],
   [T('├─ ', 'comment'), T('caret-trail', 'function'), T('       effect.json  effect.js  README.md', 'fg')],
   [T('├─ ', 'comment'), T('typing-particles', 'function'), T('  effect.json  effect.js  README.md', 'fg')],
-  [T('├─ ', 'comment'), T('mouse-trail', 'function'), T('       effect.json  effect.js  README.md', 'fg')],
-  [T('├─ ', 'comment'), T('…', 'fg'), T('                 共 12 个效果，Codex 也读这里', 'comment')],
+  [T('├─ ', 'comment'), T('…', 'fg'), T('                 共 11 个效果，Codex 也读这里', 'comment')],
   [T('├─ ', 'comment'), T('user.css', 'type')],
   [T('└─ ', 'comment'), T('AGENTS.md', 'type')],
 ];
@@ -432,43 +432,38 @@ function vscodeCut() {
     },
   }));
 
-  // The mouse trail: the pointer wanders over the code.
-  add(bar(31) + 2 * BEAT, bar(32) + 2 * BEAT, 'vscode', (t) => ({
-    palette: 'dark',
-    css: 'base',
-    panes: [{ code: CODE.typescript }],
-    pointer: { x: 480 + 300 * Math.sin(t * 1.9), y: 200 + 90 * Math.sin(t * 3.1 + 0.6) },
-    camera: { zoom: 1, focus: 'window' },
-    badge: true,
-    heading: { eyebrow: '鼠标', main: '鼠标拖尾', sub: '指针身后一条带子；默认关闭，设置里打开', delay: 0.35, at: [6, 80] },
-  }));
-
-  // user.css: the title points at the empty line first, then the variable is typed and saved,
-  // and the next keystrokes trail in red.
+  // user.css, three bars: the title points at the empty line first, then the trail color is
+  // typed and saved and the next keystrokes trail in gold. The second title comes once the page
+  // has picked up the new user.css (it polls every 1.5 s, like the extension) and lets typing
+  // go on, so the gold trail sweeps to the next line under it.
   const CSS_TITLE = 0.3;
   const prefix = USER_CSS.slice(0, 2).reduce((sum, line) => sum + line.reduce((s, [text]) => s + text.length, 0) + 1, 0);
   const typingFrom = CSS_TITLE + TITLE_STILL;
   const savedAt = typingFrom + (USER_CSS_SAVED_AT - prefix) / 22 + 0.25;
-  add(bar(32) + 2 * BEAT, bar(34) + 2 * BEAT, 'vscode', (t) => {
+  const GOLD_TITLE = savedAt + 1.7;
+  add(bar(31) + 2 * BEAT, bar(34) + 2 * BEAT, 'vscode', (t) => {
     const saved = t >= savedAt;
     const typed = saved
-      ? USER_CSS_SAVED_AT + revealed(t - savedAt - 0.2, 8)
+      ? USER_CSS_SAVED_AT + revealed(t - savedAt - 0.2, 7)
       : Math.min(USER_CSS_SAVED_AT, prefix + revealed(t - typingFrom, 22));
     return {
       palette: 'dark',
       css: 'base',
-      userCss: saved ? RED_TRAIL_CSS : '',
+      userCss: saved ? GOLD_TRAIL_CSS : '',
       panes: [{ code: USER_CSS, typed, cursor: true, large: true }],
       camera: { zoom: glide(t, 0, 1.5, 1, 1.45), focus: 'cursor', fallback: 'code', x: 400, lag: 0.45 },
       badge: true,
-      heading: {
-        eyebrow: '自定义',
-        main: '一行 CSS 改样子',
-        sub: '每个参数都是一个 CSS 变量，写进 user.css，保存就生效',
-        delay: CSS_TITLE,
-        at: [16, 72],
-        target: { anchor: 'cursor', side: 'right', dx: 12 },
-      },
+      heading:
+        t < GOLD_TITLE
+          ? {
+              eyebrow: '自定义',
+              main: '一行 CSS 改样子',
+              sub: '每个参数都是一个 CSS 变量，写进 user.css，保存就生效',
+              delay: CSS_TITLE,
+              at: [16, 72],
+              target: { anchor: 'cursor', side: 'right', dx: 12 },
+            }
+          : { eyebrow: '保存即生效', main: '金色拖尾', sub: '拖尾颜色一行 CSS 就能改，不用重新加载窗口', delay: GOLD_TITLE, at: [16, 78] },
     };
   });
 
@@ -518,6 +513,6 @@ const CUTS = {
 };
 
 /** user.css contents a VS Code shot can switch to (the page carries one effects module each). */
-const USER_CSS_VARIANTS = [RED_TRAIL_CSS];
+const USER_CSS_VARIANTS = [GOLD_TRAIL_CSS];
 
 module.exports = { CUTS, USER_CSS_VARIANTS };

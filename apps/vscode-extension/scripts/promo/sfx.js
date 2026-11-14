@@ -120,7 +120,6 @@ function features(state) {
     background: state.host === 'codex' ? stage.background !== false : stage.css !== 'plain',
     palette: stage.palette,
     userCss: state.host === 'codex' ? stage.userCss ?? '' : stage.effectsHash ?? '',
-    pointer: Boolean(stage.pointer),
     end: Boolean(state.overlay.end),
   };
 }
