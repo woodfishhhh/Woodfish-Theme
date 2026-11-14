@@ -60,7 +60,8 @@ describe('glass layer', () => {
   });
 
   it('follows VS Code corner radius tokens unless a radius is configured', () => {
-    expect(buildGlassCss(glass())).not.toContain('border-radius');
+    // The menu's own glass layer inherits the host's radius.
+    expect(buildGlassCss(glass())).not.toMatch(/border-radius: \d/);
     expect(buildGlassCss(glass({ borderRadius: 10 }))).toContain('border-radius: 10px !important;');
   });
 
@@ -140,11 +141,20 @@ describe('glass layer', () => {
       '@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))'
     );
     expect(css).toContain('@media not (prefers-reduced-transparency: reduce)');
+    // Without VS Code's own menu glass, Woodfish paints the menu on a ::before layer …
     expect(css).toContain(
-      '.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-menu-container,'
+      '.monaco-workbench:not(.hc-black):not(.hc-light):not(.modern-ui-frosted-glass) .monaco-menu-container {'
     );
     expect(css).toContain(
-      '.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-menu-container::before'
+      '.monaco-workbench:not(.hc-black):not(.hc-light):not(.modern-ui-frosted-glass) .monaco-menu-container::before'
+    );
+    // … with it (VS Code 1.146+), VS Code's layer and tint stay and are only strengthened.
+    const nativeStart = css.indexOf(
+      '.monaco-workbench:not(.hc-black):not(.hc-light).modern-ui-frosted-glass .monaco-menu-container::before {'
+    );
+    expect(nativeStart).toBeGreaterThan(-1);
+    expect(css.slice(nativeStart, css.indexOf('\n}', nativeStart))).not.toContain(
+      'background-color'
     );
     expect(css).toContain('overflow: visible !important;');
     expect(css).toContain(

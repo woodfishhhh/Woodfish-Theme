@@ -13,8 +13,10 @@ import { GlassSettings, GlassTargetKey } from '../../types/features';
  *   its blur/saturation/grain and syncs `--modern-ui-glass-opacity`;
  * - when the native glass is off (or VS Code is older) Woodfish paints those
  *   surfaces itself;
- * - surfaces VS Code does not frost (menus, suggest, find, dropdowns, sticky
- *   scroll, …) are always handled by Woodfish.
+ * - surfaces VS Code does not frost (suggest, find, dropdowns, sticky
+ *   scroll, …) are always handled by Woodfish. Menus (VS Code 1.146 frosts them
+ *   too) are painted on a `::before` layer, never on the menu itself: a
+ *   backdrop filter there clips submenus (#32).
  *
  * Like the native implementation it is skipped in high-contrast themes, behind
  * `@supports (backdrop-filter)` and when the OS asks for reduced transparency.
@@ -40,7 +42,9 @@ const WORKBENCH = '.monaco-workbench:not(.hc-black):not(.hc-light)';
 export const GLASS_TARGETS: Record<GlassTargetKey, GlassTarget> = {
   menu: {
     colorVariable: '--vscode-menu-background',
-    selectors: ['.monaco-menu-container', '.dropdownMenu', '.contextMenu'],
+    selectors: ['.dropdownMenu', '.contextMenu'],
+    // VS Code 1.146+ frosts menus itself the same way (a `::before` under a transparent container).
+    nativeSelectors: ['.monaco-menu-container'],
     pseudoSurface: true,
     transparentChildren: ['.monaco-menu-container .monaco-scrollable-element'],
     rounded: ['.monaco-menu-container'],
@@ -217,6 +221,7 @@ function paintPseudoSurface(selectorList: string, colorVariable: string): string
     '  inset: 0 !important;',
     '  z-index: -1 !important;',
     '  pointer-events: none !important;',
+    '  border-radius: inherit !important;',
     `  background-color: var(${colorVariable}) !important;`,
     `  background-color: color-mix(in srgb, var(${colorVariable}) var(--woodfish-glass-opacity), transparent) !important;`,
     '  background-image: var(--woodfish-glass-noise) !important;',
@@ -228,19 +233,15 @@ function paintPseudoSurface(selectorList: string, colorVariable: string): string
 
 function buildTargetCss(target: GlassTarget, radius: number): string {
   const parts: string[] = [];
+  const paint = target.pseudoSurface ? paintPseudoSurface : paintRule;
   if (target.selectors.length > 0) {
-    const selectorList = scoped(target.selectors);
-    parts.push(
-      target.pseudoSurface
-        ? paintPseudoSurface(selectorList, target.colorVariable)
-        : paintRule(selectorList, target.colorVariable)
-    );
+    parts.push(paint(scoped(target.selectors), target.colorVariable));
   }
 
   const native = target.nativeSelectors ?? [];
   if (native.length > 0) {
     // VS Code's own frosted glass is off or unavailable: paint these surfaces too.
-    parts.push(paintRule(scoped(native, `:not(.${NATIVE_GLASS_CLASS})`), target.colorVariable));
+    parts.push(paint(scoped(native, `:not(.${NATIVE_GLASS_CLASS})`), target.colorVariable));
     // VS Code's own frosted glass is on: keep its layer, only strengthen it.
     parts.push(
       [
