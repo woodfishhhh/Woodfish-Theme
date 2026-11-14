@@ -387,6 +387,22 @@ async function capture({ stage, clip }, format, width = WIDTH) {
   return Buffer.from(shot.data, 'base64');
 }
 
+/**
+ * Range and matrix conversion appended to the scale filter (JPEG → broadcast H.264); the
+ * frames carry the BT.709 tags too, or ffmpeg writes primaries and transfer as unknown.
+ */
+const STANDARD_VIDEO_FILTER =
+  'in_range=pc:out_range=tv:in_color_matrix=bt601:out_color_matrix=bt709,format=yuv420p,' +
+  'setparams=range=tv:colorspace=bt709:color_primaries=bt709:color_trc=bt709';
+
+/** H.264 settings every player decodes in hardware: High 4.2, a keyframe every 2 s, BT.709 tags. */
+function standardVideoArgs(fps) {
+  return [
+    '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.2', '-g', String(fps * 2),
+    '-color_range', 'tv', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709',
+  ];
+}
+
 function startEncoder(options) {
   fs.mkdirSync(path.dirname(options.out), { recursive: true });
   const fadeStart = (options.to - options.from - FADE_OUT).toFixed(2);
@@ -397,9 +413,11 @@ function startEncoder(options) {
       '-f', 'image2pipe', '-framerate', String(options.fps), '-c:v', 'mjpeg', '-i', '-',
       '-ss', String(options.from), '-i', options.bgm,
       '-map', '0:v', '-map', '1:a',
-      // A clip can round a pixel off 1920×1080; every frame goes out at the exact size.
-      '-vf', `scale=${WIDTH}:${HEIGHT}:flags=lanczos`,
-      '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p',
+      // Every frame goes out at exactly 1920×1080 (a clip can round a pixel off). The JPEG
+      // frames are full-range BT.601; players hardware-decode limited-range BT.709 H.264 at
+      // level 4.2, and stutter on the full-range level 5.0 stream an mjpeg pipe gives by default.
+      '-vf', `scale=${WIDTH}:${HEIGHT}:flags=lanczos:${STANDARD_VIDEO_FILTER}`,
+      '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', ...standardVideoArgs(options.fps),
       '-c:a', 'aac', '-b:a', '192k',
       '-af', `afade=t=in:st=0:d=0.3,afade=t=out:st=${fadeStart}:d=${FADE_OUT}`,
       '-shortest', '-movflags', '+faststart',

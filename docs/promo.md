@@ -16,6 +16,7 @@ node apps/vscode-extension/scripts/promo/render-promo-video.js --still 12,21.5  
 | Codex 镜头（`codex-page.js`、`codex-stage.js`） | 页面按 Codex 的结构搭（`data-app-action-sidebar-thread-row`、`data-markdown-text-style="assistant-message"`、`data-codex-composer-root` 等适配器认的钩子，见 `docs/hosts/codex.md`），运行的是 `@woodfish/adapter-codex/renderer` 的 `startCodexOverlay` 和 `packages/effects/builtin` 里的全部效果插件（默认参数）。回复按字增长、侧栏挂运行中的转圈、输入框用 `execCommand` 打字（真的 input 事件），所以吐字光标、拖尾、淡入、粒子、光环、毛玻璃都是产品自己的代码画的。只有宿主 DOM 是替身 |
 | 时间（`clock.js`） | 页面里的 `performance.now`、`Date.now`、计时器、`requestAnimationFrame` 和 `Math.random` 都换成虚拟时钟，每帧推进一次；CSS 动画按帧时间定住。同一条命令渲染两次结果一样 |
 | 帧率 | 60 fps。光标拖尾照 VS Code Animations 每帧追一次光标，30 fps 会比 60 Hz 屏幕上长一倍 |
+| 编码 | H.264 High 4.2、限定范围（tv）、BT.709、每 2 秒一个关键帧。截图是全范围 BT.601 的 JPEG，直接从 mjpeg 管道编码会得到全范围、level 5.0 的流，很多 Windows 播放器不走硬件解码、播放发卡（7.3 第一版就是这样）；`startEncoder` 在 scale 里转范围和矩阵并用 setparams 打上 BT.709 标记。README 的 WebP 动图经同一管道到 libwebp，颜色偏差小于 1 级，不受影响 |
 | 镜头 | 每个页面窗口大小不变（Codex 1280×720、VS Code 960×540，3 倍像素密度），镜头是每帧截图用的裁切框：Chrome 按裁切的倍率重新栅格化，推近后文字照样锐利。页面每帧报告锚点（吐字光标、输入框光标、选中会话、菜单、回复、代码块、VS Code 光标），镜头按分镜给的倍率（按拍点缓动）和锚点算出裁切框，中心带 0.2–0.45 秒的缓动跟随，切镜头时直接对上 |
 | 背景 | 每个镜头都铺《彩云》，用产品默认参数（图片 15%、cover 居中，面板 35% 主题色、模糊 10px、饱和度 150%）：Codex 镜头是 Codex 适配器自己的背景，VS Code 镜头是扩展的窗口背景 CSS（`buildRuntimeCss` 打开 `background`，和负责人 VS Code 里一样），主题切换时只换配色 |
 | 字幕、角标、片尾 | `overlay-page.js` 按 1920×1080 排版，每帧贴在裁切框上再按同一倍率缩回，所以推拉时字幕不跟着动 |
