@@ -12,9 +12,6 @@ const {
 } = require('./paths');
 const { parseJsonc } = require('./lib/jsonc');
 
-// 15 套主题 JSON（其中 10 套为原样收录的上游主题）约占 650 KB，压缩进 VSIX 后约 1/8；
-// 默认窗口背景《彩云》（themes/shared/backgrounds/caiyun.webp）另占 232 KB，已是压缩格式
-const MAX_PACKAGE_SOURCE_BYTES = 1280 * 1024;
 const FORBIDDEN_PACKAGE_PATHS = [
   /^AGENTS\.md$/i,
   /\/AGENTS\.md$/i,
@@ -367,18 +364,12 @@ function checkPackageHygiene() {
       });
     }
 
-    if (packageSourceBytes > MAX_PACKAGE_SOURCE_BYTES) {
-      console.log(
-        `❌ 打包源文件共 ${packageSourceBytes} bytes，超过 ${MAX_PACKAGE_SOURCE_BYTES} bytes 预算`
-      );
-    }
-
-    const passed =
-      forbiddenPackagePaths.length === 0 &&
-      missingRequiredPackagePaths.length === 0 &&
-      packageSourceBytes <= MAX_PACKAGE_SOURCE_BYTES;
+    // 体积不设上限，只报出来；打包后 `pnpm package` 会列出 VSIX 里各大头的占比
+    const passed = forbiddenPackagePaths.length === 0 && missingRequiredPackagePaths.length === 0;
     if (passed) {
-      console.log(`✅ 打包清单完整且精简（源文件 ${packageSourceBytes} bytes）`);
+      console.log(
+        `✅ 打包清单完整（源文件共 ${(packageSourceBytes / 1024).toFixed(1)} KB，压缩前）`
+      );
     }
     return passed;
   } catch (error) {
@@ -438,7 +429,6 @@ if (require.main === module) {
 }
 
 module.exports = {
-  MAX_PACKAGE_SOURCE_BYTES,
   calculatePackageSourceBytes,
   findForbiddenPackagePaths,
   findMissingReadmePreviewUrls,

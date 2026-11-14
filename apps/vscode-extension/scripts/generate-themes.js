@@ -899,7 +899,7 @@ function buildNotice(p) {
 function render(p) {
   const directory = path.join(ROOT, 'themes', p.slug);
   return [
-    // Compact output: the generator is the source of truth and the VSIX has a size budget.
+    // Compact output: the generator is the source of truth, and it keeps the VSIX small.
     [path.join(directory, `${p.label}.json`), `${JSON.stringify(buildTheme(p))}\n`],
     [
       path.join(directory, 'theme.meta.json'),

@@ -149,7 +149,7 @@ describe('runtime payload builder', () => {
       effects: { enabled: false },
     });
 
-    expect(enabled.bootstrap).toContain('MAX_TOKENS_PER_FRAME = 600');
+    expect(enabled.bootstrap).toContain('MAX_TOKENS_PER_FRAME=600');
     expect(buildRuntimeBootstrap(cursorOnlySettings, realCursorAssets)).toBe('');
     expect(buildRuntimePayload(cursorOnlySettings, realCursorAssets).css).toContain('div.cursor');
   });

@@ -24,7 +24,8 @@ describe('browser runtime build', () => {
       const output = fs.readFileSync(path.join(extensionRoot, entry.output), 'utf-8');
       expect(output).not.toMatch(/\brequire\(|^\s*import\s|^\s*export\s/m);
       expect(output).not.toContain('@woodfish/theme-core');
-      expect(output).toContain('packages/theme-core/src/gradient/tokenGradient.ts');
+      // The output is minified without renaming, so theme-core functions keep their names.
+      expect(output).toContain('function deriveTokenGradient(');
     }
   );
 });

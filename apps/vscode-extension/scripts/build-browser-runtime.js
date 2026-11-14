@@ -43,6 +43,9 @@ async function buildEntry(entry) {
       js: `/* Generated from ${entry.source} by scripts/build-browser-runtime.js. Do not edit. */`,
     },
     charset: 'utf8',
+    // Smaller VSIX; identifiers keep their names so console errors and tests stay readable.
+    minifyWhitespace: true,
+    minifySyntax: true,
     legalComments: 'none',
     logLevel: 'warning',
   });

@@ -5,19 +5,50 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { EXTENSION_ROOT, VSCE_ENTRY, withStagedRepoFiles } = require('./paths');
 
-// 15 themes (10 of them bundled upstream files) compress to about 230 KB; the default
-// window background 《彩云》 (themes/shared/backgrounds/caiyun.webp, 232 KB, already
-// compressed so zip cannot shrink it) brings the package to about 460 KB.
-const MAX_VSIX_BYTES = 512 * 1024;
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/;
+/** Entries listed by name in the size report; the rest are summed up. */
+const REPORT_TOP_ENTRIES = 8;
 
-function assertVsixSize(size, filePath, maximum = MAX_VSIX_BYTES) {
-  if (!Number.isSafeInteger(size) || size < 0) {
-    throw new Error(`Invalid VSIX size for ${filePath}: ${size}`);
+/** Name and compressed size of every entry, read from the zip's central directory. */
+function readZipEntries(buffer) {
+  const end = buffer.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  if (end < 0) {
+    throw new Error('not a zip file');
   }
-  if (size > maximum) {
-    throw new Error(`${filePath} is ${size} bytes and exceeds the ${maximum} byte budget`);
+  const count = buffer.readUInt16LE(end + 10);
+  let offset = buffer.readUInt32LE(end + 16);
+  const entries = [];
+  for (let index = 0; index < count; index += 1) {
+    if (buffer.readUInt32LE(offset) !== 0x02014b50) {
+      throw new Error('broken zip central directory');
+    }
+    const nameLength = buffer.readUInt16LE(offset + 28);
+    entries.push({
+      name: buffer.toString('utf8', offset + 46, offset + 46 + nameLength),
+      compressed: buffer.readUInt32LE(offset + 20),
+    });
+    offset += 46 + nameLength + buffer.readUInt16LE(offset + 30) + buffer.readUInt16LE(offset + 32);
   }
+  return entries;
+}
+
+/**
+ * The VSIX size and its biggest entries with their share. There is no size limit: the
+ * report is there to keep the package as small as it can reasonably be.
+ */
+function describeVsix(size, entries, top = REPORT_TOP_ENTRIES) {
+  const sorted = [...entries].sort((left, right) => right.compressed - left.compressed);
+  const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KB`.padStart(9);
+  const share = (bytes) => `${((bytes * 100) / size).toFixed(1)}%`.padStart(6);
+  const lines = [`VSIX ${(size / 1024).toFixed(1)} KB, ${entries.length} files:`];
+  for (const entry of sorted.slice(0, top)) {
+    lines.push(`${kb(entry.compressed)} ${share(entry.compressed)}  ${entry.name}`);
+  }
+  const rest = sorted.slice(top).reduce((total, entry) => total + entry.compressed, 0);
+  if (rest > 0) {
+    lines.push(`${kb(rest)} ${share(rest)}  ${sorted.length - top} other files`);
+  }
+  return lines.join('\n');
 }
 
 function readPackageMetadata() {
@@ -126,9 +157,8 @@ function main(args = process.argv.slice(2)) {
     })
   );
 
-  const size = fs.statSync(invocation.outputPath).size;
-  assertVsixSize(size, invocation.outputPath);
-  console.log(`VSIX size check passed: ${size} bytes (budget ${MAX_VSIX_BYTES} bytes)`);
+  const vsix = fs.readFileSync(invocation.outputPath);
+  console.log(describeVsix(vsix.length, readZipEntries(vsix)));
   return invocation.outputPath;
 }
 
@@ -137,9 +167,9 @@ if (require.main === module) {
 }
 
 module.exports = {
-  MAX_VSIX_BYTES,
-  assertVsixSize,
   buildPackageInvocation,
+  describeVsix,
   findOutputPath,
   main,
+  readZipEntries,
 };

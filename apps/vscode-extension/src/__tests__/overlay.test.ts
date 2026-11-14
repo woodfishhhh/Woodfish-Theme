@@ -191,10 +191,10 @@ describe('universal token overlay', () => {
 
   it('ships a bounded, batched bootstrap compatible with the minimum VS Code engine', () => {
     expect(() => new vm.Script(bootstrap)).not.toThrow();
-    expect(bootstrap).toContain('MAX_TOKENS_PER_FRAME = 600');
+    expect(bootstrap).toContain('MAX_TOKENS_PER_FRAME=600');
     expect(bootstrap).toContain('requestAnimationFrame(flushTokens)');
     expect(bootstrap).toContain('new MutationObserver');
-    expect(bootstrap).toMatch(/const tokenState = (?:\/\* @__PURE__ \*\/ )?new WeakMap\(\)/);
+    expect(bootstrap).toMatch(/\btokenState=new WeakMap\b/);
     expect(bootstrap).toContain('function pruneViewLines()');
     expect(bootstrap).not.toMatch(/mtk\d+/);
     expect(bootstrap).not.toContain('oklch(from');

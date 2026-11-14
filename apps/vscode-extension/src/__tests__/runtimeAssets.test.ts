@@ -18,9 +18,9 @@ describe('runtime overlay assets', () => {
     expect(assets.activityBar).toContain('--woodfish-activity-badge-gradient');
     expect(assets.tabBar).toContain('.tabs-container > .tab.active::after');
     const { version } = require(path.join(extensionRoot, 'package.json')) as { version: string };
-    expect(assets.overlayBootstrap).toContain(`VERSION = ${JSON.stringify(version)}`);
+    expect(assets.overlayBootstrap).toContain(`VERSION=${JSON.stringify(version)}`);
     expect(assets.nativeWindowHook).toContain('WOODFISH_NATIVE_WINDOW - managed file');
-    expect(assets.overlayBootstrap).toContain('MAX_TOKENS_PER_FRAME = 600');
+    expect(assets.overlayBootstrap).toContain('MAX_TOKENS_PER_FRAME=600');
     expect(assets.overlayBootstrap).toContain('requestAnimationFrame(flushTokens)');
     expect(assets.cursorDefaults).toEqual({
       animationDuration: 12,
