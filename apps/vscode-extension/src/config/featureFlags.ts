@@ -71,6 +71,7 @@ export function readRuntimeSettings(): ThemeRuntimeSettings {
         DEFAULT_RUNTIME_SETTINGS.overlay.neutralChroma
       ),
       angle: readSetting(OVERLAY_SETTING_KEYS.angle, DEFAULT_RUNTIME_SETTINGS.overlay.angle),
+      style: readSetting(OVERLAY_SETTING_KEYS.style, DEFAULT_RUNTIME_SETTINGS.overlay.style),
     },
     syntaxGradient: {
       enabled: readSetting(

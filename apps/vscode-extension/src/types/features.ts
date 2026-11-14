@@ -21,6 +21,7 @@ import {
   normalizeTextGradient,
   sanitizeBoolean,
   sanitizeCustomCssRules,
+  sanitizeEnum,
 } from '@woodfish/theme-core';
 
 export { GLASS_MODES, NATIVE_MAC_VIBRANCY, NATIVE_WINDOWS_MATERIALS };
@@ -42,8 +43,13 @@ export type RuntimeStatusSnapshot = {
   hasPayload: boolean;
 };
 
+/** `classic` is the 5.x look (#31): bold code and a wide halo in the text's own color. */
+export const OVERLAY_STYLES = ['modern', 'classic'] as const;
+export type OverlayStyle = (typeof OVERLAY_STYLES)[number];
+
 export type OverlaySettings = {
   enabled: boolean;
+  style: OverlayStyle;
   hueShift: number;
   lightnessDelta: number;
   neutralChroma: number;
@@ -180,6 +186,7 @@ export const RUNTIME_SETTING_LIMITS = EFFECT_INPUT_LIMITS;
 export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
   overlay: {
     enabled: true,
+    style: 'modern',
     ...DEFAULT_TEXT_GRADIENT,
   },
   syntaxGradient: {
@@ -252,6 +259,11 @@ export function normalizeRuntimeSettings(
   return {
     overlay: {
       enabled: sanitizeBoolean(partial.overlay?.enabled, DEFAULT_RUNTIME_SETTINGS.overlay.enabled),
+      style: sanitizeEnum(
+        partial.overlay?.style,
+        OVERLAY_STYLES,
+        DEFAULT_RUNTIME_SETTINGS.overlay.style
+      ),
       ...normalizeTextGradient(partial.overlay),
     },
     syntaxGradient: {

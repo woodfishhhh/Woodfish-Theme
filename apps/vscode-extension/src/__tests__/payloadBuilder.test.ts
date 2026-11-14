@@ -121,6 +121,7 @@ describe('runtime payload builder', () => {
       lightnessDelta: 0.12,
       neutralChroma: 0.075,
       angle: 45,
+      style: 'modern',
     });
     expect(DEFAULT_RUNTIME_SETTINGS.syntaxGradient.enabled).toBe(true);
     expect(

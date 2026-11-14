@@ -81,7 +81,11 @@ describe('settings schema follows the shared effect parameters', () => {
   });
 
   it('builds the extension defaults from the shared core without changing them', () => {
-    expect(DEFAULT_RUNTIME_SETTINGS.overlay).toEqual({ enabled: true, ...DEFAULT_TEXT_GRADIENT });
+    expect(DEFAULT_RUNTIME_SETTINGS.overlay).toEqual({
+      enabled: true,
+      style: 'modern',
+      ...DEFAULT_TEXT_GRADIENT,
+    });
     expect(DEFAULT_RUNTIME_SETTINGS.cursor.gradientStops).toEqual([
       ...DEFAULT_CURSOR.gradientStops,
     ]);

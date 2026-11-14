@@ -79,7 +79,7 @@ export function registerShowFeatureMenuCommand(deps: CommandDeps): vscode.Dispos
         separator('预设'),
         {
           label: '$(symbol-misc) 选择效果预设…',
-          description: '默认、柔和护眼、霓虹全开、毛玻璃、专注、性能优先、我的预设',
+          description: '默认、柔和护眼、霓虹全开、怀旧（5.x）、毛玻璃、专注、性能优先、我的预设',
           command: COMMANDS.applyPreset,
         },
         {

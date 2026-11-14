@@ -28,6 +28,7 @@ export const PRESET_KEYS: string[] = [
   OVERLAY_SETTING_KEYS.lightnessDelta,
   OVERLAY_SETTING_KEYS.neutralChroma,
   OVERLAY_SETTING_KEYS.angle,
+  OVERLAY_SETTING_KEYS.style,
   FEATURE_SETTING_KEYS.syntaxGradient,
   FEATURE_SETTING_KEYS.glow,
   GLOW_SETTING_KEYS.intensity,
@@ -77,15 +78,26 @@ export const BUILT_IN_PRESETS: BuiltInPreset[] = [
   {
     id: 'neon',
     label: '霓虹全开',
-    description: '更强的渐变、发光和更快的光标，加上毛玻璃与 Reveal 光效',
+    description: '加粗 + 1.6 倍的大光晕、更快的光标，加上毛玻璃与 Reveal 光效',
     values: {
       ...resetAll(),
+      // The wide 5.x halo: the soft glow stayed subtle even at 1.6x (#31).
+      [OVERLAY_SETTING_KEYS.style]: 'classic',
       [OVERLAY_SETTING_KEYS.hueShift]: 36,
       [OVERLAY_SETTING_KEYS.lightnessDelta]: 0.09,
       [GLOW_SETTING_KEYS.intensity]: 1.6,
       [CURSOR_SETTING_KEYS.animationDuration]: 5,
       [FEATURE_SETTING_KEYS.glass]: true,
       [GLASS_SETTING_KEYS.reveal]: true,
+    },
+  },
+  {
+    id: 'classic',
+    label: '怀旧（5.x）',
+    description: '回到 5.x 的样子：代码加粗、和文字同色的大光晕，渐变和彩虹光标照旧',
+    values: {
+      ...resetAll(),
+      [OVERLAY_SETTING_KEYS.style]: 'classic',
     },
   },
   {

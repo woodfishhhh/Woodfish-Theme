@@ -111,6 +111,31 @@ describe('universal token overlay', () => {
     expect(css).not.toContain('oklch(');
   });
 
+  it('brings back the 5.x look in the classic style: bold text and a wide halo (#31)', () => {
+    const modern = buildUniversalOverlayCss(normalizeRuntimeSettings({}));
+    expect(modern).not.toContain('font-weight');
+    expect(modern).toContain('[data-woodfish-punctuation="true"]');
+
+    const classic = buildUniversalOverlayCss(
+      normalizeRuntimeSettings({ overlay: { style: 'classic' }, glow: { intensity: 1.5 } })
+    );
+    expect(classic).toContain('font-weight: 700 !important;');
+    expect(classic).toContain('text-shadow: 0 0 30px currentColor !important;');
+    // Punctuation glows like everything else, as in 5.x …
+    expect(classic).not.toContain('[data-woodfish-punctuation="true"]');
+    // … and light themes keep their bright halo instead of a dark currentColor smudge.
+    expect(classic).toContain(`.monaco-workbench.vs [data-woodfish-overlay-token="true"]`);
+
+    const glowOff = buildUniversalOverlayCss(
+      normalizeRuntimeSettings({ overlay: { style: 'classic' }, glow: { enabled: false } })
+    );
+    expect(glowOff).toContain('font-weight: 700 !important;');
+    expect(glowOff).not.toContain('text-shadow');
+    expect(normalizeRuntimeSettings({ overlay: { style: 'retro' as never } }).overlay.style).toBe(
+      'modern'
+    );
+  });
+
   it('turns the complete overlay CSS off through its persistent master setting', () => {
     const settings = normalizeRuntimeSettings({
       overlay: { enabled: false },
@@ -207,6 +232,7 @@ describe('universal token overlay', () => {
       lightnessDelta: 0.12,
       neutralChroma: 0.075,
       angle: 45,
+      style: 'modern',
     });
   });
 

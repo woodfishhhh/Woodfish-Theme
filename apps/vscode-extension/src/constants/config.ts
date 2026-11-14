@@ -14,6 +14,7 @@ export const OVERLAY_SETTING_KEYS = {
   lightnessDelta: 'overlay.lightnessDelta',
   neutralChroma: 'overlay.neutralChroma',
   angle: 'overlay.angle',
+  style: 'overlay.style',
 } as const;
 
 export const SYNTAX_SETTING_KEYS = {

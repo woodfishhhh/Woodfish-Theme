@@ -313,6 +313,25 @@
         "title": "彩色字体",
         "order": 1,
         "properties": {
+          "woodfishTheme.overlay.style": {
+            "type": "string",
+            "default": "modern",
+            "enum": [
+              "modern",
+              "classic"
+            ],
+            "enumItemLabels": [
+              "现代",
+              "怀旧（5.x）"
+            ],
+            "enumDescriptions": [
+              "现在的样子：渐变 + 贴着文字的柔和发光",
+              "回到 5.x 的样子：代码加粗，发光是一圈和文字同色的大光晕"
+            ],
+            "scope": "application",
+            "markdownDescription": "代码效果的风格。`classic`（怀旧）是 5.x 的样子：文字加粗，发光是和文字同色的大光晕，强弱仍由 `#woodfishTheme.glow.intensity#` 调。效果预设里的「怀旧（5.x）」就是它。默认 `modern`。",
+            "order": -1
+          },
           "woodfishTheme.overlay.hueShift": {
             "type": "number",
             "default": 32,
@@ -1078,7 +1097,7 @@
           {
             "id": "preset",
             "title": "挑一套效果预设",
-            "description": "柔和护眼、霓虹全开、毛玻璃、专注、性能优先，一键切换。\n[选择效果预设](command:woodfish-theme.applyPreset)",
+            "description": "柔和护眼、霓虹全开、怀旧（5.x）、毛玻璃、专注、性能优先，一键切换。\n[选择效果预设](command:woodfish-theme.applyPreset)",
             "media": {
               "markdown": "docs/walkthrough/preset.md"
             },

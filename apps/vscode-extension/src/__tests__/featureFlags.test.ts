@@ -54,6 +54,7 @@ describe('featureFlags config access', () => {
       lightnessDelta: 0.12,
       neutralChroma: 0.075,
       angle: 45,
+      style: 'modern',
     });
     expect(settings.syntaxGradient.enabled).toBe(true);
     expect((settings.syntaxGradient as Record<string, unknown>).preset).toBeUndefined();

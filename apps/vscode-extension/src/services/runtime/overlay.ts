@@ -5,10 +5,16 @@ import {
   buildLightGlowDeclarations,
   buildPunctuationGlowDeclarations,
   formatCssNumber,
+  scaleGlowRadius,
 } from '@woodfish/renderer-runtime';
 import { ThemeRuntimeSettings, normalizeRuntimeSettings } from '../../types/features';
 
 const OVERLAY_TOKEN_SELECTOR = PAINTED_TOKEN_SELECTOR;
+
+/** The 5.x glow (#31): one wide halo in the token's own color, punctuation included. */
+function buildClassicGlowDeclarations(intensity: number): string[] {
+  return [`  text-shadow: 0 0 ${scaleGlowRadius(20, intensity)} currentColor !important;`];
+}
 
 function buildOverlayVariables(settings: ThemeRuntimeSettings): string {
   return [
@@ -28,19 +34,27 @@ export function buildUniversalOverlayCss(settings: ThemeRuntimeSettings): string
     return '';
   }
 
+  const classic = safeSettings.overlay.style === 'classic';
   const declarations: string[] = [];
   if (safeSettings.syntaxGradient.enabled) {
     declarations.push(...buildGradientDeclarations());
   }
+  if (classic && (safeSettings.syntaxGradient.enabled || safeSettings.glow.enabled)) {
+    declarations.push('  font-weight: 700 !important;');
+  }
   if (safeSettings.glow.enabled) {
-    declarations.push(...buildGlowDeclarations(safeSettings.glow.intensity));
+    declarations.push(
+      ...(classic ? buildClassicGlowDeclarations : buildGlowDeclarations)(
+        safeSettings.glow.intensity
+      )
+    );
   }
 
   const parts = [buildOverlayVariables(safeSettings)];
   if (declarations.length > 0) {
     parts.push([`${OVERLAY_TOKEN_SELECTOR} {`, ...declarations, '}'].join('\n'));
   }
-  if (safeSettings.glow.enabled) {
+  if (safeSettings.glow.enabled && !classic) {
     parts.push(
       [
         `${OVERLAY_TOKEN_SELECTOR}[data-woodfish-punctuation="true"] {`,
@@ -52,7 +66,7 @@ export function buildUniversalOverlayCss(settings: ThemeRuntimeSettings): string
 
   if (safeSettings.glow.enabled) {
     // Light themes: the glow is a bright tint of the text hue there (theme-core), drawn as
-    // a tight edge and a soft halo instead of a dark smudge.
+    // a tight edge and a soft halo instead of a dark smudge, in the classic style too.
     parts.push(
       [
         `.monaco-workbench.vs ${OVERLAY_TOKEN_SELECTOR},`,
