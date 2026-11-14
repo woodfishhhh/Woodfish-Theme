@@ -1,17 +1,15 @@
 'use strict';
 /*
  * Sound effects for the promo, synthesized in code (seeded noise and sines with envelopes,
- * no samples) from the very frame states the picture is rendered from, so every click and
- * whoosh lands on its frame:
+ * no samples) from the very frame states the picture is rendered from, so every sound lands on
+ * its frame:
  *
- * - characters typed or streamed → soft key clicks (pitch and level vary a little), and a
- *   sparkle where particles fly (brighter for the gold ones);
  * - a cut or the start of a camera push → a light whoosh;
  * - the thread ring appearing or the selection moving → a shimmer; the background coming on
  *   or a user.css save → a soft swell; a menu opening → a pop; a theme switch → a tick;
  * - the end card → a chime.
  *
- * Two mono stems: `light` (clicks, sparkles, ticks) and `accent` (the rest). The accent stem
+ * Two mono stems: `light` (pops and ticks) and `accent` (the rest). The accent stem
  * ducks the BGM a little; everything is loudness-normalized to -14 LUFS, -1 dBTP in two passes.
  */
 
@@ -46,31 +44,6 @@ function mixInto(buffer, at, seconds, sample) {
 }
 
 const SOUNDS = {
-  /** A soft key: a filtered noise tick over a small low thock. */
-  click(buffer, at, rng, level) {
-    const gain = level * (0.65 + rng() * 0.35);
-    const thock = 170 + rng() * 90;
-    let previous = 0;
-    mixInto(buffer, at, 0.04, (t) => {
-      const noise = rng() * 2 - 1;
-      const bright = noise - previous * 0.6;
-      previous = noise;
-      return gain * (bright * 0.5 * Math.exp(-t / 0.003) + 0.35 * Math.sin(2 * Math.PI * thock * t) * Math.exp(-t / 0.012));
-    });
-  },
-  /** A few tiny high blips. */
-  sparkle(buffer, at, rng, level, gold) {
-    const count = gold ? 6 : 4;
-    for (let k = 0; k < count; k += 1) {
-      const offset = rng() * 0.16;
-      const frequency = gold ? 2600 + rng() * 2400 : 3800 + rng() * 3200;
-      const gain = level * (0.5 + rng() * 0.5);
-      mixInto(buffer, at + offset, 0.09, (t) => {
-        const tone = Math.sin(2 * Math.PI * frequency * t) + (gold ? 0.4 * Math.sin(2 * Math.PI * frequency * 2.01 * t) : 0);
-        return gain * tone * Math.exp(-t / (gold ? 0.035 : 0.022));
-      });
-    }
-  },
   /** Noise through a sweeping low-pass, swelling and fading. */
   whoosh(buffer, at, rng, level) {
     const duration = 0.5;
@@ -137,21 +110,16 @@ const SOUNDS = {
 /** What a frame shows that sounds can hang on, for comparing with the previous frame. */
 function features(state) {
   const stage = state.stage;
-  const lastReply = (stage.messages ?? []).filter((message) => message.role === 'assistant').at(-1);
   return {
     shot: state.shot,
     host: state.host,
     zoom: state.camera.zoom,
     focus: state.camera.focus,
-    typed: state.host === 'vscode' ? (stage.panes ?? []).reduce((sum, pane) => sum + (pane.cursor && pane.typed !== null ? pane.typed : 0), 0) : (stage.composer?.text ?? '').length,
-    streamed: lastReply && Number.isFinite(lastReply.shown) ? lastReply.shown : null,
-    replyId: lastReply?.id ?? null,
     active: stage.threads?.active ?? null,
     slash: stage.slash ?? null,
     background: state.host === 'codex' ? stage.background !== false : stage.css !== 'plain',
     palette: stage.palette,
     userCss: state.host === 'codex' ? stage.userCss ?? '' : stage.effectsHash ?? '',
-    gold: /ffd700/i.test(stage.userCss ?? ''),
     pointer: Boolean(stage.pointer),
     end: Boolean(state.overlay.end),
   };
@@ -163,10 +131,8 @@ function features(state) {
  */
 function soundEvents(stateAt, from, to, fps) {
   const events = [];
-  const rng = random(0x50f7);
   let previous = null;
   let lastWhoosh = -Infinity;
-  let lastSparkle = -Infinity;
   for (let frame = 0; from + frame / fps < to; frame += 1) {
     const t = frame / fps;
     const now = features(stateAt(from + t));
@@ -183,18 +149,6 @@ function soundEvents(stateAt, from, to, fps) {
       }
       now.zoomStep = cut ? 0 : zoomStep;
       if (!cut) {
-        const typed = now.typed - previous.typed;
-        const streamed = now.replyId === previous.replyId && now.streamed !== null && previous.streamed !== null ? now.streamed - previous.streamed : 0;
-        for (let i = 0; i < Math.max(0, typed); i += 1) {
-          add('click', t + rng() * 0.012, { level: 0.16 });
-        }
-        for (let i = 0; i < Math.max(0, streamed); i += 1) {
-          add('click', t + rng() * 0.012, { level: 0.08 });
-        }
-        if ((typed > 0 || streamed > 0) && t - lastSparkle > 0.25) {
-          add('sparkle', t, { level: now.gold ? 0.07 : typed > 0 ? 0.035 : 0.022, gold: now.gold });
-          lastSparkle = t;
-        }
         if (now.active !== previous.active && now.focus === 'thread') add('shimmer', t, { level: 0.1 });
         if (now.slash !== null && previous.slash === null) add('pop', t, { level: 0.22 });
         else if (now.slash !== null && now.slash !== previous.slash) add('pop', t, { level: 0.06, high: true });
@@ -213,7 +167,7 @@ function soundEvents(stateAt, from, to, fps) {
   return events;
 }
 
-const STEM = { click: 'light', sparkle: 'light', pop: 'light', whoosh: 'accent', shimmer: 'accent', swell: 'accent', chime: 'accent' };
+const STEM = { pop: 'light', whoosh: 'accent', shimmer: 'accent', swell: 'accent', chime: 'accent' };
 
 function writeWav(file, samples) {
   const data = Buffer.alloc(samples.length * 2);
@@ -241,7 +195,7 @@ function writeStems(events, duration, dir) {
   const stems = { light: new Float32Array(Math.ceil((duration + 3) * RATE)), accent: new Float32Array(Math.ceil((duration + 3) * RATE)) };
   const rng = random(0xc1a7);
   for (const event of events) {
-    SOUNDS[event.kind](stems[STEM[event.kind]], event.at, rng, event.level, event.gold ?? event.high);
+    SOUNDS[event.kind](stems[STEM[event.kind]], event.at, rng, event.level, event.high);
   }
   const files = { light: `${dir}/sfx-light.wav`, accent: `${dir}/sfx-accent.wav` };
   writeWav(files.light, stems.light);
@@ -258,7 +212,7 @@ function audioGraph(first, duration, fadeOut, loudnorm) {
   const stereo = 'aformat=sample_rates=48000:channel_layouts=stereo';
   return [
     `[${bgm}:a]atrim=duration=${duration.toFixed(3)},${stereo}[bgm]`,
-    // Stem levels: clicks and sparkles about 12 LU under the music, accents a bit above them.
+    // Keep pops and ticks light, with accents a little more prominent.
     `[${accent}:a]${stereo},volume=${ACCENT_GAIN},asplit=2[accent][key]`,
     '[bgm][key]sidechaincompress=threshold=0.03:ratio=3:attack=15:release=350[ducked]',
     `[${light}:a]${stereo},volume=${LIGHT_GAIN}[light]`,
@@ -270,8 +224,7 @@ function audioGraph(first, duration, fadeOut, loudnorm) {
 /**
  * Builds the soundtrack's ffmpeg inputs and filter (`[aout]`): writes the stems, measures the
  * mix once and returns a graph with a loudnorm to -14 LUFS, true peak -2.5 dBTP: the AAC encode
- * overshoots on the synthesized clicks (up to 2 dB, and not monotonically: -1.5 gave +0.5 and -3
- * gave -1.6 on the VS Code cut), -2.5 measured -1.8 / -2.1 dBTP after AAC on the two cuts.
+ * can overshoot synthesized transients, so leave headroom below the final -1 dBTP ceiling.
  */
 function prepareSoundtrack({ stateAt, from, to, fps, bgm, dir, fadeOut, first }) {
   const duration = to - from;
