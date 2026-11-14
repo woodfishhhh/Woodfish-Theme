@@ -16,7 +16,7 @@ node apps/vscode-extension/scripts/promo/render-promo-video.js --still 12,21.5  
 | Codex 镜头（`codex-page.js`、`codex-stage.js`） | 页面按 Codex 的结构搭（`data-app-action-sidebar-thread-row`、`data-markdown-text-style="assistant-message"`、`data-codex-composer-root` 等适配器认的钩子，见 `docs/hosts/codex.md`），运行的是 `@woodfish/adapter-codex/renderer` 的 `startCodexOverlay` 和 `packages/effects/builtin` 里的全部效果插件（默认参数）。回复按字增长、侧栏挂运行中的转圈、输入框用 `execCommand` 打字（真的 input 事件），所以吐字光标、拖尾、淡入、粒子、光环、毛玻璃都是产品自己的代码画的。只有宿主 DOM 是替身 |
 | 时间（`clock.js`） | 页面里的 `performance.now`、`Date.now`、计时器、`requestAnimationFrame` 和 `Math.random` 都换成虚拟时钟，每帧推进一次；CSS 动画按帧时间定住。同一条命令渲染两次结果一样 |
 | 帧率 | 60 fps。光标拖尾照 VS Code Animations 每帧追一次光标，30 fps 会比 60 Hz 屏幕上长一倍 |
-| 编码 | H.264 High 4.2、限定范围（tv）、BT.709、每 2 秒一个关键帧。截图是全范围 BT.601 的 JPEG，直接从 mjpeg 管道编码会得到全范围、level 5.0 的流，很多 Windows 播放器不走硬件解码、播放发卡（7.3 第一版就是这样）；`startEncoder` 用 colorspace 滤镜只换矩阵和范围（swscale 的 in/out_color_matrix 会让画面整体暗 2–4 级），`--also-30fps` 另出一份 30 fps，`--only-30fps <成片>` 给已有成片补一份。README 的 WebP 动图经同一管道到 libwebp，颜色偏差小于 1 级，不受影响 |
+| 编码 | H.264 High 4.2、限定范围（tv）、BT.709、正好每 2 秒一个关键帧（`-sc_threshold 0`：切镜处不另插关键帧，x264 默认会插，间隔会短到 0.27 秒）。截图是全范围 BT.601 的 JPEG，直接从 mjpeg 管道编码会得到全范围、level 5.0 的流，很多 Windows 播放器不走硬件解码、播放发卡（7.3 第一版就是这样）；`startEncoder` 用 colorspace 滤镜只换矩阵和范围（swscale 的 in/out_color_matrix 会让画面整体暗 2–4 级），`--also-30fps` 另出一份 30 fps，`--only-30fps <成片>` 给已有成片补一份。README 的 WebP 动图经同一管道到 libwebp，颜色偏差小于 1 级，不受影响 |
 | 镜头 | 每个页面窗口大小不变（Codex 1280×720、VS Code 960×540，3 倍像素密度），镜头是每帧截图用的裁切框：Chrome 按裁切的倍率重新栅格化，推近后文字照样锐利。页面每帧报告锚点（吐字光标、输入框光标、选中会话、菜单、回复、代码块、VS Code 光标），镜头按分镜给的倍率（按拍点缓动）和锚点算出裁切框，中心带 0.2–0.45 秒的缓动跟随，切镜头时直接对上 |
 | 背景 | 每个镜头都铺《彩云》，用产品默认参数（图片 15%、cover 居中，面板 35% 主题色、模糊 10px、饱和度 150%）：Codex 镜头是 Codex 适配器自己的背景，VS Code 镜头是扩展的窗口背景 CSS（`buildRuntimeCss` 打开 `background`，和负责人 VS Code 里一样），主题切换时只换配色 |
 | 字幕、角标、片尾 | `overlay-page.js` 按 1920×1080 排版，每帧贴在裁切框上再按同一倍率缩回，所以推拉时字幕不跟着动 |
@@ -134,7 +134,7 @@ Playground：[`docs/playground/promo-titles.html`](playground/promo-titles.html)
 
 ### 音效
 
-全部用代码合成（`sfx.js`：种子固定的噪声和正弦加包络，没有素材），事件从和画面同一份逐帧状态里算出来，所以每一声都落在对应的帧上：打字和吐字每出一个字一声轻柔的键盘咔哒（音高、音量小幅随机，连打成细碎的连击），有粒子的地方加一点 sparkle（金色粒子更亮）；切镜和推拉开始时一声很轻的 whoosh；光环出现、选中切换一声 shimmer；背景打开、保存 user.css 一声柔和的 swell；菜单弹出一声 pop，换主题一声小 tick；片尾求 Star 一声 chime。分两轨：轻的（咔哒、sparkle、tick、pop）和重点（whoosh、shimmer、swell、chime），重点那一轨轻微压低 BGM（sidechaincompress）。混好后两遍 loudnorm 到 -14 LUFS、峰值 -1 dBTP。
+全部用代码合成（`sfx.js`：种子固定的噪声和正弦加包络，没有素材），事件从和画面同一份逐帧状态里算出来，所以每一声都落在对应的帧上：打字和吐字每出一个字一声轻柔的键盘咔哒（音高、音量小幅随机，连打成细碎的连击），有粒子的地方加一点 sparkle（金色粒子更亮）；切镜和推拉开始时一声很轻的 whoosh；光环出现、选中切换一声 shimmer；背景打开、保存 user.css 一声柔和的 swell；菜单弹出一声 pop，换主题一声小 tick；片尾求 Star 一声 chime。分两轨：轻的（咔哒、sparkle、tick、pop）和重点（whoosh、shimmer、swell、chime），重点那一轨轻微压低 BGM（sidechaincompress）。混好后两遍 loudnorm 到 -14 LUFS，峰值目标 -2.5 dBTP：AAC 编码在合成的咔哒声上会把峰值抬高最多 2 dB，而且不单调（VS Code 版 -1.5 编码后是 +0.5，-3 是 -1.6），-2.5 编码后实测 Codex 版 -1.8、VS Code 版 -2.2 dBTP，都低于要求的 -1。
 
 ### 置顶文案：Codex 版
 

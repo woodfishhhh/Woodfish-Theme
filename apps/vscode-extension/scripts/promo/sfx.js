@@ -269,14 +269,16 @@ function audioGraph(first, duration, fadeOut, loudnorm) {
 
 /**
  * Builds the soundtrack's ffmpeg inputs and filter (`[aout]`): writes the stems, measures the
- * mix once and returns a graph with a linear loudnorm to -14 LUFS / -1 dBTP.
+ * mix once and returns a graph with a loudnorm to -14 LUFS, true peak -2.5 dBTP: the AAC encode
+ * overshoots on the synthesized clicks (up to 2 dB, and not monotonically: -1.5 gave +0.5 and -3
+ * gave -1.6 on the VS Code cut), -2.5 measured -1.8 / -2.1 dBTP after AAC on the two cuts.
  */
 function prepareSoundtrack({ stateAt, from, to, fps, bgm, dir, fadeOut, first }) {
   const duration = to - from;
   const events = soundEvents(stateAt, from, to, fps);
   const stems = writeStems(events, duration, dir);
   const inputs = ['-ss', String(from), '-i', bgm, '-i', stems.light, '-i', stems.accent];
-  const target = 'I=-14:TP=-1:LRA=11';
+  const target = 'I=-14:TP=-2.5:LRA=11';
   const measure = spawnSync(
     'ffmpeg',
     ['-hide_banner', '-nostats', ...inputs, '-filter_complex', audioGraph(0, duration, fadeOut, `loudnorm=${target}:print_format=json`), '-map', '[aout]', '-f', 'null', '-'],

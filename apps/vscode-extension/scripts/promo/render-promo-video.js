@@ -488,10 +488,10 @@ async function capture({ stage, clip }, format, width = WIDTH) {
  */
 const JPEG_TO_BT709 = 'colorspace=all=bt709:iall=bt709:ispace=bt470bg:irange=pc:range=tv:format=yuv420p';
 
-/** H.264 settings every player decodes in hardware: High 4.2, a keyframe every 2 s, BT.709 tags. */
+/** H.264 settings every player decodes in hardware: High 4.2, a keyframe exactly every 2 s (no extra ones at scene cuts), BT.709 tags. */
 function standardVideoArgs(fps) {
   return [
-    '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.2', '-g', String(fps * 2),
+    '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.2', '-g', String(fps * 2), '-sc_threshold', '0',
     '-color_range', 'tv', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709',
   ];
 }
@@ -604,7 +604,9 @@ async function main() {
     console.log(`✓ ${path.relative(REPO_ROOT, writeFrameRateCopy(options.only30, 30))}`);
     return;
   }
-  const { stages, close } = await openStages(options.host ? [options.host] : undefined);
+  // Only the browsers this cut needs (the VS Code cut never opens the Codex page).
+  const hosts = options.host ? [options.host] : [...new Set(CUTS[options.cut].scenes().map((scene) => scene.host ?? 'vscode'))];
+  const { stages, close } = await openStages(hosts);
   try {
     const cut = CUTS[options.cut];
     const scenes = cut.scenes();
