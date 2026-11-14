@@ -134,6 +134,8 @@ const PAGE_CSS = `
     --color-border: var(--app-color-border);
   }
 }
+/* Tailwind preflight, as in Codex. */
+[hidden]:where(:not([hidden="until-found"])) { display: none !important; }
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 body { font: 14px/1.5 ${UI_FONT}; color: var(--color-text); background: var(--app-color-background-shell); -webkit-font-smoothing: antialiased; }
 .icon { display: block; flex: none; }
@@ -192,7 +194,6 @@ pre[data-code-block-source="true"] { margin: 0; padding: 10px 18px 14px; font: 1
 .composer-actions .model em { font-style: normal; color: var(--color-text-tertiary); }
 .composer-actions .bg-composer-primary { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--color-background-composer-primary); color: var(--color-text-composer-primary, #fff); }
 .composer-actions .bg-composer-primary.idle { opacity: .55; }
-[data-composer-overlay-floating-ui][hidden] { display: none; }
 [data-composer-overlay-floating-ui="true"] { position: absolute; left: 0; right: 0; bottom: calc(100% - 4px); display: flex; justify-content: center; pointer-events: none; }
 .slash-menu { width: min(690px, calc(100% - 72px)); box-sizing: border-box; padding: 6px; border-radius: 18px; border: 1px solid var(--color-border); background: var(--color-surface-elevated); }
 .slash-item { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 12px; border-radius: 10px; color: var(--color-text); }
