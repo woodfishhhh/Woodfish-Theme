@@ -456,8 +456,8 @@ async function main() {
     const started = Date.now();
     for (let frame = 0; frame < frames; frame += 1) {
       const t = options.from + frame / options.fps;
-      const frame = await renderFrame(stages, frameState(scenes, t));
-      await encoder.write(await capture(frame, 'jpeg'));
+      const rendered = await renderFrame(stages, frameState(scenes, t));
+      await encoder.write(await capture(rendered, 'jpeg'));
       if (frame % (options.fps * 5) === 0) {
         const rate = (frame + 1) / ((Date.now() - started) / 1000);
         console.log(`${t.toFixed(1)}s / ${options.to.toFixed(1)}s  (${rate.toFixed(1)} frames/s)`);
