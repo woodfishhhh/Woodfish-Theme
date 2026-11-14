@@ -31,10 +31,13 @@ function findImageSources(markdown: string): string[] {
 const REPOSITORY_RAW_IMAGE =
   /^https:\/\/github\.com\/woodfishhhh\/Woodfish-Theme\/raw\/(?:HEAD|v\d+\.\d+\.\d+)\/(.+)$/;
 
+/** The owner's other projects the READMEs recommend to contributors (Obituary and its Scoop bucket). */
+const OTHER_PROJECTS = new Set(['woodfishhhh/obituary', 'woodfishhhh/scoop-bucket']);
+
 function findGithubRepos(markdown: string): string[] {
-  return [...markdown.matchAll(/https:\/\/github\.com\/[^)\s"'<>]+/gi)]
+  return [...markdown.matchAll(/https:\/\/github\.com\/[^)\s"'<>`]+/gi)]
     .map((match) => normalizeGithubRepo(match[0]))
-    .filter((repo): repo is string => repo !== null);
+    .filter((repo): repo is string => repo !== null && !OTHER_PROJECTS.has(repo.toLowerCase()));
 }
 
 describe('marketplace metadata guardrails', () => {

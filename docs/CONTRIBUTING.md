@@ -8,6 +8,12 @@
 - 🎨 优化主题设计
 - 🔧 提交代码修复
 
+随时欢迎共建，会看每一个 PR；合并后你会出现在 README 的贡献者头像墙里。
+
+### 用 AI 写代码？
+
+推荐顺手装上 [讣告 · AI 的回收站](https://obituary.woodfish.site)（[GitHub](https://github.com/woodfishhhh/obituary)）：AI 留下的调试脚本、日志、截图到期自己走，AI 删掉的东西七天内都能找回，提 PR 前工作区更干净。把这句话发给你的 agent 就能装好：“读 https://obituary.woodfish.site/agent-install.md ，照里面的步骤帮我安装讣告并接入你自己。”自己装见讣告的[安装文档](https://github.com/woodfishhhh/obituary/blob/main/docs/install.md)（Windows 的 Scoop、macOS 的 Homebrew、Linux 的安装脚本）。不装也完全可以提 PR。
+
 ## 🚀 快速开始
 
 ### 环境准备

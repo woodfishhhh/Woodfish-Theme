@@ -453,6 +453,14 @@ pnpm package
 
 `pnpm test:integration` 会启动隔离的 VS Code 扩展宿主，验证开启、关闭和工作台恢复。扩展入口是 `apps/vscode-extension/src/extension.ts`；主题由 `apps/vscode-extension/scripts/generate-themes.js` 生成（`pnpm themes:generate`），渲染端脚本源码在 `apps/vscode-extension/browser/`（`pnpm runtime:build`），注入用 CSS 在 `apps/vscode-extension/themes/shared/`。README 里的图片由 `apps/vscode-extension/scripts/render-readme-images.js` 生成，改了渐变或效果后重跑一次。发布到 Open VSX 需要先设置环境变量 `OVSX_PAT`。
 
+## 参与共建
+
+随时欢迎共建，会看每一个 PR，每一位贡献者都会出现在下面这张图里。怎么提交见[参与贡献](./docs/CONTRIBUTING.md)。
+
+[![Contributors](https://contrib.rocks/image?repo=woodfishhhh/Woodfish-Theme)](https://github.com/woodfishhhh/Woodfish-Theme/graphs/contributors)
+
+用 Claude Code、Codex 这类 AI 写代码的话，推荐顺手装上作者的另一个小工具 [讣告 · AI 的回收站](https://obituary.woodfish.site)（[GitHub](https://github.com/woodfishhhh/obituary)）：AI 留下的调试脚本、日志、截图到期自己走，AI 删掉的东西七天内都能找回，提 PR 前工作区也干净。最省事的装法是把这句话发给你的 agent：“读 https://obituary.woodfish.site/agent-install.md ，照里面的步骤帮我安装讣告并接入你自己。”想自己装：Windows 用 Scoop（`scoop bucket add obituary https://github.com/woodfishhhh/scoop-bucket`，再 `scoop install obituary`），macOS 用 Homebrew（`brew install --cask woodfishhhh/tap/obituary`），其他方式见讣告的[安装文档](https://github.com/woodfishhhh/obituary/blob/main/docs/install.md)。
+
 ## 项目信息
 
 - [更新日志](./apps/vscode-extension/CHANGELOG.md)
