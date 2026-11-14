@@ -19,7 +19,7 @@
 
 Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和毛玻璃。自带 5 套 Woodfish 主题（每套都有手工调好的渐变），另附 10 套热门主题；换成别的颜色主题也能用，渐变会照着同样的规律自动算出来。VS Code、Cursor、Kiro、Windsurf、Trae、VSCodium 都能用。
 
-本页所有图片都由扩展实际的渲染脚本和注入 CSS 生成（[生成脚本](./apps/vscode-extension/scripts/render-readme-images.js)）。
+本页图片都由扩展实际的渲染代码生成：代码图来自 [render-readme-images.js](./apps/vscode-extension/scripts/render-readme-images.js)，「效果一览」和热门主题来自 [render-readme-effects.js](./apps/vscode-extension/scripts/promo/render-readme-effects.js)（和宣传片同一套逐帧渲染，动图是 WebP）；只有 Codex 设置页那张是真机截图。
 
 ## 效果预览
 
@@ -49,9 +49,28 @@ Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和�
 
 扩展还原样收录了 10 套热门的 MIT 许可主题，名字前加了 `Woodfish`，渐变和发光顺着各自的配色自动生成，效果开关同样适用（关掉就是纯配色）：
 
-| 深色 | 浅色 |
-| --- | --- |
-| Woodfish One Dark Pro、Woodfish Tokyo Night、Woodfish Catppuccin Mocha、Woodfish Nord、Woodfish GitHub Dark、Woodfish Night Owl、Woodfish Ayu Mirage、Woodfish Gruvbox Dark | Woodfish Catppuccin Latte、Woodfish GitHub Light |
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-onedark.webp" alt="Woodfish One Dark Pro"><br><sub>Woodfish One Dark Pro</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-tokyonight.webp" alt="Woodfish Tokyo Night"><br><sub>Woodfish Tokyo Night</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-catppuccin-mocha.webp" alt="Woodfish Catppuccin Mocha"><br><sub>Woodfish Catppuccin Mocha</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-catppuccin-latte.webp" alt="Woodfish Catppuccin Latte"><br><sub>Woodfish Catppuccin Latte</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-nord.webp" alt="Woodfish Nord"><br><sub>Woodfish Nord</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-github-dark.webp" alt="Woodfish GitHub Dark"><br><sub>Woodfish GitHub Dark</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-github-light.webp" alt="Woodfish GitHub Light"><br><sub>Woodfish GitHub Light</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-nightowl.webp" alt="Woodfish Night Owl"><br><sub>Woodfish Night Owl</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-ayu-mirage.webp" alt="Woodfish Ayu Mirage"><br><sub>Woodfish Ayu Mirage</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-gruvbox-dark.webp" alt="Woodfish Gruvbox Dark"><br><sub>Woodfish Gruvbox Dark</sub></td>
+  </tr>
+</table>
 
 来源与许可见 [THIRD_PARTY_NOTICES](./apps/vscode-extension/THIRD_PARTY_NOTICES.md)。
 
@@ -69,6 +88,57 @@ Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和�
   <tr>
     <td align="center">Dark Modern 原样</td>
     <td align="center">开启 Woodfish</td>
+  </tr>
+</table>
+
+## 效果一览
+
+每个效果一张聚焦的图，会动的效果是动图。Codex 桌面版的效果用 `woodfish codex launch` 等方式启用后默认就开着（装法见下面的 [Codex 桌面端](#codex-桌面端)），在 Codex 的 **设置 → 外观 → Woodfish 外观** 里能逐个开关、调参数；只想改颜色、大小、速度，在效果文件夹（`%APPDATA%\Woodfish\effects`）的 `user.css` 里写一行变量就行，变量清单在同一文件夹的 `README.md`。
+
+<table>
+  <tr>
+    <td width="48%"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-rainbow-reply.webp" alt="Codex 里助手回复的正文是彩虹渐变"></td>
+    <td><b>彩虹回复字</b> · Codex<br>助手回复的正文是一条按当前主题调好的彩虹渐变。纯 CSS，流式输出和很长的对话都不多花一帧。<br><sub>效果 <code>rainbow-text</code>；浓淡和方向：<code>--woodfish-rainbow-text-strength</code>、<code>--woodfish-rainbow-text-angle</code></sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-stream.webp" alt="AI 吐字时末尾的彩虹光标、身后的拖尾和粒子"></td>
+    <td><b>吐字光标、拖尾和淡入</b> · Codex<br>AI 吐字时，末尾跟着一根彩虹光标，身后拖一段带子，新字轻轻淡入，还会迸出一点粒子。你打字和 AI 吐字触发的是同一套效果。<br><sub>效果 <code>stream-cursor</code>、<code>caret-trail</code>、<code>text-reveal</code>；例如 <code>--woodfish-caret-trail-color: #ff4d4f;</code>、<code>--woodfish-text-reveal-style: blur;</code></sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-thread-ring.webp" alt="侧栏选中的会话外圈是旋转的七色光谱环"></td>
+    <td><b>选中会话的光环</b> · Codex<br>侧栏里选中的会话外圈是一道慢慢转的七色光谱环，外面一圈柔光；正在运行的会话亮一圈弱一些的光。<br><sub>效果 <code>thread-ring</code>；转一圈的秒数和光晕：<code>--woodfish-thread-ring-turn-seconds</code>、<code>--woodfish-thread-ring-halo</code></sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-glass.webp" alt="输入框的 / 命令菜单是毛玻璃，后面的彩虹字透出来"></td>
+    <td><b>毛玻璃浮层</b> · Codex<br>菜单、<code>/</code> 命令、弹窗都是磨砂玻璃，弹出时淡入，后面的内容隐约透出来。VS Code 里的毛玻璃见下面的「毛玻璃」一节。<br><sub>效果 <code>glass</code>；模糊和不透明度：<code>--woodfish-glass-blur</code>、<code>--woodfish-glass-opacity</code></sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-background-off.webp" alt="关掉背景的 Codex"><br><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-background-on.webp" alt="铺上《彩云》的 Codex"></td>
+    <td><b>窗口背景《彩云》</b> · Codex 与 VS Code<br>窗口底下铺一张图，侧栏和输入框是磨砂玻璃，文字照样清楚（上：关，下：开）。默认是作者画的《彩云》，也能换成你自己的图。<br><sub>Codex：设置 → 外观 → Woodfish 里「上传图片」，或 <code>woodfish codex background set &lt;图片&gt;</code>；VS Code：运行「设置背景图片」。浓淡：<code>--woodfish-background-opacity</code></sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-caret-trail.webp" alt="输入框里按 Home、End 时彩虹光标拖出一段带子"></td>
+    <td><b>输入框光标和光标拖尾</b> · Codex<br>输入框里是和 VS Code 一样的 6px 彩虹光标；光标一跳（Home、End、点击）就拖出一段带子，画法照 VS Code Animations 插件。<br><sub>效果 <code>caret</code>、<code>caret-trail</code>；粗细、长度、颜色：<code>--woodfish-caret-width</code>、<code>--woodfish-caret-trail-length</code>、<code>--woodfish-caret-trail-color</code></sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-typing-particles.webp" alt="在输入框打字时迸出主题色光点"></td>
+    <td><b>打字粒子</b> · Codex 与 VS Code<br>打字和 AI 吐字时，从光标处迸出一簇主题色的光点，没有震动和连击计数；吐字很快时自动限流。<br><sub>效果 <code>typing-particles</code>；数量、大小、配色：<code>--woodfish-typing-particles-count</code>、<code>--woodfish-typing-particles-size</code>、<code>--woodfish-typing-particles-colors: rainbow;</code>（VS Code 里是 <code>woodfishTheme.typingParticles.*</code>）</sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-ask-codex.webp" alt="对 Codex 说把打字粒子改成金色，它照 AGENTS.md 在 user.css 里写了三行"></td>
+    <td><b>一句话让 Codex 改效果</b><br>效果文件夹里有一份写给 AI 的 <code>AGENTS.md</code>：对 Codex 或 Claude 说“把打字粒子改成金色，再大一点”，它会找到对应的效果，先在 <code>user.css</code> 里改变量，必要时才改参数或代码，改完自动刷新。<br><sub>说明文件：<code>%APPDATA%\Woodfish\effects\AGENTS.md</code></sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-user-css-gold.webp" alt="写进 user.css 之后，打字迸出金色、大一号的粒子"></td>
+    <td><b><code>user.css</code> 一行改样子</b><br>每个效果参数都是一个 CSS 变量 <code>--woodfish-&lt;效果&gt;-&lt;参数&gt;</code>。写进效果文件夹的 <code>user.css</code>，保存一两秒就生效，升级不覆盖；画布上的拖尾和粒子也跟着变。图里是上一行那三行变量的结果。<br><sub>Codex 设置页有「打开 user.css」「恢复默认」；变量清单见效果文件夹的 <code>README.md</code></sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-settings.webp" alt="Codex 设置页里的 Woodfish 外观：主题卡片和效果插件"></td>
+    <td><b>Codex 设置页「Woodfish 外观」</b><br>设置 → 外观 里多出一节：深色、浅色各选一套主题（15 套，点一下整个界面就换色），每个效果一行开关，「参数」展开全部滑块和取色器，顶上有「刷新效果」「全部恢复默认」。<br><sub>这一张是真机截图（Codex 26.1013，2026-11-14）</sub></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/vscode-effects.webp" alt="VS Code 里打字时的光标拖尾和打字粒子"></td>
+    <td><b>VS Code 里的同款</b><br>光标拖尾和打字粒子在 VS Code 里也有，默认关闭；和 Codex 共用同一个效果文件夹，改一次两边都变。<br><sub>设置里打开 <code>woodfishTheme.caretTrail.enabled</code>、<code>woodfishTheme.typingParticles.enabled</code>（另有鼠标拖尾 <code>woodfishTheme.mouseTrail.enabled</code>）</sub></td>
   </tr>
 </table>
 

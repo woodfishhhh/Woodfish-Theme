@@ -41,8 +41,8 @@ const SHOTS = [
   { name: 'codex-caret-trail', from: bar(8) + 3.7, to: bar(8) + 6.2, camera: { zoom: 1.85, focus: 'composer' } },
   { name: 'codex-typing-particles', from: bar(8) + 0.5, to: bar(8) + 3.3, camera: { zoom: 1.85, focus: 'composer' } },
   { name: 'codex-ask-codex', at: bar(10) + 10 * BEAT - 0.1, camera: { zoom: 1.35, focus: 'column' } },
-  { name: 'codex-user-css-gold', from: bar(10) + 10 * BEAT + 0.5, to: bar(10) + 10 * BEAT + 3.5, camera: { zoom: 2.6, focus: 'caret', fallback: 'composer', dy: -30, lag: 0.45 }, quality: 85 },
-  { name: 'vscode-effects', from: bar(17) + 1.6, to: bar(17) + 4.6, camera: { zoom: 1.7, focus: 'cursor', x: 370, lag: 0.45 } },
+  { name: 'codex-user-css-gold', from: bar(10) + 10 * BEAT + 0.5, to: bar(10) + 10 * BEAT + 3.5, camera: { zoom: 2, focus: 'caret', fallback: 'composer', dy: -60, lag: 0.45 }, quality: 76 },
+  { name: 'vscode-effects', from: bar(17) + 1.6, to: bar(17) + 4.6, camera: { zoom: 1.7, focus: 'cursor', x: 350, lag: 0.45 } },
   ...POPULAR.map((slug, index) => ({
     name: `theme-${slug}`,
     at: bar(14) + (index === 0 ? 0.6 : (index + 2) * BEAT + 0.6),

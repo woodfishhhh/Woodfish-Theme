@@ -53,7 +53,7 @@ Woodfish Theme 7.3：给 VS Code 和 Codex 桌面版换上渐变代码、彩虹�
 
 安装：
 · VS Code / Cursor / Kiro / Trae：扩展商店或 Open VSX 搜「Woodfish Theme」，或运行 code --install-extension zhongjun.woodfish-theme
-· Codex 桌面版（Windows 商店版）：克隆仓库后 pnpm install、pnpm compile，再运行 pnpm woodfish codex launch，详见仓库 README
+· Codex 桌面版（Windows 商店版）：VS Code 里运行「Woodfish Theme: 为 Codex 启用 Woodfish」，或下载 GitHub Release 里的 woodfish.exe，或 npx woodfish codex launch；不会改你原来的 Codex 快捷方式，详见仓库 README
 
 BGM：Sleepy Fish - no more fires（Chillhop Music）
 ```
