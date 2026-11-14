@@ -1,6 +1,6 @@
 'use strict';
 /*
- * The 7.3 promo storyboard. Times are seconds of the BGM ("no more fires" by Sleepy Fish,
+ * The 8.0 promo storyboard. Times are seconds of the BGM ("no more fires" by Sleepy Fish,
  * see docs/promo.md): measured at 57.5 BPM with triplet hi-hats, one bar = 4.174 s starting
  * at 0. The track is quiet for bar 0–1, full from bar 2, drops to a breakdown at bar 22; the
  * video runs from bar 1 (START) to bar 25 (END). Every shot changes on a beat.
@@ -175,9 +175,10 @@ const CODE = {
     [T('}', 'punctuation')],
   ],
   repo: [[T('https://github.com/woodfishhhh/Woodfish-Theme', 'string')]],
+  // The 8.0 routes: Quick Open installs from the Marketplace, the command palette enables Codex.
   install: [
-    [T('code', 'function'), T(' ', 'fg'), T('--install-extension', 'parameter'), T(' ', 'fg'), T('zhongjun.woodfish-theme', 'string')],
-    [T('pnpm', 'function'), T(' ', 'fg'), T('woodfish', 'type'), T(' ', 'fg'), T('codex', 'keyword'), T(' ', 'fg'), T('launch', 'string')],
+    [T('ext install', 'keyword'), T(' ', 'fg'), T('zhongjun.woodfish-theme', 'string')],
+    [T('>', 'operator'), T(' ', 'fg'), T('Woodfish Theme:', 'function'), T(' ', 'fg'), T('为 Codex 启用 Woodfish', 'string')],
   ],
 };
 
@@ -215,7 +216,7 @@ function storyboard() {
     codex({
       ...rainStream(t),
       camera: { zoom: glide(t, START / BEAT, bar(2) / BEAT, 1, 1.06), focus: 'window' },
-      caption: t > START + 0.5 ? { main: 'Woodfish 7.3', sub: 'Codex 桌面版也换上了 Woodfish', at: t - START - 0.5 } : null,
+      caption: t > START + 0.5 ? { main: 'Woodfish 8.0', sub: 'Codex 桌面版也换上了 Woodfish', at: t - START - 0.5 } : null,
     })
   );
 
@@ -381,7 +382,7 @@ function storyboard() {
       threads: { items: THREADS, active: 0, running: CI_THREAD },
       title: RAIN.title,
       messages: conversation(RAIN),
-      caption: { main: 'Woodfish Theme 7.3', sub: 'VS Code 和 Codex 桌面版，共用一个效果文件夹', at: t - 0.3 },
+      caption: { main: 'Woodfish Theme 8.0', sub: 'VS Code 和 Codex 桌面版，共用一个效果文件夹', at: t - 0.3 },
     })
   );
 
@@ -390,7 +391,7 @@ function storyboard() {
     palette: 'dark',
     css: 'base',
     panes: [{ code: CODE.install, typed: revealed(t - 0.3, 26), cursor: true, large: true }],
-    caption: { main: 'Woodfish Theme 7.3', sub: 'VS Code Marketplace · Open VSX 搜 Woodfish Theme；Codex 版见 GitHub 仓库', at: t - 0.3 },
+    caption: { main: 'Woodfish Theme 8.0', sub: 'VS Code 扩展商店 / Open VSX 搜 Woodfish Theme；Codex：扩展里「为 Codex 启用 Woodfish」一键启用，或从 GitHub Release 下载 woodfish.exe', at: t - 0.3 },
   }));
 
   // End card: the repository and a star, long enough to read and screenshot.
@@ -398,7 +399,7 @@ function storyboard() {
     palette: 'dark',
     css: 'base',
     panes: [{ code: CODE.repo, typed: revealed(t - 0.2, 30), cursor: true, large: true, centered: true }],
-    end: 'Woodfish Theme 7.3 · VS Code 扩展商店 / Open VSX 搜 Woodfish Theme',
+    end: 'Woodfish Theme 8.0 · 扩展商店 / Open VSX 搜 Woodfish Theme · Codex 在扩展里一键启用，或下载 woodfish.exe',
   }));
 
   return scenes;

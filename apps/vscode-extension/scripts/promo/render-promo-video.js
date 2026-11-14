@@ -11,7 +11,7 @@
  *
  *   pnpm compile && pnpm runtime:build
  *   node apps/vscode-extension/scripts/promo/render-promo-video.js --bgm <music.mp3>
- *     [--out output/promo/woodfish-7.3-promo.mp4] [--fps 60] [--from <s>] [--to <s>]
+ *     [--out output/promo/woodfish-8.0-promo.mp4] [--fps 60] [--from <s>] [--to <s>]
  *     [--still 12.3,40] (writes PNG stills instead of a video)
  *
  * Times are seconds of the BGM; the video starts at the storyboard's START.
@@ -61,11 +61,13 @@ const UI_FONT = "'Microsoft YaHei UI', 'Segoe UI', sans-serif";
 const VSCODE_EFFECTS_ON = new Set(['caret-trail', 'typing-particles']);
 const EFFECTS_VERSION = { hash: 'promo', reload: 0 };
 
+/** 《彩云》, the default window background (the extension loads the same file). */
+const CAIYUN_URL = pathToFileURL(path.join(REPO_ROOT, 'packages', 'renderer-runtime', 'assets', 'caiyun.webp')).href;
 const px = (value) => `${value / VS_ZOOM}px`;
 
 function parseArgs(argv) {
   const options = {
-    out: path.join(REPO_ROOT, 'output', 'promo', 'woodfish-7.3-promo.mp4'),
+    out: path.join(REPO_ROOT, 'output', 'promo', 'woodfish-8.0-promo.mp4'),
     // The caret trail moves once per animation frame (like VS Code Animations), so 60 fps
     // shows it as long as on a 60 Hz screen.
     fps: 60,
@@ -108,17 +110,24 @@ ${tokens}`;
   }).join('\n');
 }
 
-/** The extension's injected CSS for every effect variant the storyboard uses. */
+/**
+ * The extension's injected CSS for every effect variant the storyboard uses, all over
+ * 《彩云》 with the default window background settings, like the owner's VS Code.
+ */
 function effectCss() {
-  const cursor = { cursor: { enabled: true } };
+  const css = (settings) =>
+    runtimeCss(
+      { cursor: { enabled: true }, background: { enabled: true }, ...settings },
+      { backgroundImage: CAIYUN_URL }
+    );
   const variants = {
-    base: runtimeCss(cursor),
-    glass: runtimeCss({ ...cursor, glass: { enabled: true, opacity: 0.5, blur: 14 } }),
-    'glow-off': runtimeCss({ ...cursor, glow: { enabled: false } }),
+    base: css({}),
+    glass: css({ glass: { enabled: true, opacity: 0.5, blur: 14 } }),
+    'glow-off': css({ glow: { enabled: false } }),
   };
   for (let step = 1; step <= 40; step += 1) {
     const intensity = step / 20;
-    variants[`glow-${intensity.toFixed(2)}`] = runtimeCss({ ...cursor, glow: { intensity } });
+    variants[`glow-${intensity.toFixed(2)}`] = css({ glow: { intensity } });
   }
   return variants;
 }
@@ -160,6 +169,8 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 .pane.large .view-line { font: ${px(44)}/${px(68)} ${CODE_FONT}; height: ${px(68)}; }
 .pane.compact .view-line { font: ${px(26)}/${px(42)} ${CODE_FONT}; height: ${px(42)}; }
 .pane.centered .view-line { text-align: center; }
+/* The end card: the repository line sits under the overlay card, the pair centered on screen. */
+.monaco-workbench:has(.pane.centered) { padding: ${px(300)} 0 0; }
 .split { display: inline; }
 .cursors-layer { position: absolute; inset: 0; pointer-events: none; }
 .cursor { position: absolute; width: ${px(6)}; height: ${px(38)}; }

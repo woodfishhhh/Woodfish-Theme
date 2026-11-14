@@ -4,7 +4,7 @@
 
 ```bash
 pnpm compile && pnpm runtime:build
-node apps/vscode-extension/scripts/promo/render-promo-video.js --bgm <曲子.mp3>          # 成片：output/promo/woodfish-7.3-promo.mp4
+node apps/vscode-extension/scripts/promo/render-promo-video.js --bgm <曲子.mp3>          # 成片：output/promo/woodfish-8.0-promo.mp4
 node apps/vscode-extension/scripts/promo/render-promo-video.js --still 12,21.5            # 单帧审片：output/promo/stills/（时间是 BGM 秒数）
 ```
 
@@ -17,17 +17,18 @@ node apps/vscode-extension/scripts/promo/render-promo-video.js --still 12,21.5  
 | 时间（`clock.js`） | 页面里的 `performance.now`、`Date.now`、计时器、`requestAnimationFrame` 和 `Math.random` 都换成虚拟时钟，每帧推进一次；CSS 动画按帧时间定住。同一条命令渲染两次结果一样 |
 | 帧率 | 60 fps。光标拖尾照 VS Code Animations 每帧追一次光标，30 fps 会比 60 Hz 屏幕上长一倍 |
 | 镜头 | 每个页面窗口大小不变（Codex 1280×720、VS Code 960×540，3 倍像素密度），镜头是每帧截图用的裁切框：Chrome 按裁切的倍率重新栅格化，推近后文字照样锐利。页面每帧报告锚点（吐字光标、输入框光标、选中会话、菜单、回复、代码块、VS Code 光标），镜头按分镜给的倍率（按拍点缓动）和锚点算出裁切框，中心带 0.2–0.45 秒的缓动跟随，切镜头时直接对上 |
+| 背景 | 每个镜头都铺《彩云》，用产品默认参数（图片 15%、cover 居中，面板 35% 主题色、模糊 10px、饱和度 150%）：Codex 镜头是 Codex 适配器自己的背景，VS Code 镜头是扩展的窗口背景 CSS（`buildRuntimeCss` 打开 `background`，和负责人 VS Code 里一样），主题切换时只换配色 |
 | 字幕、角标、片尾 | `overlay-page.js` 按 1920×1080 排版，每帧贴在裁切框上再按同一倍率缩回，所以推拉时字幕不跟着动 |
 
 Codex 镜头里的会话、项目名都是编的，不出现负责人真实的会话列表。
 
-## 7.3 分镜
+## 8.0 分镜
 
 BGM 实测 57.5 BPM（三连音踩镲，一拍 1.043 s，一小节 4.174 s，第 0 小节从 0 s 开始）；0–8.3 s 是安静的前奏，8.3 s 起鼓进来，91.8 s 进入间奏。视频从第 1 小节（4.17 s）切到第 25 小节（104.34 s），全长 100 秒，每个镜头都切在拍点上，推拉在拍点之间缓动。展示效果的镜头右上角常驻角标「你可以让 Codex 随时调整此效果」（片头、主题切换、片尾不显示）。下表时间是视频时间。
 
 | 视频时间 | 镜头 | 画面 | 字幕 |
 | --- | --- | --- | --- |
-| 0:00–0:04 | Codex 全窗 | 开场即在吐字：《彩云》背景、彩虹回复字、吐字光标和拖尾、粒子，侧栏当前会话转着光谱环；镜头极慢地推近 | Woodfish 7.3 / Codex 桌面版也换上了 Woodfish |
+| 0:00–0:04 | Codex 全窗 | 开场即在吐字：《彩云》背景、彩虹回复字、吐字光标和拖尾、粒子，侧栏当前会话转着光谱环；镜头极慢地推近 | Woodfish 8.0 / Codex 桌面版也换上了 Woodfish |
 | 0:04–0:12 | 推到正在出字的那一行（1.85×） | 鼓点进来时一拍半推近，跟着出字的行往下走：彩虹光标领着字走、新字淡入、换行时光标跳到下一行；最后一拍前写完 | AI 吐字：彩虹光标领着字往外走 |
 | 0:12–0:21 | 全窗一拍 → 推到侧栏（2.5×） | 每两拍换一次选中会话（短文 → React 组件 → 周报 → 短文），镜头跟着选中项走；“排查 CI”在运行，只亮一圈弱光 | 选中的会话：七色光环 |
 | 0:21–0:25 | 输入框（1.3×）→ 菜单（1.75×） | 输入框里打 `/`，命令菜单（照真机截图）弹出，镜头升到菜单，选中项逐拍下移 | 毛玻璃浮层 |
@@ -38,9 +39,9 @@ BGM 实测 57.5 BPM（三连音踩镲，一拍 1.043 s，一小节 4.174 s，第
 | 0:54–1:07 | VS Code 代码区（1 → 1.2×） | 10 套热门主题：One Dark Pro 先停三拍，之后每拍换一套（Tokyo Night、Catppuccin Mocha / Latte、Nord、GitHub Dark / Light、Night Owl、Ayu Mirage、Gruvbox Dark） | 主题名 / 新增 10 套热门主题… |
 | 1:07–1:19 | VS Code 跟着光标（1.7×） | Woodfish Dark 大字号打一段 TypeScript，光标拖尾和打字粒子；镜头横向固定在整行都看得见的位置，纵向跟着光标 | VS Code 里也有：光标拖尾、打字粒子 |
 | 1:19–1:23 | Codex 全窗 | 每拍换一套主题：Tokyo Night、Catppuccin Latte（浅色）、Gruvbox Dark、Nord | Codex 也能用全部 15 套主题 |
-| 1:23–1:28 | Codex 全窗 | Woodfish Dark 收尾 | Woodfish Theme 7.3 |
-| 1:28–1:32 | VS Code | 打出 `code --install-extension zhongjun.woodfish-theme` 和 `pnpm woodfish codex launch` | Woodfish Theme 7.3 / 去哪里装 |
-| 1:32–1:40 | 片尾 | 「觉得好看，就点个 Star ⭐」，下面打出仓库地址 `https://github.com/woodfishhhh/Woodfish-Theme`（Woodfish 渐变），再下面一行商店信息；完整停留约 6.5 秒，最后 1.9 秒淡出 | — |
+| 1:23–1:28 | Codex 全窗 | Woodfish Dark 收尾 | Woodfish Theme 8.0 |
+| 1:28–1:32 | VS Code（《彩云》背景） | 打出 `ext install zhongjun.woodfish-theme`（Ctrl+P 从扩展商店装）和 `> Woodfish Theme: 为 Codex 启用 Woodfish`（命令面板一键启用 Codex） | Woodfish Theme 8.0 / VS Code 扩展商店、Open VSX 搜 Woodfish Theme；Codex 在扩展里一键启用，或从 GitHub Release 下载 woodfish.exe |
+| 1:32–1:40 | 片尾 | 《彩云》背景上一张毛玻璃卡片：「觉得好看，就点个 Star ⭐」和一行装法（Woodfish Theme 8.0 · 扩展商店 / Open VSX · Codex 在扩展里一键启用或下载 woodfish.exe），卡片下面打出仓库地址 `https://github.com/woodfishhhh/Woodfish-Theme`（Woodfish 渐变）；完整停留约 6.5 秒，最后 1.9 秒淡出 | — |
 
 AI 改效果这一段是把实测过程压缩后的演示：2026-11-14 实测时 Codex 用了 2 分 18 秒、改的是 `params.json`（当时还没有 `user.css`）；现在的 `AGENTS.md` 让 AI 先改 `user.css`，画面里写的三行变量就是效果宿主实际读到并生效的值。
 
@@ -49,11 +50,11 @@ AI 改效果这一段是把实测过程压缩后的演示：2026-11-14 实测时
 ```text
 ⭐ 觉得好看就点个 Star：https://github.com/woodfishhhh/Woodfish-Theme
 
-Woodfish Theme 7.3：给 VS Code 和 Codex 桌面版换上渐变代码、彩虹光标、光标拖尾和打字粒子；Codex 里回复是彩虹字，AI 吐字时末尾跟着彩虹光标。每个效果都是一个文件夹，一句话就能让 Codex 帮你改。
+Woodfish Theme 8.0：给 VS Code 和 Codex 桌面版换上渐变代码、彩虹光标、光标拖尾和打字粒子；Codex 里回复是彩虹字，AI 吐字时末尾跟着彩虹光标。每个效果都是一个文件夹，一句话就能让 Codex 帮你改。
 
 安装：
 · VS Code / Cursor / Kiro / Trae：扩展商店或 Open VSX 搜「Woodfish Theme」，或运行 code --install-extension zhongjun.woodfish-theme
-· Codex 桌面版（Windows 商店版）：VS Code 里运行「Woodfish Theme: 为 Codex 启用 Woodfish」，或下载 GitHub Release 里的 woodfish.exe，或 npx woodfish codex launch；不会改你原来的 Codex 快捷方式，详见仓库 README
+· Codex 桌面版（Windows 商店版）：VS Code 里运行「Woodfish Theme: 为 Codex 启用 Woodfish」一键启用，或下载 GitHub Release 里的 woodfish.exe；不会改你原来的 Codex 快捷方式，详见仓库 README
 
 BGM：Sleepy Fish - no more fires（Chillhop Music）
 ```

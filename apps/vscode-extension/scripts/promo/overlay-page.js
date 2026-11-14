@@ -19,10 +19,11 @@
 .promo-caption .sub:empty { display: none; }
 .promo-badge { right: 48px; top: 48px; padding: 11px 22px; border-radius: 999px; font-size: 21px; color: #e9ecf4; background: rgb(12 14 24 / 58%); }
 .promo-badge b { margin-right: 8px; font-weight: 400; background: linear-gradient(135deg, #ffd25e, #ff6fb5 55%, #7aa2ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-.promo-end { position: absolute; left: 0; right: 0; top: 230px; text-align: center; }
+/* The repository line is drawn by the editor below the card, at y ≈ 690. */
+.promo-end { position: absolute; left: 0; right: 0; top: 360px; text-align: center; }
+.promo-end .promo-card { position: relative; display: inline-block; padding: 26px 56px 30px; }
 .promo-end .star { font-size: 72px; font-weight: 700; letter-spacing: 2px; }
-/* The repository line sits between the two, drawn by the editor below at y ≈ 444. */
-.promo-end .note { position: absolute; left: 0; right: 0; top: 330px; font-size: 26px; color: #c9d0de; }
+.promo-end .note { margin-top: 12px; font-size: 26px; color: #c9d0de; }
 .promo-fade { position: absolute; inset: 0; background: #000; }
 `;
   document.head.append(style);
@@ -31,7 +32,7 @@
   root.className = 'promo-overlay';
   root.innerHTML = `<div class="promo-card promo-caption"><div class="main"></div><div class="sub"></div></div>
 <div class="promo-card promo-badge"><b>✦</b>你可以让 Codex 随时调整此效果</div>
-<div class="promo-end"><div class="star">觉得好看，就点个 Star ⭐</div><div class="note"></div></div>
+<div class="promo-end"><div class="promo-card"><div class="star">觉得好看，就点个 Star ⭐</div><div class="note"></div></div></div>
 <div class="promo-fade"></div>`;
   document.body.append(root);
   const caption = root.querySelector('.promo-caption');

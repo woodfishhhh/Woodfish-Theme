@@ -30,10 +30,10 @@ const DARK_THEME_COLORS = JSON.parse(
 const BACKSLASH = String.fromCharCode(92);
 
 /** The CSS the extension injects for these settings (cursor and glass off unless asked). */
-function runtimeCss(settings = {}) {
+function runtimeCss(settings = {}, assets = {}) {
   return buildRuntimeCss(
     { cursor: { enabled: false }, glass: { enabled: false }, ...settings },
-    { activityBar: '', tabBar: '', overlayBootstrap: '', nativeWindowHook: '', ...SHARED_CSS }
+    { activityBar: '', tabBar: '', overlayBootstrap: '', nativeWindowHook: '', ...SHARED_CSS, ...assets }
   );
 }
 
