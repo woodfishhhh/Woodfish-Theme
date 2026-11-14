@@ -1,7 +1,7 @@
 {
   "name": "代码渐变",
   "description": "代码块和 diff 里每个 token 按 OKLCH 渐变着色（Woodfish 主题用手调的渐变），可选再加一层柔和发光。",
-  "version": 1,
+  "version": 2,
   "hosts": ["codex"],
   "enabled": true,
   "order": 110,
@@ -48,7 +48,7 @@
       "type": "boolean",
       "default": false,
       "label": "代码发光",
-      "description": "代码文字带一层柔和光晕（作者 VS Code 里关着）"
+      "description": "代码文字带一层柔和光晕（默认关闭）"
     },
     "glowIntensity": {
       "type": "number",

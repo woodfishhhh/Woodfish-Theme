@@ -1,7 +1,7 @@
 {
   "name": "吐字光标",
   "description": "Codex 流式输出时，回复末尾跟着一根彩虹光标：随新字往右滑，换行跳到下一行开头，生成结束就消失。",
-  "version": 2,
+  "version": 3,
   "hosts": ["codex"],
   "enabled": true,
   "order": 40,
@@ -14,7 +14,7 @@
       "step": 0.5,
       "unit": "px",
       "label": "光标粗细",
-      "description": "和作者 VS Code 的 editor.cursorWidth 一样是 6"
+      "description": "默认 6，和输入框的彩虹光标一样粗"
     },
     "followTheme": {
       "type": "boolean",

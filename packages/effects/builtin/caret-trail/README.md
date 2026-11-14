@@ -1,6 +1,6 @@
 # 光标拖尾 `caret-trail`
 
-文字光标移动时，身后拖一条单色的带子。和 VS Code 里 Animations 插件的 CursorAnimation 一样（照抄，MIT），作者 VS Code 里开着它、长度 12。
+文字光标移动时，身后拖一条单色的带子。和 VS Code 里 Animations 插件的 CursorAnimation 一样（照抄，MIT），默认长度 12。
 
 它订阅宿主的统一“光标”事件（`ctx.onCaret`）：
 
@@ -15,7 +15,7 @@ AI 吐字换行时，拖尾直接从下一行开头重新开始（不往回扫�
 | --- | --- | --- |
 | `length` | 12 | 带子由多少个点连成（插件的 TrailLength） |
 | `style` | `block` | `block` 实心带子，`line` 四条细线 |
-| `width` | 6 px | 光标宽度（作者 VS Code 的 `editor.cursorWidth`）；宿主报告了宽度时用宿主的 |
+| `width` | 6 px | 光标宽度（对应 VS Code 的 `editor.cursorWidth`）；宿主报告了宽度时用宿主的 |
 | `color` | `#ffffff` | 单色，插件默认白色 |
 | `followTheme` | 关 | 用当前主题的强调色 |
 | `opacity` | 1 | 不透明度 |

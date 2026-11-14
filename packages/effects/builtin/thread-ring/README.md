@@ -10,7 +10,7 @@ Codex 侧栏选中的会话，照抄 Bifrost 控制台「创建 Key」按钮（`
 
 七色默认用 Bifrost 的两套（深色 `#ff5f4e … #9b7bff`，浅色 `#e5432f … #7a52f0`），里面的面也是 Bifrost 的（深色 `#10142a`，浅色白色）。`followTheme` 打开后改用当前主题的颜色和底色。
 
-替换了之前在 `docs/playground/tab-indicator.html` 里选的 #8 旋转流光边框（2026-11-14 作者的新决定）。
+替换了之前在 `docs/playground/tab-indicator.html` 里选的 #8 旋转流光边框。
 
 ## 参数
 

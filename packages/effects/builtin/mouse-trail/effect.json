@@ -1,7 +1,7 @@
 {
   "name": "鼠标拖尾",
-  "description": "鼠标指针移动时，身后拖一条单色的带子；画法照抄 VS Code 的 Animations 插件。Codex 里默认关闭（作者只要文字光标的拖尾），想要就打开。",
-  "version": 2,
+  "description": "鼠标指针移动时，身后拖一条单色的带子；画法照抄 VS Code 的 Animations 插件。Codex 里默认关闭，想要就打开。",
+  "version": 3,
   "hosts": ["codex", "vscode"],
   "enabled": false,
   "order": 10,

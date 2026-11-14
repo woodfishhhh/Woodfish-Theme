@@ -1,7 +1,7 @@
 {
   "name": "窗口背景",
   "description": "一张图铺在整个窗口底下（默认《彩云》），侧栏和输入框是叠在上面的毛玻璃。图片在设置页的背景区挑或上传。",
-  "version": 1,
+  "version": 3,
   "hosts": ["codex"],
   "enabled": true,
   "order": 100,
@@ -14,7 +14,7 @@
       "max": 1,
       "step": 0.01,
       "label": "透明度",
-      "description": "背景图透出来的程度（作者 VS Code 里的 background 插件是 0.15）"
+      "description": "背景图透出来的程度（默认 0.15）"
     },
     "blur": {
       "type": "number",

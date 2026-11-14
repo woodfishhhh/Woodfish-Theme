@@ -2,7 +2,7 @@
 
 Codex 的菜单、弹窗、下拉和浮层用磨砂玻璃；弹出时轻轻落下（菜单）或放大淡入（弹窗），列表项和按钮上有一团跟着指针的柔光（Fluent Reveal）。主界面不动，Codex 自己的 Windows 11 Mica 照常。
 
-默认值是作者 VS Code 里 Frosted Glass Theme 的观感：0.4 的薄玻璃、饱和度 150%。
+默认值取 VS Code 的 Frosted Glass Theme 的观感：0.4 的薄玻璃、饱和度 150%。
 
 亚克力滤镜（`ctx.lib.mountAcrylicFilter`）、噪点（`ctx.lib.noiseDataUri`）和指针柔光（`ctx.lib.startReveal`）是宿主提供的小工具，VS Code 里的毛玻璃也用同一套。
 

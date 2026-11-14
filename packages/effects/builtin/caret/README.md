@@ -1,6 +1,6 @@
 # 输入框光标 `caret`
 
-把 Codex 输入框的光标换成作者 VS Code 里那套。作者的 VS Code 设置：
+把 Codex 输入框的光标换成和 VS Code 里 Woodfish 光标一样的一套。默认值对应这些 VS Code 设置：
 
 | VS Code 设置 | 值 | 这里的参数 |
 | --- | --- | --- |

@@ -1,7 +1,7 @@
 {
   "name": "光标拖尾",
   "description": "文字光标移动时身后拖一条单色带子（照抄 VS Code Animations 插件的 CursorAnimation）；你打字和 AI 吐字时都跟着。",
-  "version": 1,
+  "version": 2,
   "hosts": ["codex", "vscode"],
   "enabled": true,
   "order": 20,
@@ -13,7 +13,7 @@
       "max": 50,
       "step": 1,
       "label": "拖尾长度",
-      "description": "带子由多少个点连成（作者 VS Code 里 Animations 的 TrailLength 是 12）"
+      "description": "带子由多少个点连成（默认 12，和 VS Code Animations 插件的 TrailLength 一样）"
     },
     "style": {
       "type": "select",
@@ -33,7 +33,7 @@
       "step": 0.5,
       "unit": "px",
       "label": "宽度",
-      "description": "光标宽度（作者 VS Code 的 editor.cursorWidth 是 6）；宿主报告了光标宽度时用宿主的"
+      "description": "光标宽度（默认 6）；宿主报告了光标宽度时用宿主的"
     },
     "color": {
       "type": "color",

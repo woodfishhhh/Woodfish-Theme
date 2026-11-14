@@ -89,13 +89,13 @@
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
-| `--woodfish-caret-width` | 光标宽度：VS Code 的 editor.cursorWidth（作者设的是 6）。范围 1–16px | `6px` | `--woodfish-caret-width: 10px;` |
-| `--woodfish-caret-blinking` | 闪烁方式：VS Code 的 editor.cursorBlinking（作者设的是 solid）；打字时总是常亮。可选 `solid` 不闪烁、`blink` 闪烁、`smooth` 柔和闪烁、`phase` 渐隐渐现、`expand` 伸缩 | `solid` | `--woodfish-caret-blinking: blink;` |
-| `--woodfish-caret-smooth-caret-animation` | 平滑移动：VS Code 的 editor.cursorSmoothCaretAnimation（作者设的是 on），移动用 80 ms。可选 `on` 总是平滑、`explicit` 只在点击和方向键移动时、`off` 关 | `on` | `--woodfish-caret-smooth-caret-animation: explicit;` |
+| `--woodfish-caret-width` | 光标宽度：VS Code 的 editor.cursorWidth（默认 6）。范围 1–16px | `6px` | `--woodfish-caret-width: 10px;` |
+| `--woodfish-caret-blinking` | 闪烁方式：VS Code 的 editor.cursorBlinking（默认 solid）；打字时总是常亮。可选 `solid` 不闪烁、`blink` 闪烁、`smooth` 柔和闪烁、`phase` 渐隐渐现、`expand` 伸缩 | `solid` | `--woodfish-caret-blinking: blink;` |
+| `--woodfish-caret-smooth-caret-animation` | 平滑移动：VS Code 的 editor.cursorSmoothCaretAnimation（默认 on），移动用 80 ms。可选 `on` 总是平滑、`explicit` 只在点击和方向键移动时、`off` 关 | `on` | `--woodfish-caret-smooth-caret-animation: explicit;` |
 | `--woodfish-caret-colors` | 颜色：跟 VS Code 一样：主题自带光标色时用主题的，否则用 Woodfish 彩虹（Woodfish Dark 是彩虹）。可选 `auto` 跟 VS Code 一样、`rainbow` Woodfish 彩虹、`theme` 主题色 | `auto` | `--woodfish-caret-colors: rainbow;` |
 | `--woodfish-caret-flow-seconds` | 变色周期：woodfishTheme.cursor.animationDuration（默认 8 秒）。范围 1–60s | `8s` | `--woodfish-caret-flow-seconds: 23s;` |
 | `--woodfish-caret-radius` | 圆角：woodfishTheme.cursor.borderRadius（默认 2）。范围 0–8px | `2px` | `--woodfish-caret-radius: 4px;` |
-| `--woodfish-caret-glow` | 发光：光标外的一圈柔光；作者 VS Code 里关着发光，所以默认 0。范围 0–1 | `0` | `--woodfish-caret-glow: 0.25;` |
+| `--woodfish-caret-glow` | 发光：光标外的一圈柔光；默认 0（关闭）。范围 0–1 | `0` | `--woodfish-caret-glow: 0.25;` |
 
 ### 鼠标拖尾（`mouse-trail`，Codex、VS Code，默认关闭）
 
@@ -113,9 +113,9 @@
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
-| `--woodfish-caret-trail-length` | 拖尾长度：带子由多少个点连成（作者 VS Code 里 Animations 的 TrailLength 是 12）。范围 2–50 | `12` | `--woodfish-caret-trail-length: 24;` |
+| `--woodfish-caret-trail-length` | 拖尾长度：带子由多少个点连成（默认 12，和 VS Code Animations 插件的 TrailLength 一样）。范围 2–50 | `12` | `--woodfish-caret-trail-length: 24;` |
 | `--woodfish-caret-trail-style` | 样式：Animations 插件的 CursorStyle。可选 `block` 实心带子、`line` 四条细线 | `block` | `--woodfish-caret-trail-style: line;` |
-| `--woodfish-caret-trail-width` | 宽度：光标宽度（作者 VS Code 的 editor.cursorWidth 是 6）；宿主报告了光标宽度时用宿主的。范围 1–24px | `6px` | `--woodfish-caret-trail-width: 12px;` |
+| `--woodfish-caret-trail-width` | 宽度：光标宽度（默认 6）；宿主报告了光标宽度时用宿主的。范围 1–24px | `6px` | `--woodfish-caret-trail-width: 12px;` |
 | `--woodfish-caret-trail-color` | 颜色：单色，Animations 插件默认白色。写 #rrggbb、颜色名、rgb() 或 hsl() | `#ffffff` | `--woodfish-caret-trail-color: #ff4d4f;` |
 | `--woodfish-caret-trail-follow-theme` | 颜色跟随主题：打开后用当前主题的强调色。1 开，0 关 | `0` | `--woodfish-caret-trail-follow-theme: 1;` |
 | `--woodfish-caret-trail-opacity` | 不透明度：1 是插件原样。范围 0.05–1 | `1` | `--woodfish-caret-trail-opacity: 0.75;` |
@@ -134,13 +134,13 @@
 | `--woodfish-typing-particles-colors` | 颜色：主题渐变色取当前主题的光标色；单色用下面的颜色。可选 `theme` 主题渐变色、`rainbow` Woodfish 彩虹、`single` 单色 | `theme` | `--woodfish-typing-particles-colors: rainbow;` |
 | `--woodfish-typing-particles-color` | 单色颜色：颜色选“单色”时用。写 #rrggbb、颜色名、rgb() 或 hsl() | `#ffffff` | `--woodfish-typing-particles-color: #ff4d4f;` |
 | `--woodfish-typing-particles-sources` | 谁触发：Codex 里 AI 流式输出也算“打字”。可选 `all` 你打字和 AI 吐字、`user` 只在你打字时、`ai` 只在 AI 吐字时 | `all` | `--woodfish-typing-particles-sources: user;` |
-| `--woodfish-typing-particles-shake` | 震动：打字时编辑区轻轻一抖（作者的 Power Mode 关了震动）。1 开，0 关 | `0` | `--woodfish-typing-particles-shake: 1;` |
+| `--woodfish-typing-particles-shake` | 震动：打字时编辑区轻轻一抖（默认关闭）。1 开，0 关 | `0` | `--woodfish-typing-particles-shake: 1;` |
 
 ### 吐字光标（`stream-cursor`，Codex）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
-| `--woodfish-stream-cursor-width` | 光标粗细：和作者 VS Code 的 editor.cursorWidth 一样是 6。范围 1–16px | `6px` | `--woodfish-stream-cursor-width: 10px;` |
+| `--woodfish-stream-cursor-width` | 光标粗细：默认 6，和输入框的彩虹光标一样粗。范围 1–16px | `6px` | `--woodfish-stream-cursor-width: 10px;` |
 | `--woodfish-stream-cursor-follow-theme` | 颜色跟随主题：关：Woodfish 彩虹（VS Code 光标的颜色）；开：当前主题的光标色。1 开，0 关 | `0` | `--woodfish-stream-cursor-follow-theme: 1;` |
 | `--woodfish-stream-cursor-flow-seconds` | 变色周期：彩虹在光标里流过一圈的时间（VS Code 光标是 8 秒）。范围 1–60s | `8s` | `--woodfish-stream-cursor-flow-seconds: 23s;` |
 | `--woodfish-stream-cursor-smooth` | 平滑移动：在同一行里滑过去（像 VS Code 的 cursorSmoothCaretAnimation），换行总是直接跳。1 开，0 关 | `1` | `--woodfish-stream-cursor-smooth: 0;` |
@@ -191,7 +191,7 @@
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
 | `--woodfish-glass-mode` | 玻璃类型：亚克力是 Fluent 的做法：模糊 + 淡淡的颗粒。可选 `blur` 模糊、`acrylic` 亚克力（带颗粒） | `blur` | `--woodfish-glass-mode: acrylic;` |
-| `--woodfish-glass-opacity` | 不透明度：玻璃上那层底色的浓度；作者 VS Code 的 Frosted Glass 是 0.4。范围 0.15–1 | `0.4` | `--woodfish-glass-opacity: 0.6;` |
+| `--woodfish-glass-opacity` | 不透明度：玻璃上那层底色的浓度；默认 0.4，和 VS Code 的 Frosted Glass Theme 一样。范围 0.15–1 | `0.4` | `--woodfish-glass-opacity: 0.6;` |
 | `--woodfish-glass-blur` | 模糊：背后内容的模糊半径。范围 0–60px | `24px` | `--woodfish-glass-blur: 39px;` |
 | `--woodfish-glass-saturate` | 饱和度：透过玻璃的颜色更鲜艳一些。范围 100–250% | `150%` | `--woodfish-glass-saturate: 190%;` |
 | `--woodfish-glass-noise` | 颗粒：叠一层很淡的噪点，大面积玻璃不显得平。范围 0–0.2 | `0.02` | `--woodfish-glass-noise: 0.07;` |
@@ -203,7 +203,7 @@
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
-| `--woodfish-background-opacity` | 透明度：背景图透出来的程度（作者 VS Code 里的 background 插件是 0.15）。范围 0–1 | `0.15` | `--woodfish-background-opacity: 0.4;` |
+| `--woodfish-background-opacity` | 透明度：背景图透出来的程度（默认 0.15）。范围 0–1 | `0.15` | `--woodfish-background-opacity: 0.4;` |
 | `--woodfish-background-blur` | 模糊：侧栏和输入框毛玻璃的模糊半径。范围 0–60px | `10px` | `--woodfish-background-blur: 25px;` |
 | `--woodfish-background-mask` | 遮罩：侧栏和输入框盖在背景上的主题色浓度。范围 0–1 | `0.35` | `--woodfish-background-mask: 0.6;` |
 | `--woodfish-background-saturate` | 饱和度：毛玻璃里透出的颜色饱和度。范围 100–250% | `150%` | `--woodfish-background-saturate: 190%;` |
@@ -219,7 +219,7 @@
 | `--woodfish-code-gradient-hue-shift` | 色相偏移：推导渐变时终点相对起点转多少度（主题没有手调渐变的颜色才用）。范围 0–180 | `32` | `--woodfish-code-gradient-hue-shift: 77;` |
 | `--woodfish-code-gradient-lightness-delta` | 亮度变化：推导渐变时终点比起点亮多少（OKLCH 的 L）。范围 0–0.5 | `0.12` | `--woodfish-code-gradient-lightness-delta: 0.25;` |
 | `--woodfish-code-gradient-neutral-chroma` | 灰色的彩度：灰色 token（标点、注释）推导渐变时给的彩度。范围 0–0.4 | `0.075` | `--woodfish-code-gradient-neutral-chroma: 0.175;` |
-| `--woodfish-code-gradient-glow` | 代码发光：代码文字带一层柔和光晕（作者 VS Code 里关着）。1 开，0 关 | `0` | `--woodfish-code-gradient-glow: 1;` |
+| `--woodfish-code-gradient-glow` | 代码发光：代码文字带一层柔和光晕（默认关闭）。1 开，0 关 | `0` | `--woodfish-code-gradient-glow: 1;` |
 | `--woodfish-code-gradient-glow-intensity` | 发光强度：发光打开时的强弱。范围 0.1–3 | `1` | `--woodfish-code-gradient-glow-intensity: 1.7;` |
 
 <!-- 参数变量清单结束 -->

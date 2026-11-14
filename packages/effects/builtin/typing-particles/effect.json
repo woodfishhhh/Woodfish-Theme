@@ -1,7 +1,7 @@
 {
   "name": "打字粒子",
   "description": "插入文字时，从光标处迸出一簇光点（像 VS Code 的 Power Mode，没有震动和连击计数）；你打字和 AI 吐字都会触发。",
-  "version": 1,
+  "version": 2,
   "hosts": ["codex", "vscode"],
   "enabled": true,
   "order": 30,
@@ -95,7 +95,7 @@
       "type": "boolean",
       "default": false,
       "label": "震动",
-      "description": "打字时编辑区轻轻一抖（作者的 Power Mode 关了震动）"
+      "description": "打字时编辑区轻轻一抖（默认关闭）"
     }
   }
 }

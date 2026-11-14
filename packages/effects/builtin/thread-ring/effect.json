@@ -1,7 +1,7 @@
 {
   "name": "流光边框",
   "description": "侧栏选中的会话照抄 Bifrost「创建 Key」按钮：七色光谱环 3.2 秒转一圈，外面一圈柔光晕，里面是干净的面；悬停更亮并上浮 1px。运行中的会话用弱化版。",
-  "version": 2,
+  "version": 3,
   "hosts": ["codex"],
   "enabled": true,
   "order": 60,

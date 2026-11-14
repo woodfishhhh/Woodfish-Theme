@@ -1,7 +1,7 @@
 {
   "name": "浮层毛玻璃",
   "description": "菜单、弹窗、下拉和浮层用磨砂玻璃；弹出时轻轻落下或放大淡入，列表项跟着指针微微发亮。主界面不动，Codex 自己的 Mica 照常。",
-  "version": 1,
+  "version": 2,
   "hosts": ["codex"],
   "enabled": true,
   "order": 90,
@@ -23,7 +23,7 @@
       "max": 1,
       "step": 0.05,
       "label": "不透明度",
-      "description": "玻璃上那层底色的浓度；作者 VS Code 的 Frosted Glass 是 0.4"
+      "description": "玻璃上那层底色的浓度；默认 0.4，和 VS Code 的 Frosted Glass Theme 一样"
     },
     "blur": {
       "type": "number",
