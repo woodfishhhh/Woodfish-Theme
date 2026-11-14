@@ -1,5 +1,12 @@
 # 更新日志
 
+## [8.1.1] - 2026-11-14
+
+### 移除
+
+- 去掉鼠标拖尾（Codex 与 VS Code），它对写代码没有帮助。设置 `woodfishTheme.mouseTrail.*` 和效果 `mouse-trail` 一起删除；文字光标的拖尾 `caret-trail` 不变
+- 升级后，效果文件夹（`%APPDATA%\Woodfish\effects`）里没改过的 `mouse-trail` 会自动删除；改过的保留下来，当作你自己的效果，日志里会说明
+
 ## [8.1.0] - 2026-11-14
 
 ### 怀旧（5.x）

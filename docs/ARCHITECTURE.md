@@ -102,7 +102,7 @@ VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建�
 | `renderer-runtime/effectHost.ts` | 页面里的效果宿主：给每个效果一个 `ctx`（参数、主题、选择器、事件、共用画布和覆盖层、样式、计时器），一个效果启动失败或连续出错只停它自己；画布只在有效果要画时跑帧，窗口在后台时暂停并在 `<html>` 上标 `data-woodfish-paused`；参数变了有 `update` 就原地更新，否则重启；代码变了（hash）重启 |
 | `renderer-runtime/textEvents.ts` | 统一事件的来源：`watchStream` 把流式回复里追加的文字变成插入事件（每帧最多一次，不改 DOM）；`watchEditableTyping` 处理 contenteditable 输入框的打字（含输入法提交） |
 | `adapter-codex/renderer/effects.ts` | Codex 这一侧：`ctx.theme()`（当前外观的调色板、光标色、特调正文渐变）、`ctx.selectors`、`ctx.lib`，输入框打字和流式回复（运行中的当前会话、最后一个用户消息之后的回复）接到事件上 |
-| `apps/vscode-extension/src/services/effects.ts`、`browser/effects.ts` | VS Code 这一侧：扩展把效果文件夹写成全局存储里的 `effects.mjs` 和 `effects.json`，自带的三个效果用 `woodfishTheme.<驼峰名>.*` 设置当参数；工作台脚本每 1.5 秒（窗口在前台时）看一眼版本，变了就 `import()` 新模块；Monaco 光标的 `top/left` 变化和按键合成光标事件与插入事件 |
+| `apps/vscode-extension/src/services/effects.ts`、`browser/effects.ts` | VS Code 这一侧：扩展把效果文件夹写成全局存储里的 `effects.mjs` 和 `effects.json`，自带的两个效果（光标拖尾、打字粒子）用 `woodfishTheme.<驼峰名>.*` 设置当参数；工作台脚本每 1.5 秒（窗口在前台时）看一眼版本，变了就 `import()` 新模块；Monaco 光标的 `top/left` 变化和按键合成光标事件与插入事件 |
 
 背景和代码渐变是“核心效果”（`effect.json` 里有 `core`）：引擎留在适配器里，文件夹只管开关、参数和追加的 CSS。
 

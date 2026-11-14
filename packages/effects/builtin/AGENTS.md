@@ -31,7 +31,6 @@
 | 用户说的 | 文件夹 |
 | --- | --- |
 | 打字 / AI 出字时迸出来的粒子、光点 | `typing-particles` |
-| 鼠标指针后面的尾巴（Codex 里默认关闭） | `mouse-trail` |
 | 文字光标后面的尾巴、拖影 | `caret-trail` |
 | Codex 输入框里的光标（粗细、颜色、闪烁、平滑） | `caret` |
 | AI 回复时末尾跟着的彩虹光标 | `stream-cursor` |
@@ -67,7 +66,7 @@
 
 改 `params.json` 里的值，例如粒子大一点：`"size": 4`。不在范围内的值会被夹到 `min`/`max`，不认识的键会被忽略，缺的键用默认值。要超出范围，先改 `effect.json` 里的 `min`/`max`。
 
-VS Code 里 Woodfish 自带的三个效果（`mouse-trail`、`caret-trail`、`typing-particles`）不读 `params.json`，用 VS Code 自己的设置：`settings.json` 里的 `woodfishTheme.<效果名的驼峰>.<参数>`，例如 `woodfishTheme.typingParticles.size`、`woodfishTheme.mouseTrail.enabled`，参数名和这里一样。你新加的效果在 VS Code 里也读它自己的 `params.json`。
+VS Code 里 Woodfish 自带的两个效果（`caret-trail`、`typing-particles`）不读 `params.json`，用 VS Code 自己的设置：`settings.json` 里的 `woodfishTheme.<效果名的驼峰>.<参数>`，例如 `woodfishTheme.typingParticles.size`、`woodfishTheme.caretTrail.enabled`，参数名和这里一样。你新加的效果在 VS Code 里也读它自己的 `params.json`。
 
 ## 4. 改实现：`effect.js` 的写法
 

@@ -254,7 +254,7 @@ describe('run', () => {
           '--set',
           'bodyText.enabled=false',
           '--set',
-          'mouseTrail.length=20',
+          'caretTrail.length=20',
           '--set',
           'typing-particles.colors=rainbow',
         ],
@@ -264,7 +264,7 @@ describe('run', () => {
     expect(loadSettings(paths).codex.palette.dark).toBe('neon');
     expect(effectValues('glass').blur).toBe(60);
     expect(effectValues('rainbow-text').enabled).toBe(false);
-    expect(effectValues('mouse-trail').length).toBe(20);
+    expect(effectValues('caret-trail').length).toBe(20);
     expect(effectValues('typing-particles').colors).toBe('rainbow');
     expect(await run(['codex', 'settings', '--set', 'nope.x=1'], { io, context: { paths } })).toBe(
       2
@@ -325,11 +325,11 @@ describe('run', () => {
     expect(fs.readFileSync(`${userCss}.bak`, 'utf8')).toContain('red');
     expect(fs.readFileSync(userCss, 'utf8')).toContain('Woodfish user.css');
 
-    await run(['codex', 'settings', '--set', 'mouse-trail.length=30'], { io, context: { paths } });
+    await run(['codex', 'settings', '--set', 'caret-trail.length=30'], { io, context: { paths } });
     expect(
-      await run(['codex', 'effects', 'reset', 'mouse-trail'], { io, context: { paths } })
+      await run(['codex', 'effects', 'reset', 'caret-trail'], { io, context: { paths } })
     ).toBe(0);
-    expect(effectValues('mouse-trail').length).toBe(12);
+    expect(effectValues('caret-trail').length).toBe(12);
 
     const platform = fakePlatform();
     expect(await run(['reload'], { io, context: { paths, platform: () => platform } })).toBe(0);

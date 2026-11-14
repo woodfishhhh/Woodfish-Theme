@@ -168,7 +168,7 @@ export function watchEffectsDir(dir: string): (onChange: (reload: boolean) => vo
   };
 }
 
-/** `mouseTrail` → `mouse-trail`. */
+/** `caretTrail` → `caret-trail`. */
 export function kebabCase(key: string): string {
   return key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 }
@@ -181,7 +181,7 @@ const SETTING_ALIASES: Readonly<Record<string, { id: string; rename?: Record<str
 };
 
 /**
- * Splits a `--set` patch (`{ palette: {…}, glass: { blur: 12 }, mouseTrail: {…} }`) into the
+ * Splits a `--set` patch (`{ palette: {…}, glass: { blur: 12 }, caretTrail: {…} }`) into the
  * `codex.json` part and per-effect values. `background.image` is the picture (the file).
  */
 export function splitSettingsPatch(

@@ -138,7 +138,7 @@ Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和�
   </tr>
   <tr>
     <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/vscode-effects.webp" alt="VS Code 里打字时的光标拖尾和打字粒子"></td>
-    <td><b>VS Code 里的同款</b><br>光标拖尾和打字粒子在 VS Code 里也有，默认关闭；和 Codex 共用同一个效果文件夹，改一次两边都变。<br><sub>设置里打开 <code>woodfishTheme.caretTrail.enabled</code>、<code>woodfishTheme.typingParticles.enabled</code>（另有鼠标拖尾 <code>woodfishTheme.mouseTrail.enabled</code>）</sub></td>
+    <td><b>VS Code 里的同款</b><br>光标拖尾和打字粒子在 VS Code 里也有，默认关闭；和 Codex 共用同一个效果文件夹，改一次两边都变。<br><sub>设置里打开 <code>woodfishTheme.caretTrail.enabled</code>、<code>woodfishTheme.typingParticles.enabled</code></sub></td>
   </tr>
 </table>
 
@@ -261,9 +261,9 @@ code --install-extension woodfish-theme-7.2.0.vsix
 
 ## 效果插件
 
-鼠标拖尾、光标拖尾、打字粒子是可插拔的效果插件，在设置的「效果插件」一节里打开（默认关闭）：
+光标拖尾、打字粒子是可插拔的效果插件，在设置的「效果插件」一节里打开（默认关闭）：
 
-- **鼠标拖尾** `woodfishTheme.mouseTrail.*`、**光标拖尾** `woodfishTheme.caretTrail.*`：照抄 VS Code Animations 插件的画法，指针或光标身后拖一条单色带子（默认白色，长度 12，可改成跟随主题）。
+- **光标拖尾** `woodfishTheme.caretTrail.*`：照抄 VS Code Animations 插件的画法，文字光标身后拖一条单色带子（默认白色，长度 12，可改成跟随主题）。
 - **打字粒子** `woodfishTheme.typingParticles.*`：打字时从光标处迸出一簇主题色的光点，像 Power Mode，没有震动和连击计数。
 - 每个效果是 `%APPDATA%\Woodfish\effects`（macOS 在 `~/Library/Application Support/Woodfish/effects`）里的一个文件夹，`effect.js` 就是实现，可以直接改，也可以让 AI 照文件夹里的 `AGENTS.md` 帮你改，或者新建一个效果。改了文件或设置会自动刷新，也可以运行 `Woodfish Theme: 刷新效果`（`Ctrl+Alt+R`），**不用重新加载窗口**。同一个文件夹也给 Codex 用，改一次两边都变。只想换颜色、粗细、长度：在同一文件夹的 `user.css` 里写一行 CSS 变量，例如 `:root { --woodfish-caret-trail-color: #ff4d4f; }`，它最后加载、优先级最高，升级不覆盖；全部变量见文件夹里的 `README.md`。
 - 只在有效果要画时才逐帧绘制，窗口在后台或开了“减少动态效果”时暂停。
@@ -424,8 +424,8 @@ Woodfish 不会修改、替换你原来的 Codex 快捷方式。开了“登录�
 它不修改 Codex 的安装文件，有两种方式：
 
 - **原生配色**：`woodfish codex theme apply --dark neon --light light`，写入 Codex 官方的主题设置，深色和浅色各一套，不开任何端口；加 `--appearance dark` 可把 Codex 固定为深色。
-- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕、和 VS Code 一样的 6px 彩虹光标、鼠标和光标拖尾、打字粒子。需要以本机调试端口启动 Codex，首次使用前会说明风险。助手回复是彩虹渐变字；AI 吐字时末尾跟着一根彩虹光标、身后拖一段拖尾、新字轻轻淡入（AI 吐字和你打字触发的是同一套效果）；选中的会话外圈是一道旋转的七色光谱环加柔光晕。
-- **效果插件**：Codex 里只留文字光标的拖尾，鼠标拖尾默认关闭。每个效果是 `%APPDATA%\Woodfish\effects` 里的一个文件夹，在 Codex 的 **设置 → 外观 → Woodfish 外观** 里能切换 15 套主题、开关每个效果、调它的全部参数；也可以让 Codex 照文件夹里的 `AGENTS.md` 改效果代码。保存即刷新，或 `woodfish reload` / Codex 里按 `Ctrl+Alt+R`，不用重启 Codex。颜色、粗细、速度这类样子也能在同一文件夹的 `user.css` 里用 CSS 变量改（设置页有「打开 user.css」）。
+- **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕、和 VS Code 一样的 6px 彩虹光标、光标拖尾、打字粒子。需要以本机调试端口启动 Codex，首次使用前会说明风险。助手回复是彩虹渐变字；AI 吐字时末尾跟着一根彩虹光标、身后拖一段拖尾、新字轻轻淡入（AI 吐字和你打字触发的是同一套效果）；选中的会话外圈是一道旋转的七色光谱环加柔光晕。
+- **效果插件**：每个效果是 `%APPDATA%\Woodfish\effects` 里的一个文件夹，在 Codex 的 **设置 → 外观 → Woodfish 外观** 里能切换 15 套主题、开关每个效果、调它的全部参数；也可以让 Codex 照文件夹里的 `AGENTS.md` 改效果代码。保存即刷新，或 `woodfish reload` / Codex 里按 `Ctrl+Alt+R`，不用重启 Codex。颜色、粗细、速度这类样子也能在同一文件夹的 `user.css` 里用 CSS 变量改（设置页有「打开 user.css」）。
 - **一直生效**：`woodfish codex autostart on` 注册一个登录时运行的后台任务（无窗口、普通权限）。Codex 重启或商店更新后，效果会在几秒内自动回来；`woodfish codex autostart off` 或 `woodfish codex uninstall` 干净移除。
 
 - **窗口背景**：默认铺上《彩云》，侧栏和输入框是毛玻璃。在 **设置 → 外观 → Woodfish** 里点“上传图片”或把图片拖进窗口就能换成自己的，实时预览，可调透明度、模糊、遮罩，保存多张随时切换；命令行是 `woodfish codex background set <图片>`。图片只存在本机。

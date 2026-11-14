@@ -68,10 +68,10 @@ describe('VS Code effect settings', () => {
   );
 
   it('reads VS Code settings for Woodfish effects and params.json for the rest', () => {
-    const manifest = normalizeEffectManifest(JSON.parse(files['mouse-trail/effect.json']));
+    const manifest = normalizeEffectManifest(JSON.parse(files['caret-trail/effect.json']));
     const read = (key: string): unknown =>
-      ({ 'mouseTrail.enabled': true, 'mouseTrail.length': 30 })[key];
-    expect(vscodeEffectValues({ id: 'mouse-trail', manifest, values: null }, read)).toMatchObject({
+      ({ 'caretTrail.enabled': true, 'caretTrail.length': 30 })[key];
+    expect(vscodeEffectValues({ id: 'caret-trail', manifest, values: null }, read)).toMatchObject({
       enabled: true,
       length: 30,
       color: undefined,

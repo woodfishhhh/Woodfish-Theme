@@ -86,7 +86,7 @@ export const HELP = `Woodfish 桌面工具
   reload [--hard]        从磁盘重新加载所有效果，不用重启 Codex（Codex 里也可按 Ctrl+Alt+R）；
                          --hard 连 Codex 窗口一起重新加载
                          效果参数也能用 settings 改，例如：
-                           --set mouse-trail.length=20 --set typing-particles.colors=rainbow
+                           --set caret-trail.length=20 --set typing-particles.colors=rainbow
 
 窗口背景（图片铺在窗口底下，侧栏和输入框用毛玻璃叠在上面）
   background [list]      查看背景设置和保存的图片

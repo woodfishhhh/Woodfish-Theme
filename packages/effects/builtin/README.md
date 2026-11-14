@@ -81,7 +81,7 @@
 
 ## 参数变量
 
-每个效果的全部参数。默认值是 Woodfish 自带的值，你在设置页或 `params.json` 里改过的，以那边为准，`user.css` 再盖在上面。VS Code 里鼠标拖尾、光标拖尾、打字粒子的值来自 VS Code 设置（`woodfishTheme.*`），`user.css` 同样能盖过它们。
+每个效果的全部参数。默认值是 Woodfish 自带的值，你在设置页或 `params.json` 里改过的，以那边为准，`user.css` 再盖在上面。VS Code 里光标拖尾、打字粒子的值来自 VS Code 设置（`woodfishTheme.*`），`user.css` 同样能盖过它们。
 
 <!-- 参数变量清单：scripts/css-variables.js 按各效果的 effect.json 生成，别手改 -->
 
@@ -96,18 +96,6 @@
 | `--woodfish-caret-flow-seconds` | 变色周期：woodfishTheme.cursor.animationDuration（默认 8 秒）。范围 1–60s | `8s` | `--woodfish-caret-flow-seconds: 23s;` |
 | `--woodfish-caret-radius` | 圆角：woodfishTheme.cursor.borderRadius（默认 2）。范围 0–8px | `2px` | `--woodfish-caret-radius: 4px;` |
 | `--woodfish-caret-glow` | 发光：光标外的一圈柔光；默认 0（关闭）。范围 0–1 | `0` | `--woodfish-caret-glow: 0.25;` |
-
-### 鼠标拖尾（`mouse-trail`，Codex、VS Code，默认关闭）
-
-| 变量 | 作用 | 默认值 | 示例 |
-| --- | --- | --- | --- |
-| `--woodfish-mouse-trail-length` | 拖尾长度：带子由多少个点连成，越大拖得越长（Animations 插件的 TrailLength）。范围 2–50 | `12` | `--woodfish-mouse-trail-length: 24;` |
-| `--woodfish-mouse-trail-style` | 样式：Animations 插件的 CursorStyle：block 是实心带子，line 是四条细线。可选 `block` 实心带子、`line` 四条细线 | `block` | `--woodfish-mouse-trail-style: line;` |
-| `--woodfish-mouse-trail-width` | 宽度：带子的宽度（插件给光标的默认尺寸是 7px）。范围 1–24px | `7px` | `--woodfish-mouse-trail-width: 13px;` |
-| `--woodfish-mouse-trail-height` | 高度：带子的高度，默认是宽度的 2.2 倍，和箭头差不多高。范围 1–48px | `15.4px` | `--woodfish-mouse-trail-height: 27.2px;` |
-| `--woodfish-mouse-trail-color` | 颜色：单色，Animations 插件默认白色。写 #rrggbb、颜色名、rgb() 或 hsl() | `#ffffff` | `--woodfish-mouse-trail-color: #ff4d4f;` |
-| `--woodfish-mouse-trail-follow-theme` | 颜色跟随主题：打开后用当前主题的强调色，不用上面的颜色。1 开，0 关 | `0` | `--woodfish-mouse-trail-follow-theme: 1;` |
-| `--woodfish-mouse-trail-opacity` | 不透明度：1 是插件原样的实心效果，调小更含蓄。范围 0.05–1 | `1` | `--woodfish-mouse-trail-opacity: 0.75;` |
 
 ### 光标拖尾（`caret-trail`，Codex、VS Code）
 

@@ -143,19 +143,24 @@ export interface SyncResult {
   updated: string[];
   /** Shipped files the user edited; a newer version exists but was not written. */
   kept: string[];
+  /** Effects (or root files) Woodfish no longer ships, deleted because the user never edited them. */
+  removed: string[];
+  /** Effects Woodfish no longer ships that the user edited: left in place as the user's own. */
+  retiredKept: string[];
 }
 
 /**
  * Seeds and upgrades the user's effects folder from the shipped files. A file is only
  * (re)written when it is missing and was never shipped before, or when it still has the
  * exact content Woodfish shipped last time and the new version is not older. Files the
- * user edited or deleted stay as they are; `params.json` is never shipped.
+ * user edited or deleted stay as they are; `params.json` is never shipped. An effect Woodfish
+ * stopped shipping is deleted when the user never edited it and kept whole when they did.
  */
 export function syncUserEffects(
   dir: string,
   files: Record<string, string> = builtinEffectFiles()
 ): SyncResult {
-  const result: SyncResult = { created: [], updated: [], kept: [] };
+  const result: SyncResult = { created: [], updated: [], kept: [], removed: [], retiredKept: [] };
   const ledger = readLedger(dir);
   for (const [relative, content] of Object.entries(files)) {
     const target = path.join(dir, ...relative.split('/'));
@@ -186,8 +191,73 @@ export function syncUserEffects(
       result.kept.push(relative);
     }
   }
+  retireUnshipped(dir, ledger, files, result);
   writeFileAtomic(path.join(dir, EFFECTS_LEDGER_FILE), `${JSON.stringify(ledger, null, 2)}\n`);
   return result;
+}
+
+/**
+ * Ledger entries Woodfish no longer ships, grouped by effect folder (a single file when its
+ * folder is still shipped). A group with an edited file stays whole and leaves the ledger,
+ * so it is the user's own from now on; otherwise its files go, and so do its values.
+ */
+function retireUnshipped(
+  dir: string,
+  ledger: Ledger,
+  files: Record<string, string>,
+  result: SyncResult
+): void {
+  const shippedFolders = new Set(Object.keys(files).map((relative) => relative.split('/')[0]));
+  const groups = new Map<string, string[]>();
+  for (const relative of Object.keys(ledger.files)) {
+    if (relative in files) {
+      continue;
+    }
+    const folder = relative.split('/')[0];
+    const group = relative.includes('/') && !shippedFolders.has(folder) ? folder : relative;
+    groups.set(group, [...(groups.get(group) ?? []), relative]);
+  }
+  for (const [group, relatives] of groups) {
+    const edited = relatives.some((relative) => {
+      const target = path.join(dir, ...relative.split('/'));
+      return (
+        fs.existsSync(target) && sha256(fs.readFileSync(target)) !== ledger.files[relative].sha256
+      );
+    });
+    for (const relative of relatives) {
+      if (!edited) {
+        fs.rmSync(path.join(dir, ...relative.split('/')), { force: true });
+      }
+      delete ledger.files[relative];
+    }
+    if (edited) {
+      result.retiredKept.push(group);
+      continue;
+    }
+    if (group !== relatives[0]) {
+      removeEmptyEffectFolder(path.join(dir, group));
+    }
+    result.removed.push(group);
+  }
+}
+
+/**
+ * Deletes an effect folder that holds nothing but its values (`params.json`) or nothing at
+ * all. Returns the files left in it.
+ */
+function removeEmptyEffectFolder(folder: string): string[] {
+  if (!fs.existsSync(folder)) {
+    return [];
+  }
+  const files = fs.readdirSync(folder);
+  if (files.length === 1 && files[0] === EFFECT_VALUES_FILE) {
+    fs.rmSync(path.join(folder, EFFECT_VALUES_FILE));
+    files.length = 0;
+  }
+  if (files.length === 0) {
+    fs.rmdirSync(folder);
+  }
+  return files;
 }
 
 /**
@@ -214,17 +284,8 @@ export function removeShippedEffects(dir: string): string[] {
       left.push(entry.name);
       continue;
     }
-    const folder = path.join(dir, entry.name);
-    const files = fs.readdirSync(folder);
-    if (files.length === 1 && files[0] === EFFECT_VALUES_FILE) {
-      fs.rmSync(path.join(folder, EFFECT_VALUES_FILE));
-      files.length = 0;
-    }
-    if (files.length === 0) {
-      fs.rmdirSync(folder);
-    } else {
-      left.push(...files.map((file) => `${entry.name}/${file}`));
-    }
+    const files = removeEmptyEffectFolder(path.join(dir, entry.name));
+    left.push(...files.map((file) => `${entry.name}/${file}`));
   }
   if (left.length === 0) {
     fs.rmdirSync(dir);

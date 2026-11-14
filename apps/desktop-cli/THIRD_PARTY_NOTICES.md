@@ -62,9 +62,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## VS Code Animations（拖尾效果）
+## VS Code Animations（光标拖尾）
 
-单文件里带有 Woodfish 自带的效果插件（`packages/effects/builtin/`，运行时复制到效果文件夹）。其中 `mouse-trail` 和 `caret-trail` 照抄了 VS Code Animations 2.0.9（`brandonkirbyson.vscode-animations`，https://github.com/BrandonKirbyson/VSCode-Animations）里 CursorAnimation 的拖尾画法，MIT 许可：
+单文件里带有 Woodfish 自带的效果插件（`packages/effects/builtin/`，运行时复制到效果文件夹）。其中 `caret-trail` 照抄了 VS Code Animations 2.0.9（`brandonkirbyson.vscode-animations`，https://github.com/BrandonKirbyson/VSCode-Animations）里 CursorAnimation 的拖尾画法，MIT 许可：
 
 ```text
 MIT License

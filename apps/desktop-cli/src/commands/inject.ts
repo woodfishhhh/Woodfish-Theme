@@ -310,6 +310,12 @@ export async function runWatcher(
   if (synced.kept.length > 0) {
     log(`这些效果文件你改过，没有覆盖：${synced.kept.join('、')}`);
   }
+  if (synced.removed.length > 0) {
+    log(`这些效果已不再随包提供，你没改过，已删除：${synced.removed.join('、')}`);
+  }
+  if (synced.retiredKept.length > 0) {
+    log(`这些效果已不再随包提供，你改过所以留着：${synced.retiredKept.join('、')}`);
+  }
   const watcher = await startWatcher({
     port,
     bundle,

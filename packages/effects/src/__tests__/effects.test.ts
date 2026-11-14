@@ -53,7 +53,13 @@ describe('syncUserEffects', () => {
       'demo/effect.js',
       'demo/effect.json',
     ]);
-    expect(syncUserEffects(dir, v1)).toEqual({ created: [], updated: [], kept: [] });
+    expect(syncUserEffects(dir, v1)).toEqual({
+      created: [],
+      updated: [],
+      kept: [],
+      removed: [],
+      retiredKept: [],
+    });
     expect(fs.existsSync(path.join(dir, EFFECTS_LEDGER_FILE))).toBe(true);
   });
 
@@ -82,6 +88,28 @@ describe('syncUserEffects', () => {
     expect(older.updated).toEqual([]);
     expect(read('demo/effect.json')).toBe(manifest2);
     expect(fs.existsSync(path.join(dir, 'AGENTS.md'))).toBe(false);
+  });
+
+  it('deletes an effect it stopped shipping unless the user edited it', () => {
+    const shipped = { ...v1, 'gone/effect.json': MANIFEST, 'gone/effect.js': SCRIPT };
+    syncUserEffects(dir, shipped);
+    write('gone/params.json', '{"size":3}');
+    const removed = syncUserEffects(dir, v1);
+    expect(removed.removed).toEqual(['gone']);
+    expect(removed.retiredKept).toEqual([]);
+    expect(fs.existsSync(path.join(dir, 'gone'))).toBe(false);
+    expect(read(EFFECTS_LEDGER_FILE)).not.toContain('gone/');
+
+    syncUserEffects(dir, shipped);
+    write('gone/effect.js', '// mine\n' + SCRIPT);
+    const kept = syncUserEffects(dir, v1);
+    expect(kept.removed).toEqual([]);
+    expect(kept.retiredKept).toEqual(['gone']);
+    expect(read('gone/effect.js')).toContain('// mine');
+    expect(read('gone/effect.json')).toBe(MANIFEST);
+    // Reported once: the folder is the user's own effect now.
+    expect(syncUserEffects(dir, v1).retiredKept).toEqual([]);
+    expect(readUserEffects(dir).map((effect) => effect.id)).toContain('gone');
   });
 
   it('restores one shipped effect and backs up edits', () => {
@@ -254,7 +282,6 @@ describe('the shipped effects', () => {
       'caret-trail',
       'code-gradient',
       'glass',
-      'mouse-trail',
       'rainbow-text',
       'stream-cursor',
       'text-reveal',
@@ -264,9 +291,6 @@ describe('the shipped effects', () => {
     expect(fs.existsSync(path.join(dir, 'AGENTS.md'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'CLAUDE.md'))).toBe(true);
     expect(readUserCss(dir)).toContain('--woodfish-caret-trail-color');
-    // Codex keeps only the caret trail; the mouse trail ships off.
-    const mouse = effects.find((effect) => effect.id === 'mouse-trail');
-    expect(mouse?.values?.enabled).toBe(false);
   });
 
   it('list every parameter variable in README.md (node scripts/css-variables.js)', () => {

@@ -11,8 +11,8 @@ import {
 } from '../effects/plugins';
 
 const RAW = {
-  name: '鼠标拖尾',
-  description: '指针后面拖一条带子',
+  name: '光标拖尾',
+  description: '光标后面拖一条带子',
   version: 2,
   hosts: ['codex', 'vscode', 'browser'],
   params: {
@@ -96,28 +96,28 @@ describe('effect manifests', () => {
   });
 
   it('exposes values as CSS variables with units', () => {
-    const variables = effectCssVariables('mouse-trail', manifest, defaultEffectValues(manifest));
-    expect(variables).toContain('--woodfish-mouse-trail-width: 7px;');
-    expect(variables).toContain('--woodfish-mouse-trail-follow-theme: 0;');
-    expect(variables).toContain('--woodfish-mouse-trail-color: #ffffff;');
+    const variables = effectCssVariables('demo-trail', manifest, defaultEffectValues(manifest));
+    expect(variables).toContain('--woodfish-demo-trail-width: 7px;');
+    expect(variables).toContain('--woodfish-demo-trail-follow-theme: 0;');
+    expect(variables).toContain('--woodfish-demo-trail-color: #ffffff;');
   });
 
   it('reads parameters back from CSS, keeping only values that fit', () => {
     const css: Record<string, string> = {
-      '--woodfish-mouse-trail-width': ' 9px',
-      '--woodfish-mouse-trail-length': '500',
-      '--woodfish-mouse-trail-color': 'banana',
-      '--woodfish-mouse-trail-follow-theme': '1',
-      '--woodfish-mouse-trail-style': 'line',
+      '--woodfish-demo-trail-width': ' 9px',
+      '--woodfish-demo-trail-length': '500',
+      '--woodfish-demo-trail-color': 'banana',
+      '--woodfish-demo-trail-follow-theme': '1',
+      '--woodfish-demo-trail-style': 'line',
     };
-    expect(effectValuesFromCss('mouse-trail', manifest, (name) => css[name] ?? '')).toEqual({
+    expect(effectValuesFromCss('demo-trail', manifest, (name) => css[name] ?? '')).toEqual({
       width: 9,
       length: 50,
       followTheme: true,
       style: 'line',
     });
     expect(
-      effectValuesFromCss('mouse-trail', manifest, (name) =>
+      effectValuesFromCss('demo-trail', manifest, (name) =>
         name.endsWith('-width') ? '2em' : name.endsWith('-color') ? 'rgb(255 0 0)' : ''
       )
     ).toEqual({ color: 'rgb(255 0 0)' });

@@ -63,7 +63,7 @@ Codex 里 Woodfish 画的每个效果都是一个**插件文件夹**，放在 `%
 | `effect.js` | 实现：`module.exports = function (ctx) { … }`，只通过 `ctx` 拿事件、画布和样式 |
 | `README.md` | 这个效果是什么、参数各管什么、改哪里会怎样 |
 
-自带 12 个：输入框光标 `caret`、鼠标拖尾 `mouse-trail`（Codex 里默认关闭）、光标拖尾 `caret-trail`、打字粒子 `typing-particles`、吐字光标 `stream-cursor`、新字淡入 `text-reveal`、流光边框 `thread-ring`（Bifrost「创建 Key」按钮）、回复正文彩虹 `rainbow-text`、强调色点缀 `accent`、浮层毛玻璃 `glass`、窗口背景 `background`、代码渐变 `code-gradient`（后两个是核心效果：引擎在 Woodfish 里，文件夹管开关和参数）。
+自带 11 个：输入框光标 `caret`、光标拖尾 `caret-trail`、打字粒子 `typing-particles`、吐字光标 `stream-cursor`、新字淡入 `text-reveal`、流光边框 `thread-ring`（Bifrost「创建 Key」按钮）、回复正文彩虹 `rainbow-text`、强调色点缀 `accent`、浮层毛玻璃 `glass`、窗口背景 `background`、代码渐变 `code-gradient`（后两个是核心效果：引擎在 Woodfish 里，文件夹管开关和参数）。
 
 - **一行 CSS 就能改样子**：效果文件夹里的 `user.css` 最后加载、优先级最高。每个参数都是 CSS 变量 `--woodfish-<效果名>-<参数名>`，例如 `:root { --woodfish-caret-trail-color: #ff4d4f; }` 把光标拖尾换成红色；画布上的拖尾、粒子和窗口背景也读这些变量。光环、光标、回复正文的渐变色另有变量。全部变量（作用、默认值、例子）在效果文件夹的 `README.md`。保存一两秒后生效，升级不覆盖；设置页「Woodfish 外观」里有「打开 user.css」「恢复默认」，命令行 `woodfish codex effects restore user.css`（原内容留 `user.css.bak`）。
 - **对 AI 说一句就能改**：文件夹根目录有 `AGENTS.md`（和指向它的 `CLAUDE.md`），写清楚找哪个文件夹、`ctx` 有什么、怎么验证。对 Codex 或 Claude 说“把打字粒子改成金色，效果文件夹在 %APPDATA%\Woodfish\effects”，它读完就知道改 `typing-particles` 的 `params.json`（实测 Codex 两分钟左右改完并刷新）。
@@ -114,7 +114,7 @@ woodfish codex theme restore                                         # 撤销全
 # 注入效果
 woodfish codex launch                      # 首次运行会说明风险并请你确认
 woodfish codex settings --set palette.dark=neon --set palette.light=light
-woodfish codex settings --set glass.blur=24 --set mouse-trail.length=20
+woodfish codex settings --set glass.blur=24 --set caret-trail.length=20
 
 # 效果插件
 woodfish codex effects                     # 每个效果的状态（运行中 / 已关闭 / 失败原因）和文件夹位置
@@ -151,7 +151,7 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 | `palette.dark` / `palette.light` | `codex.json` | 深色 / 浅色主题（见上表）；`null` 表示保留 Codex 自己的颜色 |
 | `backgroundImage` | `codex.json` | 窗口背景用哪张图：`caiyun` / `gradient` / 图片编号（也可写 `background.image`） |
 | `customCss` | `codex.json` | 追加的 CSS，会经过安全过滤 |
-| `<效果名>.<参数>` | 效果的 `params.json` | 例如 `mouse-trail.length=20`、`typing-particles.colors=rainbow`、`thread-ring.followTheme=true`，`enabled` 是开关；驼峰写法也行（`mouseTrail.length`）。参数和范围见各效果的 `effect.json` |
+| `<效果名>.<参数>` | 效果的 `params.json` | 例如 `caret-trail.length=20`、`typing-particles.colors=rainbow`、`thread-ring.followTheme=true`，`enabled` 是开关；驼峰写法也行（`caretTrail.length`）。参数和范围见各效果的 `effect.json` |
 
 旧键名照样能用：`glass.*`、`caret.enabled`、`accent.enabled`、`background.*` 对应同名效果，`bodyText.*` 对应 `rainbow-text`，`codeGradient.*` 和 `codeGlow.*`（`enabled` → `glow`，`intensity` → `glowIntensity`）对应 `code-gradient`。升级后第一次运行时，旧 `codex.json` 里的效果设置会自动搬进各效果的 `params.json`。
 

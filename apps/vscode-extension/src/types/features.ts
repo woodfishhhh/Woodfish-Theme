@@ -138,7 +138,7 @@ export type RuntimeOptions = {
 };
 
 /**
- * Effect plugins (mouse trail, caret trail, typing particles and any effect in the user's
+ * Effect plugins (caret trail, typing particles and any effect in the user's
  * effects folder). Their own values are read live by the effects service; only this master
  * switch changes the workbench payload.
  */

@@ -2,7 +2,7 @@
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
   "description": "为 VS Code、Cursor、Kiro、Windsurf、Trae 等编辑器的任意颜色主题叠加 OKLCH 渐变、发光、彩色光标与毛玻璃；内置 Woodfish Dark / Dracula / Black / Neon / Light 五套主题",
-  "version": "8.1.0",
+  "version": "8.1.1",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"
@@ -714,80 +714,7 @@
             "default": true,
             "scope": "application",
             "order": 0,
-            "markdownDescription": "加载效果插件：下面三个，以及和 Codex 共用的效果文件夹（`%APPDATA%\\Woodfish\\effects`）里的其他效果。改了效果文件会自动刷新，也可运行 **Woodfish Theme: 刷新效果**（`Ctrl+Alt+R`）。改这个总开关要重新加载窗口。"
-          },
-          "woodfishTheme.mouseTrail.enabled": {
-            "type": "boolean",
-            "default": false,
-            "scope": "application",
-            "order": 1,
-            "markdownDescription": "**鼠标拖尾**：鼠标指针身后拖一条单色带子（照抄 Animations 插件）。在 VS Code 里默认关闭，打开就有。参数和 Codex 的 `mouse-trail` 同名同义。"
-          },
-          "woodfishTheme.mouseTrail.length": {
-            "scope": "application",
-            "order": 2,
-            "markdownDescription": "鼠标拖尾 · 拖尾长度：带子由多少个点连成，越大拖得越长（Animations 插件的 TrailLength）",
-            "type": "number",
-            "default": 12,
-            "minimum": 2,
-            "maximum": 50
-          },
-          "woodfishTheme.mouseTrail.style": {
-            "scope": "application",
-            "order": 3,
-            "markdownDescription": "鼠标拖尾 · 样式：Animations 插件的 CursorStyle：block 是实心带子，line 是四条细线",
-            "type": "string",
-            "default": "block",
-            "enum": [
-              "block",
-              "line"
-            ],
-            "enumDescriptions": [
-              "实心带子",
-              "四条细线"
-            ]
-          },
-          "woodfishTheme.mouseTrail.width": {
-            "scope": "application",
-            "order": 4,
-            "markdownDescription": "鼠标拖尾 · 宽度：带子的宽度（插件给光标的默认尺寸是 7px）",
-            "type": "number",
-            "default": 7,
-            "minimum": 1,
-            "maximum": 24
-          },
-          "woodfishTheme.mouseTrail.height": {
-            "scope": "application",
-            "order": 5,
-            "markdownDescription": "鼠标拖尾 · 高度：带子的高度，默认是宽度的 2.2 倍，和箭头差不多高",
-            "type": "number",
-            "default": 15.4,
-            "minimum": 1,
-            "maximum": 48
-          },
-          "woodfishTheme.mouseTrail.color": {
-            "scope": "application",
-            "order": 6,
-            "markdownDescription": "鼠标拖尾 · 颜色：单色，Animations 插件默认白色",
-            "type": "string",
-            "format": "color-hex",
-            "default": "#ffffff"
-          },
-          "woodfishTheme.mouseTrail.followTheme": {
-            "scope": "application",
-            "order": 7,
-            "markdownDescription": "鼠标拖尾 · 颜色跟随主题：打开后用当前主题的强调色，不用上面的颜色",
-            "type": "boolean",
-            "default": false
-          },
-          "woodfishTheme.mouseTrail.opacity": {
-            "scope": "application",
-            "order": 8,
-            "markdownDescription": "鼠标拖尾 · 不透明度：1 是插件原样的实心效果，调小更含蓄",
-            "type": "number",
-            "default": 1,
-            "minimum": 0.05,
-            "maximum": 1
+            "markdownDescription": "加载效果插件：下面两个，以及和 Codex 共用的效果文件夹（`%APPDATA%\\Woodfish\\effects`）里的其他效果。改了效果文件会自动刷新，也可运行 **Woodfish Theme: 刷新效果**（`Ctrl+Alt+R`）。改这个总开关要重新加载窗口。"
           },
           "woodfishTheme.caretTrail.enabled": {
             "type": "boolean",

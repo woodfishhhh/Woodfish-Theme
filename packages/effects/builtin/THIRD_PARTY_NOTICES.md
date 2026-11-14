@@ -1,6 +1,6 @@
 # 第三方许可
 
-`mouse-trail` 和 `caret-trail` 两个效果照抄了 VS Code Animations 2.0.9（`brandonkirbyson.vscode-animations`，https://github.com/BrandonKirbyson/VSCode-Animations）里 CursorAnimation 的拖尾画法。改它们、分发改过的版本时请保留下面的许可声明。
+`caret-trail` 效果照抄了 VS Code Animations 2.0.9（`brandonkirbyson.vscode-animations`，https://github.com/BrandonKirbyson/VSCode-Animations）里 CursorAnimation 的拖尾画法。改它、分发改过的版本时请保留下面的许可声明。
 
 `thread-ring` 的光谱环照抄 Bifrost 控制台的「创建 Key」按钮，经 Bifrost 作者同意使用。
 

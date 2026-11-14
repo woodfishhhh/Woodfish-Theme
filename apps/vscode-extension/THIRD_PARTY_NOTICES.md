@@ -46,10 +46,10 @@ and by the Fluent Design acrylic guidance. No code from it is bundled.
 The Woodfish runtime overlay is independent of every bundled theme and can be
 used with any active color theme.
 
-## VS Code Animations (trail effects)
+## VS Code Animations (caret trail)
 
-The `mouse-trail` and `caret-trail` effect plugins (`packages/effects/builtin/`, copied
-into the user's effects folder) reproduce the trail of the `CursorAnimation` in
+The `caret-trail` effect plugin (`packages/effects/builtin/`, copied into the user's
+effects folder) reproduces the trail of the `CursorAnimation` in
 VS Code Animations 2.0.9 (`brandonkirbyson.vscode-animations`,
 https://github.com/BrandonKirbyson/VSCode-Animations): the chain of points that follows
 the cursor and its single-color band. Licensed under the MIT License:

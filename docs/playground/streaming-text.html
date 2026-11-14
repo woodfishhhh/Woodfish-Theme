@@ -9,7 +9,7 @@
  * 每张卡片是一段 Codex 助手回复，同一段文字按同样的节奏流式吐出。
  * 吐字只往文本节点里追加字符（和 React 更新流式文本一样），效果不拆字、不包 span：
  * 光标、拖尾、粒子画在一个共用的全窗口 canvas 和覆盖层上，淡入用遮罩，发光用 CSS Highlight API。
- * 拖尾照抄 VS Code Animations 插件（MIT）的画法：单色实心带子，长度 12。页面上的鼠标拖尾也是同一个拖尾。
+ * 拖尾照抄 VS Code Animations 插件（MIT）的画法：单色实心带子，长度 12。
  * 效果函数的写法就是插件 effect.js 的写法：订阅统一的“在某处插入了文字”事件（ctx.onInsert）。
  */
 :root {
@@ -136,7 +136,6 @@ footer .pick { background: linear-gradient(135deg, var(--accent), var(--accent2)
   <label class="ctl">拖尾长度 <input id="trail" type="range" min="0" max="40" step="1" value="12"><output></output></label>
   <label class="ctl">淡入时长 <input id="fadeMs" type="range" min="0" max="800" step="20" value="200"><output></output></label>
   <label class="ctl">粒子数量 <input id="particles" type="range" min="0" max="30" step="1" value="8"><output></output></label>
-  <label class="ctl"><input id="mouseTrail" type="checkbox" checked> 鼠标拖尾</label>
   <label class="ctl"><input id="simplified" type="checkbox"> 简化（失焦 / 减少动态）</label>
   <button id="pause" type="button">暂停</button>
   <button id="replay" type="button">重播</button>
@@ -586,32 +585,6 @@ function glowNew(ctx) {
   return { dispose: () => names.forEach((name) => CSS.highlights.delete(name)) };
 }
 
-/** 鼠标拖尾：同一个 Animations 拖尾，跟着鼠标指针（宽 7、高 15.4，插件的默认光标尺寸）。 */
-function mouseTrail(ctx) {
-  const trail = createTrail();
-  let inside = false;
-  const painter = ctx.painter((g) => {
-    if (!ctx.params.mouseTrail || !inside) return false;
-    const moving = trail.step();
-    trail.draw(g, trailColor(ctx));
-    return moving;
-  });
-  const move = (event) => {
-    if (!ctx.params.mouseTrail || ctx.simplified()) return;
-    inside = true;
-    trail.move(event.clientX, event.clientY, Math.max(2, ctx.params.trail));
-    painter.wake();
-  };
-  const leave = () => {
-    inside = false;
-    trail.reset();
-    painter.wake();
-  };
-  addEventListener('pointermove', move, { passive: true });
-  document.documentElement.addEventListener('pointerleave', leave);
-  return { dispose: () => { removeEventListener('pointermove', move); document.documentElement.removeEventListener('pointerleave', leave); } };
-}
-
 const EFFECTS = {
   streamCursor,
   fadeIn,
@@ -726,7 +699,7 @@ function wake(painter) {
   }
 }
 
-const PARAMS = { mouseTrail: true, followTheme: false, speed: 90, width: 6, trail: 12, fadeMs: 200, particles: 8, simplified: false };
+const PARAMS = { followTheme: false, speed: 90, width: 6, trail: 12, fadeMs: 200, particles: 8, simplified: false };
 let theme = THEMES['Woodfish Dark'];
 
 /** Last text node in `root`, in document order. */
@@ -824,16 +797,6 @@ function createCard([id, name, effects, note]) {
 
 const grid = document.getElementById('grid');
 const cards = SCHEMES.map(createCard);
-mouseTrail({
-  params: PARAMS,
-  theme: () => ({ mode: theme.mode, stops: theme.stops, accent: theme.accent }),
-  simplified: () => PARAMS.simplified,
-  painter: (fn) => {
-    const painter = { fn, clip: document.documentElement, awake: false };
-    painters.add(painter);
-    return { wake: () => wake(painter) };
-  },
-});
 cards.forEach(({ card }) => grid.append(card));
 addEventListener('scroll', () => cards.forEach(({ watcher }) => watcher.reposition()), { passive: true });
 
@@ -930,7 +893,7 @@ for (const key of Object.keys(UNITS)) {
   input.addEventListener('input', update);
   update();
 }
-for (const key of ['mouseTrail', 'followTheme', 'simplified']) {
+for (const key of ['followTheme', 'simplified']) {
   const input = document.getElementById(key);
   input.addEventListener('change', () => { PARAMS[key] = input.checked; });
 }

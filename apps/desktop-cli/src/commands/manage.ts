@@ -186,7 +186,7 @@ export async function themeRestoreCommand(
 /**
  * `woodfish codex settings [--set a.b=v]… [--reset]`. Themes, the background picture and
  * custom CSS live in codex.json; everything else is an effect folder's params.json
- * (`--set mouse-trail.length=20`, `--set glass.blur=12`, older names such as
+ * (`--set caret-trail.length=20`, `--set glass.blur=12`, older names such as
  * `bodyText.enabled` still work).
  */
 export function settingsCommand(

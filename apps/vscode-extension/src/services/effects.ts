@@ -26,7 +26,6 @@ import { getOutputChannel } from '../ui/output';
 
 /** Woodfish's own effects keep their values in VS Code settings: `woodfishTheme.<section>.*`. */
 export const VSCODE_EFFECT_SECTIONS: Readonly<Record<string, string>> = Object.freeze({
-  'mouse-trail': 'mouseTrail',
   'caret-trail': 'caretTrail',
   'typing-particles': 'typingParticles',
 });
@@ -136,6 +135,16 @@ export class EffectsService implements vscode.Disposable {
       if (result.kept.length > 0) {
         getOutputChannel().appendLine(
           `Effects kept (edited by the user): ${result.kept.join(', ')}`
+        );
+      }
+      if (result.removed.length > 0) {
+        getOutputChannel().appendLine(
+          `这些效果已不再随包提供，你没改过，已删除：${result.removed.join('、')}`
+        );
+      }
+      if (result.retiredKept.length > 0) {
+        getOutputChannel().appendLine(
+          `这些效果已不再随包提供，你改过所以留着：${result.retiredKept.join('、')}`
         );
       }
     } catch (error) {
