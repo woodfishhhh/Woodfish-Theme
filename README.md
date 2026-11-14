@@ -114,7 +114,7 @@ Woodfish Theme 给代码文字加上渐变和发光，再加上彩虹光标和�
   </tr>
   <tr>
     <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-background-off.webp" alt="关掉背景的 Codex"><br><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-background-on.webp" alt="铺上《彩云》的 Codex"></td>
-    <td><b>窗口背景《彩云》</b> · Codex 与 VS Code<br>窗口底下铺一张图，侧栏和输入框是磨砂玻璃，文字照样清楚（上：关，下：开）。默认是作者画的《彩云》，也能换成你自己的图。<br><sub>Codex：设置 → 外观 → Woodfish 里「上传图片」，或 <code>woodfish codex background set &lt;图片&gt;</code>；VS Code：运行「设置背景图片」。浓淡：<code>--woodfish-background-opacity</code></sub></td>
+    <td><b>窗口背景《彩云》</b> · Codex 与 VS Code<br>窗口底下铺一张图，侧栏和输入框是磨砂玻璃，文字照样清楚（上：关，下：开）。默认是《彩云》，也能换成你自己的图。<br><sub>Codex：设置 → 外观 → Woodfish 里「上传图片」，或 <code>woodfish codex background set &lt;图片&gt;</code>；VS Code：运行「设置背景图片」。浓淡：<code>--woodfish-background-opacity</code></sub></td>
   </tr>
   <tr>
     <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-caret-trail.webp" alt="输入框里按 Home、End 时彩虹光标拖出一段带子"></td>
@@ -258,8 +258,6 @@ code --install-extension woodfish-theme-7.2.0.vsix
 - **可调项**：`woodfishTheme.background.opacity`（透明度）、`woodfishTheme.background.blur`（模糊）、`woodfishTheme.background.mask`（遮罩，越大越不透明），`woodfishTheme.background.enabled` 开关。改完重新加载窗口。
 - **图片放在哪**：选中的图片会复制到 Woodfish 自己的存储目录，原图之后可以删除或移动。长边超过 2560 像素或体积超过 3 MB 的图片会先缩小并转成 WebP。
 - 背景是窗口底下的一张静态图，滚动和输入时不做额外计算。
-
-默认背景《彩云》由作者 woodfish 制作。
 
 ## 效果插件
 

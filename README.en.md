@@ -80,7 +80,7 @@ One focused picture per effect; moving effects are short animations. In the Code
   </tr>
   <tr>
     <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-background-off.webp" alt="Codex without a background"><br><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-background-on.webp" alt="Codex with 《彩云》 under the window"></td>
-    <td><b>Window background 《彩云》</b> · Codex and VS Code<br>A picture under the whole window, with a frosted sidebar and composer; text stays crisp (top: off, bottom: on). The default is 《彩云》, painted by the author; use your own picture instead.<br><sub>Codex: upload in Settings → Appearance → Woodfish, or <code>woodfish codex background set &lt;picture&gt;</code>; VS Code: run 设置背景图片 (set background picture). Strength: <code>--woodfish-background-opacity</code></sub></td>
+    <td><b>Window background 《彩云》</b> · Codex and VS Code<br>A picture under the whole window, with a frosted sidebar and composer; text stays crisp (top: off, bottom: on). The default is 《彩云》; use your own picture instead.<br><sub>Codex: upload in Settings → Appearance → Woodfish, or <code>woodfish codex background set &lt;picture&gt;</code>; VS Code: run 设置背景图片 (set background picture). Strength: <code>--woodfish-background-opacity</code></sub></td>
   </tr>
   <tr>
     <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-caret-trail.webp" alt="Home and End make the rainbow caret drag a band across the line"></td>
@@ -245,7 +245,7 @@ It never modifies Codex's installation:
 - **Effect plugins**: Codex keeps only the caret trail; the mouse trail is off by default. Every effect is a folder in `%APPDATA%\Woodfish\effects`. Codex's own **Settings → Appearance → Woodfish 外观** switches between all 15 themes and shows each effect's switch and every parameter; Codex itself can change an effect's code by following the folder's `AGENTS.md`. Saving reloads it, or run `woodfish reload` / press `Ctrl+Alt+R` in Codex, without restarting Codex. Colors, sizes and speeds can also be changed with CSS variables in `user.css` in the same folder (the settings page has 「打开 user.css」).
 - **Always on**: `woodfish codex autostart on` registers a hidden logon task (normal rights) that brings the effects back within seconds after Codex restarts or a Store update; `woodfish codex autostart off` or `uninstall` removes it cleanly.
 
-- **Window background**: a picture under the whole window (the editor or thread shows it at 15 %, side panels are frosted glass at 35 % of the theme color, 10px blur). In VS Code run `设置背景图片`; in Codex it is on by default and **Settings → Appearance → Woodfish** uploads (or takes a dropped picture), previews and keeps several; the CLI is `woodfish codex background set <picture>`. Pictures stay on your machine. The default background 《彩云》 (Colorful Clouds) is made by the author, woodfish.
+- **Window background**: a picture under the whole window (the editor or thread shows it at 15 %, side panels are frosted glass at 35 % of the theme color, 10px blur). In VS Code run `设置背景图片`; in Codex it is on by default and **Settings → Appearance → Woodfish** uploads (or takes a dropped picture), previews and keeps several; the CLI is `woodfish codex background set <picture>`. Pictures stay on your machine.
 
 Codex++ users can run `woodfish codex install-userscript` instead. See [apps/desktop-cli/README.md](apps/desktop-cli/README.md) (Chinese).
 

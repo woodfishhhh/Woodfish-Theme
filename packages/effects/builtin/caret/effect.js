@@ -1,8 +1,7 @@
 /*
- * 输入框光标：把 Codex 输入框的光标换成作者 VS Code 里的那套。
- *
- * VS Code 里是 editor.cursorWidth 6、cursorBlinking solid、cursorSmoothCaretAnimation on，
- * 加上 Woodfish 的光标样式（themes/shared/cursor-core.css）：一个 900% 高的渐变在光标里
+ * 输入框光标：默认 6px、实心不闪、80 ms 平滑移动、彩虹色，和 Woodfish 在 VS Code 里的光标一样
+ * （editor.cursorWidth 6、cursorBlinking solid、cursorSmoothCaretAnimation on）。
+ * 彩虹来自 Woodfish 的光标样式（themes/shared/cursor-core.css）：一个 900% 高的渐变在光标里
  * 慢慢往上滑，所以颜色一直在变。原生光标没法做渐变，这里把它设成透明，再在宿主报告的
  * 光标位置（ctx.onCaret，来源 user）画一根同样的光标。
  */

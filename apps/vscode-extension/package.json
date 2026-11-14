@@ -665,7 +665,7 @@
             "type": "boolean",
             "default": false,
             "scope": "application",
-            "markdownDescription": "在窗口底下铺一张图片，编辑器透出背景，侧边栏和面板用毛玻璃叠在上面。默认图片是作者 woodfish 制作的《彩云》；用命令 **Woodfish Theme: 设置背景图片** 换成自己的图片。改动后需要重新加载窗口。",
+            "markdownDescription": "在窗口底下铺一张图片，编辑器透出背景，侧边栏和面板用毛玻璃叠在上面。默认图片是《彩云》；用命令 **Woodfish Theme: 设置背景图片** 换成自己的图片。改动后需要重新加载窗口。",
             "order": 0
           },
           "woodfishTheme.background.image": {
@@ -799,7 +799,7 @@
           "woodfishTheme.caretTrail.length": {
             "scope": "application",
             "order": 10,
-            "markdownDescription": "光标拖尾 · 拖尾长度：带子由多少个点连成（负责人 VS Code 里 Animations 的 TrailLength 是 12）",
+            "markdownDescription": "光标拖尾 · 拖尾长度：带子由多少个点连成（默认 12，和 VS Code Animations 插件的 TrailLength 一样）",
             "type": "number",
             "default": 12,
             "minimum": 2,
@@ -823,7 +823,7 @@
           "woodfishTheme.caretTrail.width": {
             "scope": "application",
             "order": 12,
-            "markdownDescription": "光标拖尾 · 宽度：光标宽度（负责人 VS Code 的 editor.cursorWidth 是 6）；宿主报告了光标宽度时用宿主的",
+            "markdownDescription": "光标拖尾 · 宽度：光标宽度（默认 6，对应 VS Code 的 editor.cursorWidth）；宿主报告了光标宽度时用宿主的",
             "type": "number",
             "default": 6,
             "minimum": 1,
@@ -976,7 +976,7 @@
           "woodfishTheme.typingParticles.shake": {
             "scope": "application",
             "order": 27,
-            "markdownDescription": "打字粒子 · 震动：打字时编辑区轻轻一抖（负责人的 Power Mode 关了震动）",
+            "markdownDescription": "打字粒子 · 震动：打字时编辑区轻轻一抖（默认关）",
             "type": "boolean",
             "default": false
           }

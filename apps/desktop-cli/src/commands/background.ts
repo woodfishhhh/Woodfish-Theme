@@ -31,7 +31,7 @@ import { CommandContext, CommandError, EXIT } from './context';
 const BACKGROUND_EFFECT = 'background';
 
 const BUILT_IN_NAMES: Readonly<Record<string, string>> = {
-  [CODEX_DEFAULT_BACKGROUND_ID]: '《彩云》（默认，作者 woodfish）',
+  [CODEX_DEFAULT_BACKGROUND_ID]: '《彩云》（默认）',
   [CODEX_GRADIENT_BACKGROUND_ID]: '彩云渐变（蓝、金、粉）',
 };
 
