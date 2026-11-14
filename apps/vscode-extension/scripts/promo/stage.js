@@ -1,7 +1,9 @@
 /*
- * Runs inside the promo page. `render-promo-video.js` sends one state per frame; the stage
- * applies it to the Monaco-like DOM, pins every CSS animation to the frame time and waits
- * for the real Woodfish engine (overlay-bootstrap.js) to paint before the frame is captured.
+ * Runs inside the VS Code promo page. `render-promo-video.js` sends one state per frame; the
+ * stage applies it to the Monaco-like DOM, pins every CSS animation to the frame time and
+ * waits for the real Woodfish engine (overlay-bootstrap.js) to paint before the frame is
+ * captured. Time comes from clock.js. A pane with a cursor is the focused editor: typing
+ * sends a keydown before the cursor moves, which is how Woodfish's effects see VS Code typing.
  */
 (() => {
   'use strict';
@@ -13,12 +15,10 @@
   const captionMain = caption.querySelector('.main');
   const captionSub = caption.querySelector('.sub');
   const fade = document.querySelector('.fade');
+  const clock = window.__promoClock;
+  const scale = window.__PROMO_SCALE ?? 1;
   const born = new WeakMap();
   let last = { palette: null, css: null, panes: [] };
-
-  function nextFrame() {
-    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
-  }
 
   function paneSignature(pane) {
     return `${pane.woodfish}|${pane.label ?? ''}|${pane.className ?? ''}`;
@@ -36,7 +36,8 @@
     }
     const editor = document.createElement('div');
     editor.className = pane.woodfish ? 'editor monaco-editor' : 'editor plain-editor';
-    editor.innerHTML = `<div class="view-lines"></div><div class="cursors-layer"></div>`;
+    editor.classList.toggle('focused', Boolean(pane.cursor));
+    editor.innerHTML = `<textarea class="inputarea" tabindex="0"></textarea><div class="view-lines"></div><div class="cursors-layer"></div>`;
     element.append(editor);
     return element;
   }
@@ -48,10 +49,19 @@
       signatures.some((signature, index) => signature !== last.panes[index]?.signature);
     if (rebuild) {
       panesRoot.replaceChildren(...panes.map(createPane));
-      last.panes = signatures.map((signature) => ({ signature, html: null }));
+      last.panes = signatures.map((signature) => ({ signature, html: null, typed: null }));
     }
     panes.forEach((pane, index) => {
       const element = panesRoot.children[index];
+      const input = element.querySelector('.inputarea');
+      if (pane.cursor && document.activeElement !== input) {
+        input.focus();
+      }
+      const typedBefore = last.panes[index].typed;
+      if (pane.cursor && pane.typed !== null && typedBefore !== null && pane.typed > typedBefore) {
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+      }
+      last.panes[index].typed = pane.typed;
       if (last.panes[index].html !== pane.html) {
         element.querySelector('.view-lines').innerHTML = pane.html;
         last.panes[index].html = pane.html;
@@ -92,12 +102,12 @@
       const cursor = pane.querySelector('.cursor');
       if (cursor) {
         cursor.style.left = `${rect.left - box.left}px`;
-        cursor.style.top = `${rect.top - box.top + 6}px`;
+        cursor.style.top = `${rect.top - box.top + 6 * scale}px`;
       }
       const suggest = pane.querySelector('.suggest-slot');
       if (suggest) {
-        suggest.style.left = `${rect.left - box.left - 40}px`;
-        suggest.style.top = `${rect.bottom - box.top + 6}px`;
+        suggest.style.left = `${rect.left - box.left - 40 * scale}px`;
+        suggest.style.top = `${rect.bottom - box.top + 6 * scale}px`;
       }
     }
   }
@@ -142,13 +152,20 @@
     caption.style.opacity = String(state.caption?.opacity ?? 0);
     fade.style.opacity = String(state.fade ?? 0);
 
-    await nextFrame();
-    for (let attempt = 0; attempt < 12 && !painted(); attempt += 1) {
-      await nextFrame();
-    }
-    await nextFrame();
+    // Observers see the new DOM, the cursor moves, then timers and one animation frame run.
+    await clock.settle();
     placeWidgets();
+    await clock.settle();
+    clock.advance(state.timeMs);
+    clock.frame();
+    await clock.settle();
+    // Rarely (a new pane, a new palette) the engine needs another pass before every token is painted.
+    for (let attempt = 0; attempt < 12 && !painted(); attempt += 1) {
+      clock.frame();
+      await clock.settle();
+    }
     pinAnimations(state.timeMs);
+    await clock.painted();
     return painted();
   }
 
