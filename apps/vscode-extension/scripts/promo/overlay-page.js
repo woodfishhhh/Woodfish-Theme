@@ -20,12 +20,14 @@
 .promo-badge { right: 48px; top: 48px; padding: 11px 22px; border-radius: 999px; font-size: 21px; color: #e9ecf4; background: rgb(12 14 24 / 58%); }
 .promo-badge b { margin-right: 8px; font-weight: 400; background: linear-gradient(135deg, #ffd25e, #ff6fb5 55%, #7aa2ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 /* The repository line is drawn by the editor below the card, at y ≈ 690. */
-.promo-end { position: absolute; left: 0; right: 0; top: 360px; text-align: center; }
+.promo-end { position: absolute; left: 0; right: 0; top: 318px; text-align: center; }
 .promo-end .promo-card { position: relative; display: inline-block; padding: 26px 56px 30px; }
 .promo-end .star { font-size: 72px; font-weight: 700; letter-spacing: 2px; }
 .promo-end .welcome { margin-top: 10px; font-size: 38px; font-weight: 600; color: #e9ecf4; display: flex; align-items: center; justify-content: center; gap: 14px; }
 .promo-end .welcome svg { flex: none; }
-.promo-end .note { margin-top: 14px; font-size: 26px; color: #c9d0de; }
+.promo-end .obit { margin-top: 12px; font-size: 26px; color: #e1e5ee; }
+.promo-end .obit b { font-weight: 600; color: #f3d17a; }
+.promo-end .note { margin-top: 10px; font-size: 24px; color: #b9c1d1; }
 /* The effect's name (docs/playground/promo-titles.html #14): eyebrow, title and one line
    placed in an empty part of the picture, a thin line from the words to the effect. */
 .promo-callout { position: absolute; left: 0; top: 0; }
@@ -46,7 +48,7 @@
   root.innerHTML = `<div class="promo-scrim"></div><div class="promo-card promo-caption"><div class="main"></div><div class="sub"></div></div>
 <div class="promo-card promo-badge"><b>✦</b><span></span></div>
 <svg class="promo-leader"><path fill="none" stroke="rgb(255 255 255 / 85%)" stroke-width="2.5" stroke-linecap="round"/></svg><div class="promo-dot"></div><div class="promo-callout"><div class="eyebrow"></div><div class="main"></div><div class="sub"></div></div>
-<div class="promo-end"><div class="promo-card"><div class="star">觉得好看？求求star！⭐</div><div class="welcome"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#b89cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.4"/><circle cx="6" cy="19" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M6 7.4v9.2M18 16.6V10a3 3 0 0 0-3-3h-4"/><path d="m13 4.6-2.4 2.4 2.4 2.4"/></svg>欢迎共建~会看PR！</div><div class="note"></div></div></div>
+<div class="promo-end"><div class="promo-card"><div class="star">觉得好看？求求star！⭐</div><div class="welcome"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#b89cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.4"/><circle cx="6" cy="19" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M6 7.4v9.2M18 16.6V10a3 3 0 0 0-3-3h-4"/><path d="m13 4.6-2.4 2.4 2.4 2.4"/></svg>欢迎共建~会看PR！</div><div class="obit">要 fork 来提 PR？推荐装上<b>讣告 · AI 的回收站</b>（obituary.woodfish.site）</div><div class="note"></div></div></div>
 <div class="promo-fade"></div>`;
   document.body.append(root);
   const caption = root.querySelector('.promo-caption');

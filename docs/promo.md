@@ -63,9 +63,9 @@ Woodfish Theme 8.0：给 VS Code 和 Codex 桌面版换上渐变代码、彩虹�
 BGM：Sleepy Fish - no more fires（Chillhop Music）
 ```
 
-## 8.0 两条分片：Codex 版、VS Code 版
+## 两条分片：Codex 版、VS Code 版（8.1 上架时发）
 
-`cuts.js` 定义三条片：`full`（上面的整合版）、`codex`、`vscode`，同一首 BGM、同一套拍点、同样的彩云背景、推近和字幕卡。渲染时加 `--cut codex` 或 `--cut vscode`，成片分别是 `output/promo/woodfish-8.0-codex.mp4`、`woodfish-8.0-vscode.mp4`；加 `--also-30fps` 另出一份 30 fps。角标：Codex 版是「你可以让 Codex 随时调整此效果」，VS Code 版是「你可以让 AI 随时调整此效果」（主题、安装、片头片尾不放）。
+`cuts.js` 定义三条片：`full`（上面的整合版）、`codex`、`vscode`，同一首 BGM、同一套拍点、同样的彩云背景、推近和字幕卡。渲染时加 `--cut codex` 或 `--cut vscode`，成片分别是 `output/promo/woodfish-8.1-codex.mp4`、`woodfish-8.1-vscode.mp4`（片子写当前版本：发出去时商店里是 8.1，眉标和安装卡都写 8.1）；加 `--also-30fps` 另出一份 30 fps。角标：Codex 版是「你可以让 Codex 随时调整此效果」，VS Code 版是「你可以让 AI 随时调整此效果」（主题、安装、片头片尾不放）。
 
 两条片都带音效（`sfx.js`），见下面「音效」一节。
 
@@ -75,7 +75,7 @@ BGM：Sleepy Fish - no more fires（Chillhop Music）
 
 | 视频时间 | 画面 | 标题：眉标 / 大标题 / 说明（→ 线指向） |
 | --- | --- | --- |
-| 0:00–0:04 | Codex 全窗，回复已经在吐字（彩虹字、吐字光标、粒子，侧栏光环）；标题进来时吐字停住，彩虹光标停在句尾，标题走后接着吐 | WOODFISH 8.0 / Codex 桌面版 / 回复、光标、侧栏，都换上彩虹 |
+| 0:00–0:04 | Codex 全窗，回复已经在吐字（彩虹字、吐字光标、粒子，侧栏光环）；标题进来时吐字停住，彩虹光标停在句尾，标题走后接着吐 | WOODFISH 8.1 / Codex 桌面版 / 回复、光标、侧栏都换上彩虹 |
 | 0:04–0:08 | VS Code 里打出 `> Woodfish Theme: 为 Codex 启用 Woodfish` | 一步启用 / 为 Codex 启用 Woodfish / VS Code 扩展里运行这条命令，或下载 woodfish.exe；不改你原来的 Codex 快捷方式，Codex 重启后效果自己回来 |
 | 0:08–0:17 | 推到正在出字的那一行，吐字约 3 秒后停在一行中间，标题走后吐完 | 回复 / 彩虹回复字 / AI 一边写，彩虹光标一边领着字走（→ 吐字光标） |
 | 0:17–0:21 | 推到侧栏的光环；标题那一侧（右边的回复）压暗淡出 | 侧栏 / 七色光环 / 选中的会话外圈一直在慢慢转（→ 选中的会话） |
@@ -86,7 +86,7 @@ BGM：Sleepy Fish - no more fires（Chillhop Music）
 | 0:42–0:46 | 设置页真机截图靠右放，左边压暗放标题 | 设置 → 外观 / Woodfish 外观 / 换主题、开关效果、调参数 |
 | 0:46–0:56 | 先出标题（线指到空输入框里的光标），再打“把打字粒子改成金色”并发送，Codex 照 AGENTS.md 写 user.css | 交给 AI / 一句话让 Codex 改效果 / 效果文件夹里有写给 AI 的说明，它会自己改 user.css（→ 光标） |
 | 0:56–1:03 | 金色粒子打字，停住出标题，标题走后接着打 | 保存即生效 / 金色粒子 / Codex 改完就生效，不用重启（→ 光标） |
-| 1:03–1:11 | 片尾卡：「觉得好看？求求star！」「欢迎共建~会看PR！」+ Codex 装法，下面打出仓库地址 | — |
+| 1:03–1:11 | 片尾卡：「觉得好看？求求star！」「欢迎共建~会看PR！」「要 fork 来提 PR？推荐装上讣告 · AI 的回收站（obituary.woodfish.site）」+ Codex 装法，下面打出仓库地址 | — |
 
 ### VS Code 版（BGM 第 25–39.5 小节，60 秒）：只讲 8.0 新功能
 
@@ -94,7 +94,7 @@ BGM：Sleepy Fish - no more fires（Chillhop Music）
 
 | 视频时间 | 画面 | 标题：眉标 / 大标题 / 说明（→ 线指向） |
 | --- | --- | --- |
-| 0:00–0:04 | Woodfish Dark 下已经在打字（拖尾、粒子，彩云背景），标题进来时停住 | WOODFISH THEME 8.0 / VS Code 新功能 / 10 套热门主题、窗口背景、光标拖尾、打字粒子、效果插件 |
+| 0:00–0:04 | Woodfish Dark 下已经在打字（拖尾、粒子，彩云背景），标题进来时停住 | WOODFISH THEME 8.1 / VS Code 新功能 / 10 套热门主题、窗口背景、光标拖尾、打字粒子、效果插件 |
 | 0:04–0:15 | 10 套新主题，每拍一套，背景不变只换配色；标题走后左下角出主题名 | 主题 / 10 套热门主题 / 原样收录上游配色，代码渐变自动生成 |
 | 0:15–0:19 | 背景关半拍 → 《彩云》 | 背景 / 窗口背景 / 默认是《彩云》；运行「设置背景图片」换成你自己的图 |
 | 0:19–0:27 | 镜头跟着光标打一段 TypeScript，约 3 秒后停住出标题，标题走后接着打 | 编辑器 / 光标拖尾 · 打字粒子 / 拖尾颜色、长度，一行 CSS 就能改（→ 光标） |
@@ -102,8 +102,8 @@ BGM：Sleepy Fish - no more fires（Chillhop Music）
 | 0:31–0:40 | user.css：先出标题（线指到空行的光标），再打 `--woodfish-caret-trail-color: #ff4d4f;` 并保存，接着打字，拖尾变红（页面像扩展一样轮询到新的 user.css） | 自定义 / 一行 CSS 改样子 / 每个参数都是一个 CSS 变量，写进 user.css，保存就生效（→ 光标） |
 | 0:40–0:44 | 编辑器里的 AGENTS.md 开头 | 交给 AI / 让 AI 改效果 / 效果文件夹里有写给 AI 的说明；对 Codex、Claude 说一句“把拖尾改成红色”就行 |
 | 0:44–0:48 | 效果文件夹的结构 | 共用 / 和 Codex 共用一套效果 / 同一个效果文件夹，改一次两边都变 |
-| 0:48–0:52 | 打出 `ext install zhongjun.woodfish-theme` | 安装 / Woodfish Theme 8.0 / VS Code 扩展商店 / Open VSX 搜 Woodfish Theme |
-| 0:52–1:00 | 片尾卡：「觉得好看？求求star！」「欢迎共建~会看PR！」+ VS Code 装法，下面打出仓库地址 | — |
+| 0:48–0:52 | 打出 `ext install zhongjun.woodfish-theme` | 安装 / Woodfish Theme 8.1 / VS Code 扩展商店 / Open VSX 搜 Woodfish Theme |
+| 0:52–1:00 | 片尾卡：「觉得好看？求求star！」「欢迎共建~会看PR！」「要 fork 来提 PR？推荐装上讣告 · AI 的回收站（obituary.woodfish.site）」+ VS Code 装法，下面打出仓库地址 | — |
 
 透明感：凡是展示毛玻璃的镜头背后都有运动（菜单后面的对话在滚）。Codex 的侧栏和输入框是预先模糊好的静态背景副本（实时 backdrop-filter 会让流式输出时的帧时间翻倍，所以产品里就没用），背后本来就不会动，片子里不伪造这种效果。
 
@@ -141,8 +141,9 @@ Playground：[`docs/playground/promo-titles.html`](playground/promo-titles.html)
 ```text
 觉得好看？求求star！⭐ https://github.com/woodfishhhh/Woodfish-Theme
 欢迎共建~会看PR！
+要 fork 来提 PR 的话，推荐装上讣告 · AI 的回收站：https://obituary.woodfish.site
 
-Woodfish 8.0 · Codex 桌面版：回复变成彩虹字，AI 吐字时彩虹光标领着字走、身后拖一段尾巴；选中的会话转着七色光环，菜单是毛玻璃，窗口底下铺《彩云》（也能换成你自己的图），15 套主题点一下就换。每个效果都是一个文件夹，对 Codex 说一句就能改。
+Woodfish 8.1 · Codex 桌面版：回复变成彩虹字，AI 吐字时彩虹光标领着字走、身后拖一段尾巴；选中的会话转着七色光环，菜单是毛玻璃，窗口底下铺《彩云》（也能换成你自己的图），15 套主题点一下就换。每个效果都是一个文件夹，对 Codex 说一句就能改。
 
 怎么装（Windows 商店版 Codex）：
 · 装好 VS Code 扩展 Woodfish Theme，命令面板运行「Woodfish Theme: 为 Codex 启用 Woodfish」一键启用
@@ -157,8 +158,9 @@ BGM：Sleepy Fish - no more fires（Chillhop Music）
 ```text
 觉得好看？求求star！⭐ https://github.com/woodfishhhh/Woodfish-Theme
 欢迎共建~会看PR！
+要 fork 来提 PR 的话，推荐装上讣告 · AI 的回收站：https://obituary.woodfish.site
 
-Woodfish Theme 8.0 · VS Code 新功能：10 套热门主题（One Dark Pro、Tokyo Night、Catppuccin、Nord、GitHub、Night Owl、Ayu Mirage、Gruvbox）、窗口背景《彩云》、光标拖尾和鼠标拖尾、打字粒子。效果都做成了插件，在 user.css 里写一行变量就能改，也可以让 AI 照效果文件夹里的 AGENTS.md 帮你改；和 Codex 桌面版共用同一个效果文件夹。
+Woodfish Theme 8.1 · VS Code 新功能：10 套热门主题（One Dark Pro、Tokyo Night、Catppuccin、Nord、GitHub、Night Owl、Ayu Mirage、Gruvbox）、窗口背景《彩云》、光标拖尾和鼠标拖尾、打字粒子。效果都做成了插件，在 user.css 里写一行变量就能改，也可以让 AI 照效果文件夹里的 AGENTS.md 帮你改；和 Codex 桌面版共用同一个效果文件夹。
 
 安装：VS Code / Cursor / Kiro / Trae 的扩展商店或 Open VSX 搜「Woodfish Theme」，或在 VS Code 里按 Ctrl+P 输入 ext install zhongjun.woodfish-theme
 

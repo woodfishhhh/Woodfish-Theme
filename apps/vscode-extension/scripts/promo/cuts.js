@@ -1,6 +1,6 @@
 'use strict';
 /*
- * The three cuts of the 8.0 promo, all on the same BGM ("no more fires", see docs/promo.md)
+ * The three cuts of the promo (titles show the version in the stores when it goes out: 8.1), all on the same BGM ("no more fires", see docs/promo.md)
  * and beat grid (storyboard.js):
  *
  * - `full`: the original Codex + VS Code film (storyboard.js), bars 1–25.
@@ -178,7 +178,7 @@ function codexCut() {
     codex({
       ...stream(t),
       camera: { zoom: glide(t, START / BEAT, bar(2) / BEAT, 1, 1.06), focus: 'window' },
-      heading: { eyebrow: 'WOODFISH 8.0', main: 'Codex 桌面版', sub: '回复、光标、侧栏，都换上彩虹', delay: HOOK_TITLE, at: [56, 74] },
+      heading: { eyebrow: 'WOODFISH 8.1', main: 'Codex 桌面版', sub: '回复、光标、侧栏都换上彩虹', delay: HOOK_TITLE, at: [56, 74] },
     })
   );
 
@@ -380,7 +380,7 @@ function vscodeCut() {
       panes: [{ code: CODE.greet, typed: revealed(hold(u, 0.45) + 1.4, 14), cursor: true, large: true }],
       camera: { zoom: glide(u, 0, 4, 1, 1.25), focus: 'cursor', fallback: 'code', x: 430, lag: 0.45 },
       heading: {
-        eyebrow: 'WOODFISH THEME 8.0',
+        eyebrow: 'WOODFISH THEME 8.1',
         main: 'VS Code 新功能',
         sub: '10 套热门主题、窗口背景、光标拖尾、打字粒子、效果插件',
         delay: BAR + 0.45,
@@ -503,7 +503,7 @@ function vscodeCut() {
     palette: 'dark',
     css: 'base',
     panes: [{ code: INSTALL_VSCODE, typed: revealed(t - 0.2, 30), cursor: true, large: true, centered: true }],
-    heading: { eyebrow: '安装', main: 'Woodfish Theme 8.0', sub: 'VS Code 扩展商店 / Open VSX 搜 Woodfish Theme', delay: 0.35, at: [8, 26] },
+    heading: { eyebrow: '安装', main: 'Woodfish Theme 8.1', sub: 'VS Code 扩展商店 / Open VSX 搜 Woodfish Theme', delay: 0.35, at: [8, 26] },
   }));
 
   add(bar(37) + 2 * BEAT, bar(39.5) + 1, 'vscode', endCard('VS Code 扩展商店 / Open VSX 搜 Woodfish Theme · ext install zhongjun.woodfish-theme'));
@@ -513,8 +513,8 @@ function vscodeCut() {
 
 const CUTS = {
   full: { scenes: full.storyboard, start: full.START, end: full.END, badge: '你可以让 Codex 随时调整此效果', out: 'woodfish-8.0-promo.mp4' },
-  codex: { scenes: codexCut, start: bar(1), end: bar(18), badge: '你可以让 Codex 随时调整此效果', out: 'woodfish-8.0-codex.mp4' },
-  vscode: { scenes: vscodeCut, start: bar(25), end: bar(39.5), badge: '你可以让 AI 随时调整此效果', out: 'woodfish-8.0-vscode.mp4' },
+  codex: { scenes: codexCut, start: bar(1), end: bar(18), badge: '你可以让 Codex 随时调整此效果', out: 'woodfish-8.1-codex.mp4' },
+  vscode: { scenes: vscodeCut, start: bar(25), end: bar(39.5), badge: '你可以让 AI 随时调整此效果', out: 'woodfish-8.1-vscode.mp4' },
 };
 
 /** user.css contents a VS Code shot can switch to (the page carries one effects module each). */
