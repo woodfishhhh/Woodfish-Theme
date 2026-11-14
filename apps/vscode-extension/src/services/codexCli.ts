@@ -6,7 +6,7 @@ import * as path from 'path';
 /**
  * The Woodfish CLI for the Codex desktop app (apps/desktop-cli), shipped inside the VSIX as
  * out/woodfish.js (scripts/bundle.js). It runs on the editor's own Electron as Node, so
- * nobody needs to install Node.js; npm and the GitHub Release carry the same file.
+ * nobody needs to install Node.js; the GitHub Release (and later npm) carries the same file.
  */
 
 /** The CLI's exit codes the commands react to (apps/desktop-cli/src/commands/context.ts). */
@@ -36,7 +36,7 @@ export function codexCliUnsupported(
     return 'Codex 桌面端目前只支持 Windows 上的 Microsoft Store 版';
   }
   if (Number(nodeVersion.split('.')[0]) < 22) {
-    return `${host} 自带的 Node.js 是 ${nodeVersion}，Woodfish 的 Codex 工具需要 22 或更高。可以改用 npx woodfish codex launch，或从 GitHub Release 下载 woodfish.exe`;
+    return `${host} 自带的 Node.js 是 ${nodeVersion}，Woodfish 的 Codex 工具需要 22 或更高。可以改用 GitHub Release 里的 woodfish.exe（不用装 Node.js）`;
   }
   return undefined;
 }

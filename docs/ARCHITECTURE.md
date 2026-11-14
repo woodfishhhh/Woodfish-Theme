@@ -126,7 +126,7 @@ VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建�
 
 - `pnpm compile`：通过 TypeScript project references 依次构建共享包（输出到各自的 `out/`），检查各应用的类型，并生成 `apps/desktop-cli/out/woodfish.js`。
 - 打包工具通过 `source` 导出条件直接引用共享包的 TypeScript 源码，把它们打进产物。VSIX 和 `woodfish.js` 都不需要 `node_modules`，也不依赖本仓库。
-- 同一个 `woodfish.js` 有三种发法，版本号和扩展一致：npm 包 `woodfish`（`pnpm cli:dist` 生成 `apps/desktop-cli/out/npm`）、GitHub Release 上的单文件 `woodfish.exe`（Node 单文件程序，`out/release`）、VSIX 里的 `out/woodfish.js`（`scripts/bundle.js` 放进去，扩展用编辑器自带的 Electron 以 `ELECTRON_RUN_AS_NODE=1` 运行它）。
+- 同一个 `woodfish.js` 有三种发法，版本号和扩展一致：npm 包 `woodfish`（`pnpm cli:dist` 生成 `apps/desktop-cli/out/npm`，尚未发布）、GitHub Release 上的单文件 `woodfish.exe`（Node 单文件程序，`out/release`）、VSIX 里的 `out/woodfish.js`（`scripts/bundle.js` 放进去，扩展用编辑器自带的 Electron 以 `ELECTRON_RUN_AS_NODE=1` 运行它）。
 - 渲染端脚本（VS Code 的 `overlay-bootstrap.js`、Codex 和 dsh 的 `assets/*.js`）提交入库，因为运行时直接读取，测试也要检查它们。`runtime:check`、`codex:check`（与 `dsh:check` 是同一个检查，覆盖 `desktop-cli/assets/` 下全部脚本）和对应的测试会在共享包变化、产物没有重新生成时报错。每个脚本的构建标识只取自它用到的共享包，改 adapter-dsh 不会让 Codex 脚本过期。`compile` 不会改写这些已提交的文件。
 - 原创主题 JSON 由 `apps/vscode-extension/scripts/generate-themes.js` 根据核心里的调色板生成，`themes:check` 检查是否过期。
 - Jest 通过 `moduleNameMapper` 直接加载共享包源码，跑测试前不需要先构建。

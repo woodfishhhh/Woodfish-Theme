@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-MIT%20%2B%20GPL--3.0-green.svg)](apps/vscode-extension/THIRD_PARTY_NOTICES.md)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 
-![Woodfish Dark: gradient syntax and glow](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/hero.png)
+![Woodfish Dark: gradient syntax and glow](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/hero.png)
 
 Woodfish Theme adds gradients and glow to code, plus a rainbow cursor and frosted glass. Its five bundled themes each come with hand-tuned gradients; on any other color theme the gradients are derived by the same rules. It works in VS Code, Cursor, Kiro, Windsurf, Trae and VSCodium.
 
@@ -19,43 +19,43 @@ Every picture on this page is rendered by the extension's own code: the code pic
 
 **Woodfish Dark**: Bearded Theme Arc colors with the hand-written 5.x gradients.
 
-![Woodfish Dark](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-dark.png)
+![Woodfish Dark](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/theme-dark.png)
 
 **Woodfish Dracula**: the official Dracula colors, keywords running pink into purple.
 
-![Woodfish Dracula](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-dracula.png)
+![Woodfish Dracula](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/theme-dracula.png)
 
 **Woodfish Black**: pure black for OLED screens.
 
-![Woodfish Black](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-black.png)
+![Woodfish Black](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/theme-black.png)
 
 **Woodfish Neon**: neon on deep purple.
 
-![Woodfish Neon](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-neon.png)
+![Woodfish Neon](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/theme-neon.png)
 
 **Woodfish Light**: warm white; gradients go deeper and the glow is a light tint of each hue.
 
-![Woodfish Light](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-light.png)
+![Woodfish Light](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/theme-light.png)
 
 **Any other theme**: VS Code's own Dark Modern as it ships (left) and with Woodfish (right).
 
 | Dark Modern | With Woodfish |
 |---|---|
-| ![Dark Modern](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/any-theme-before.png) | ![Dark Modern with Woodfish](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/any-theme-after.png) |
+| ![Dark Modern](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/any-theme-before.png) | ![Dark Modern with Woodfish](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/any-theme-after.png) |
 
 **Glow**, off and on:
 
 | Gradient only | Gradient + glow |
 |---|---|
-| ![Glow off](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/glow-off.png) | ![Glow on](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/glow-on.png) |
+| ![Glow off](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/glow-off.png) | ![Glow on](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/glow-on.png) |
 
 **Rainbow cursor**: its colors cycle; these are six moments of one cycle.
 
-<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/cursor.png" width="40%" alt="Six moments of the rainbow cursor's color cycle">
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/cursor.png" width="40%" alt="Six moments of the rainbow cursor's color cycle">
 
 **Frosted glass** on the suggest list (opacity 0.5, 14px blur):
 
-![Frosted glass](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/glass.png)
+![Frosted glass](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/glass.png)
 
 ## Effects at a glance
 
@@ -63,47 +63,47 @@ One focused picture per effect; moving effects are short animations. In the Code
 
 <table>
   <tr>
-    <td width="48%"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-rainbow-reply.webp" alt="Assistant replies in Codex drawn in a rainbow gradient"></td>
+    <td width="48%"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-rainbow-reply.webp" alt="Assistant replies in Codex drawn in a rainbow gradient"></td>
     <td><b>Rainbow replies</b> · Codex<br>The assistant's reply text is a rainbow gradient tuned to the current theme. Pure CSS, so streaming and very long threads cost no extra frame time.<br><sub>Effect <code>rainbow-text</code>; strength and angle: <code>--woodfish-rainbow-text-strength</code>, <code>--woodfish-rainbow-text-angle</code></sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-stream.webp" alt="A rainbow cursor, a trail and sparks at the end of a streaming reply"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-stream.webp" alt="A rainbow cursor, a trail and sparks at the end of a streaming reply"></td>
     <td><b>Streaming cursor, trail and fade-in</b> · Codex<br>While the AI writes, a rainbow cursor leads the text with a band trailing behind it, new characters fade in and a few sparks fly. Your typing and the AI's streaming trigger the same effects.<br><sub>Effects <code>stream-cursor</code>, <code>caret-trail</code>, <code>text-reveal</code>; e.g. <code>--woodfish-caret-trail-color: #ff4d4f;</code>, <code>--woodfish-text-reveal-style: blur;</code></sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-thread-ring.webp" alt="The selected sidebar thread wears a turning seven-color ring"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-thread-ring.webp" alt="The selected sidebar thread wears a turning seven-color ring"></td>
     <td><b>Selected-thread ring</b> · Codex<br>The selected thread in the sidebar wears a slowly turning seven-color ring with a soft halo; running threads glow more faintly.<br><sub>Effect <code>thread-ring</code>; seconds per turn and halo: <code>--woodfish-thread-ring-turn-seconds</code>, <code>--woodfish-thread-ring-halo</code></sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-glass.webp" alt="The composer's slash menu is frosted glass over the rainbow reply"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-glass.webp" alt="The composer's slash menu is frosted glass over the rainbow reply"></td>
     <td><b>Frosted menus</b> · Codex<br>Menus, the <code>/</code> command list and dialogs are frosted glass that fades in, with the content behind them showing through. For VS Code see <a href="#preview">Preview</a>.<br><sub>Effect <code>glass</code>; blur and opacity: <code>--woodfish-glass-blur</code>, <code>--woodfish-glass-opacity</code></sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-background-off.webp" alt="Codex without a background"><br><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-background-on.webp" alt="Codex with 《彩云》 under the window"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-background-off.webp" alt="Codex without a background"><br><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-background-on.webp" alt="Codex with 《彩云》 under the window"></td>
     <td><b>Window background 《彩云》</b> · Codex and VS Code<br>A picture under the whole window, with a frosted sidebar and composer; text stays crisp (top: off, bottom: on). The default is 《彩云》, painted by the author; use your own picture instead.<br><sub>Codex: upload in Settings → Appearance → Woodfish, or <code>woodfish codex background set &lt;picture&gt;</code>; VS Code: run 设置背景图片 (set background picture). Strength: <code>--woodfish-background-opacity</code></sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-caret-trail.webp" alt="Home and End make the rainbow caret drag a band across the line"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-caret-trail.webp" alt="Home and End make the rainbow caret drag a band across the line"></td>
     <td><b>Composer caret and caret trail</b> · Codex<br>The composer gets the same 6px rainbow caret as VS Code; whenever the caret jumps (Home, End, a click) it drags a band behind it, drawn like the VS Code Animations extension.<br><sub>Effects <code>caret</code>, <code>caret-trail</code>; width, length, color: <code>--woodfish-caret-width</code>, <code>--woodfish-caret-trail-length</code>, <code>--woodfish-caret-trail-color</code></sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-typing-particles.webp" alt="Theme-colored sparks while typing in the composer"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-typing-particles.webp" alt="Theme-colored sparks while typing in the composer"></td>
     <td><b>Typing particles</b> · Codex and VS Code<br>Typing and AI streaming throw a burst of theme-colored sparks from the caret; no shake, no combo counter, and fast streams are rate-limited.<br><sub>Effect <code>typing-particles</code>; count, size, colors: <code>--woodfish-typing-particles-count</code>, <code>--woodfish-typing-particles-size</code>, <code>--woodfish-typing-particles-colors: rainbow;</code> (in VS Code: <code>woodfishTheme.typingParticles.*</code>)</sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-ask-codex.webp" alt="Asking Codex to make the typing particles gold; it writes three lines of user.css"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-ask-codex.webp" alt="Asking Codex to make the typing particles gold; it writes three lines of user.css"></td>
     <td><b>Ask Codex to change an effect</b><br>The effects folder carries an <code>AGENTS.md</code> written for AIs. Tell Codex or Claude “make the typing particles gold and a bit bigger” and it finds the effect, changes variables in <code>user.css</code> first (parameters or code only when needed), and the change reloads by itself.<br><sub>The guide: <code>%APPDATA%\Woodfish\effects\AGENTS.md</code></sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-user-css-gold.webp" alt="After the user.css change, typing throws bigger gold sparks"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-user-css-gold.webp" alt="After the user.css change, typing throws bigger gold sparks"></td>
     <td><b>One line of <code>user.css</code></b><br>Every effect parameter is a CSS variable, <code>--woodfish-&lt;effect&gt;-&lt;param&gt;</code>. Put it in the effects folder's <code>user.css</code>: it applies a second or two after saving, survives upgrades, and canvas effects such as trails and particles follow it too. The picture shows the three lines from the row above.<br><sub>The Codex settings page has 打开 user.css (open) and 恢复默认 (reset); the variable list is in the effects folder's <code>README.md</code></sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/codex-settings.webp" alt="Woodfish 外观 in Codex settings: theme cards and effect plugins"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/codex-settings.webp" alt="Woodfish 外观 in Codex settings: theme cards and effect plugins"></td>
     <td><b>Woodfish 外观 in Codex settings</b><br>Settings → Appearance gains a section: pick a dark and a light theme (15 in total, one click recolors the whole window), one switch per effect, 参数 (parameters) for every slider and color picker, and 刷新效果 (reload effects) / 全部恢复默认 (reset all) at the top.<br><sub>This one is a real screenshot (Codex 26.1013, 2026-11-14)</sub></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/vscode-effects.webp" alt="Caret trail and typing particles while typing in VS Code"></td>
+    <td><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/vscode-effects.webp" alt="Caret trail and typing particles while typing in VS Code"></td>
     <td><b>The same effects in VS Code</b><br>The caret trail and typing particles exist in VS Code too, off by default. Both editors share one effects folder, so a change shows up in both.<br><sub>Turn on <code>woodfishTheme.caretTrail.enabled</code> and <code>woodfishTheme.typingParticles.enabled</code> (there is also a mouse trail, <code>woodfishTheme.mouseTrail.enabled</code>)</sub></td>
   </tr>
 </table>
@@ -116,11 +116,11 @@ One focused picture per effect; moving effects are short animations. In the Code
 
   Before 7.2 the rainbow starts over at `and`:
 
-  ![Before 7.2: the rainbow restarts at the 50th character](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/long-before.png)
+  ![Before 7.2: the rainbow restarts at the 50th character](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/long-before.png)
 
   7.2, one rainbow across the line:
 
-  ![7.2: one rainbow across the line](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/long-after.png)
+  ![7.2: one rainbow across the line](https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/long-after.png)
 
 - **Light themes glow in a light color**: the glow used to be the dark text color, which looked like a shadow.
 
@@ -234,7 +234,7 @@ Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build). Th
 
 - **From this extension**: run `Woodfish Theme: 为 Codex 启用 Woodfish` from the command palette (there are commands to turn it off and to uninstall, too). It uses the Codex tool bundled with the extension and the editor's own runtime, so no Node.js install is needed; the debugging-port risk is explained first.
 - **Single file**: download `woodfish.exe` from the [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) and double-click it; nothing else to install (it is unsigned, so Windows may show "Windows protected your PC": More info → Run anyway).
-- **npm**: `npx woodfish codex launch`, or `npm i -g woodfish` (Node.js 22+).
+- **npm**: coming soon. With Node.js 22+ you can already download `woodfish.js` from the same release and run `node woodfish.js codex launch`.
 
 Woodfish never changes or replaces your own Codex shortcuts. With "restore after logon" on, a Codex opened from them is restarted with the debugging port before its window appears: no flicker, the window just shows up two or three seconds later. A separate Start menu entry "Woodfish Codex" starts it with the effects directly.
 
@@ -257,24 +257,24 @@ Besides the five Woodfish themes, the extension ships ten popular MIT-licensed t
 
 <table>
   <tr>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-onedark.webp" alt="Woodfish One Dark Pro"><br><sub>Woodfish One Dark Pro</sub></td>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-tokyonight.webp" alt="Woodfish Tokyo Night"><br><sub>Woodfish Tokyo Night</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-onedark.webp" alt="Woodfish One Dark Pro"><br><sub>Woodfish One Dark Pro</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-tokyonight.webp" alt="Woodfish Tokyo Night"><br><sub>Woodfish Tokyo Night</sub></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-catppuccin-mocha.webp" alt="Woodfish Catppuccin Mocha"><br><sub>Woodfish Catppuccin Mocha</sub></td>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-catppuccin-latte.webp" alt="Woodfish Catppuccin Latte"><br><sub>Woodfish Catppuccin Latte</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-catppuccin-mocha.webp" alt="Woodfish Catppuccin Mocha"><br><sub>Woodfish Catppuccin Mocha</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-catppuccin-latte.webp" alt="Woodfish Catppuccin Latte"><br><sub>Woodfish Catppuccin Latte</sub></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-nord.webp" alt="Woodfish Nord"><br><sub>Woodfish Nord</sub></td>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-github-dark.webp" alt="Woodfish GitHub Dark"><br><sub>Woodfish GitHub Dark</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-nord.webp" alt="Woodfish Nord"><br><sub>Woodfish Nord</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-github-dark.webp" alt="Woodfish GitHub Dark"><br><sub>Woodfish GitHub Dark</sub></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-github-light.webp" alt="Woodfish GitHub Light"><br><sub>Woodfish GitHub Light</sub></td>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-nightowl.webp" alt="Woodfish Night Owl"><br><sub>Woodfish Night Owl</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-github-light.webp" alt="Woodfish GitHub Light"><br><sub>Woodfish GitHub Light</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-nightowl.webp" alt="Woodfish Night Owl"><br><sub>Woodfish Night Owl</sub></td>
   </tr>
   <tr>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-ayu-mirage.webp" alt="Woodfish Ayu Mirage"><br><sub>Woodfish Ayu Mirage</sub></td>
-    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/HEAD/assets/readme/effects/theme-gruvbox-dark.webp" alt="Woodfish Gruvbox Dark"><br><sub>Woodfish Gruvbox Dark</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-ayu-mirage.webp" alt="Woodfish Ayu Mirage"><br><sub>Woodfish Ayu Mirage</sub></td>
+    <td width="50%" align="center"><img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v8.0.0/assets/readme/effects/theme-gruvbox-dark.webp" alt="Woodfish Gruvbox Dark"><br><sub>Woodfish Gruvbox Dark</sub></td>
   </tr>
 </table>
 

@@ -6,18 +6,18 @@ Woodfish 不修改 Codex 的安装文件。商店版的安装目录是只读的�
 
 ## 安装：三种方式，效果相同
 
-三种方式运行的是同一个 `woodfish.js`，版本号和 VS Code 扩展一致（7.4.0 起），功能、效果、设置文件完全一样，选一种即可。都需要 Windows 上的 Microsoft Store 版 Codex。
+三种方式运行的是同一个 `woodfish.js`，版本号和 VS Code 扩展一致（8.0.0 起），功能、效果、设置文件完全一样，选一种即可。都需要 Windows 上的 Microsoft Store 版 Codex。
 
 | 方式 | 怎么用 | 需要 |
 | --- | --- | --- |
-| **VS Code 扩展** | 装好 Woodfish Theme 扩展（7.4.0 起），命令面板运行 **Woodfish Theme: 为 Codex 启用 Woodfish**；撤下用 **为 Codex 停用 Woodfish**，全部撤销用 **从 Codex 卸载 Woodfish** | 不用另装 Node.js，借编辑器自带的运行时 |
+| **VS Code 扩展** | 装好 Woodfish Theme 扩展（8.0.0 起），命令面板运行 **Woodfish Theme: 为 Codex 启用 Woodfish**；撤下用 **为 Codex 停用 Woodfish**，全部撤销用 **从 Codex 卸载 Woodfish** | 不用另装 Node.js，借编辑器自带的运行时 |
 | **单文件 exe** | 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) 下载 `woodfish.exe` 双击；或 `curl.exe -L -o woodfish.exe https://github.com/woodfishhhh/Woodfish-Theme/releases/latest/download/woodfish.exe` 后运行 `.\woodfish.exe codex launch` | 什么都不用装 |
-| **npm** | `npx woodfish codex launch`，或 `npm i -g woodfish` 后 `woodfish codex launch` | Node.js 22 或更高 |
+| **woodfish.js** | 同一个 Release 里的 `woodfish.js`，`node woodfish.js codex launch`（npm 包 `woodfish` 即将上线） | Node.js 22 或更高 |
 
 - **VS Code 扩展**：第一次启用会在对话框里说明调试端口的风险，同意后以带效果的方式重启 Codex，并开启“登录后自动恢复”（相当于 `launch` 加 `autostart on`）。启用成功的提示里可以顺手在开始菜单加一个“Woodfish Codex”。后台进程跑在编辑器自带的运行时上，VS Code 更新时会被结束，重新打开 VS Code 后扩展会把它拉起来。Cursor、Windsurf 等自带的 Node.js 低于 22 时，请改用 exe 或 npm。
 - **单文件 exe**：是 Node.js 单文件程序（约 85 MB，内含 Node.js 22）。没有代码签名，第一次运行 Windows 可能提示“Windows 已保护你的电脑”，点“更多信息 → 仍要运行”。双击后说明风险、确认、以带效果的方式启动 Codex，再问是否登录后自动恢复；`woodfish.exe help` 列出全部命令，用法和下面的 `woodfish` 完全相同。第三方许可见 Release 里的 `THIRD_PARTY_NOTICES-woodfish.md`。
-- **npm**：包名 `woodfish`，单文件、没有依赖。`npx woodfish@latest codex launch` 总是用最新版。
-- 开启自动恢复或创建开始菜单入口时，Woodfish 把自己复制一份到 `%LOCALAPPDATA%\Woodfish`（exe 复制 exe，npm 和扩展复制 `woodfish.js`）。所以删掉下载的 exe、清掉 npx 缓存、更新扩展都不影响它们；换了新版本后再运行一次 `woodfish codex autostart on`（或 VS Code 里再启用一次）就会换成新副本。
+- **woodfish.js / npm**：`woodfish.js` 是单文件、没有依赖，有 Node.js 22+ 就能直接运行。npm 包 `woodfish`（同一个文件）即将上线，上线后 `npx woodfish codex launch` 即可。
+- 开启自动恢复或创建开始菜单入口时，Woodfish 把自己复制一份到 `%LOCALAPPDATA%\Woodfish`（exe 复制 exe，`woodfish.js` 和扩展复制 `woodfish.js`）。所以删掉下载的 exe、清掉 npx 缓存、更新扩展都不影响它们；换了新版本后再运行一次 `woodfish codex autostart on`（或 VS Code 里再启用一次）就会换成新副本。
 
 ### 会不会“抢走”Codex 原来的快捷方式？
 
