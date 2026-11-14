@@ -33,6 +33,8 @@ import {
   EXIT,
   isProcessAlive,
   pickFreePort,
+  selfCommand,
+  selfEnv,
   waitFor,
 } from './context';
 
@@ -131,15 +133,13 @@ async function stopCodex(
 function spawnWatcher(context: CommandContext, port: number): number {
   fs.mkdirSync(context.paths.runtimeDir, { recursive: true });
   const log = fs.openSync(context.paths.watcherLog, 'a');
-  const child = spawn(
-    context.nodePath,
-    [context.cliPath, 'codex', 'watch', '--port', String(port)],
-    {
-      detached: true,
-      stdio: ['ignore', log, log],
-      windowsHide: true,
-    }
-  );
+  const self = selfCommand(context, ['codex', 'watch', '--port', String(port)]);
+  const child = spawn(self.command, self.args, {
+    detached: true,
+    stdio: ['ignore', log, log],
+    windowsHide: true,
+    env: selfEnv(context),
+  });
   child.unref();
   fs.closeSync(log);
   if (!child.pid) {
@@ -227,6 +227,13 @@ export async function launchCommand(
       );
     }
   } else {
+    if (state.main && !options.assumeYes && !context.io.interactive) {
+      // Callers without a terminal (the VS Code extension) ask themselves and run again.
+      throw new CommandError(
+        '为开启注入，需要重启正在运行的 Codex（会结束它的全部进程，正在运行的任务可能被中断）。确认后加上 --yes 再运行',
+        EXIT.confirmRequired
+      );
+    }
     const stopped = await stopCodex(
       context,
       platform,

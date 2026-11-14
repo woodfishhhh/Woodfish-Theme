@@ -189,7 +189,7 @@ describe('autostart task', () => {
 });
 
 describe('stopping', () => {
-  it('ignores taskkill errors for children that already exited', () => {
+  it('ends Codex without a PowerShell round trip and asks about elevation once', () => {
     const scripts: string[] = [];
     const platform = createWindowsPlatform({
       runtimeDir: String.raw`C:\tmp`,
@@ -203,8 +203,10 @@ describe('stopping', () => {
       processCount: 3,
       debugPort: null,
     });
-    expect(scripts[0]).toContain('cmd.exe /d /c "taskkill /PID 42 /T /F >nul 2>nul"');
-    expect(scripts[0]).toContain('exit 0');
+    expect(scripts).toEqual([]);
+    platform.isElevated();
+    platform.isElevated();
+    expect(scripts).toHaveLength(1);
   });
 });
 
@@ -294,6 +296,7 @@ onWindows('generated PowerShell is syntactically valid', () => {
       execute: 'conhost.exe',
       args: ['--headless', String.raw`C:\Program Files\nodejs\node.exe`, 'codex', 'daemon'],
     });
+    platform.removeShortcut('Woodfish Codex');
     platform.removeAutostart();
     platform.readAutostart();
     scripts.push(

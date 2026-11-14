@@ -5,8 +5,14 @@ import { parse } from 'smol-toml';
 import { mergeSettings, parseArgs, parseSetting } from '../cli/args';
 import { RISK_TEXT, RISK_TEXT_SHA256 } from '../cli/consent';
 import { Io } from '../cli/io';
-import { HELP, run } from '../cli';
-import { FRESH_START_SECONDS, decideDaemonAction } from '../commands/autostart';
+import { HELP, VERSION, guidedLaunch, run } from '../cli';
+import {
+  FRESH_START_SECONDS,
+  PORT_STARTUP_SECONDS,
+  codexStartNaps,
+  daemonCommand,
+  decideDaemonAction,
+} from '../commands/autostart';
 import { codexEffectsScript } from '../codex/effects';
 import {
   USERSCRIPT_KEY,
@@ -154,7 +160,10 @@ function fakePlatform(overrides: Partial<CodexPlatform> = {}): CodexPlatform & {
     launchNormal: () => calls.push('launchNormal'),
     stop: () => calls.push('stop'),
     isElevated: () => false,
-    createShortcut: () => 'C:\\link.lnk',
+    createShortcut: (name, target, args) =>
+      `${calls.push(`createShortcut ${name}: ${target} ${args.join(' ')}`)}.lnk`,
+    removeShortcut: () => calls.push('removeShortcut') > 0,
+    userDataDir: () => null,
     installAutostart: (command) => calls.push(`installAutostart ${command.args.join(' ')}`),
     removeAutostart: () => calls.push('removeAutostart') > 0,
     readAutostart: () => null,
@@ -167,6 +176,8 @@ describe('run', () => {
     const io = memoryIo();
     expect(await run([], { io })).toBe(0);
     expect(io.output.join('\n')).toBe(HELP);
+    expect(await run(['--version'], { io })).toBe(0);
+    expect(io.output.at(-1)).toBe(VERSION);
     expect(await run(['nope'], { io })).toBe(2);
     expect(await run(['codex', 'theme'], { io, context: { paths } })).toBe(2);
     expect(
@@ -361,20 +372,97 @@ describe('run', () => {
         debugPort: null,
       }),
     });
+    // Without a terminal (the VS Code extension) it asks for --yes with its own exit code.
     const quiet = memoryIo();
     expect(
       await run(['codex', 'launch'], { io: quiet, context: { paths, platform: () => running } })
+    ).toBe(4);
+    expect(running.calls).toEqual([]);
+    expect(quiet.output.join('\n')).toContain('--yes');
+
+    const declined = memoryIo(['n'], true);
+    expect(
+      await run(['codex', 'launch'], { io: declined, context: { paths, platform: () => running } })
     ).toBe(1);
     expect(running.calls).toEqual([]);
-    expect(quiet.output.join('\n')).toContain('已取消');
+    expect(declined.output.join('\n')).toContain('已取消');
   });
 
-  it('creates the shortcut only after consent', async () => {
+  it('keeps a double-clicked exe window open and stops when consent is refused', async () => {
+    const platform = fakePlatform();
+    const asked: string[] = [];
+    const io = {
+      ...memoryIo([], true),
+      ask: async (question: string) => {
+        asked.push(question);
+        return 'no';
+      },
+    };
+    expect(await guidedLaunch(io, { context: { paths, platform: () => platform } })).toBe(3);
+    expect(platform.calls).toEqual([]);
+    expect(asked.at(-1)).toBe('按回车键关闭窗口');
+  });
+
+  it('creates the shortcut only after consent, pointing at a private copy', async () => {
     const platform = fakePlatform();
     const io = memoryIo();
+    const cliPath = path.join(sandbox, 'npx-cache', 'woodfish.js');
+    fs.mkdirSync(path.dirname(cliPath), { recursive: true });
+    fs.writeFileSync(cliPath, '// cli');
+    const context = { paths, platform: () => platform, nodePath: 'C:\\node.exe', cliPath };
+    expect(await run(['codex', 'shortcut'], { io, context })).toBe(3);
+    expect(platform.calls).toEqual([]);
+
+    expect(await run(['codex', 'autostart', 'on', '--accept-risk'], { io, context })).toBe(0);
+    expect(await run(['codex', 'shortcut'], { io, context })).toBe(0);
+    const installed = path.join(paths.runtimeDir, 'woodfish.js');
+    expect(platform.calls).toContain(
+      `createShortcut Woodfish Codex: C:\\node.exe ${installed} codex launch --yes`
+    );
+    expect(io.output.join('\n')).toContain('原来的 Codex 快捷方式没有改动');
+    expect(await run(['codex', 'uninstall'], { io, context })).toBe(0);
+    expect(platform.calls).toContain('removeShortcut');
+  });
+
+  it("runs the single-file exe and VS Code's Electron from private copies too", async () => {
+    fs.mkdirSync(paths.dataDir, { recursive: true });
+    const exe = path.join(sandbox, 'Downloads', 'woodfish.exe');
+    fs.mkdirSync(path.dirname(exe), { recursive: true });
+    fs.writeFileSync(exe, 'MZ');
+    const sea = fakePlatform();
+    const io = memoryIo();
+    const seaContext = { paths, platform: () => sea, nodePath: exe, cliPath: '' };
     expect(
-      await run(['codex', 'shortcut'], { io, context: { paths, platform: () => platform } })
-    ).toBe(3);
+      await run(['codex', 'autostart', 'on', '--accept-risk'], { io, context: seaContext })
+    ).toBe(0);
+    const copy = path.join(paths.runtimeDir, 'woodfish.exe');
+    expect(sea.calls).toEqual([`installAutostart --headless ${copy} codex daemon`]);
+    expect(fs.readFileSync(copy, 'utf8')).toBe('MZ');
+
+    const script = path.join(sandbox, 'extension', 'out', 'woodfish.js');
+    fs.mkdirSync(path.dirname(script), { recursive: true });
+    fs.writeFileSync(script, '// cli');
+    const code = 'C:\\Users\\张三\\Microsoft VS Code\\Code.exe';
+    const electron = fakePlatform();
+    const electronContext = {
+      paths,
+      platform: () => electron,
+      nodePath: code,
+      cliPath: script,
+      electronRunAsNode: true,
+    };
+    expect(await run(['codex', 'autostart', 'on'], { io, context: electronContext })).toBe(0);
+    const batch = path.join(paths.runtimeDir, 'woodfish.cmd');
+    expect(electron.calls).toEqual([
+      `installAutostart --headless cmd.exe /d /c ${batch} codex daemon`,
+    ]);
+    expect(fs.readFileSync(batch, 'utf8').split('\r\n')).toEqual([
+      '@echo off',
+      'chcp 65001 >nul',
+      'set ELECTRON_RUN_AS_NODE=1',
+      `"${code}" "%~dp0woodfish.js" %*`,
+      '',
+    ]);
   });
 
   it('registers the hidden logon daemon only after consent and removes it on uninstall', async () => {
@@ -409,6 +497,7 @@ describe('decideDaemonAction', () => {
     mainPid: 7,
     ageSeconds: 3,
     debugPortAlive: false,
+    portRequested: false,
     otherWatcherAlive: false,
     handledPid: null,
   };
@@ -427,8 +516,55 @@ describe('decideDaemonAction', () => {
     );
   });
 
+  it('never restarts a Codex that was started with a port that is not up yet', () => {
+    expect(decideDaemonAction({ ...base, portRequested: true })).toBe('wait');
+    expect(
+      decideDaemonAction({ ...base, portRequested: true, ageSeconds: PORT_STARTUP_SECONDS + 1 })
+    ).toBe('restart');
+  });
+
   it('idles while Codex is closed', () => {
     expect(decideDaemonAction({ ...base, running: false })).toBe('idle');
     expect(decideDaemonAction({ ...base, mainPid: null })).toBe('idle');
+  });
+});
+
+describe('daemonCommand', () => {
+  it('keeps running when looking up Codex fails at start', async () => {
+    fs.mkdirSync(paths.dataDir, { recursive: true });
+    fs.writeFileSync(
+      paths.settingsFile,
+      JSON.stringify({ version: 1, codex: {}, consent: { riskTextSha256: RISK_TEXT_SHA256 } })
+    );
+    const platform = fakePlatform({
+      discover: () => {
+        throw new Error('PowerShell 超时');
+      },
+    });
+    const context = { paths, io: memoryIo(), platform: () => platform, cliPath: '', nodePath: '' };
+    expect(await daemonCommand(context, { maxIterations: 2, pollMs: 1 })).toBe(0);
+    expect(fs.readFileSync(paths.daemonLog, 'utf8')).toContain('出错：PowerShell 超时');
+  });
+});
+
+describe('codexStartNaps', () => {
+  it('wakes as soon as Codex writes to its data folder', async () => {
+    const dir = path.join(sandbox, 'Codex');
+    fs.mkdirSync(path.join(dir, 'web'), { recursive: true });
+    const naps = codexStartNaps(dir);
+    const started = Date.now();
+    const nap = naps.sleep(20000);
+    setTimeout(() => fs.writeFileSync(path.join(dir, 'web', 'lockfile'), ''), 100);
+    await nap;
+    naps.stop();
+    expect(Date.now() - started).toBeLessThan(5000);
+  });
+
+  it('just sleeps without a folder', async () => {
+    const naps = codexStartNaps(path.join(sandbox, 'missing'));
+    const started = Date.now();
+    await naps.sleep(50);
+    naps.stop();
+    expect(Date.now() - started).toBeGreaterThanOrEqual(40);
   });
 });

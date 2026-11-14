@@ -4,6 +4,29 @@
 
 Woodfish 不修改 Codex 的安装文件。商店版的安装目录是只读的，而且有签名和完整性校验，改动会导致 Codex 无法启动。
 
+## 安装：三种方式，效果相同
+
+三种方式运行的是同一个 `woodfish.js`，版本号和 VS Code 扩展一致（7.4.0 起），功能、效果、设置文件完全一样，选一种即可。都需要 Windows 上的 Microsoft Store 版 Codex。
+
+| 方式 | 怎么用 | 需要 |
+| --- | --- | --- |
+| **VS Code 扩展** | 装好 Woodfish Theme 扩展（7.4.0 起），命令面板运行 **Woodfish Theme: 为 Codex 启用 Woodfish**；撤下用 **为 Codex 停用 Woodfish**，全部撤销用 **从 Codex 卸载 Woodfish** | 不用另装 Node.js，借编辑器自带的运行时 |
+| **单文件 exe** | 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) 下载 `woodfish.exe` 双击；或 `curl.exe -L -o woodfish.exe https://github.com/woodfishhhh/Woodfish-Theme/releases/latest/download/woodfish.exe` 后运行 `.\woodfish.exe codex launch` | 什么都不用装 |
+| **npm** | `npx woodfish codex launch`，或 `npm i -g woodfish` 后 `woodfish codex launch` | Node.js 22 或更高 |
+
+- **VS Code 扩展**：第一次启用会在对话框里说明调试端口的风险，同意后以带效果的方式重启 Codex，并开启“登录后自动恢复”（相当于 `launch` 加 `autostart on`）。启用成功的提示里可以顺手在开始菜单加一个“Woodfish Codex”。后台进程跑在编辑器自带的运行时上，VS Code 更新时会被结束，重新打开 VS Code 后扩展会把它拉起来。Cursor、Windsurf 等自带的 Node.js 低于 22 时，请改用 exe 或 npm。
+- **单文件 exe**：是 Node.js 单文件程序（约 85 MB，内含 Node.js 22）。没有代码签名，第一次运行 Windows 可能提示“Windows 已保护你的电脑”，点“更多信息 → 仍要运行”。双击后说明风险、确认、以带效果的方式启动 Codex，再问是否登录后自动恢复；`woodfish.exe help` 列出全部命令，用法和下面的 `woodfish` 完全相同。第三方许可见 Release 里的 `THIRD_PARTY_NOTICES-woodfish.md`。
+- **npm**：包名 `woodfish`，单文件、没有依赖。`npx woodfish@latest codex launch` 总是用最新版。
+- 开启自动恢复或创建开始菜单入口时，Woodfish 把自己复制一份到 `%LOCALAPPDATA%\Woodfish`（exe 复制 exe，npm 和扩展复制 `woodfish.js`）。所以删掉下载的 exe、清掉 npx 缓存、更新扩展都不影响它们；换了新版本后再运行一次 `woodfish codex autostart on`（或 VS Code 里再启用一次）就会换成新副本。
+
+### 会不会“抢走”Codex 原来的快捷方式？
+
+不会。Woodfish 从不修改、替换或删除你开始菜单、桌面、任务栏上的 Codex 快捷方式。
+
+- **只用了 `launch`、没开自动恢复**：用原来的快捷方式打开的就是原版 Codex，没有效果；想要效果就再运行一次 `woodfish codex launch`（或 VS Code 里的启用命令）。
+- **开了自动恢复**：用原来的快捷方式打开 Codex 时，后台进程在 Codex 启动后 1～2 秒内发现它没带调试端口，就结束它、带端口重新启动。Codex 自己要 7 秒左右才出窗口，所以切换在窗口出现之前就完成了：看不到“闪一下”，只是窗口比平时晚 2～4 秒出来（实测原版 7.4～8.6 秒，经过这次重启 10.7～11.5 秒）。已经运行超过 90 秒的 Codex 不会被打断。
+- **连这几秒也想省**：`woodfish codex shortcut`（VS Code 里是启用成功提示上的按钮）在开始菜单另加一个“Woodfish Codex”，直接带效果启动（实测约 9.5 秒出窗口）。原来的“Codex”照旧在，两个并存；`woodfish codex uninstall` 会删掉 Woodfish 加的这一项。
+
 ## 三种用法
 
 | 方式 | 能做什么 | 是否开调试端口 | 何时生效 |
@@ -67,7 +90,7 @@ Codex 里 Woodfish 画的每个效果都是一个**插件文件夹**，放在 `%
 - 设置里只记图片编号。页面需要哪张图时向监视进程要一次，转成 `blob:` 地址当作背景（Codex 的 CSP 允许 `img-src blob:`），不会每次改设置都把整张图塞进注入脚本。
 - **Codex++ 用户脚本模式**没有监视进程：脚本里自带《彩云》，可以切换《彩云》和彩云渐变、调三个滑块（存在 localStorage），不能上传自己的图片。
 
-## 构建与运行
+## 从源码构建
 
 需要 Node.js 22 或更高版本。在仓库根目录运行：
 
@@ -75,9 +98,10 @@ Codex 里 Woodfish 画的每个效果都是一个**插件文件夹**，放在 `%
 pnpm install
 pnpm compile                 # 生成 apps/desktop-cli/out/woodfish.js
 pnpm woodfish codex status
+pnpm cli:dist                # 发布产物：out/npm（npm 包）、out/release（woodfish.exe、woodfish.js、许可）
 ```
 
-也可以直接运行 `node apps/desktop-cli/out/woodfish.js codex <命令>`。
+也可以直接运行 `node apps/desktop-cli/out/woodfish.js codex <命令>`。`cli:dist` 在 Windows 上用当前的 Node.js 生成单文件 exe（Node 官方的 single executable application，`postject` 注入），并试运行 npm 包和 exe；VS Code 扩展打包时把同一个 `woodfish.js` 放进 VSIX 的 `out/`。
 
 ## 常用命令
 
@@ -109,14 +133,14 @@ woodfish codex stop-inject                 # 立即撤下效果
 woodfish codex relaunch --normal           # 不带端口重启，关闭调试端口
 
 # 一直生效（Codex 重启、商店更新后自动恢复）
-woodfish codex autostart on                # 登录时启动的后台任务，无窗口、普通权限
+woodfish codex autostart on                # 登录时启动的后台任务，无窗口、普通权限（原快捷方式打开的 Codex 会在出窗口前被带端口重启）
 woodfish codex autostart                   # 查看状态
 woodfish codex autostart off               # 删除任务并停止后台进程
 
 # 诊断与清理
 woodfish codex status
 woodfish codex doctor                      # 检查效果是否生效、界面元素是否还能找到
-woodfish codex shortcut                    # 开始菜单快捷方式“Woodfish Codex”
+woodfish codex shortcut                    # 另加开始菜单项“Woodfish Codex”，直接带效果启动；不动原来的 Codex 快捷方式
 woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部修改
 ```
 

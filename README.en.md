@@ -179,7 +179,15 @@ To restore everything, uninstall the extension and fully restart the editor, or 
 
 ## Codex desktop app
 
-Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build) without modifying its installation:
+Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build). Three ways to get it, all with the same effects:
+
+- **From this extension**: run `Woodfish Theme: 为 Codex 启用 Woodfish` from the command palette (there are commands to turn it off and to uninstall, too). It uses the Codex tool bundled with the extension and the editor's own runtime, so no Node.js install is needed; the debugging-port risk is explained first.
+- **Single file**: download `woodfish.exe` from the [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) and double-click it; nothing else to install (it is unsigned, so Windows may show "Windows protected your PC": More info → Run anyway).
+- **npm**: `npx woodfish codex launch`, or `npm i -g woodfish` (Node.js 22+).
+
+Woodfish never changes or replaces your own Codex shortcuts. With "restore after logon" on, a Codex opened from them is restarted with the debugging port before its window appears: no flicker, the window just shows up two or three seconds later. A separate Start menu entry "Woodfish Codex" starts it with the effects directly.
+
+It never modifies Codex's installation:
 
 - **Native palette**: `woodfish codex theme apply --dark neon --light light` writes Codex's official theme settings (one palette per appearance mode) and opens no ports; `--appearance dark` pins Codex to dark mode.
 - **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow, the same 6px rainbow caret as in VS Code, mouse and caret trails and typing particles. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Assistant replies get the rainbow text; while a reply streams, a rainbow cursor follows its end with a trail and new text fades in (AI output triggers the same effects as your typing); the selected sidebar thread gets a turning seven-band spectrum ring with a soft halo.

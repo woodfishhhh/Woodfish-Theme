@@ -12,10 +12,11 @@ AGENTS.md
 .superpowers/**
 .worktrees/**
 
-# 构建输出（只发布 esbuild 打包后的两个入口）
+# 构建输出（只发布 esbuild 打包后的两个入口和 Codex 桌面端工具）
 out/**
 !out/extension.js
 !out/uninstall.js
+!out/woodfish.js
 dist/**
 build/**
 out/integration/**

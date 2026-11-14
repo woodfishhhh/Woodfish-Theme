@@ -18,6 +18,9 @@ export const COMMANDS = {
   openSettings: 'woodfish-theme.openSettings',
   reloadEffects: 'woodfish-theme.reloadEffects',
   openEffectsFolder: 'woodfish-theme.openEffectsFolder',
+  codexEnable: 'woodfish-theme.codexEnable',
+  codexDisable: 'woodfish-theme.codexDisable',
+  codexUninstall: 'woodfish-theme.codexUninstall',
   reloadWindow: 'workbench.action.reloadWindow',
   vscodeOpenSettings: 'workbench.action.openSettings',
 } as const;

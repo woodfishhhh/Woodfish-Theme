@@ -62,16 +62,38 @@ VS Code 一侧在 1.144 的测试版里实测：工作台的 CSP 带 `require-tr
 
 ## 一直生效：自动恢复
 
-`woodfish codex autostart on` 注册计划任务 `\Woodfish\Woodfish Codex`：当前用户登录时触发、`Interactive` + `Limited`（普通权限，管理员终端里注册也一样）、不限运行时长，动作是 `conhost.exe --headless node <runtimeDir>\woodfish.js codex daemon`（`--headless` 让控制台程序完全没有窗口；任务跑的是 CLI 的私有副本，移动或更新仓库不影响它）。
+`woodfish codex autostart on` 注册计划任务 `\Woodfish\Woodfish Codex`：当前用户登录时触发、`Interactive` + `Limited`（普通权限，管理员终端里注册也一样）、不限运行时长，动作是 `conhost.exe --headless <运行时> codex daemon`（`--headless` 让控制台程序完全没有窗口）。任务跑的是 CLI 在 `%LOCALAPPDATA%\Woodfish` 的私有副本，三种装法各不相同：npm / 仓库是 `node.exe woodfish.js`，单文件是复制过去的 `woodfish.exe`，VS Code 扩展是 `cmd.exe /d /c woodfish.cmd`（批处理里 `chcp 65001`、`set ELECTRON_RUN_AS_NODE=1` 再调 `Code.exe woodfish.js`，计划任务和快捷方式都设不了环境变量）。移动仓库、清 npx 缓存、更新扩展、删掉下载的 exe 都不影响它；再运行一次 `autostart on` 换成新副本（运行中的 exe 不能覆盖，先改名成 `.old`，下次删掉）。
 
-常驻进程每 2 秒用 `tasklist` 看一眼 Codex（不起 PowerShell），发现新的主进程时才查命令行：
+常驻进程的判断：
 
+- Codex 没在运行：每 2 秒 `tasklist` 一次，同时**监视 Codex 的数据文件夹** `%LOCALAPPDATA%\Packages\<family>\LocalCache\Roaming\Codex`（Codex 的 Electron 配置在 `%APPDATA%\Codex`，商店把它重定向到这里）。Codex 启动后约 0.3 秒就写 `web\Codex\lockfile`，监视立刻把常驻进程叫醒，不用等下一次轮询。Codex 运行时它一直在写这里，所以只在 Codex 关着时监视。文件夹不存在或监视失败时退回轮询。
 - 带着活的调试端口：直接注入，等 Codex 关闭连接后继续巡视；`launch` 起的监视进程已在服务这个端口时不重复注入。
-- 没有端口、且启动不到 90 秒（用户刚从开始菜单、任务栏或开机自启打开）：结束它并带随机端口重新启动。每个进程只处理一次。实测从点开 Codex 到效果出现约 30 秒（发现 ~10 秒 + 重启 ~15 秒 + 注入）。
+- **带着端口参数、但端口还没响应、且启动不到 45 秒**：是 `launch` 或开始菜单“Woodfish Codex”正在带端口启动，等它（以前会被当成“没有端口”再重启一次）。
+- 没有端口、且启动不到 90 秒（用户刚从开始菜单、任务栏或开机自启打开）：结束它（直接 `taskkill /T /F`，不经 PowerShell）并带随机端口重新启动。每个进程只处理一次。
 - 没有端口、但已经运行一段时间：不打断，下次启动时生效。
-- 商店更新换了安装目录：每次发现新进程都重新 `Get-AppxPackage`，自动跟上。
+- 安装位置只在常驻进程启动时和“有 ChatGPT.exe 但对不上已知安装”时重新 `Get-AppxPackage`，商店更新换了目录也能跟上；管理员判断只问一次。
 
-`autostart off` 停止常驻进程、删除任务和空的 `\Woodfish\` 文件夹；`uninstall` 也会做这一步。日志在 `%LOCALAPPDATA%\Woodfish\codex-daemon.log`（超过 1 MB 重新开始）。
+### 原快捷方式打开时的实测（2026-11-14，本机）
+
+用 `Get-Process` 每 50 ms 记一次 Codex 进程和可见窗口，从点开 Codex（`explorer shell:AppsFolder\OpenAI.Codex_2p2nqsd0c76g0!App`，等同开始菜单）算起：
+
+| 情形 | 发现并结束 Codex | 带效果的窗口出现 |
+| --- | --- | --- |
+| 原版 Codex（没有 Woodfish） | — | 7.4 / 8.6 秒（两次） |
+| 改进前的常驻进程 | 启动后 3.5 秒发现，4.7 秒结束 | 16.3 秒 |
+| 现在：node / 编辑器运行时 / 单文件 exe | 启动后约 1.4 秒发现，2.2～2.3 秒结束 | 10.7 / 11.5 秒 |
+| 开始菜单“Woodfish Codex”（直接带端口启动） | — | 约 9.5 秒 |
+
+结论：常驻进程从不改用户的快捷方式；它结束 Codex 时 Codex 还没出窗口（Codex 自己要 7 秒左右），所以用户看不到“闪一下”，只是窗口比原版晚 2～4 秒。慢得多的机器上 Codex 出窗口更晚，余量更大；如果 Codex 将来启动快到 2 秒内出窗口，才会重新看到一次闪烁。想完全省掉这次重启就用“Woodfish Codex”入口。
+
+`autostart off` 停止常驻进程、删除任务和空的 `\Woodfish\` 文件夹；`uninstall` 也会做这一步，并删掉“Woodfish Codex”开始菜单项。日志在 `%LOCALAPPDATA%\Woodfish\codex-daemon.log`（超过 1 MB 重新开始）。用 `taskkill /F` 结束常驻进程算任务失败，计划任务会在一分钟后把它拉起来（RestartCount 3）。
+
+### 编辑器运行时与单文件 exe 的坑
+
+- **不要用 `-EncodedCommand` 调 PowerShell**：单文件 `woodfish.exe`（没有签名）起的 `powershell -EncodedCommand` 会被 Windows Defender 扣住 30 秒以上（同一脚本用 `-Command` 或 `-File` 0.6 秒，node.exe 起的 `-EncodedCommand` 也是 0.6 秒）；从测试版 VS Code 起的也出现过。CLI 改为把脚本写进 `%TEMP%` 的临时 `.ps1`（UTF-8 带 BOM，Windows PowerShell 5.1 才认中文）再 `-File` 运行，用完删除。管理员终端走的 `explorer` 中转批处理仍用 `-EncodedCommand`，它不是 woodfish.exe 起的。
+- **`ELECTRON_RUN_AS_NODE` 不能往下传**：VS Code 扩展用 `Code.exe` + `ELECTRON_RUN_AS_NODE=1` 跑 CLI。CLI 一启动就从环境里删掉它（否则经它打开的 Electron 程序，比如用 VS Code 打开 `user.css`，会以 Node 方式启动、打不开窗口），只在启动自己的监视进程时加回去。Codex 自己的 RunAsNode fuse 是关的，不受影响。
+- **VS Code 更新会结束常驻进程**：VS Code 的 inno-updater 会等安装目录里的 `Code.exe` 进程 30 秒，然后 `TerminateProcess`（退出码 0，计划任务不会重启它）。扩展激活时看到 `woodfish.cmd` 在、常驻进程不在，就 `schtasks /Run` 一次。监视进程被结束时效果仍留在页面里，常驻进程回来后重新接管。
+- 单文件 exe 是 Node 22 的 single executable application：`process.argv[1]` 也是 exe 本身、`require.main === module` 成立，所以 `cliPath` 为空、自启命令不带脚本。文件属性里显示的是 Node.js 的名字和版本，没有代码签名，下载后第一次运行可能出现 SmartScreen 提示。
 
 ## 安装形态
 

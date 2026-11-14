@@ -86,6 +86,21 @@ export function registerShowFeatureMenuCommand(deps: CommandDeps): vscode.Dispos
           label: '$(settings-gear) 打开 Woodfish 设置',
           command: COMMANDS.openSettings,
         },
+        ...(process.platform === 'win32'
+          ? [
+              separator('Codex 桌面端'),
+              {
+                label: '$(rocket) 为 Codex 启用 Woodfish',
+                description: '同样的主题和效果带到 Codex，无需另装 Node.js',
+                command: COMMANDS.codexEnable,
+              },
+              {
+                label: '$(debug-stop) 为 Codex 停用 Woodfish',
+                description: '撤下效果并删除登录任务',
+                command: COMMANDS.codexDisable,
+              },
+            ]
+          : []),
         separator('维护'),
         {
           label: '$(tools) 修复 Woodfish 注入',

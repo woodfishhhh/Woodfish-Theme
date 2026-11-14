@@ -1,6 +1,7 @@
+import { isSea } from 'node:sea';
 import { CODEX_PALETTE_SLUGS, codexPaletteMode } from '@woodfish/adapter-codex';
 import { booleanFlag, parseArgs, stringFlag } from './cli/args';
-import { Io, createConsoleIo } from './cli/io';
+import { Io, confirm, createConsoleIo } from './cli/io';
 import { autostartCommand, daemonCommand } from './commands/autostart';
 import { backgroundCommand } from './commands/background';
 import { CommandContext, CommandError, EXIT } from './commands/context';
@@ -25,6 +26,10 @@ import {
 } from './commands/manage';
 import { resolvePaths } from './paths';
 import { currentPlatform } from './platform';
+
+declare const __WOODFISH_CLI_VERSION__: string | undefined;
+export const VERSION =
+  typeof __WOODFISH_CLI_VERSION__ === 'string' ? __WOODFISH_CLI_VERSION__ : 'dev';
 
 const VALUE_FLAGS = new Set([
   'palette',
@@ -102,6 +107,7 @@ Codex++
   浅色：${LIGHT_THEMES}
 
 其他
+  --version              版本号
   status [--json]        当前状态
   doctor [--json]        检查效果与界面元素是否正常
   shortcut               创建开始菜单快捷方式“Woodfish Codex”
@@ -140,6 +146,10 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
     args.positionals.unshift('codex');
   }
   const [scope, command, subcommand] = args.positionals;
+  if (booleanFlag(args, 'version') || scope === 'version') {
+    io.out(VERSION);
+    return EXIT.ok;
+  }
   if (!scope || scope === 'help' || booleanFlag(args, 'help')) {
     io.out(HELP);
     return EXIT.ok;
@@ -154,8 +164,10 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
     paths,
     io,
     platform: () => currentPlatform(paths),
-    cliPath: process.argv[1] ?? '',
+    // The single-file exe is its own runtime: argv[1] repeats the exe path.
+    cliPath: isSea() ? '' : (process.argv[1] ?? ''),
     nodePath: process.execPath,
+    electronRunAsNode: Boolean(process.versions.electron),
     ...options.context,
   };
   const assumeYes = booleanFlag(args, 'yes');
@@ -255,8 +267,37 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
   }
 }
 
+/**
+ * The single-file exe opened without arguments, usually by a double-click: start Codex with
+ * the effects, offer to keep them after restarts, and keep the window open to read.
+ */
+export async function guidedLaunch(io: Io, options: RunOptions = {}): Promise<number> {
+  io.out(`Woodfish ${VERSION}：为 Codex 桌面端换上 Woodfish 的配色和效果。全部命令：woodfish help`);
+  io.out('');
+  let code = await run(['codex', 'launch'], { ...options, io });
+  if (code === EXIT.ok) {
+    io.out('');
+    if (
+      await confirm(io, '登录 Windows 后自动恢复效果吗（Codex 重启、更新后也一直生效）？', false)
+    ) {
+      code = await run(['codex', 'autostart', 'on'], { ...options, io });
+    }
+  }
+  io.out('');
+  await io.ask('按回车键关闭窗口');
+  return code;
+}
+
 if (require.main === module) {
-  void run(process.argv.slice(2)).then((code) => {
-    process.exitCode = code;
-  });
+  // VS Code runs this file on its own Electron with ELECTRON_RUN_AS_NODE=1. Nothing else the
+  // CLI starts may inherit it (an Electron editor opening user.css would start as Node); the
+  // CLI's own children get it back (selfEnv).
+  delete process.env.ELECTRON_RUN_AS_NODE;
+  const argv = process.argv.slice(2);
+  const io = createConsoleIo();
+  void (argv.length === 0 && isSea() && io.interactive ? guidedLaunch(io) : run(argv, { io })).then(
+    (code) => {
+      process.exitCode = code;
+    }
+  );
 }

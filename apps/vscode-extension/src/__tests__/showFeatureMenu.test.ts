@@ -92,6 +92,7 @@ describe('showFeatureMenu command', () => {
       ...(nativeSupported ? [COMMANDS.toggleNativeWindow] : []),
       COMMANDS.applyPreset,
       COMMANDS.openSettings,
+      ...(process.platform === 'win32' ? [COMMANDS.codexEnable, COMMANDS.codexDisable] : []),
       COMMANDS.repairWorkbench,
       COMMANDS.showDiagnostics,
       COMMANDS.completeUninstall,

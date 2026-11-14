@@ -6,6 +6,8 @@ const { execFileSync } = require('child_process');
 const { EXTENSION_ROOT, VSCE_ENTRY, withStagedRepoFiles } = require('./paths');
 
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/;
+/** The Codex desktop CLI scripts/bundle.js copies in. */
+const CODEX_CLI_ENTRY = 'extension/out/woodfish.js';
 /** Entries listed by name in the size report; the rest are summed up. */
 const REPORT_TOP_ENTRIES = 8;
 
@@ -158,7 +160,12 @@ function main(args = process.argv.slice(2)) {
   );
 
   const vsix = fs.readFileSync(invocation.outputPath);
-  console.log(describeVsix(vsix.length, readZipEntries(vsix)));
+  const entries = readZipEntries(vsix);
+  console.log(describeVsix(vsix.length, entries));
+  // Only the bundle step (vscode:prepublish) puts it into out/, so check the package itself.
+  if (!entries.some((entry) => entry.name === CODEX_CLI_ENTRY)) {
+    throw new Error(`${CODEX_CLI_ENTRY} is missing; 「为 Codex 启用 Woodfish」 needs it`);
+  }
   return invocation.outputPath;
 }
 

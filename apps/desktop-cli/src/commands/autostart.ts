@@ -1,13 +1,22 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import { RISK_TEXT_SHA256 } from '../cli/consent';
 import { isDebugPortAlive } from '../cdp/http';
 import { readJson, writeJson, loadSettings, loadWatcherState } from '../store';
-import { CommandContext, CommandError, EXIT, isProcessAlive, sleep } from './context';
+import { CodexInstallation, CodexPlatform, CodexRuntimeState } from '../platform';
+import {
+  CommandContext,
+  CommandError,
+  EXIT,
+  installPrivateCopy,
+  isProcessAlive,
+  sleep,
+} from './context';
 import { ensureConsent, runWatcher, startCodexWithPort, waitForExit } from './inject';
 
 /** Codex started this recently (by the user, without a port) is restarted with one. */
 export const FRESH_START_SECONDS = 90;
+/** A Codex started with a port gets this long to open it (`launch` waits as long). */
+export const PORT_STARTUP_SECONDS = 45;
 const POLL_MS = 2000;
 const MAX_LOG_BYTES = 1024 * 1024;
 
@@ -18,6 +27,8 @@ export interface DaemonObservation {
   mainPid: number | null;
   ageSeconds: number | null;
   debugPortAlive: boolean;
+  /** Codex was started with a debugging port (it may not answer yet). */
+  portRequested: boolean;
   /** A `launch` watcher already serves this port. */
   otherWatcherAlive: boolean;
   /** The Codex process the daemon already decided about. */
@@ -34,6 +45,10 @@ export function decideDaemonAction(seen: DaemonObservation): DaemonAction {
   }
   if (seen.debugPortAlive) {
     return seen.otherWatcherAlive ? 'wait' : 'attach';
+  }
+  // A launch in progress (`launch`, the Start menu entry): the port answers seconds later.
+  if (seen.portRequested && seen.ageSeconds !== null && seen.ageSeconds <= PORT_STARTUP_SECONDS) {
+    return 'wait';
   }
   if (seen.mainPid === seen.handledPid) {
     return 'leave';
@@ -57,6 +72,68 @@ function daemonLogger(context: CommandContext): (message: string) => void {
   }
   return (message) =>
     fs.appendFileSync(context.paths.daemonLog, `[${new Date().toISOString()}] ${message}\n`);
+}
+
+/**
+ * The running Codex. The installation is looked up once, and again only when no Codex
+ * process matches it (a Store update moves the install folder).
+ */
+function observeCodex(
+  platform: CodexPlatform,
+  known: CodexInstallation | null
+): { installation: CodexInstallation | null; state: CodexRuntimeState | null } {
+  if (!platform.isRunning()) {
+    return { installation: known, state: null };
+  }
+  let installation = known ?? platform.discover();
+  let state = installation ? platform.inspect(installation) : null;
+  if (installation && !state?.main) {
+    const fresh = platform.discover();
+    if (fresh && fresh.installLocation !== installation.installLocation) {
+      installation = fresh;
+      state = platform.inspect(fresh);
+    }
+  }
+  return { installation, state };
+}
+
+/**
+ * Sleeps between polls while Codex is closed, but wakes as soon as anything in Codex's data
+ * folder changes. Codex writes there within a second of starting, long before its window
+ * shows (about 7 s on the test machine), so a start from the user's own shortcut is
+ * restarted before a window appears. Plain polling remains when the folder is missing or
+ * cannot be watched; the watch is closed while Codex runs, since it writes there constantly.
+ */
+export function codexStartNaps(dir: string | null): {
+  sleep: (ms: number) => Promise<void>;
+  stop: () => void;
+} {
+  let watcher: fs.FSWatcher | null = null;
+  let wake: (() => void) | null = null;
+  const stop = (): void => {
+    watcher?.close();
+    watcher = null;
+  };
+  const sleepOrWake = (ms: number): Promise<void> => {
+    if (!watcher && dir && fs.existsSync(dir)) {
+      try {
+        watcher = fs.watch(dir, { recursive: true }, () => wake?.());
+        watcher.on('error', stop);
+      } catch {
+        watcher = null;
+      }
+    }
+    return new Promise((resolve) => {
+      const done = (): void => {
+        clearTimeout(timer);
+        wake = null;
+        resolve();
+      };
+      const timer = setTimeout(done, ms);
+      wake = done;
+    });
+  };
+  return { sleep: sleepOrWake, stop };
 }
 
 /**
@@ -85,19 +162,30 @@ export async function daemonCommand(
   log('常驻进程已启动');
 
   const platform = context.platform();
+  let installation: CodexInstallation | null = null;
+  try {
+    installation = platform.discover();
+    // Remembered by the platform: spares the first restart a PowerShell round trip.
+    platform.isElevated();
+  } catch (error) {
+    log(`出错：${(error as Error).message}`);
+  }
+  const naps = codexStartNaps(installation ? platform.userDataDir(installation) : null);
   let handledPid: number | null = null;
   for (let iteration = 0; iteration !== options.maxIterations; iteration += 1) {
+    let action: DaemonAction = 'idle';
     try {
-      const running = platform.isRunning();
-      const installation = running ? platform.discover() : null;
-      const state = installation ? platform.inspect(installation) : null;
+      const seen = observeCodex(platform, installation);
+      installation = seen.installation;
+      const state = seen.state;
       const port = state?.debugPort ?? null;
       const watcher = loadWatcherState(context.paths);
-      const action = decideDaemonAction({
+      action = decideDaemonAction({
         running: Boolean(state?.main),
         mainPid: state?.main?.pid ?? null,
         ageSeconds: state?.main?.ageSeconds ?? null,
         debugPortAlive: port !== null && (await isDebugPortAlive(port, context.fetchImpl)),
+        portRequested: port !== null,
         otherWatcherAlive:
           watcher !== undefined &&
           watcher.pid !== process.pid &&
@@ -105,13 +193,18 @@ export async function daemonCommand(
           isProcessAlive(watcher.pid),
         handledPid,
       });
+      if (action !== 'idle') {
+        naps.stop();
+      }
       if (action === 'attach' && port !== null) {
         await runWatcher(context, port, log);
         continue;
       }
       if (action === 'restart' && installation && state?.main) {
         handledPid = state.main.pid;
-        log(`Codex（进程 ${state.main.pid}）没有调试端口，重启为带效果的 Codex`);
+        log(
+          `Codex（进程 ${state.main.pid}，已启动 ${state.main.ageSeconds ?? '?'} 秒）没有调试端口，重启为带效果的 Codex`
+        );
         platform.stop(installation, state);
         await waitForExit(platform, installation);
         const started = await startCodexWithPort(
@@ -131,8 +224,9 @@ export async function daemonCommand(
     } catch (error) {
       log(`出错：${(error as Error).message}`);
     }
-    await sleep(options.pollMs ?? POLL_MS);
+    await (action === 'idle' ? naps.sleep : sleep)(options.pollMs ?? POLL_MS);
   }
+  naps.stop();
   return EXIT.ok;
 }
 
@@ -176,20 +270,17 @@ export async function autostartCommand(
   }
   await ensureConsent(context, options.acceptRisk);
   stopDaemon(context);
-  // The task runs a private copy of this single-file CLI, so moving or updating the
-  // checkout never breaks it; `autostart on` again refreshes the copy.
-  const installed = path.join(context.paths.runtimeDir, 'woodfish.js');
-  fs.mkdirSync(context.paths.runtimeDir, { recursive: true });
-  if (path.resolve(context.cliPath) !== path.resolve(installed)) {
-    fs.copyFileSync(context.cliPath, installed);
-  }
+  const copy = installPrivateCopy(context);
   platform.installAutostart({
     execute: 'conhost.exe',
-    args: ['--headless', context.nodePath, installed, 'codex', 'daemon'],
+    args: ['--headless', copy.command, ...copy.args, 'codex', 'daemon'],
   });
   context.io.out('已开启自动恢复：登录 Windows 后，Woodfish 会在后台常驻（无窗口、普通权限）。');
   context.io.out(
-    `之后 Codex 每次不带调试端口启动（开机、手动打开、商店更新后），Woodfish 会在启动后几秒内把它重启为带效果的 Codex；已运行超过 ${FRESH_START_SECONDS} 秒的 Codex 不会被打断。`
+    `之后 Codex 每次不带调试端口启动（开机、用原来的快捷方式打开、商店更新后），Woodfish 会马上把它重启为带效果的 Codex，通常在它的窗口出现之前，所以只是比平时晚几秒出现；已运行超过 ${FRESH_START_SECONDS} 秒的 Codex 不会被打断。`
+  );
+  context.io.out(
+    '你原来的 Codex 快捷方式不会被修改。想省掉这次重启：woodfish codex shortcut 会在开始菜单另加一个“Woodfish Codex”，直接带效果启动。'
   );
   context.io.out(`日志：${context.paths.daemonLog}；关闭：woodfish codex autostart off`);
   return EXIT.ok;

@@ -1,9 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { CODEX_CONFIG_KEY, CodexSettings, normalizeCodexSettings } from '@woodfish/adapter-codex';
+import { loadDefaultBackground } from '../codex/backgrounds';
 
 declare const __WOODFISH_CODEX_OVERLAY__: string | undefined;
 declare const __WOODFISH_CODEX_USERSCRIPT__: string | undefined;
+/** Where the release build took 《彩云》 out of the user script (scripts/build.js). */
+declare const __WOODFISH_BACKGROUND_TOKEN__: string | undefined;
 
 /** Global the Codex++ user script reads its baked-in settings from. */
 export const USERSCRIPT_CONFIG_KEY = '__woodfishCodexUserScriptConfig';
@@ -35,9 +38,14 @@ export function loadOverlayBundle(): string {
 
 /** The in-page overlay built for Codex++ (inlined in release builds). */
 export function loadUserScriptBundle(): string {
-  return typeof __WOODFISH_CODEX_USERSCRIPT__ === 'string'
-    ? __WOODFISH_CODEX_USERSCRIPT__
-    : readAsset('codex-userscript.js');
+  if (
+    typeof __WOODFISH_CODEX_USERSCRIPT__ === 'string' &&
+    typeof __WOODFISH_BACKGROUND_TOKEN__ === 'string'
+  ) {
+    const picture = loadDefaultBackground().toString('base64');
+    return __WOODFISH_CODEX_USERSCRIPT__.replace(__WOODFISH_BACKGROUND_TOKEN__, () => picture);
+  }
+  return readAsset('codex-userscript.js');
 }
 
 /**

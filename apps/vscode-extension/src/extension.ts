@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { FeatureStateController } from './config/featureState';
 import { registerCommands } from './commands/register';
 import type { CommandDeps } from './commands/types';
+import { restartCodexDaemonIfStopped } from './services/codexCli';
 import { EffectsService } from './services/effects';
 import { IntegratedThemeService } from './services/runtime/service';
 import { showErrorMessage, showInfoMessage } from './ui/notifications';
@@ -32,6 +33,7 @@ export function activate(context: vscode.ExtensionContext): void {
     };
 
     registerCommands(context, commandDeps);
+    restartCodexDaemonIfStopped();
     void runtimeService
       .initializeOnStartup()
       .catch((error: unknown) => {

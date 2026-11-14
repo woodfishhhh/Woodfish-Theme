@@ -37,7 +37,7 @@ import {
 } from '../codex/effects';
 import { loadUserScriptBundle } from '../inject/payload';
 import { loadSettings, loadWatcherState, migrateSettings, saveSettings } from '../store';
-import { CommandContext, CommandError, EXIT, isProcessAlive } from './context';
+import { CommandContext, CommandError, EXIT, installPrivateCopy, isProcessAlive } from './context';
 import { removeAutostart } from './autostart';
 import { readOverlayStates, restartForNativeTheme, stopInjectCommand } from './inject';
 
@@ -262,19 +262,31 @@ export function uninstallUserScriptCommand(context: CommandContext): number {
   return EXIT.ok;
 }
 
+/** The Start menu entry `woodfish codex shortcut` adds next to the user's own Codex. */
+const SHORTCUT_NAME = 'Woodfish Codex';
+
 /** `woodfish codex uninstall`: undo everything Woodfish did for Codex. */
 export async function uninstallCommand(
   context: CommandContext,
   options: { keepSettings: boolean }
 ): Promise<number> {
   removeAutostart(context);
+  if (context.platform().removeShortcut(SHORTCUT_NAME)) {
+    context.io.out(`已删除开始菜单快捷方式“${SHORTCUT_NAME}”。`);
+  }
   await stopInjectCommand(context);
   uninstallUserScriptCommand(context);
   await themeRestoreCommand(context, { restart: false, assumeYes: false });
   if (!options.keepSettings) {
     fs.rmSync(context.paths.dataDir, { recursive: true, force: true });
   }
-  fs.rmSync(context.paths.runtimeDir, { recursive: true, force: true });
+  // The daemon and watcher were just ended; their exe may stay locked for a moment.
+  fs.rmSync(context.paths.runtimeDir, {
+    recursive: true,
+    force: true,
+    maxRetries: 10,
+    retryDelay: 200,
+  });
   context.io.out('Woodfish 对 Codex 的修改已全部撤销。重启 Codex 即可关闭调试端口。');
   return EXIT.ok;
 }
@@ -287,15 +299,14 @@ export function shortcutCommand(context: CommandContext): number {
       EXIT.consentRequired
     );
   }
+  const copy = installPrivateCopy(context);
   const link = context
     .platform()
-    .createShortcut('Woodfish Codex', context.nodePath, [
-      context.cliPath,
-      'codex',
-      'launch',
-      '--yes',
-    ]);
+    .createShortcut(SHORTCUT_NAME, copy.command, [...copy.args, 'codex', 'launch', '--yes']);
   context.io.out(`已创建开始菜单快捷方式：${link}`);
+  context.io.out(
+    '它直接以带效果的方式启动 Codex（不经过一次重启）。你原来的 Codex 快捷方式没有改动，照常可用。'
+  );
   return EXIT.ok;
 }
 

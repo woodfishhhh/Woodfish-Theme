@@ -34,6 +34,10 @@ jest.mock('../services/runtime/service', () => ({
   })),
 }));
 
+jest.mock('../services/codexCli', () => ({
+  restartCodexDaemonIfStopped: jest.fn(),
+}));
+
 jest.mock('../services/effects', () => ({
   EffectsService: jest.fn().mockImplementation(() => ({ start: jest.fn() })),
 }));

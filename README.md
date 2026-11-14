@@ -341,7 +341,15 @@ code --install-extension woodfish-theme-7.2.0.vsix
 
 ## Codex 桌面端
 
-Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和效果。它不修改 Codex 的安装文件，有两种方式：
+Woodfish 也能为 OpenAI Codex 桌面端（Windows 商店版）换上配色和效果。三种装法效果相同，任选一种：
+
+- **在这个扩展里一键启用**：命令面板运行 `Woodfish Theme: 为 Codex 启用 Woodfish`（停用、卸载也各有一条命令）。用扩展自带的 Codex 工具和编辑器自带的运行时，不用另装 Node.js；第一次会先说明调试端口的风险。
+- **下载单文件**：[GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) 里的 `woodfish.exe`，双击即可，什么都不用装（没有代码签名，Windows 可能提示“已保护你的电脑”，点“更多信息 → 仍要运行”）。
+- **npm**：`npx woodfish codex launch`，或 `npm i -g woodfish`（需要 Node.js 22+）。
+
+Woodfish 不会修改、替换你原来的 Codex 快捷方式。开了“登录后自动恢复”时，用原来的快捷方式打开的 Codex 会在窗口出现前被带调试端口重启一次，看不到闪烁，只是比平时晚两三秒出窗口；想省掉这一步，可以在开始菜单另加一个直接带效果启动的“Woodfish Codex”。
+
+它不修改 Codex 的安装文件，有两种方式：
 
 - **原生配色**：`woodfish codex theme apply --dark neon --light light`，写入 Codex 官方的主题设置，深色和浅色各一套，不开任何端口；加 `--appearance dark` 可把 Codex 固定为深色。
 - **注入效果**：`woodfish codex launch`，加上代码块渐变与发光、浮层毛玻璃、强调色光晕、和 VS Code 一样的 6px 彩虹光标、鼠标和光标拖尾、打字粒子。需要以本机调试端口启动 Codex，首次使用前会说明风险。助手回复是彩虹渐变字；AI 吐字时末尾跟着一根彩虹光标、身后拖一段拖尾、新字轻轻淡入（AI 吐字和你打字触发的是同一套效果）；选中的会话外圈是一道旋转的七色光谱环加柔光晕。

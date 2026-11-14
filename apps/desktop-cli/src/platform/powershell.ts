@@ -1,4 +1,8 @@
 import { spawnSync } from 'child_process';
+import { randomBytes } from 'crypto';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { PlatformError } from './types';
 
 /** Wraps a script so its output is UTF-8 and errors stop it. */
@@ -24,21 +28,28 @@ export function psQuote(value: string): string {
 
 export type PowerShellRunner = (script: string, timeoutMs?: number) => string;
 
-/** Runs a script with Windows PowerShell and returns trimmed stdout. */
+/**
+ * Runs a script with Windows PowerShell and returns trimmed stdout. The script goes through
+ * a temporary file, not -EncodedCommand: Windows Defender holds encoded PowerShell that an
+ * unsigned program starts (the single-file woodfish.exe) for 30 s and longer, measured
+ * 2026-11-14. The file is UTF-8 with a BOM, which Windows PowerShell 5.1 needs for Chinese.
+ */
 export const runPowerShell: PowerShellRunner = (script, timeoutMs = 30000) => {
-  const result = spawnSync(
-    'powershell.exe',
-    [
-      '-NoLogo',
-      '-NoProfile',
-      '-NonInteractive',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-EncodedCommand',
-      encodeCommand(script),
-    ],
-    { encoding: 'utf8', timeout: timeoutMs, windowsHide: true }
+  const file = path.join(
+    os.tmpdir(),
+    `woodfish-${process.pid}-${randomBytes(6).toString('hex')}.ps1`
   );
+  fs.writeFileSync(file, `\uFEFF${prepareScript(script)}`, { encoding: 'utf8', flag: 'wx' });
+  let result;
+  try {
+    result = spawnSync(
+      'powershell.exe',
+      ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file],
+      { encoding: 'utf8', timeout: timeoutMs, windowsHide: true }
+    );
+  } finally {
+    fs.rmSync(file, { force: true });
+  }
   if (result.error) {
     throw new PlatformError(`无法运行 PowerShell：${result.error.message}`);
   }

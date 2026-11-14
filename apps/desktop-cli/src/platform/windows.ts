@@ -181,10 +181,16 @@ export function buildAutostartScript(command: AutostartCommand): string {
 export interface WindowsPlatformOptions {
   runner?: PowerShellRunner;
   runtimeDir: string;
+  /** `%LOCALAPPDATA%`, where Store apps keep their data. */
+  localAppData?: string;
 }
+
+/** Start menu programs folder, as `createShortcut` finds it. */
+const PROGRAMS_FOLDER = "[Environment]::GetFolderPath('Programs')";
 
 export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPlatform {
   const runner = options.runner ?? runPowerShell;
+  let elevated: boolean | undefined;
 
   return {
     name: 'windows',
@@ -256,24 +262,30 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
       if (!state.main) {
         return;
       }
-      // taskkill reports failure when some child already exited. Run it through cmd.exe so
-      // Windows PowerShell 5.1 (ErrorActionPreference Stop) never sees its stderr; whether
-      // Codex is really gone is checked by the caller, which waits for the main process.
-      runner(`& cmd.exe /d /c "taskkill /PID ${state.main.pid} /T /F >nul 2>nul"; exit 0`);
+      // taskkill reports failure when some child already exited, so its exit code is
+      // ignored; whether Codex is really gone is checked by the caller, which waits for the
+      // main process. Run directly, it ends Codex half a second sooner than via PowerShell.
+      spawnSync('taskkill.exe', ['/PID', String(state.main.pid), '/T', '/F'], {
+        stdio: 'ignore',
+        windowsHide: true,
+        timeout: 15000,
+      });
     },
 
     isElevated(): boolean {
-      const output = runner(
-        '([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)'
-      );
-      return output.toLowerCase() === 'true';
+      // A process keeps its token, so one PowerShell round trip per run is enough.
+      elevated ??=
+        runner(
+          '([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)'
+        ).toLowerCase() === 'true';
+      return elevated;
     },
 
     createShortcut(name: string, target: string, args: readonly string[]): string {
       const quotedArgs = args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ');
       const output = runner(
         [
-          "$programs = [Environment]::GetFolderPath('Programs')",
+          `$programs = ${PROGRAMS_FOLDER}`,
           `$link = Join-Path $programs ${psQuote(`${name}.lnk`)}`,
           '$shell = New-Object -ComObject WScript.Shell',
           '$shortcut = $shell.CreateShortcut($link)',
@@ -286,6 +298,31 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
         ].join('\n')
       );
       return output;
+    },
+
+    removeShortcut(name: string): boolean {
+      const output = runner(
+        [
+          `$link = Join-Path (${PROGRAMS_FOLDER}) ${psQuote(`${name}.lnk`)}`,
+          "if (Test-Path -LiteralPath $link) { Remove-Item -LiteralPath $link -Force; 'removed' }",
+        ].join('\n')
+      );
+      return output.includes('removed');
+    },
+
+    userDataDir(installation: CodexInstallation): string | null {
+      // Codex keeps its Electron profile in %APPDATA%\Codex, which the Store redirects here.
+      const localAppData = options.localAppData ?? process.env.LOCALAPPDATA;
+      return localAppData
+        ? path.win32.join(
+            localAppData,
+            'Packages',
+            installation.familyName,
+            'LocalCache',
+            'Roaming',
+            'Codex'
+          )
+        : null;
     },
 
     installAutostart(command: AutostartCommand): void {

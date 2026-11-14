@@ -41,7 +41,9 @@ const DEFAULT_BACKGROUND_BASE64 = fs
  * folder by the CLI. They run in the page from that folder, so they are not part of the
  * overlay bundle or its build id.
  */
-const { readBuiltinEffectFiles } = require(path.join(REPO_ROOT, 'packages', 'effects', 'scripts', 'files.js'));
+const { readBuiltinEffectFiles } = require(
+  path.join(REPO_ROOT, 'packages', 'effects', 'scripts', 'files.js')
+);
 
 const DSH_VERSION = JSON.parse(
   fs.readFileSync(path.join(REPO_ROOT, 'packages', 'adapter-dsh', 'package.json'), 'utf8')
@@ -185,6 +187,19 @@ async function buildAssets({ check, write }) {
   return { stale, contents };
 }
 
+/**
+ * The Codex++ user script carries 《彩云》 as well. The CLI ships the picture once and puts it
+ * back when it writes the user script (inject/payload.ts), which keeps a third of the file.
+ */
+const BACKGROUND_TOKEN = '__WOODFISH_DEFAULT_BACKGROUND_BASE64__';
+
+function withoutBackground(userscript) {
+  if (userscript.split(DEFAULT_BACKGROUND_BASE64).length !== 2) {
+    throw new Error('the Codex++ user script should carry the default background exactly once');
+  }
+  return userscript.replace(DEFAULT_BACKGROUND_BASE64, BACKGROUND_TOKEN);
+}
+
 async function buildCli(contents) {
   const pkg = JSON.parse(fs.readFileSync(path.join(APP_ROOT, 'package.json'), 'utf8'));
   await esbuild.build({
@@ -198,7 +213,10 @@ async function buildCli(contents) {
     conditions: ['source'],
     define: {
       __WOODFISH_CODEX_OVERLAY__: JSON.stringify(contents['assets/codex-overlay.js']),
-      __WOODFISH_CODEX_USERSCRIPT__: JSON.stringify(contents['assets/codex-userscript.js']),
+      __WOODFISH_CODEX_USERSCRIPT__: JSON.stringify(
+        withoutBackground(contents['assets/codex-userscript.js'])
+      ),
+      __WOODFISH_BACKGROUND_TOKEN__: JSON.stringify(BACKGROUND_TOKEN),
       __WOODFISH_DSH_USERSCRIPT__: JSON.stringify(contents['assets/woodfish-dsh.user.js']),
       __WOODFISH_CLI_VERSION__: JSON.stringify(pkg.version),
       __WOODFISH_DEFAULT_BACKGROUND__: JSON.stringify(DEFAULT_BACKGROUND_BASE64),

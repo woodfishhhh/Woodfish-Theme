@@ -2,7 +2,7 @@
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
   "description": "为 VS Code、Cursor、Kiro、Windsurf、Trae 等编辑器的任意颜色主题叠加 OKLCH 渐变、发光、彩色光标与毛玻璃；内置 Woodfish Dark / Dracula / Black / Neon / Light 五套主题",
-  "version": "7.3.0",
+  "version": "7.4.0",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"
@@ -248,6 +248,21 @@
         "title": "打开效果文件夹",
         "category": "Woodfish Theme",
         "icon": "$(folder-opened)"
+      },
+      {
+        "command": "woodfish-theme.codexEnable",
+        "title": "为 Codex 启用 Woodfish",
+        "category": "Woodfish Theme"
+      },
+      {
+        "command": "woodfish-theme.codexDisable",
+        "title": "为 Codex 停用 Woodfish",
+        "category": "Woodfish Theme"
+      },
+      {
+        "command": "woodfish-theme.codexUninstall",
+        "title": "从 Codex 卸载 Woodfish",
+        "category": "Woodfish Theme"
       }
     ],
     "configuration": [
@@ -1017,6 +1032,18 @@
         {
           "command": "woodfish-theme.toggleNativeWindow",
           "when": "isMac || isWindows"
+        },
+        {
+          "command": "woodfish-theme.codexEnable",
+          "when": "isWindows"
+        },
+        {
+          "command": "woodfish-theme.codexDisable",
+          "when": "isWindows"
+        },
+        {
+          "command": "woodfish-theme.codexUninstall",
+          "when": "isWindows"
         }
       ]
     },

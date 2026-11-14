@@ -50,6 +50,10 @@ export interface CodexPlatform {
   isElevated(): boolean;
   /** Creates a desktop or Start menu shortcut that runs the given command. */
   createShortcut(name: string, target: string, args: readonly string[]): string;
+  /** Deletes the Start menu shortcut `createShortcut` made; true if it existed. */
+  removeShortcut(name: string): boolean;
+  /** Codex's data folder: it writes there within a second of starting. */
+  userDataDir(installation: CodexInstallation): string | null;
   /** Registers the per-user logon task (normal rights, no window) and starts it now. */
   installAutostart(command: AutostartCommand): void;
   /** Removes the logon task; true if it existed. */
