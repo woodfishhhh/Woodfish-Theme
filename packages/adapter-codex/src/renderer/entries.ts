@@ -6,6 +6,7 @@ import {
   CODEX_EFFECTS_KEY,
   CODEX_EFFECTS_RELOAD_KEY,
   CODEX_MAIN_WINDOW_URL,
+  CODEX_USER_CSS_KEY,
   CodexOverlaySource,
 } from '../protocol';
 import { applyCodexSettingsPatch, normalizeCodexSettings } from '../settings';
@@ -54,7 +55,8 @@ export function bootCodexOverlay(
   settings: unknown,
   source: CodexOverlaySource,
   effects?: unknown,
-  reload?: unknown
+  reload?: unknown,
+  userCss?: unknown
 ): void {
   if (!isCodexMainWindow()) {
     return;
@@ -69,7 +71,7 @@ export function bootCodexOverlay(
     existing.build === CODEX_BUILD_ID &&
     typeof existing.update === 'function'
   ) {
-    existing.update(settings, effects, reload);
+    existing.update(settings, effects, reload, userCss);
     return;
   }
   if (existing && typeof existing.dispose === 'function') {
@@ -79,7 +81,7 @@ export function bootCodexOverlay(
     if (currentController()?.source === 'userscript' && source === 'cdp') {
       return;
     }
-    startCodexOverlay(settings, source, effects, reload);
+    startCodexOverlay(settings, source, effects, reload, userCss);
   });
 }
 
@@ -90,7 +92,8 @@ export function bootFromCdp(): void {
     host[CODEX_CONFIG_KEY],
     'cdp',
     host[CODEX_EFFECTS_KEY],
-    host[CODEX_EFFECTS_RELOAD_KEY]
+    host[CODEX_EFFECTS_RELOAD_KEY],
+    host[CODEX_USER_CSS_KEY]
   );
 }
 
@@ -102,12 +105,14 @@ interface CodexPlusApi {
  * Entry used by the Codex++ user script, which bakes its settings and effects in at install
  * time; changes made in the in-app panel since then come from localStorage.
  */
-export function bootFromUserScript(settings: unknown, effects?: unknown): void {
+export function bootFromUserScript(settings: unknown, effects?: unknown, userCss?: unknown): void {
   const stored = readStoredPatch();
   bootCodexOverlay(
     applyCodexSettingsPatch(normalizeCodexSettings(settings), stored),
     'userscript',
-    applyStoredEffects(effects, stored)
+    applyStoredEffects(effects, stored),
+    undefined,
+    userCss
   );
   const api = (globalThis as unknown as { codexPlus?: CodexPlusApi }).codexPlus;
   if (api && typeof api.onCleanup === 'function') {

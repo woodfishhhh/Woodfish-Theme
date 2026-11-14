@@ -1,7 +1,9 @@
 import {
   EffectManifestError,
   defaultEffectValues,
+  effectCssVariable,
   effectCssVariables,
+  effectValuesFromCss,
   isEffectId,
   normalizeEffectManifest,
   normalizeEffectValues,
@@ -98,6 +100,34 @@ describe('effect manifests', () => {
     expect(variables).toContain('--woodfish-mouse-trail-width: 7px;');
     expect(variables).toContain('--woodfish-mouse-trail-follow-theme: 0;');
     expect(variables).toContain('--woodfish-mouse-trail-color: #ffffff;');
+  });
+
+  it('reads parameters back from CSS, keeping only values that fit', () => {
+    const css: Record<string, string> = {
+      '--woodfish-mouse-trail-width': ' 9px',
+      '--woodfish-mouse-trail-length': '500',
+      '--woodfish-mouse-trail-color': 'banana',
+      '--woodfish-mouse-trail-follow-theme': '1',
+      '--woodfish-mouse-trail-style': 'line',
+    };
+    expect(effectValuesFromCss('mouse-trail', manifest, (name) => css[name] ?? '')).toEqual({
+      width: 9,
+      length: 50,
+      followTheme: true,
+      style: 'line',
+    });
+    expect(
+      effectValuesFromCss('mouse-trail', manifest, (name) =>
+        name.endsWith('-width') ? '2em' : name.endsWith('-color') ? 'rgb(255 0 0)' : ''
+      )
+    ).toEqual({ color: 'rgb(255 0 0)' });
+    const timed = normalizeEffectManifest({
+      params: { turn: { type: 'number', default: 3, min: 0.5, max: 10, unit: 's' } },
+    });
+    expect(effectValuesFromCss('ring', timed, () => '1500ms')).toEqual({ turn: 1.5 });
+    expect(effectCssVariable('caret-trail', 'followTheme')).toBe(
+      '--woodfish-caret-trail-follow-theme'
+    );
   });
 
   it('accepts folder-style ids only', () => {

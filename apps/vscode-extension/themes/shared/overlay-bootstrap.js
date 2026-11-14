@@ -649,18 +649,58 @@
     }
     return normalizeEffectValues(manifest, { ...values, ...patch });
   }
+  function effectCssVariable(id, key) {
+    return `--woodfish-${id}-${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`;
+  }
   function effectCssVariables(id, manifest, values) {
-    const kebab = (key) => key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
     return Object.entries(manifest.params).flatMap(([key, spec]) => {
+      const name = effectCssVariable(id, key);
       const value = values[key];
       if (spec.type === "boolean") {
-        return [`--woodfish-${id}-${kebab(key)}: ${value ? 1 : 0};`];
+        return [`${name}: ${value ? 1 : 0};`];
       }
       if (spec.type === "number") {
-        return [`--woodfish-${id}-${kebab(key)}: ${String(value)}${spec.unit ?? ""};`];
+        return [`${name}: ${String(value)}${spec.unit ?? ""};`];
       }
-      return typeof value === "string" && (spec.type === "color" || /^[a-z0-9-]+$/i.test(value)) ? [`--woodfish-${id}-${kebab(key)}: ${value};`] : [];
+      return typeof value === "string" && (spec.type === "color" || /^[a-z0-9-]+$/i.test(value)) ? [`${name}: ${value};`] : [];
     });
+  }
+  var CSS_NUMBER = /^(-?(?:\d+\.?\d*|\.\d+))([a-z%]*)$/i;
+  function valueFromCss(spec, text) {
+    switch (spec.type) {
+      case "number": {
+        const match = CSS_NUMBER.exec(text);
+        if (!match) {
+          return void 0;
+        }
+        const unit = match[2].toLowerCase();
+        const number = Number(match[1]);
+        if (unit === "ms" && spec.unit === "s") {
+          return normalizeValue(spec, number / 1e3);
+        }
+        if (unit === "s" && spec.unit === "ms") {
+          return normalizeValue(spec, number * 1e3);
+        }
+        return unit === "" || unit === spec.unit ? normalizeValue(spec, number) : void 0;
+      }
+      case "boolean":
+        return text === "1" || text === "true" ? true : text === "0" || text === "false" ? false : void 0;
+      case "color":
+        return isValidCssColor(text) ? text : void 0;
+      case "select":
+        return spec.options?.some((option) => option.value === text) ? text : void 0;
+    }
+  }
+  function effectValuesFromCss(id, manifest, read) {
+    const values = {};
+    for (const [key, spec] of Object.entries(manifest.params)) {
+      const text = read(effectCssVariable(id, key)).trim();
+      const value = text ? valueFromCss(spec, text) : void 0;
+      if (value !== void 0) {
+        values[key] = value;
+      }
+    }
+    return values;
   }
 
   // ../../packages/theme-core/src/palettes/gradientPresets.ts
@@ -1531,6 +1571,8 @@
     const running = /* @__PURE__ */ new Map();
     const failures = /* @__PURE__ */ new Map();
     const painters = /* @__PURE__ */ new Set();
+    const coreValues = /* @__PURE__ */ new Map();
+    let userStyle = null;
     const motionQuery = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
     let layer = null;
     let canvas = null;
@@ -1681,6 +1723,19 @@
       );
       styles.upsert(`${source.id}-css`, source.css ?? "");
     }
+    function effective(source) {
+      const style = getComputedStyle(document.documentElement);
+      const fromCss = effectValuesFromCss(
+        source.id,
+        source.manifest,
+        (name) => style.getPropertyValue(name)
+      );
+      const values = { ...source.values, ...fromCss };
+      return sameValues(values, source.values) ? source.values : values;
+    }
+    function overrides(source, values) {
+      return values ? Object.keys(values).filter((key) => values[key] !== source.values[key]) : [];
+    }
     function unmountCss(id) {
       styles.remove(`${id}-vars`);
       styles.remove(`${id}-css`);
@@ -1692,7 +1747,7 @@
         id: source.id,
         host: options.host,
         get params() {
-          return owner.source.values;
+          return owner.values;
         },
         theme,
         rainbow: RAINBOW,
@@ -1739,8 +1794,10 @@
     }
     function start2(source) {
       failures.delete(source.id);
+      mountCss(source);
       const owner = {
         source,
+        values: effective(source),
         instance: {},
         handlers: { insert: [], caret: [], streamEnd: [], theme: [] },
         painters: /* @__PURE__ */ new Set(),
@@ -1750,7 +1807,6 @@
       };
       const context = createContext(owner);
       running.set(source.id, owner);
-      mountCss(source);
       if (!source.factory) {
         return;
       }
@@ -1794,13 +1850,18 @@
     function update(owner, source) {
       owner.source = source;
       mountCss(source);
+      const values = effective(source);
+      if (sameValues(owner.values, values)) {
+        return;
+      }
+      owner.values = values;
       if (!owner.instance.update) {
         stop(source.id);
         start2(source);
         return;
       }
       try {
-        owner.instance.update(source.values);
+        owner.instance.update(values);
       } catch (error) {
         fail(source.id, `更新参数失败：${message(error)}`);
       }
@@ -1815,12 +1876,14 @@
         return;
       }
       if (source.manifest.core) {
-        options.core?.(source.manifest.core, source.values.enabled ? source.values : null);
         if (source.values.enabled) {
           mountCss(source);
         } else {
           unmountCss(source.id);
         }
+        const values = source.values.enabled ? effective(source) : null;
+        coreValues.set(source.id, values);
+        options.core?.(source.manifest.core, values);
         return;
       }
       if (!source.values.enabled) {
@@ -1831,9 +1894,7 @@
         return;
       }
       if (owner && owner.source.hash === source.hash && !failures.has(source.id)) {
-        if (!sameValues(owner.source.values, source.values)) {
-          update(owner, source);
-        }
+        update(owner, source);
         return;
       }
       if (owner) {
@@ -1846,6 +1907,22 @@
     }
     function owners() {
       return [...running.values()];
+    }
+    function recheck() {
+      for (const owner of owners()) {
+        update(owner, owner.source);
+      }
+      for (const source of sources.values()) {
+        const previous = coreValues.get(source.id);
+        if (!source.manifest.core || !previous) {
+          continue;
+        }
+        const values = effective(source);
+        if (!sameValues(previous, values)) {
+          coreValues.set(source.id, values);
+          options.core?.(source.manifest.core, values);
+        }
+      }
     }
     return {
       apply(next) {
@@ -1901,18 +1978,46 @@
       },
       themeChanged() {
         themeCache = null;
+        recheck();
         owners().forEach((owner) => owner.handlers.theme.forEach((handler) => handler()));
+      },
+      setUserCss(css) {
+        if (disposed) {
+          return;
+        }
+        if (css.trim() === "") {
+          userStyle?.remove();
+          userStyle = null;
+        } else {
+          if (!userStyle) {
+            userStyle = document.createElement("style");
+            userStyle.setAttribute("data-woodfish-user-css", "");
+            for (const [name, value] of Object.entries(options.nodeAttributes ?? {})) {
+              userStyle.setAttribute(name, value);
+            }
+          }
+          if (userStyle.textContent !== css) {
+            userStyle.textContent = css;
+          }
+          const parent = document.body ?? document.documentElement;
+          if (userStyle.parentNode !== parent) {
+            parent.append(userStyle);
+          }
+        }
+        recheck();
       },
       status() {
         return [...sources.values()].filter((source) => source.error || source.manifest.hosts.includes(options.host)).map((source) => {
           const error = source.error ?? failures.get(source.id);
+          const values = source.manifest.core ? coreValues.get(source.id) : running.get(source.id)?.values;
           const state = error ? "failed" : source.manifest.core ? "core" : running.has(source.id) ? "running" : "off";
           return {
             id: source.id,
             manifest: source.manifest,
             values: normalizeEffectValues(source.manifest, source.values),
             state,
-            ...error ? { error } : {}
+            ...error ? { error } : {},
+            overrides: overrides(source, values)
           };
         }).sort(
           (left, right) => left.manifest.order - right.manifest.order || left.id.localeCompare(right.id)
@@ -1940,6 +2045,9 @@
         document.removeEventListener("visibilitychange", onFocusChange);
         document.documentElement.removeAttribute(PAUSED_ATTRIBUTE);
         styles.removeAll();
+        userStyle?.remove();
+        userStyle = null;
+        coreValues.clear();
         layer?.remove();
         layer = null;
         canvas = null;
@@ -2161,6 +2269,7 @@
               host2.apply([]);
               reload = next.reload;
             }
+            host2.setUserCss(typeof module.userCss === "string" ? module.userCss : "");
             host2.apply(list);
             version = key;
           }
@@ -2183,7 +2292,7 @@
   }
 
   // browser/overlay-bootstrap.ts
-  var VERSION = "7.2.0";
+  var VERSION = "7.3.0";
   var CONTROLLER_KEY = "__woodfishOverlayController";
   var TOKEN_SELECTOR = '.monaco-editor .view-lines span[class*="mtk"]:not(.cursor):not(.colorpicker-color-decoration)';
   var VIEW_LINES_SELECTOR = ".monaco-editor .view-lines";

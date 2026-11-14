@@ -1,0 +1,18 @@
+/*
+ * Woodfish user.css：你自己的 CSS。Codex 和 VS Code 里它最后加载、优先级最高，
+ * 保存后一两秒自动生效（也可以 woodfish reload，或在 Codex 里按 Ctrl+Alt+R）。
+ * 你改过这个文件之后，Woodfish 升级不会再覆盖它。
+ *
+ * 每个效果参数都是一个变量：--woodfish-<效果名>-<参数名>，写在 :root 上。
+ * 全部变量、作用、默认值和例子见同一文件夹的 README.md。
+ *
+ * 去掉下面的注释符号就能用，例如把文字光标的拖尾改成红色、长一点、淡一点：
+ */
+
+/*
+:root {
+  --woodfish-caret-trail-color: #ff4d4f;
+  --woodfish-caret-trail-length: 20;
+  --woodfish-caret-trail-opacity: 0.6;
+}
+*/

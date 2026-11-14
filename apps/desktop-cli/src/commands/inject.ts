@@ -12,6 +12,8 @@ import {
   applyEffectsPatch,
   codexEffectsScript,
   ensureEffects,
+  openUserCss,
+  resetUserCss,
   watchEffectsDir,
 } from '../codex/effects';
 import { startWatcher, watchFile } from '../inject/watcher';
@@ -326,6 +328,10 @@ export async function runWatcher(
       remove: (id: string): void => {
         forgetBackground(context, id);
       },
+    },
+    userCss: {
+      open: () => openUserCss(context.paths),
+      reset: () => resetUserCss(context.paths),
     },
     log,
     fetchImpl: context.fetchImpl,

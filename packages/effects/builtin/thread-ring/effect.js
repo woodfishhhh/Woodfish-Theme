@@ -37,7 +37,7 @@ module.exports = function threadRing(ctx) {
     const active = ctx.selectors.activeThread;
     const running = ctx.selectors.runningThread;
     const { bands, rest, hover } = colors();
-    const ring = `conic-gradient(from var(--woodfish-ring-angle), ${[...bands, bands[0]].join(', ')})`;
+    const ring = `conic-gradient(from var(--woodfish-ring-angle), var(--woodfish-thread-ring-stops, ${[...bands, bands[0]].join(', ')}))`;
     const lit = `${active}, ${running}`;
     const pseudo = (part) => `${active}::${part}, ${running}::${part}`;
     ctx.style(`
@@ -67,7 +67,7 @@ ${pseudo('after')} {
   z-index: -1;
   inset: 0;
   border-radius: ${Math.max(0, p.radius - p.border)}px;
-  background: ${rest};
+  background: var(--woodfish-thread-ring-face, ${rest});
   transition: background 160ms ease;
   pointer-events: none;
 }
@@ -91,7 +91,7 @@ ${active}:hover {
   ${p.lift ? 'transform: translateY(-1px);' : ''}
 }
 ${active}:hover::after {
-  background: ${hover};
+  background: var(--woodfish-thread-ring-face-hover, ${hover});
 }
 ${active}:hover::before {
   opacity: ${p.hoverHalo};

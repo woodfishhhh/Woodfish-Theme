@@ -22,6 +22,9 @@ export const CODEX_CONFIG_KEY = '__woodfishCodexConfig';
  */
 export const CODEX_EFFECTS_KEY = '__woodfishCodexEffects';
 
+/** Global an injection stores the user's `user.css` (effects folder) under. */
+export const CODEX_USER_CSS_KEY = '__woodfishCodexUserCss';
+
 /**
  * Global holding how many times a reload was asked for (「刷新效果」, Ctrl+Alt+R,
  * `woodfish reload`). When it changes, every effect is restarted, failed ones included.
@@ -30,7 +33,8 @@ export const CODEX_EFFECTS_RELOAD_KEY = '__woodfishCodexEffectsReload';
 
 /**
  * CDP binding the page calls to reload every effect from disk (the settings page's
- * 「刷新效果」 button and Ctrl+Alt+R). The payload is ignored.
+ * 「刷新效果」 button and Ctrl+Alt+R). The payload names the action: `reload` (anything
+ * else unknown counts as reload), `open-user-css` or `reset-user-css`.
  */
 export const CODEX_RELOAD_BINDING = '__woodfishCodexReload';
 

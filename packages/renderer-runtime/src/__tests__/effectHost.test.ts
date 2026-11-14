@@ -186,6 +186,36 @@ describe('effect host', () => {
     expect(core[core.length - 1]).toEqual(['background', null]);
   });
 
+  it('lets user.css override parameters, after every other stylesheet', () => {
+    const updates: unknown[] = [];
+    const core: unknown[] = [];
+    const effects = host({ core: (_name, values) => core.push(values?.size ?? null) });
+    const coreManifest = normalizeEffectManifest({ ...MANIFEST, core: 'background' });
+    effects.apply([
+      source('a', (module) => {
+        module.exports = (ctx: EffectContext) => {
+          updates.push(ctx.params.size);
+          return { update: (values: EffectValues) => updates.push(values.size) };
+        };
+      }),
+      { ...source('background', undefined), manifest: coreManifest },
+    ]);
+    effects.setUserCss(':root { --woodfish-a-size: 8px; --woodfish-background-size: 2px; }');
+    const style = document.querySelector('[data-woodfish-user-css]');
+    expect(style?.parentNode).toBe(document.body);
+    expect(updates).toEqual([4, 8]);
+    expect(core).toEqual([4, 2]);
+    expect(effects.status().map((status) => status.overrides)).toEqual([['size'], ['size']]);
+    // A value that does not fit leaves params.json in charge.
+    effects.setUserCss(':root { --woodfish-a-size: huge; }');
+    expect(updates).toEqual([4, 8, 4]);
+    expect(core).toEqual([4, 2, 4]);
+    expect(effects.status().map((status) => status.overrides)).toEqual([[], []]);
+    effects.setUserCss('');
+    expect(document.querySelector('[data-woodfish-user-css]')).toBeNull();
+    effects.dispose();
+  });
+
   it('ignores effects for other hosts and shows folders that could not load', () => {
     const effects = host();
     const vscodeOnly = normalizeEffectManifest({ name: 'x', hosts: ['vscode'] });

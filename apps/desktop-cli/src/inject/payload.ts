@@ -9,6 +9,8 @@ declare const __WOODFISH_CODEX_USERSCRIPT__: string | undefined;
 export const USERSCRIPT_CONFIG_KEY = '__woodfishCodexUserScriptConfig';
 /** Global the Codex++ user script reads its baked-in effects from. */
 export const USERSCRIPT_EFFECTS_KEY = '__woodfishCodexUserScriptEffects';
+/** Global the Codex++ user script reads its baked-in `user.css` from. */
+export const USERSCRIPT_USER_CSS_KEY = '__woodfishCodexUserScriptUserCss';
 
 export function readAsset(name: string): string {
   const candidates = [

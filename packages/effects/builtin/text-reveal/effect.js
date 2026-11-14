@@ -88,7 +88,7 @@ module.exports = function textReveal(ctx) {
   }
 
   function restyle() {
-    const color = ctx.theme().accent;
+    const color = `var(--woodfish-text-reveal-color, ${ctx.theme().accent})`;
     const glow = HIGHLIGHT_NAMES.map(
       (name, level) =>
         `::highlight(${name}) { text-shadow: 0 0 ${9 - level * 2}px color-mix(in oklab, ${color} ${85 - level * 20}%, transparent), 0 0 ${5 - level}px color-mix(in oklab, ${color} ${60 - level * 14}%, transparent); }`

@@ -120,6 +120,8 @@ export interface WatcherOptions {
   saveSettingsPatch?: (patch: unknown) => void;
   /** Background picture storage; when given, every main window gets the background binding. */
   backgrounds?: WatcherBackgrounds;
+  /** `user.css` actions the settings page asks for (through the reload binding). */
+  userCss?: { open(): void; reset(): void };
   log?: (message: string) => void;
   WebSocketCtor?: WebSocketConstructor;
   fetchImpl?: typeof fetch;
@@ -235,6 +237,27 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
     }
   }
 
+  /** The page asked for a reload, or to open / reset user.css (the reset reloads by itself). */
+  function onReloadBinding(payload: unknown): void {
+    const action = payload === 'open-user-css' || payload === 'reset-user-css' ? payload : null;
+    if (!action || !options.userCss) {
+      log('页面请求刷新效果');
+      void reload();
+      return;
+    }
+    try {
+      if (action === 'open-user-css') {
+        options.userCss.open();
+        log('已打开 user.css');
+      } else {
+        options.userCss.reset();
+        log('user.css 已恢复默认');
+      }
+    } catch (error) {
+      log(`user.css：${(error as Error).message}`);
+    }
+  }
+
   /** An effect failed in the page; keep the reason in the log. */
   function onLogBinding(payload: unknown): void {
     if (typeof payload !== 'string' || payload.length > MAX_BINDING_PAYLOAD) {
@@ -341,8 +364,7 @@ export async function startWatcher(options: WatcherOptions): Promise<RunningWatc
       event.params.name === CODEX_RELOAD_BINDING &&
       [...pages.values()].some((page) => page.sessionId === event.sessionId)
     ) {
-      log('页面请求刷新效果');
-      void reload();
+      onReloadBinding(event.params.payload);
     } else if (
       event.method === 'Runtime.bindingCalled' &&
       event.params.name === CODEX_LOG_BINDING &&

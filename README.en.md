@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-MIT%20%2B%20GPL--3.0-green.svg)](apps/vscode-extension/THIRD_PARTY_NOTICES.md)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.74.0-blue.svg)](https://code.visualstudio.com/)
 
-![Woodfish Dark: gradient syntax and glow](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/hero.png)
+![Woodfish Dark: gradient syntax and glow](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/hero.png)
 
 Woodfish Theme adds gradients and glow to code, plus a rainbow cursor and frosted glass. Its five bundled themes each come with hand-tuned gradients; on any other color theme the gradients are derived by the same rules. It works in VS Code, Cursor, Kiro, Windsurf, Trae and VSCodium.
 
@@ -19,43 +19,43 @@ Every picture on this page is rendered by the extension's own workbench script a
 
 **Woodfish Dark**: Bearded Theme Arc colors with the hand-written 5.x gradients.
 
-![Woodfish Dark](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-dark.png)
+![Woodfish Dark](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-dark.png)
 
 **Woodfish Dracula**: the official Dracula colors, keywords running pink into purple.
 
-![Woodfish Dracula](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-dracula.png)
+![Woodfish Dracula](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-dracula.png)
 
 **Woodfish Black**: pure black for OLED screens.
 
-![Woodfish Black](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-black.png)
+![Woodfish Black](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-black.png)
 
 **Woodfish Neon**: neon on deep purple.
 
-![Woodfish Neon](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-neon.png)
+![Woodfish Neon](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-neon.png)
 
 **Woodfish Light**: warm white; gradients go deeper and the glow is a light tint of each hue.
 
-![Woodfish Light](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/theme-light.png)
+![Woodfish Light](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/theme-light.png)
 
 **Any other theme**: VS Code's own Dark Modern as it ships (left) and with Woodfish (right).
 
 | Dark Modern | With Woodfish |
 |---|---|
-| ![Dark Modern](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/any-theme-before.png) | ![Dark Modern with Woodfish](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/any-theme-after.png) |
+| ![Dark Modern](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/any-theme-before.png) | ![Dark Modern with Woodfish](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/any-theme-after.png) |
 
 **Glow**, off and on:
 
 | Gradient only | Gradient + glow |
 |---|---|
-| ![Glow off](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glow-off.png) | ![Glow on](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glow-on.png) |
+| ![Glow off](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/glow-off.png) | ![Glow on](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/glow-on.png) |
 
 **Rainbow cursor**: its colors cycle; these are six moments of one cycle.
 
-<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/cursor.png" width="40%" alt="Six moments of the rainbow cursor's color cycle">
+<img src="https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/cursor.png" width="40%" alt="Six moments of the rainbow cursor's color cycle">
 
 **Frosted glass** on the suggest list (opacity 0.5, 14px blur):
 
-![Frosted glass](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/glass.png)
+![Frosted glass](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/glass.png)
 
 ## What's new in 7.2
 
@@ -65,11 +65,11 @@ Every picture on this page is rendered by the extension's own workbench script a
 
   Before 7.2 the rainbow starts over at `and`:
 
-  ![Before 7.2: the rainbow restarts at the 50th character](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/long-before.png)
+  ![Before 7.2: the rainbow restarts at the 50th character](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/long-before.png)
 
   7.2, one rainbow across the line:
 
-  ![7.2: one rainbow across the line](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.2.0/assets/readme/long-after.png)
+  ![7.2: one rainbow across the line](https://github.com/woodfishhhh/Woodfish-Theme/raw/v7.3.0/assets/readme/long-after.png)
 
 - **Light themes glow in a light color**: the glow used to be the dark text color, which looked like a shadow.
 
@@ -158,7 +158,7 @@ All settings live under `woodfishTheme.`. In the Settings UI they are grouped in
 
 ### Effect plugins
 
-A mouse trail, a caret trail (both drawn like the VS Code Animations extension: a single-color band, length 12) and typing particles (theme-colored sparks like Power Mode, no shake or combo counter) are pluggable effects under `woodfishTheme.mouseTrail.*`, `woodfishTheme.caretTrail.*` and `woodfishTheme.typingParticles.*`, off by default. Each effect is a folder in `%APPDATA%\Woodfish\effects` (`~/Library/Application Support/Woodfish/effects` on macOS) whose `effect.js` you, or an AI following the folder's `AGENTS.md`, can edit; new folders become new effects. Changes reload by themselves, or run **刷新效果** (`Ctrl+Alt+R`) — no window reload. The Codex app uses the same folder.
+A mouse trail, a caret trail (both drawn like the VS Code Animations extension: a single-color band, length 12) and typing particles (theme-colored sparks like Power Mode, no shake or combo counter) are pluggable effects under `woodfishTheme.mouseTrail.*`, `woodfishTheme.caretTrail.*` and `woodfishTheme.typingParticles.*`, off by default. Each effect is a folder in `%APPDATA%\Woodfish\effects` (`~/Library/Application Support/Woodfish/effects` on macOS) whose `effect.js` you, or an AI following the folder's `AGENTS.md`, can edit; new folders become new effects. Changes reload by themselves, or run **刷新效果** (`Ctrl+Alt+R`) — no window reload. The Codex app uses the same folder. To change only colors, sizes or lengths, add a CSS variable to `user.css` in the same folder, e.g. `:root { --woodfish-caret-trail-color: #ff4d4f; }`; it loads last, wins over everything else and survives upgrades. The folder's `README.md` lists every variable.
 
 ## Troubleshooting
 
@@ -183,7 +183,7 @@ Woodfish can also restyle the OpenAI Codex desktop app (Windows Store build) wit
 
 - **Native palette**: `woodfish codex theme apply --dark neon --light light` writes Codex's official theme settings (one palette per appearance mode) and opens no ports; `--appearance dark` pins Codex to dark mode.
 - **Injected effects**: `woodfish codex launch` adds OKLCH code gradients and glow, frosted floating layers, accent glow, the same 6px rainbow caret as in VS Code, mouse and caret trails and typing particles. Codex is started with a loopback-only debugging port, and the risks are explained before first use. Assistant replies get the rainbow text; while a reply streams, a rainbow cursor follows its end with a trail and new text fades in (AI output triggers the same effects as your typing); the selected sidebar thread gets a turning seven-band spectrum ring with a soft halo.
-- **Effect plugins**: every effect is a folder in `%APPDATA%\Woodfish\effects`. Codex's own **Settings → Appearance → Woodfish 外观** switches between all 15 themes and shows each effect's switch and every parameter; Codex itself can change an effect's code by following the folder's `AGENTS.md`. Saving reloads it, or run `woodfish reload` / press `Ctrl+Alt+R` in Codex, without restarting Codex.
+- **Effect plugins**: Codex keeps only the caret trail; the mouse trail is off by default. Every effect is a folder in `%APPDATA%\Woodfish\effects`. Codex's own **Settings → Appearance → Woodfish 外观** switches between all 15 themes and shows each effect's switch and every parameter; Codex itself can change an effect's code by following the folder's `AGENTS.md`. Saving reloads it, or run `woodfish reload` / press `Ctrl+Alt+R` in Codex, without restarting Codex. Colors, sizes and speeds can also be changed with CSS variables in `user.css` in the same folder (the settings page has 「打开 user.css」).
 - **Always on**: `woodfish codex autostart on` registers a hidden logon task (normal rights) that brings the effects back within seconds after Codex restarts or a Store update; `woodfish codex autostart off` or `uninstall` removes it cleanly.
 
 - **Window background**: a picture under the whole window (the editor or thread shows it at 15 %, side panels are frosted glass at 35 % of the theme color, 10px blur). In VS Code run `设置背景图片`; in Codex it is on by default and **Settings → Appearance → Woodfish** uploads (or takes a dropped picture), previews and keeps several; the CLI is `woodfish codex background set <picture>`. Pictures stay on your machine. The default background 《彩云》 (Colorful Clouds) is made by the author, woodfish.

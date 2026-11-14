@@ -1,7 +1,7 @@
 {
   "name": "输入框光标",
   "description": "Codex 输入框里的光标换成作者 VS Code 里那套：6px 宽、不闪烁、平滑移动、Woodfish 彩虹慢慢流动。",
-  "version": 1,
+  "version": 2,
   "hosts": ["codex"],
   "enabled": true,
   "order": 5,

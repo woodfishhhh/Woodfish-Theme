@@ -264,6 +264,7 @@ export function startEffects(): (() => void) | void {
         if (response.ok && key !== version) {
           const module = (await import(`${base}effects.mjs?v=${encodeURIComponent(key)}`)) as {
             default?: unknown;
+            userCss?: unknown;
           };
           const list = Array.isArray(module.default) ? (module.default as EffectSource[]) : [];
           if (next.reload !== reload) {
@@ -271,6 +272,7 @@ export function startEffects(): (() => void) | void {
             host.apply([]);
             reload = next.reload;
           }
+          host.setUserCss(typeof module.userCss === 'string' ? module.userCss : '');
           host.apply(list);
           version = key;
         }

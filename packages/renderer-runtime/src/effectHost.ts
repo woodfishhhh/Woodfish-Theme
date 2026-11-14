@@ -3,6 +3,7 @@ import {
   EffectManifest,
   EffectValues,
   effectCssVariables,
+  effectValuesFromCss,
   normalizeEffectValues,
   patchEffectValues,
 } from '@woodfish/theme-core';
@@ -88,6 +89,8 @@ export interface EffectStatus {
   values: EffectValues;
   state: EffectState;
   error?: string;
+  /** Parameters the user's CSS (`user.css`) sets, which win over `values`. */
+  overrides: string[];
 }
 
 export type Painter = (g: CanvasRenderingContext2D, now: number, dt: number) => boolean | void;
@@ -158,6 +161,11 @@ export interface EffectHostApi {
   streamEnd(event: StreamEndEvent): void;
   /** The theme changed: cached theme data is dropped and effects are told. */
   themeChanged(): void;
+  /**
+   * The user's CSS (`user.css` in the effects folder), mounted after every other stylesheet.
+   * Its `--woodfish-<effect>-<param>` variables override the parameters of every effect.
+   */
+  setUserCss(css: string): void;
   status(): EffectStatus[];
   dispose(): void;
 }
@@ -180,6 +188,8 @@ const LAYER_Z_INDEX = '2147483000';
 
 interface Running {
   source: EffectSource;
+  /** The values the effect runs with: `source.values` with the user's CSS on top. */
+  values: EffectValues;
   instance: EffectInstance;
   handlers: {
     insert: Array<(event: InsertEvent) => void>;
@@ -219,6 +229,9 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
   const running = new Map<string, Running>();
   const failures = new Map<string, string>();
   const painters = new Set<PainterEntry>();
+  /** Values last handed to the host for core effects (null: off). */
+  const coreValues = new Map<string, EffectValues | null>();
+  let userStyle: HTMLStyleElement | null = null;
   const motionQuery =
     typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null;
   let layer: HTMLElement | null = null;
@@ -392,6 +405,20 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
     styles.upsert(`${source.id}-css`, source.css ?? '');
   }
 
+  /** `source.values` with whatever the page's CSS (user.css) sets for its parameters. */
+  function effective(source: EffectSource): EffectValues {
+    const style = getComputedStyle(document.documentElement);
+    const fromCss = effectValuesFromCss(source.id, source.manifest, (name) =>
+      style.getPropertyValue(name)
+    );
+    const values = { ...source.values, ...fromCss };
+    return sameValues(values, source.values) ? source.values : values;
+  }
+
+  function overrides(source: EffectSource, values: EffectValues | null | undefined): string[] {
+    return values ? Object.keys(values).filter((key) => values[key] !== source.values[key]) : [];
+  }
+
   function unmountCss(id: string): void {
     styles.remove(`${id}-vars`);
     styles.remove(`${id}-css`);
@@ -404,7 +431,7 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
       id: source.id,
       host: options.host,
       get params(): EffectValues {
-        return owner.source.values;
+        return owner.values;
       },
       theme,
       rainbow: RAINBOW,
@@ -452,8 +479,10 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
 
   function start(source: EffectSource): void {
     failures.delete(source.id);
+    mountCss(source);
     const owner: Running = {
       source,
+      values: effective(source),
       instance: {},
       handlers: { insert: [], caret: [], streamEnd: [], theme: [] },
       painters: new Set(),
@@ -463,7 +492,6 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
     };
     const context = createContext(owner);
     running.set(source.id, owner);
-    mountCss(source);
     if (!source.factory) {
       return;
     }
@@ -507,16 +535,22 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
     schedule();
   }
 
+  /** New values from params.json or the user's CSS; the effect only hears of real changes. */
   function update(owner: Running, source: EffectSource): void {
     owner.source = source;
     mountCss(source);
+    const values = effective(source);
+    if (sameValues(owner.values, values)) {
+      return;
+    }
+    owner.values = values;
     if (!owner.instance.update) {
       stop(source.id);
       start(source);
       return;
     }
     try {
-      owner.instance.update(source.values);
+      owner.instance.update(values);
     } catch (error) {
       fail(source.id, `更新参数失败：${message(error)}`);
     }
@@ -532,12 +566,14 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
       return;
     }
     if (source.manifest.core) {
-      options.core?.(source.manifest.core, source.values.enabled ? source.values : null);
       if (source.values.enabled) {
         mountCss(source);
       } else {
         unmountCss(source.id);
       }
+      const values = source.values.enabled ? effective(source) : null;
+      coreValues.set(source.id, values);
+      options.core?.(source.manifest.core, values);
       return;
     }
     if (!source.values.enabled) {
@@ -548,9 +584,7 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
       return;
     }
     if (owner && owner.source.hash === source.hash && !failures.has(source.id)) {
-      if (!sameValues(owner.source.values, source.values)) {
-        update(owner, source);
-      }
+      update(owner, source);
       return;
     }
     if (owner) {
@@ -569,6 +603,24 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
 
   function owners(): Running[] {
     return [...running.values()];
+  }
+
+  /** Re-reads the CSS overrides (user.css or the theme changed) and passes on changes. */
+  function recheck(): void {
+    for (const owner of owners()) {
+      update(owner, owner.source);
+    }
+    for (const source of sources.values()) {
+      const previous = coreValues.get(source.id);
+      if (!source.manifest.core || !previous) {
+        continue;
+      }
+      const values = effective(source);
+      if (!sameValues(previous, values)) {
+        coreValues.set(source.id, values);
+        options.core?.(source.manifest.core, values);
+      }
+    }
   }
 
   return {
@@ -625,13 +677,44 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
     },
     themeChanged(): void {
       themeCache = null;
+      recheck();
       owners().forEach((owner) => owner.handlers.theme.forEach((handler) => handler()));
+    },
+    setUserCss(css: string): void {
+      if (disposed) {
+        return;
+      }
+      if (css.trim() === '') {
+        userStyle?.remove();
+        userStyle = null;
+      } else {
+        if (!userStyle) {
+          userStyle = document.createElement('style');
+          userStyle.setAttribute('data-woodfish-user-css', '');
+          for (const [name, value] of Object.entries(options.nodeAttributes ?? {})) {
+            userStyle.setAttribute(name, value);
+          }
+        }
+        if (userStyle.textContent !== css) {
+          userStyle.textContent = css;
+        }
+        // In <body>: after every stylesheet in <head> (the host's and ours), so it wins ties
+        // without !important.
+        const parent = document.body ?? document.documentElement;
+        if (userStyle.parentNode !== parent) {
+          parent.append(userStyle);
+        }
+      }
+      recheck();
     },
     status(): EffectStatus[] {
       return [...sources.values()]
         .filter((source) => source.error || source.manifest.hosts.includes(options.host))
         .map((source): EffectStatus => {
           const error = source.error ?? failures.get(source.id);
+          const values = source.manifest.core
+            ? coreValues.get(source.id)
+            : running.get(source.id)?.values;
           const state: EffectState = error
             ? 'failed'
             : source.manifest.core
@@ -645,6 +728,7 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
             values: normalizeEffectValues(source.manifest, source.values),
             state,
             ...(error ? { error } : {}),
+            overrides: overrides(source, values),
           };
         })
         .sort(
@@ -674,6 +758,9 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
       document.removeEventListener('visibilitychange', onFocusChange);
       document.documentElement.removeAttribute(PAUSED_ATTRIBUTE);
       styles.removeAll();
+      userStyle?.remove();
+      userStyle = null;
+      coreValues.clear();
       layer?.remove();
       layer = null;
       canvas = null;

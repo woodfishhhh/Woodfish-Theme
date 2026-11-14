@@ -6,6 +6,7 @@ import {
   EFFECTS_RELOAD_FILE,
   LoadedEffect,
   buildEffectsModule,
+  readUserCss,
   readUserEffects,
   sha256,
   syncUserEffects,
@@ -149,8 +150,11 @@ export class EffectsService implements vscode.Disposable {
         (effect) => !effect.manifest || effect.manifest.hosts.includes('vscode')
       );
       const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
-      const module = buildEffectsModule(effects, 'vscode', (effect) =>
-        vscodeEffectValues(effect, (key) => config.get(key))
+      const module = buildEffectsModule(
+        effects,
+        'vscode',
+        (effect) => vscodeEffectValues(effect, (key) => config.get(key)),
+        readUserCss(this.effectsDir)
       );
       writeEffectsPayload(this.payloadDir, module, this.reloads);
     } catch (error) {

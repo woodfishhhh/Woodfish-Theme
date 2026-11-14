@@ -268,7 +268,8 @@ export const SETTINGS_PANEL_CSS = `
   flex-basis: 100%;
 }
 [data-woodfish-codex-settings] .woodfish-effect + .woodfish-effect,
-[data-woodfish-codex-settings] .woodfish-effects-header + .woodfish-effect {
+[data-woodfish-codex-settings] .woodfish-effects-header + .woodfish-effects-user-css,
+[data-woodfish-codex-settings] .woodfish-effects-user-css + .woodfish-effect {
   border-top: 1px solid color-mix(in oklab, var(--color-text) 8%, transparent);
 }
 [data-woodfish-codex-settings] .woodfish-effect-actions {
@@ -288,6 +289,13 @@ export const SETTINGS_PANEL_CSS = `
   color: var(--color-text-danger, #e5484d);
 }
 [data-woodfish-codex-settings] .woodfish-effect-error:empty {
+  display: none;
+}
+[data-woodfish-codex-settings] .woodfish-effect-overridden {
+  font-size: 11px;
+  color: var(--color-text-tertiary, var(--color-text-secondary));
+}
+[data-woodfish-codex-settings] .woodfish-effect-overridden:not([data-on]) {
   display: none;
 }
 [data-woodfish-codex-settings] .woodfish-effect-toggle {

@@ -2,6 +2,7 @@ import * as http from 'http';
 import { AddressInfo } from 'net';
 import { WebSocket, WebSocketServer } from 'ws';
 import {
+  CODEX_RELOAD_BINDING,
   CODEX_SETTINGS_BINDING,
   applyCodexSettingsPatch,
   normalizeCodexSettings,
@@ -341,6 +342,36 @@ describe('startWatcher', () => {
     call('{not json');
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(patches).toHaveLength(1);
+    await watcher.stop();
+  });
+
+  it('opens and resets user.css when the page asks through the reload binding', async () => {
+    const actions: string[] = [];
+    const watcher = await startWatcher({
+      port: browser.port,
+      bundle: '/* bundle */',
+      loadSettings: () => settings,
+      loadEffects: () => '',
+      userCss: { open: () => actions.push('open'), reset: () => actions.push('reset') },
+      WebSocketCtor,
+      healthIntervalMs: 60000,
+    });
+    const [main] = browser.pages;
+    const call = (payload: string): void =>
+      browser.broadcast({
+        method: 'Runtime.bindingCalled',
+        sessionId: main.sessionId,
+        params: { name: CODEX_RELOAD_BINDING, payload },
+      });
+    const evaluations = main.evaluated.length;
+    call('open-user-css');
+    call('reset-user-css');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(actions).toEqual(['open', 'reset']);
+    expect(main.evaluated).toHaveLength(evaluations);
+    call('reload');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(main.evaluated.length).toBeGreaterThan(evaluations);
     await watcher.stop();
   });
 

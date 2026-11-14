@@ -1,15 +1,20 @@
+import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { CODEX_EFFECTS_KEY, legacyEffectValues } from '@woodfish/adapter-codex';
+import { CODEX_EFFECTS_KEY, CODEX_USER_CSS_KEY, legacyEffectValues } from '@woodfish/adapter-codex';
 import {
   EFFECTS_LEDGER_FILE,
   EFFECTS_RELOAD_FILE,
   LoadedEffect,
   SyncResult,
+  USER_CSS_FILE,
   buildEffectsScript,
+  readUserCss,
   readUserEffects,
   resetEffectValues,
+  restoreBuiltinEffect,
   seedEffectValues,
+  toScriptLiteral,
   syncUserEffects,
   writeEffectValues,
 } from '@woodfish/effects';
@@ -59,9 +64,43 @@ export function loadCodexEffects(paths: WoodfishPaths): LoadedEffect[] {
   return readUserEffects(paths.effectsDir);
 }
 
-/** The page script that hands the effects to the overlay. */
-export function codexEffectsScript(paths: WoodfishPaths, globalKey = CODEX_EFFECTS_KEY): string {
-  return buildEffectsScript(loadCodexEffects(paths), 'codex', globalKey);
+/** The page script that hands the effects and `user.css` to the overlay. */
+export function codexEffectsScript(
+  paths: WoodfishPaths,
+  globalKey = CODEX_EFFECTS_KEY,
+  userCssKey = CODEX_USER_CSS_KEY
+): string {
+  return [
+    buildEffectsScript(loadCodexEffects(paths), 'codex', globalKey),
+    `globalThis[${toScriptLiteral(userCssKey)}] = ${toScriptLiteral(readUserCss(paths.effectsDir))};`,
+  ].join('\n');
+}
+
+/** `user.css` in the effects folder. */
+export function userCssPath(paths: WoodfishPaths): string {
+  return path.join(paths.effectsDir, USER_CSS_FILE);
+}
+
+/** Puts the shipped `user.css` template back; an edited one is kept as `user.css.bak`. */
+export function resetUserCss(paths: WoodfishPaths): void {
+  restoreBuiltinEffect(paths.effectsDir, USER_CSS_FILE);
+}
+
+/** Opens `user.css` in the default editor, putting the template back first if it is gone. */
+export function openUserCss(paths: WoodfishPaths): void {
+  const file = userCssPath(paths);
+  if (!fs.existsSync(file)) {
+    resetUserCss(paths);
+  }
+  const command =
+    process.platform === 'win32'
+      ? 'explorer.exe'
+      : process.platform === 'darwin'
+        ? 'open'
+        : 'xdg-open';
+  spawn(command, [file], { detached: true, stdio: 'ignore' })
+    .on('error', () => undefined)
+    .unref();
 }
 
 /**

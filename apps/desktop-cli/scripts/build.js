@@ -91,7 +91,7 @@ const ASSETS = [
     entry: [
       "import { bootFromUserScript } from '@woodfish/adapter-codex/renderer';",
       'const host = globalThis as Record<string, unknown>;',
-      'bootFromUserScript(host.__woodfishCodexUserScriptConfig, host.__woodfishCodexUserScriptEffects);',
+      'bootFromUserScript(host.__woodfishCodexUserScriptConfig, host.__woodfishCodexUserScriptEffects, host.__woodfishCodexUserScriptUserCss);',
       '',
     ].join('\n'),
     banner: 'Woodfish Codex overlay (Codex++ user script)',

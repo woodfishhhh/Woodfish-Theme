@@ -1,7 +1,7 @@
 {
   "name": "回复正文彩虹",
   "description": "助手回复的段落、标题、列表和表格文字用渐变色；纯 CSS，流式输出时边吐边上色，长对话不费脚本。链接、代码和公式保留原色。",
-  "version": 1,
+  "version": 2,
   "hosts": ["codex"],
   "enabled": true,
   "order": 70,

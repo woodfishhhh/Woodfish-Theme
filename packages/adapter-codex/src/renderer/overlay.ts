@@ -71,7 +71,7 @@ export interface CodexOverlayController extends PageController {
    * Applies new settings (and effects, when given) in place. Accepts untrusted input. A new
    * `reload` value restarts every effect.
    */
-  update: (settings: unknown, effects?: unknown, reload?: unknown) => void;
+  update: (settings: unknown, effects?: unknown, reload?: unknown, userCss?: unknown) => void;
   /** A copy of the settings in effect. */
   settings: () => CodexSettings;
   /** Every effect with its state, values and error, for `woodfish codex effects`. */
@@ -269,7 +269,8 @@ export function startCodexOverlay(
   input: unknown,
   source: CodexOverlaySource,
   effectsInput?: unknown,
-  reloadInput?: unknown
+  reloadInput?: unknown,
+  userCssInput?: unknown
 ): CodexOverlayController {
   let settings = normalizeCodexSettings(input);
   const styles = createStyles(source);
@@ -469,18 +470,31 @@ export function startCodexOverlay(
     panel?.refresh();
   }
 
+  /** Asks the watcher for `action` (only a CDP injection has one); false when it is not there. */
+  function ask(action: 'reload' | 'open-user-css' | 'reset-user-css'): boolean {
+    const call = binding(CODEX_RELOAD_BINDING);
+    if (!call) {
+      panel?.say('没有连上 Woodfish 监视进程');
+      return false;
+    }
+    call(action);
+    return true;
+  }
+
   const reload =
     source === 'cdp'
       ? (): void => {
           flushSave();
-          const call = binding(CODEX_RELOAD_BINDING);
-          if (call) {
-            call('reload');
-          } else {
-            panel?.say('没有连上 Woodfish 监视进程，无法刷新');
-          }
+          ask('reload');
         }
       : null;
+
+  /** The user's user.css (effects folder): a string replaces it, anything else keeps it. */
+  function applyUserCss(css: unknown): void {
+    if (typeof css === 'string') {
+      effects?.host.setUserCss(css);
+    }
+  }
 
   function onKeyDown(event: KeyboardEvent): void {
     if (isReloadShortcut(event)) {
@@ -509,11 +523,12 @@ export function startCodexOverlay(
     version: CODEX_ADAPTER_VERSION,
     source,
     build: CODEX_BUILD_ID,
-    update: (next: unknown, nextEffects?: unknown, reload?: unknown): void => {
+    update: (next: unknown, nextEffects?: unknown, reload?: unknown, userCss?: unknown): void => {
       if (disposed) {
         return;
       }
       settings = normalizeCodexSettings(next);
+      applyUserCss(userCss);
       const list = readEffects(nextEffects);
       if (list && reload !== reloadToken) {
         // A reload was asked for: start every effect afresh (failed ones get another try).
@@ -602,6 +617,7 @@ export function startCodexOverlay(
       panel?.refresh();
     },
   });
+  applyUserCss(userCssInput);
   applyEffects(readEffects(effectsInput) ?? []);
   applyCore();
   styles.upsert('settings', SETTINGS_PANEL_CSS);
@@ -614,6 +630,13 @@ export function startCodexOverlay(
       reset: resetEffects,
       reload,
       location: '%APPDATA%\\Woodfish\\effects',
+      userCss:
+        source === 'cdp'
+          ? {
+              open: (): boolean => ask('open-user-css'),
+              reset: (): boolean => ask('reset-user-css'),
+            }
+          : null,
     },
     background: { store: backgrounds },
     footnote: PANEL_FOOTNOTE[source],

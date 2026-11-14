@@ -18,7 +18,7 @@ module.exports = function rainbowText(ctx) {
   function restyle() {
     ctx.style(`
 ${ctx.selectors.bodyText} {
-  background-image: ${gradient()} !important;
+  background-image: var(--woodfish-rainbow-text-gradient, ${gradient()}) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;

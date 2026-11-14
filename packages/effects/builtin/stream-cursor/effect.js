@@ -36,7 +36,7 @@ module.exports = function streamCursor(ctx) {
   top: 0;
   width: 100%;
   height: 900%;
-  background: linear-gradient(180deg, ${[...stops, stops[0]].join(', ')});
+  background: linear-gradient(180deg, var(--woodfish-stream-cursor-stops, ${[...stops, stops[0]].join(', ')}));
   animation: woodfish-stream-cursor-flow ${p.flowSeconds}s linear infinite;
 }
 @keyframes woodfish-stream-cursor-flow {

@@ -19,6 +19,11 @@ export interface EffectsPanelOptions {
   reload: (() => void) | null;
   /** Where the values are saved, shown in the card header. */
   location: string;
+  /**
+   * Opens `user.css` in the default editor / puts its template back (false when that did
+   * not reach the watcher); null when this page cannot (a user script).
+   */
+  userCss: { open: () => boolean; reset: () => boolean } | null;
 }
 
 export interface EffectsCard {
@@ -163,7 +168,15 @@ export function buildEffectsCard(look: Look, options: EffectsPanelOptions): Effe
     const rows = params.map(([key, spec]) =>
       element('div', `${look.row} woodfish-effect-param`, {}, [
         labelBlock(look, spec.label, spec.description),
-        element('div', look.rowRight, {}, [paramControl(id, key, spec)]),
+        element('div', look.rowRight, {}, [
+          element(
+            'span',
+            'woodfish-effect-overridden',
+            { 'data-woodfish-effect-overridden': key },
+            ['user.css 覆盖']
+          ),
+          paramControl(id, key, spec),
+        ]),
       ])
     );
     const body = element(
@@ -220,8 +233,35 @@ export function buildEffectsCard(look: Look, options: EffectsPanelOptions): Effe
     ]);
   }
 
+  function userCssRow(): HTMLElement {
+    const buttons = options.userCss
+      ? [
+          element(
+            'button',
+            'woodfish-background-button',
+            { type: 'button', 'data-woodfish-user-css': 'open' },
+            ['打开 user.css']
+          ),
+          element(
+            'button',
+            'woodfish-background-button',
+            { type: 'button', 'data-woodfish-user-css': 'reset' },
+            ['恢复默认']
+          ),
+        ]
+      : [];
+    return element('div', `${look.row} woodfish-effects-user-css`, {}, [
+      labelBlock(
+        look,
+        '自定义 CSS（user.css）',
+        `${options.location}\\user.css 最后加载、优先级最高，保存后一两秒生效，升级不会覆盖。写一行 :root { --woodfish-caret-trail-color: #ff4d4f; } 就能换光标拖尾的颜色；所有变量和例子在效果文件夹的 README.md。${options.userCss ? '' : '用户脚本模式下改完要重新运行 woodfish codex install-userscript。'}`
+      ),
+      element('div', `${look.rowRight} woodfish-background-buttons`, {}, buttons),
+    ]);
+  }
+
   function render(effects: EffectStatus[]): void {
-    card.replaceChildren(header(), ...effects.map(effectGroup));
+    card.replaceChildren(header(), userCssRow(), ...effects.map(effectGroup));
     for (const id of expanded) {
       unfold(id, true);
     }
@@ -257,6 +297,9 @@ export function buildEffectsCard(look: Look, options: EffectsPanelOptions): Effe
     }
     for (const [key, spec] of Object.entries(effect.manifest.params)) {
       const value = effect.values[key];
+      group
+        .querySelector(`[data-woodfish-effect-overridden="${key}"]`)
+        ?.toggleAttribute('data-on', (effect.overrides ?? []).includes(key));
       const control = group.querySelector<HTMLElement>(`[data-woodfish-effect-param="${key}"]`);
       const output = group.querySelector<HTMLElement>(`[data-woodfish-effect-output="${key}"]`);
       if (!control || control === document.activeElement) {
@@ -367,6 +410,16 @@ export function buildEffectsCard(look: Look, options: EffectsPanelOptions): Effe
         [group.dataset.woodfishEffectParam ?? '']: segment.dataset.value,
       });
       sync();
+      return;
+    }
+    const userCss = target.closest<HTMLElement>('[data-woodfish-user-css]');
+    if (userCss && options.userCss) {
+      const open = userCss.dataset.woodfishUserCss === 'open';
+      if (open ? options.userCss.open() : options.userCss.reset()) {
+        status.textContent = open
+          ? '已用默认编辑器打开 user.css'
+          : 'user.css 已恢复默认（原来的内容留在 user.css.bak）';
+      }
       return;
     }
     const reset = target.closest<HTMLElement>('[data-woodfish-effect-reset]');

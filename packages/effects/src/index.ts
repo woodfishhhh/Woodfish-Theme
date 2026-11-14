@@ -33,6 +33,12 @@ export const EFFECT_SCRIPT_FILE = 'effect.js';
 export const EFFECT_STYLE_FILE = 'effect.css';
 /** Touching this file in the effects folder asks every running host to reload effects. */
 export const EFFECTS_RELOAD_FILE = '.reload';
+/**
+ * The user's own CSS, loaded after everything else in Codex and VS Code. Its
+ * `--woodfish-<effect>-<param>` variables override effect parameters. Woodfish ships a
+ * commented template; once edited, upgrades leave it alone.
+ */
+export const USER_CSS_FILE = 'user.css';
 
 const MAX_SCRIPT_BYTES = 512 * 1024;
 const MAX_STYLE_BYTES = 128 * 1024;
@@ -185,8 +191,8 @@ export function syncUserEffects(
 }
 
 /**
- * Puts the shipped files of one effect back (after the user broke or deleted it). Edited
- * files are kept next to it as `<name>.bak`.
+ * Puts the shipped files of one effect (or one root file such as `user.css`) back, after the
+ * user broke or deleted it. Edited files are kept next to it as `<name>.bak`.
  */
 export function restoreBuiltinEffect(
   dir: string,
@@ -196,7 +202,7 @@ export function restoreBuiltinEffect(
   const restored: string[] = [];
   const ledger = readLedger(dir);
   for (const [relative, content] of Object.entries(files)) {
-    if (!relative.startsWith(`${id}/`)) {
+    if (!relative.startsWith(`${id}/`) && relative !== id) {
       continue;
     }
     const target = path.join(dir, ...relative.split('/'));
@@ -322,6 +328,11 @@ export function readEffect(dir: string, id: string): LoadedEffect | null {
     loaded.error = (error as Error).message;
   }
   return loaded;
+}
+
+/** The user's `user.css` ('' when there is none). */
+export function readUserCss(dir: string): string {
+  return readOptional(path.join(dir, USER_CSS_FILE), MAX_STYLE_BYTES, USER_CSS_FILE) ?? '';
 }
 
 /** Every effect folder in `dir`, sorted by name. A missing folder means no effects. */
@@ -458,11 +469,12 @@ export function buildEffectsScript(
   return `globalThis[${toScriptLiteral(globalKey)}] = ${buildEffectsList(effects, host, override)};`;
 }
 
-/** The same list as an ES module (VS Code imports it from global storage). */
+/** The same list as an ES module (VS Code imports it from global storage), plus `user.css`. */
 export function buildEffectsModule(
   effects: readonly LoadedEffect[],
   host: EffectHost,
-  override?: EffectValuesOverride
+  override?: EffectValuesOverride,
+  userCss = ''
 ): string {
-  return `export default ${buildEffectsList(effects, host, override)};\n`;
+  return `export default ${buildEffectsList(effects, host, override)};\nexport const userCss = ${toScriptLiteral(userCss)};\n`;
 }

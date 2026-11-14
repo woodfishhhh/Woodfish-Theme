@@ -7,6 +7,7 @@ import { RISK_TEXT, RISK_TEXT_SHA256 } from '../cli/consent';
 import { Io } from '../cli/io';
 import { HELP, run } from '../cli';
 import { FRESH_START_SECONDS, decideDaemonAction } from '../commands/autostart';
+import { codexEffectsScript } from '../codex/effects';
 import {
   USERSCRIPT_KEY,
   buildUserScript,
@@ -300,6 +301,18 @@ describe('run', () => {
       await run(['codex', 'effects', 'restore', 'caret-trail'], { io, context: { paths } })
     ).toBe(0);
     expect(fs.existsSync(path.join(paths.effectsDir, 'caret-trail', 'effect.js.bak'))).toBe(true);
+
+    // user.css rides along with the effects and can be put back to the template.
+    const userCss = path.join(paths.effectsDir, 'user.css');
+    fs.writeFileSync(userCss, ':root { --woodfish-caret-trail-color: red; }');
+    expect(codexEffectsScript(paths)).toContain(
+      '"__woodfishCodexUserCss"] = ":root { --woodfish-caret-trail-color: red; }";'
+    );
+    expect(await run(['codex', 'effects', 'restore', 'user.css'], { io, context: { paths } })).toBe(
+      0
+    );
+    expect(fs.readFileSync(`${userCss}.bak`, 'utf8')).toContain('red');
+    expect(fs.readFileSync(userCss, 'utf8')).toContain('Woodfish user.css');
 
     await run(['codex', 'settings', '--set', 'mouse-trail.length=30'], { io, context: { paths } });
     expect(

@@ -5,7 +5,12 @@ import {
   CodexSettings,
   normalizeCodexSettings,
 } from '@woodfish/adapter-codex';
-import { USERSCRIPT_CONFIG_KEY, USERSCRIPT_EFFECTS_KEY, toScriptLiteral } from '../inject/payload';
+import {
+  USERSCRIPT_CONFIG_KEY,
+  USERSCRIPT_EFFECTS_KEY,
+  USERSCRIPT_USER_CSS_KEY,
+  toScriptLiteral,
+} from '../inject/payload';
 import { WoodfishPaths } from '../paths';
 import { readJson, writeFileAtomic, writeJson } from '../store';
 import { codexEffectsScript } from './effects';
@@ -66,7 +71,11 @@ export function installUserScript(
   const file = path.join(scriptsDir(paths), USERSCRIPT_FILE);
   writeFileAtomic(
     file,
-    buildUserScript(settings, bundle, codexEffectsScript(paths, USERSCRIPT_EFFECTS_KEY))
+    buildUserScript(
+      settings,
+      bundle,
+      codexEffectsScript(paths, USERSCRIPT_EFFECTS_KEY, USERSCRIPT_USER_CSS_KEY)
+    )
   );
   const config = readJson<CodexPlusConfig>(configFile(paths)) ?? { enabled: true };
   writeJson(configFile(paths), {

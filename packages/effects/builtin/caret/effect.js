@@ -72,7 +72,7 @@ ${ctx.selectors.composerEditor} {
   top: 0;
   width: 100%;
   height: 900%;
-  background: linear-gradient(180deg, ${[...stops, stops[0]].join(', ')});
+  background: linear-gradient(180deg, var(--woodfish-caret-stops, ${[...stops, stops[0]].join(', ')}));
   animation: woodfish-caret-flow ${p.flowSeconds}s linear infinite;
 }
 @keyframes woodfish-caret-flow {

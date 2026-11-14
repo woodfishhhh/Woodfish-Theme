@@ -1,13 +1,37 @@
 # 怎么改 Woodfish 效果（写给 Codex、Claude 等 AI）
 
-这个文件夹是 Woodfish 的效果目录（Windows：`%APPDATA%\Woodfish\effects`）。Codex 和 VS Code 里的 Woodfish 效果都从这里加载。用户说“帮我改一下出字的粒子”“鼠标尾巴换个颜色”时，就在这里改，改完按最后一节验证。
+这个文件夹是 Woodfish 的效果目录（Windows：`%APPDATA%\Woodfish\effects`）。Codex 和 VS Code 里的 Woodfish 效果都从这里加载。用户说“帮我改一下出字的粒子”“光标尾巴换个颜色”时，就在这里改，改完按最后一节验证。
+
+**改法的先后**：
+
+1. **先用 `user.css`**（这个文件夹里）：颜色、粗细、长度、速度、透明度、模糊这类样子，写一行 CSS 变量就行，升级不会覆盖，用户也看得懂。变量清单（变量名、作用、默认值、例子）在这个文件夹的 `README.md`。
+2. 其次改参数：某个效果的 `params.json`（第 3 节），和设置页的滑块是同一份值。
+3. 最后才改代码：换画法、加新功能、新效果时改 `effect.js`（第 4、5 节）。
+
+## 0. 用 user.css 改（首选）
+
+每个参数都是 CSS 变量 `--woodfish-<效果名>-<参数名>`（参数名的大写字母换成「-小写」），写在 `:root` 上，比 `params.json` 和设置页都优先：
+
+```css
+:root {
+  --woodfish-caret-trail-color: #ff4d4f;
+  --woodfish-typing-particles-size: 3.2px;
+}
+```
+
+- 先读 `README.md` 找变量：每个效果一张表；另有「额外变量」表（光标和光环的渐变色、回复正文渐变、光环底色等不是参数的口子）。
+- 值的写法：数字可带表里的单位（秒和毫秒可互换）；颜色写 `#rrggbb`、颜色名、`rgb()`、`hsl()`；开关写 `1`/`0`；选项写选项值。写错的值会被忽略。
+- 在 `user.css` 里追加或修改，别删用户已有的内容；改之前先读一遍。没有这个文件就新建。
+- 画布上的效果（光标拖尾、打字粒子）也读这些变量，不用改 `effect.js`。
+- 只想在深色或浅色时生效：Codex 用 `:root[data-theme="light"]` / `:root[data-theme="dark"]`。
+- 用户想撤销：删掉对应几行即可；要整个回到模板，`woodfish codex effects restore user.css`（旧内容留在 `user.css.bak`）。
 
 ## 1. 先找到是哪个效果
 
 | 用户说的 | 文件夹 |
 | --- | --- |
 | 打字 / AI 出字时迸出来的粒子、光点 | `typing-particles` |
-| 鼠标指针后面的尾巴 | `mouse-trail` |
+| 鼠标指针后面的尾巴（Codex 里默认关闭） | `mouse-trail` |
 | 文字光标后面的尾巴、拖影 | `caret-trail` |
 | Codex 输入框里的光标（粗细、颜色、闪烁、平滑） | `caret` |
 | AI 回复时末尾跟着的彩虹光标 | `stream-cursor` |
@@ -79,7 +103,7 @@ module.exports = function (ctx) {
 | `ctx.simplified()` | 窗口在后台或系统开了“减少动态”：只保留静态部分，别做动画 |
 | `ctx.log(text)` | 写进 Woodfish 的日志 |
 
-另外，`effect.json` 的每个参数都会变成 CSS 变量 `--woodfish-<效果名>-<参数>`（数字带单位），只写 `effect.css` 也能做效果。窗口在后台时 `<html>` 上有 `data-woodfish-paused`，CSS 动画可以据此暂停。
+另外，`effect.json` 的每个参数都会变成 CSS 变量 `--woodfish-<效果名>-<参数>`（数字带单位），只写 `effect.css` 也能做效果；`user.css` 改了这些变量时，`ctx.params` 里拿到的就是改过的值（`update(params)` 会被调用）。写 CSS 时颜色这类值最好包成 `var(--woodfish-<效果名>-<名字>, 默认值)`，用户就能在 `user.css` 里换，再把新变量补进 `README.md` 的「额外变量」表。新增或改了参数后，在 Woodfish 仓库里运行 `node packages/effects/scripts/css-variables.js` 更新 `README.md` 的变量清单（在用户的效果文件夹里就手动补一行）。窗口在后台时 `<html>` 上有 `data-woodfish-paused`，CSS 动画可以据此暂停。
 
 ### 必须遵守
 
@@ -108,5 +132,5 @@ module.exports = function (ctx) {
 
 ## 7. 不要动
 
-- `.woodfish-shipped.json`：Woodfish 靠它判断哪些文件被改过，升级时不覆盖改过的文件。
+- `.woodfish-shipped.json`：Woodfish 靠它判断哪些文件被改过，升级时不覆盖改过的文件（`user.css` 也一样）。
 - 这个文件夹以外的 Woodfish 文件。

@@ -1,11 +1,22 @@
 # 更新日志
 
-## [未发布]
+## [7.3.0] - 2026-11-14
 
 ### 主题
 
 - 新增 10 套热门主题（均为 MIT 许可，原样收录上游文件）：One Dark Pro、Tokyo Night、Catppuccin Mocha / Latte、Nord、GitHub Dark / Light、Night Owl、Ayu Mirage、Gruvbox Dark，名字前带 `Woodfish`。渐变和发光顺着各自配色自动生成，强调色、标签页边框与光标颜色取自主题自己的色板
 - 主题文件按 VS Code 的方式解析（允许注释和尾逗号），发布前检查覆盖每一套贡献的主题
+
+### 窗口背景
+
+- 新增窗口背景（`woodfishTheme.background.*`，默认关闭）：窗口底下铺一张图片，编辑器透出背景，侧边栏和面板用毛玻璃叠在上面。默认图片是作者制作的《彩云》，用命令「设置背景图片」换成自己的图片；透明度、模糊和遮罩都能调
+
+### 效果插件
+
+- 效果改成插件：每个效果是 `%APPDATA%\Woodfish\effects`（macOS 在 `~/Library/Application Support/Woodfish/effects`）里的一个文件夹，`effect.js` 就是实现，可以直接改、新建，也可以让 AI 照文件夹里的 `AGENTS.md` 改。改了文件或设置自动刷新，也可以运行「刷新效果」（`Ctrl+Alt+R`），不用重新加载窗口；新增「打开效果文件夹」命令
+- 自带三个效果，默认关闭：鼠标拖尾 `woodfishTheme.mouseTrail.*`、光标拖尾 `woodfishTheme.caretTrail.*`（都照 VS Code Animations 插件画单色带子，长度 12）、打字粒子 `woodfishTheme.typingParticles.*`（主题色光点，不震动）
+- 新增 `user.css`：效果文件夹里的这个文件最后加载、优先级最高，Woodfish 升级不会覆盖它。每个效果参数都是一个 CSS 变量，例如 `:root { --woodfish-caret-trail-color: #ff4d4f; }` 一行就把光标拖尾换成红色，画布上画的拖尾和粒子也跟着变。全部变量、默认值和例子见效果文件夹的 `README.md`
+- 同一个效果文件夹也给 Woodfish 的 Codex 桌面端效果用，改一次两边都变
 
 ## [7.2.0] - 2026-11-03
 

@@ -1,7 +1,7 @@
 {
   "name": "吐字光标",
   "description": "Codex 流式输出时，回复末尾跟着一根彩虹光标：随新字往右滑，换行跳到下一行开头，生成结束就消失。",
-  "version": 1,
+  "version": 2,
   "hosts": ["codex"],
   "enabled": true,
   "order": 40,

@@ -225,25 +225,84 @@ export function patchEffectValues(
   return normalizeEffectValues(manifest, { ...values, ...(patch as Record<string, unknown>) });
 }
 
+/** `--woodfish-<id>-<param>`: the custom property a parameter is exposed as. */
+export function effectCssVariable(id: string, key: string): string {
+  return `--woodfish-${id}-${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`;
+}
+
 /** `--woodfish-<id>-<param>` custom properties for CSS-only effects. */
 export function effectCssVariables(
   id: string,
   manifest: EffectManifest,
   values: EffectValues
 ): string[] {
-  const kebab = (key: string): string =>
-    key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
   return Object.entries(manifest.params).flatMap(([key, spec]) => {
+    const name = effectCssVariable(id, key);
     const value = values[key];
     if (spec.type === 'boolean') {
-      return [`--woodfish-${id}-${kebab(key)}: ${value ? 1 : 0};`];
+      return [`${name}: ${value ? 1 : 0};`];
     }
     if (spec.type === 'number') {
-      return [`--woodfish-${id}-${kebab(key)}: ${String(value)}${spec.unit ?? ''};`];
+      return [`${name}: ${String(value)}${spec.unit ?? ''};`];
     }
     // Colors are validated; select values are only exposed when they are plain words.
     return typeof value === 'string' && (spec.type === 'color' || /^[a-z0-9-]+$/i.test(value))
-      ? [`--woodfish-${id}-${kebab(key)}: ${value};`]
+      ? [`${name}: ${value};`]
       : [];
   });
+}
+
+const CSS_NUMBER = /^(-?(?:\d+\.?\d*|\.\d+))([a-z%]*)$/i;
+
+/** One parameter read from a custom property's text; undefined when it does not fit. */
+function valueFromCss(spec: EffectParamSpec, text: string): number | boolean | string | undefined {
+  switch (spec.type) {
+    case 'number': {
+      const match = CSS_NUMBER.exec(text);
+      if (!match) {
+        return undefined;
+      }
+      const unit = match[2].toLowerCase();
+      const number = Number(match[1]);
+      if (unit === 'ms' && spec.unit === 's') {
+        return normalizeValue(spec, number / 1000);
+      }
+      if (unit === 's' && spec.unit === 'ms') {
+        return normalizeValue(spec, number * 1000);
+      }
+      return unit === '' || unit === spec.unit ? normalizeValue(spec, number) : undefined;
+    }
+    case 'boolean':
+      return text === '1' || text === 'true'
+        ? true
+        : text === '0' || text === 'false'
+          ? false
+          : undefined;
+    case 'color':
+      return isValidCssColor(text) ? text : undefined;
+    case 'select':
+      return spec.options?.some((option) => option.value === text) ? text : undefined;
+  }
+}
+
+/**
+ * Parameters as the page's CSS has them: `read(name)` returns a custom property's computed
+ * value on the root element, where the user's `user.css` overrides what Woodfish writes
+ * from params.json. Only values that fit the parameter are returned (numbers clamped), so
+ * a typo leaves the params.json value in place.
+ */
+export function effectValuesFromCss(
+  id: string,
+  manifest: EffectManifest,
+  read: (name: string) => string
+): Record<string, number | boolean | string> {
+  const values: Record<string, number | boolean | string> = {};
+  for (const [key, spec] of Object.entries(manifest.params)) {
+    const text = read(effectCssVariable(id, key)).trim();
+    const value = text ? valueFromCss(spec, text) : undefined;
+    if (value !== undefined) {
+      values[key] = value;
+    }
+  }
+  return values;
 }

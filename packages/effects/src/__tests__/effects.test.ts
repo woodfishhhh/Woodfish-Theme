@@ -4,9 +4,11 @@ import * as path from 'path';
 import * as vm from 'vm';
 import {
   EFFECTS_LEDGER_FILE,
+  USER_CSS_FILE,
   buildEffectsModule,
   buildEffectsScript,
   builtinEffectFiles,
+  readUserCss,
   readUserEffects,
   resetEffectValues,
   restoreBuiltinEffect,
@@ -91,6 +93,20 @@ describe('syncUserEffects', () => {
     expect(read('demo/effect.js')).toBe(SCRIPT);
     expect(read('demo/effect.js.bak')).toBe('broken(');
     expect(() => restoreBuiltinEffect(dir, 'nope', v1)).toThrow(/没有自带/);
+  });
+
+  it('keeps an edited user.css on upgrade and restores the template on request', () => {
+    const files = { ...v1, [USER_CSS_FILE]: '/* v1 */\n' };
+    expect(readUserCss(dir)).toBe('');
+    syncUserEffects(dir, files);
+    write(USER_CSS_FILE, ':root { --woodfish-demo-size: 3; }');
+    expect(syncUserEffects(dir, { ...files, [USER_CSS_FILE]: '/* v2 */\n' }).kept).toEqual([
+      USER_CSS_FILE,
+    ]);
+    expect(readUserCss(dir)).toBe(':root { --woodfish-demo-size: 3; }');
+    expect(restoreBuiltinEffect(dir, USER_CSS_FILE, files)).toEqual([USER_CSS_FILE]);
+    expect(readUserCss(dir)).toBe('/* v1 */\n');
+    expect(read(`${USER_CSS_FILE}.bak`)).toBe(':root { --woodfish-demo-size: 3; }');
   });
 });
 
@@ -187,6 +203,9 @@ describe('page payload', () => {
     expect(overridden).toContain('id: "c"');
     expect(overridden).toContain('values: {"enabled":false}');
     expect(overridden).not.toContain('id: "a"');
+    expect(buildEffectsModule(effects, 'vscode', undefined, ':root{}')).toContain(
+      'export const userCss = ":root{}";'
+    );
   });
 
   it('escapes data so it cannot end the script early', () => {
@@ -221,5 +240,20 @@ describe('the shipped effects', () => {
     ]);
     expect(fs.existsSync(path.join(dir, 'AGENTS.md'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'CLAUDE.md'))).toBe(true);
+    expect(readUserCss(dir)).toContain('--woodfish-caret-trail-color');
+    // Codex keeps only the caret trail; the mouse trail ships off.
+    const mouse = effects.find((effect) => effect.id === 'mouse-trail');
+    expect(mouse?.values?.enabled).toBe(false);
+  });
+
+  it('list every parameter variable in README.md (node scripts/css-variables.js)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { README, renderReadme } = require('../../scripts/css-variables.js') as {
+      README: string;
+      renderReadme: (current: string) => string;
+    };
+    const current = fs.readFileSync(README, 'utf8').replace(/\r\n/g, '\n');
+    expect(renderReadme(current)).toBe(current);
+    expect(current).toContain('`--woodfish-caret-trail-color`');
   });
 });

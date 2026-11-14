@@ -40,8 +40,9 @@ Codex 里 Woodfish 画的每个效果都是一个**插件文件夹**，放在 `%
 | `effect.js` | 实现：`module.exports = function (ctx) { … }`，只通过 `ctx` 拿事件、画布和样式 |
 | `README.md` | 这个效果是什么、参数各管什么、改哪里会怎样 |
 
-自带 12 个：输入框光标 `caret`、鼠标拖尾 `mouse-trail`、光标拖尾 `caret-trail`、打字粒子 `typing-particles`、吐字光标 `stream-cursor`、新字淡入 `text-reveal`、流光边框 `thread-ring`（Bifrost「创建 Key」按钮）、回复正文彩虹 `rainbow-text`、强调色点缀 `accent`、浮层毛玻璃 `glass`、窗口背景 `background`、代码渐变 `code-gradient`（后两个是核心效果：引擎在 Woodfish 里，文件夹管开关和参数）。
+自带 12 个：输入框光标 `caret`、鼠标拖尾 `mouse-trail`（Codex 里默认关闭）、光标拖尾 `caret-trail`、打字粒子 `typing-particles`、吐字光标 `stream-cursor`、新字淡入 `text-reveal`、流光边框 `thread-ring`（Bifrost「创建 Key」按钮）、回复正文彩虹 `rainbow-text`、强调色点缀 `accent`、浮层毛玻璃 `glass`、窗口背景 `background`、代码渐变 `code-gradient`（后两个是核心效果：引擎在 Woodfish 里，文件夹管开关和参数）。
 
+- **一行 CSS 就能改样子**：效果文件夹里的 `user.css` 最后加载、优先级最高。每个参数都是 CSS 变量 `--woodfish-<效果名>-<参数名>`，例如 `:root { --woodfish-caret-trail-color: #ff4d4f; }` 把光标拖尾换成红色；画布上的拖尾、粒子和窗口背景也读这些变量。光环、光标、回复正文的渐变色另有变量。全部变量（作用、默认值、例子）在效果文件夹的 `README.md`。保存一两秒后生效，升级不覆盖；设置页「Woodfish 外观」里有「打开 user.css」「恢复默认」，命令行 `woodfish codex effects restore user.css`（原内容留 `user.css.bak`）。
 - **对 AI 说一句就能改**：文件夹根目录有 `AGENTS.md`（和指向它的 `CLAUDE.md`），写清楚找哪个文件夹、`ctx` 有什么、怎么验证。对 Codex 或 Claude 说“把打字粒子改成金色，效果文件夹在 %APPDATA%\Woodfish\effects”，它读完就知道改 `typing-particles` 的 `params.json`（实测 Codex 两分钟左右改完并刷新）。
 - **打字和吐字是同一个事件**：效果订阅 `ctx.onInsert`（某处插入了文字）和 `ctx.onCaret`（光标在这里）。VS Code 里由你打字触发，Codex 里由你在输入框打字或 AI 流式吐字触发，所以同一个粒子、拖尾两边都能用。
 - **刷新**：保存效果文件后一秒内自动重新加载；手动刷新用 `woodfish reload`（Codex 和 VS Code 一起，并打印每个效果的状态）、Codex 里按 **Ctrl+Alt+R**，或设置页的「刷新效果」。`woodfish codex reload --hard` 连窗口一起重新加载。

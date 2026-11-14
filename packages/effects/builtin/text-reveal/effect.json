@@ -1,7 +1,7 @@
 {
   "name": "新字淡入",
   "description": "流式输出时，刚出现的字有一个很短的出场：从淡到实、从模糊到清晰，或带一圈退去的微光。只改最近几段新字，不拆字、不改 DOM。",
-  "version": 1,
+  "version": 2,
   "hosts": ["codex"],
   "enabled": true,
   "order": 50,

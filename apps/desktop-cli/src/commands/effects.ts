@@ -1,12 +1,13 @@
 import {
   EFFECTS_RELOAD_FILE,
+  USER_CSS_FILE,
   requestEffectsReload,
   resetEffectValues,
   restoreBuiltinEffect,
 } from '@woodfish/effects';
 import { isEffectId } from '@woodfish/theme-core';
 import { isDebugPortAlive } from '../cdp/http';
-import { ensureEffects, loadCodexEffects } from '../codex/effects';
+import { ensureEffects, loadCodexEffects, userCssPath } from '../codex/effects';
 import { evaluateInMainWindows } from '../inject/pages';
 import { loadWatcherState, migrateSettings } from '../store';
 import { CommandContext, CommandError, EXIT, isProcessAlive, sleep } from './context';
@@ -76,7 +77,7 @@ function printEffects(context: CommandContext, live: PageEffect[] | null): numbe
     context.io.out('（Codex 没有在运行 Woodfish 注入，上面是文件里的状态）');
   }
   context.io.out(
-    '改参数：编辑各文件夹的 params.json，或 Codex 设置 → 外观 → Woodfish；说明见文件夹里的 AGENTS.md'
+    `改样子：在 ${userCssPath(context.paths)} 里写 CSS 变量（清单见文件夹里的 README.md），或编辑各文件夹的 params.json、Codex 设置 → 外观 → Woodfish；给 AI 的说明在 AGENTS.md`
   );
   return failed;
 }
@@ -117,8 +118,11 @@ export async function effectsCommand(
       return EXIT.ok;
     }
     case 'restore': {
-      if (!argument || !isEffectId(argument)) {
-        throw new CommandError('用法：woodfish codex effects restore <效果名>', EXIT.usage);
+      if (!argument || (!isEffectId(argument) && argument !== USER_CSS_FILE)) {
+        throw new CommandError(
+          `用法：woodfish codex effects restore <效果名> | ${USER_CSS_FILE}`,
+          EXIT.usage
+        );
       }
       const restored = restoreBuiltinEffect(context.paths.effectsDir, argument);
       context.io.out(
