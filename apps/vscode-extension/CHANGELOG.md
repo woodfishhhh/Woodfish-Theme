@@ -1,5 +1,15 @@
 # 更新日志
 
+## [未发布]
+
+### 文档
+
+- 给 Codex 装 Woodfish 可以交给 AI 了：把 README 里的一句话发给你正在用的 AI（Codex、Claude Code、Cursor……），它照 [docs/agent-install.md](https://github.com/woodfishhhh/Woodfish-Theme/blob/main/docs/agent-install.md) 的步骤装好并让效果一直生效；调试端口的风险说明只能由你本人同意，重启 Codex 前也会先问你。README 的「Codex 桌面端」一节改成新手版：三步自己装、装好后在哪换主题、怎么让 AI 改效果、怎么停用和卸载；进阶命令留在 Woodfish 桌面工具的 README
+
+### 修改
+
+- 「设置背景图片」里《彩云》的说明改成“Woodfish 自带”
+
 ## [8.1.1] - 2026-11-14
 
 ### 移除

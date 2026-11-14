@@ -95,7 +95,7 @@ export function registerSetBackgroundImageCommand(deps: CommandDeps): vscode.Dis
       const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
       const choices: Choice[] = [
         { label: '$(file-media) 选择图片文件…', description: 'JPG、PNG 或 WebP', pick: true },
-        { label: '$(cloud) 默认背景《彩云》', description: '作者 woodfish', image: '' },
+        { label: '$(cloud) 默认背景《彩云》', description: 'Woodfish 自带', image: '' },
         {
           label: '$(symbol-color) 彩云渐变',
           description: '蓝、金、粉',
