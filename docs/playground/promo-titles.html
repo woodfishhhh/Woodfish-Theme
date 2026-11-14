@@ -170,6 +170,11 @@ function leaderLine(box, target, lineY) {
   const elbow = Math.abs(dx) > Math.abs(dy)
     ? { x: target.x - Math.sign(dx) * Math.abs(dy), y: start.y }
     : { x: start.x, y: target.y - Math.sign(dy) * Math.abs(dx) };
+  // A stub shorter than the dot looks like a glitch: go straight instead.
+  if (Math.hypot(start.x - elbow.x, start.y - elbow.y) < 48) {
+    elbow.x = start.x;
+    elbow.y = start.y;
+  }
   return { start, elbow, target };
 }
 

@@ -308,6 +308,9 @@
     }
     // Only the part of the screenshot that shows the feature, at about its own size.
     picture.style.objectViewBox = spec.viewBox ?? 'none';
+    // `left` keeps a margin free on the left (for the title); the picture fits the rest.
+    picture.style.left = spec.left ?? '0px';
+    picture.style.width = spec.left ? `calc(100% - ${spec.left})` : '100%';
     picture.style.objectFit = spec.viewBox ? 'contain' : 'cover';
     if (picture.getAttribute('src') !== spec.src) {
       picture.src = spec.src;

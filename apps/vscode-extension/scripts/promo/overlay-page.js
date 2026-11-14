@@ -26,21 +26,26 @@
 .promo-end .welcome { margin-top: 10px; font-size: 38px; font-weight: 600; color: #e9ecf4; display: flex; align-items: center; justify-content: center; gap: 14px; }
 .promo-end .welcome svg { flex: none; }
 .promo-end .note { margin-top: 14px; font-size: 26px; color: #c9d0de; }
-/* The effect's name, centered at the start of its shot; frameState drives the motion. */
-.promo-title { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-.promo-title .promo-card { position: relative; padding: 34px 72px 38px; border-radius: 32px; text-align: center; }
-.promo-title .main { font-size: 108px; line-height: 1.15; font-weight: 800; letter-spacing: 4px; background: linear-gradient(90deg, #ffd25e, #ff8fb1, #b89cff, #7ad7ff, #8ff0c0, #ffd25e); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-.promo-title .sub { margin-top: 14px; font-size: 36px; color: #e6eaf2; }
-.promo-title .sub:empty { display: none; }
+/* The effect's name (docs/playground/promo-titles.html #14): eyebrow, title and one line
+   placed in an empty part of the picture, a thin line from the words to the effect. */
+.promo-callout { position: absolute; left: 0; top: 0; }
+.promo-callout .eyebrow { font-size: 24px; font-weight: 600; letter-spacing: .22em; color: #f3d17a; margin-bottom: 6px; white-space: nowrap; }
+.promo-callout .main { font-size: 72px; font-weight: 800; line-height: 1.15; letter-spacing: 1px; white-space: nowrap; }
+.promo-callout .sub { margin-top: 12px; font-size: 30px; line-height: 1.45; color: #d8deea; white-space: pre; }
+.promo-callout .sub:empty { display: none; }
+.promo-callout .eyebrow, .promo-callout .main, .promo-callout .sub { text-shadow: 0 2px 14px rgb(0 0 0 / 55%); }
+.promo-leader { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+.promo-dot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px rgb(255 255 255 / 25%); }
+.promo-scrim { position: absolute; inset: 0; }
 .promo-fade { position: absolute; inset: 0; background: #000; }
 `;
   document.head.append(style);
 
   const root = document.createElement('div');
   root.className = 'promo-overlay';
-  root.innerHTML = `<div class="promo-card promo-caption"><div class="main"></div><div class="sub"></div></div>
+  root.innerHTML = `<div class="promo-scrim"></div><div class="promo-card promo-caption"><div class="main"></div><div class="sub"></div></div>
 <div class="promo-card promo-badge"><b>✦</b><span></span></div>
-<div class="promo-title"><div class="promo-card"><div class="main"></div><div class="sub"></div></div></div>
+<svg class="promo-leader"><path fill="none" stroke="rgb(255 255 255 / 85%)" stroke-width="2.5" stroke-linecap="round"/></svg><div class="promo-dot"></div><div class="promo-callout"><div class="eyebrow"></div><div class="main"></div><div class="sub"></div></div>
 <div class="promo-end"><div class="promo-card"><div class="star">觉得好看？求求star！⭐</div><div class="welcome"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#b89cff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.4"/><circle cx="6" cy="19" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M6 7.4v9.2M18 16.6V10a3 3 0 0 0-3-3h-4"/><path d="m13 4.6-2.4 2.4 2.4 2.4"/></svg>欢迎共建~会看PR！</div><div class="note"></div></div></div>
 <div class="promo-fade"></div>`;
   document.body.append(root);
@@ -48,19 +53,92 @@
   const badge = root.querySelector('.promo-badge');
   const end = root.querySelector('.promo-end');
   const fade = root.querySelector('.promo-fade');
-  const title = root.querySelector('.promo-title');
+  const callout = root.querySelector('.promo-callout');
+  const leader = root.querySelector('.promo-leader path');
+  const dot = root.querySelector('.promo-dot');
+  const scrim = root.querySelector('.promo-scrim');
+  const SCRIMS = {
+    right: 'linear-gradient(to left, rgb(6 8 14 / 94%) 20%, rgb(6 8 14 / 66%) 36%, transparent 60%)',
+    left: 'linear-gradient(to right, rgb(6 8 14 / 95%) 26%, rgb(6 8 14 / 70%) 36%, transparent 54%)',
+    // Only the margin left of a picture that starts at about a third of the frame.
+    gutter: 'linear-gradient(to right, rgb(6 8 14 / 95%) 24%, rgb(6 8 14 / 70%) 30%, transparent 34%)',
+    top: 'linear-gradient(to bottom, rgb(6 8 14 / 97%) 20%, rgb(6 8 14 / 60%) 26%, transparent 33%)',
+    bottom: 'linear-gradient(to top, rgb(6 8 14 / 85%) 15%, transparent 55%)',
+  };
 
-  /** The centered title: `heading` holds its text and this frame's opacity, scale, blur, sweep. */
+  /**
+   * A line from the text box to `target`: it leaves the side (or top/bottom) facing the
+   * target, runs straight, then turns 45° into it. `lineY` is where a line leaving from the
+   * side starts (the middle of the title). Nearly level or plumb lines are drawn straight.
+   */
+  function leaderLine(box, target, lineY) {
+    const gap = 22;
+    const outX = target.x < box.x ? box.x - target.x : Math.max(0, target.x - (box.x + box.w));
+    const outY = target.y < box.y ? box.y - target.y : Math.max(0, target.y - (box.y + box.h));
+    const start =
+      outX >= outY
+        ? { x: target.x < box.x ? box.x - gap : box.x + box.w + gap, y: lineY }
+        : { x: Math.min(box.x + box.w - 24, Math.max(box.x + 24, target.x)), y: target.y < box.y ? box.y - gap : box.y + box.h + gap };
+    if (outX >= outY && Math.abs(target.y - start.y) < 48) start.y = target.y;
+    if (outX < outY && Math.abs(target.x - start.x) < 48) start.x = target.x;
+    const dx = target.x - start.x;
+    const dy = target.y - start.y;
+    const elbow =
+      Math.abs(dx) > Math.abs(dy)
+        ? { x: target.x - Math.sign(dx) * Math.abs(dy), y: start.y }
+        : { x: start.x, y: target.y - Math.sign(dy) * Math.abs(dx) };
+    // A stub shorter than the dot looks like a glitch: go straight instead.
+    if (Math.hypot(start.x - elbow.x, start.y - elbow.y) < 48) {
+      elbow.x = start.x;
+      elbow.y = start.y;
+    }
+    return { start, elbow };
+  }
+
+  /** The effect's name; `heading` holds its text, where it sits, the target point and each piece's progress. */
   function showTitle(heading) {
-    title.style.opacity = String(heading?.opacity ?? 0);
-    if (!heading) {
+    const visible = Boolean(heading);
+    for (const node of [callout, dot, scrim, leader]) {
+      node.style.opacity = '0';
+    }
+    if (!visible) {
       return;
     }
-    title.querySelector('.main').textContent = heading.main;
-    title.querySelector('.sub').textContent = heading.sub ?? '';
-    title.style.transform = `scale(${heading.scale})`;
-    title.style.filter = heading.blur > 0.05 ? `blur(${heading.blur}px)` : 'none';
-    title.querySelector('.main').style.backgroundPosition = `${100 - heading.sweep * 100}% 0`;
+    const pieces = heading.pieces;
+    callout.querySelector('.eyebrow').textContent = heading.eyebrow ?? '';
+    callout.querySelector('.main').textContent = heading.main;
+    callout.querySelector('.sub').textContent = heading.sub ?? '';
+    const box = { w: callout.offsetWidth, h: callout.offsetHeight };
+    box.x = (heading.at[0] / 100) * 1920;
+    box.y = (heading.at[1] / 100) * 1080 - box.h / 2;
+    callout.style.transform = `translate(${box.x}px, ${box.y}px)`;
+    callout.style.opacity = '1';
+    const out = 1 - pieces.out;
+    const set = (selector, piece, rise = 0) => {
+      const node = callout.querySelector(selector);
+      node.style.opacity = String(piece * out);
+      node.style.transform = rise ? `translateY(${rise * (1 - piece)}px)` : 'none';
+    };
+    set('.eyebrow', pieces.eyebrow);
+    set('.main', pieces.main, 36);
+    set('.sub', pieces.sub);
+    scrim.style.background = SCRIMS[heading.scrim] ?? 'none';
+    scrim.style.opacity = String(Math.max(pieces.dot, pieces.eyebrow) * out);
+    if (!heading.point) {
+      return;
+    }
+    const target = { x: heading.point[0], y: heading.point[1] };
+    const main = callout.querySelector('.main');
+    const { start, elbow } = leaderLine(box, target, box.y + main.offsetTop + main.offsetHeight / 2);
+    const length = Math.hypot(elbow.x - target.x, elbow.y - target.y) + Math.hypot(start.x - elbow.x, start.y - elbow.y);
+    leader.setAttribute('d', `M${target.x},${target.y} L${elbow.x},${elbow.y} L${start.x},${start.y}`);
+    leader.setAttribute('stroke-dasharray', String(length));
+    leader.setAttribute('stroke-dashoffset', String(length * (1 - pieces.line)));
+    leader.style.opacity = String(out);
+    dot.style.left = `${target.x}px`;
+    dot.style.top = `${target.y}px`;
+    dot.style.opacity = String(Math.min(1, pieces.dot * 1.5) * out);
+    dot.style.transform = `scale(${0.82 + 0.18 * pieces.dot})`;
   }
 
   /** `clip` is the camera's rectangle in page pixels; `badge` the badge text (or null). */

@@ -13,6 +13,7 @@
  *   node apps/vscode-extension/scripts/promo/render-promo-video.js --bgm <music.mp3>
  *     [--out output/promo/woodfish-8.0-promo.mp4] [--fps 60] [--from <s>] [--to <s>]
  *     [--still 12.3,40] [--clean] (writes PNG stills instead of a video; --clean: no captions)
+ *     [--host codex|vscode] (stills: open only that page's Chrome; frames of the other host are skipped)
  *     [--also-30fps] (also writes <out>-30fps.mp4 from the 60 fps master)
  *   node …/render-promo-video.js --only-30fps <master.mp4>   (30 fps copy of a finished video)
  *
@@ -85,6 +86,7 @@ function parseArgs(argv) {
     also30: false,
     clean: false,
     only30: null,
+    host: null,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const [key, value] = [argv[index], argv[index + 1]];
@@ -95,6 +97,7 @@ function parseArgs(argv) {
     else if (key === '--from') options.from = Number(value);
     else if (key === '--to') options.to = Number(value);
     else if (key === '--still') options.stills = value.split(',').map(Number);
+    else if (key === '--host') options.host = value;
     else if (key === '--clean') {
       options.clean = true;
       index -= 1;
@@ -112,6 +115,9 @@ function parseArgs(argv) {
   options.out ??= path.join(REPO_ROOT, 'output', 'promo', cut.out);
   options.from ??= cut.start;
   options.to ??= cut.end;
+  if (options.host && (!options.stills || !['codex', 'vscode'].includes(options.host))) {
+    throw new Error('--host codex|vscode only works with --still');
+  }
   if (!options.stills && !options.bgm && !options.only30) {
     throw new Error('--bgm <music> is required to render the video');
   }
@@ -281,27 +287,43 @@ function captionOpacity(caption, sceneTime, sceneEnd) {
   return Math.max(0, Math.min(1, caption.at / CAPTION_FADE, (sceneEnd - sceneTime) / 0.2));
 }
 
-/** The centered title: in (zoom down, blur to sharp), hold, out (fade, shrink a little). */
+/**
+ * The effect's name (playground #14, picked by the owner): the dot lands on the effect, the
+ * line draws out to the words, then eyebrow, title (rising 36px) and sub follow, each over
+ * TITLE_IN; it holds TITLE_HOLD and fades out over TITLE_OUT.
+ */
 const TITLE_IN = 0.45;
-const TITLE_HOLD = 1.05;
-const TITLE_OUT = 0.4;
-const TITLE_TOTAL = TITLE_IN + TITLE_HOLD + TITLE_OUT;
+const TITLE_HOLD = 2.4;
+const TITLE_OUT = 0.35;
+const TITLE_ENTER = 2 * TITLE_IN;
+const TITLE_TOTAL = TITLE_ENTER + TITLE_HOLD + TITLE_OUT;
+const TITLE_PIECES = { dot: [0, 0.6], line: [0.2, 1], eyebrow: [0.6, 1], main: [0.75, 1], sub: [1, 1] };
 
-/** The title's look `seconds` after it starts, or null once it has left. */
+/** The title's pieces `seconds` after it starts (0…1 each, eased), or null once it has left. */
 function titleFrame(title, seconds) {
   if (!title || seconds < 0 || seconds > TITLE_TOTAL) {
     return null;
   }
-  const enter = 1 - Math.pow(1 - Math.min(1, seconds / TITLE_IN), 3);
-  const exit = Math.pow(Math.max(0, (seconds - TITLE_IN - TITLE_HOLD) / TITLE_OUT), 2);
-  return {
-    main: title.main,
-    sub: title.sub,
-    opacity: enter * (1 - exit),
-    scale: (1.14 - 0.14 * enter) * (1 - 0.06 * exit),
-    blur: 16 * (1 - enter) + 8 * exit,
-    sweep: seconds / TITLE_TOTAL,
-  };
+  const ease = (x) => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 4);
+  const pieces = Object.fromEntries(
+    Object.entries(TITLE_PIECES).map(([name, [delay, length]]) => [name, ease((seconds - delay * TITLE_IN) / (length * TITLE_IN))])
+  );
+  pieces.out = Math.pow(Math.max(0, (seconds - TITLE_ENTER - TITLE_HOLD) / TITLE_OUT), 2);
+  return { eyebrow: title.eyebrow, main: title.main, sub: title.sub, at: title.at, scrim: title.scrim ?? null, target: title.target ?? null, pieces };
+}
+
+/** Where the title's line ends, in output pixels: a side of an anchor the stage reported. */
+function titlePoint(title, anchors, clip) {
+  const rect = title?.target && anchors[title.target.anchor];
+  if (!rect) {
+    return null;
+  }
+  const [x, y, w, h] = rect;
+  const side = title.target.side ?? 'center';
+  const px = side === 'right' ? x + w : side === 'left' ? x : x + w / 2;
+  const py = side === 'top' ? y : side === 'bottom' ? y + h : y + h / 2;
+  const k = WIDTH / clip.width;
+  return [(px - clip.x) * k + (title.target.dx ?? 0), (py - clip.y) * k + (title.target.dy ?? 0)];
 }
 
 /** The corner caption waits for the title to leave, then fades in. */
@@ -444,7 +466,8 @@ async function renderFrame(stages, state) {
     throw new Error(`The engine did not paint every token at ${state.t.toFixed(3)} s`);
   }
   const clip = stage.camera(state, anchors);
-  await stage.session.evaluate(`window.__promoOverlay.show(${JSON.stringify({ ...state.overlay, clip })})`);
+  const title = state.overlay.title && { ...state.overlay.title, point: titlePoint(state.overlay.title, anchors, clip) };
+  await stage.session.evaluate(`window.__promoOverlay.show(${JSON.stringify({ ...state.overlay, title, clip })})`);
   return { stage, clip };
 }
 
@@ -536,12 +559,15 @@ function startEncoder(options, soundtrack) {
  */
 async function warm(stages, cut, scenes, from, to, fps, adjust = (state) => state) {
   for (let frame = 0; from + frame / fps < to - 1e-6; frame += 1) {
-    await renderFrame(stages, adjust(frameState(cut, scenes, from + frame / fps)));
+    const state = adjust(frameState(cut, scenes, from + frame / fps));
+    if (stages[state.host]) {
+      await renderFrame(stages, state);
+    }
   }
 }
 
-/** Opens both stages in a scratch folder; `close()` shuts Chrome and removes the folder. */
-async function openStages() {
+/** Opens the stages (both by default) in a scratch folder; `close()` shuts Chrome and removes the folder. */
+async function openStages(hosts = ['vscode', 'codex']) {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'woodfish-promo-'));
   const stages = {};
   const close = async () => {
@@ -555,12 +581,16 @@ async function openStages() {
     fs.writeFileSync(bundle, await buildOverlayBundle());
     const stageUrl = (file) => pathToFileURL(path.join(__dirname, file)).href;
     const overlayUrl = stageUrl('overlay-page.js');
-    stages.vscode = await openStage('vscode', workDir, vscodePageHtml(stageUrl('stage.js'), overlayUrl));
-    stages.codex = await openStage(
+    if (hosts.includes('vscode')) {
+      stages.vscode = await openStage('vscode', workDir, vscodePageHtml(stageUrl('stage.js'), overlayUrl));
+    }
+    if (hosts.includes('codex')) {
+      stages.codex = await openStage(
       'codex',
       workDir,
-      codexPageHtml({ stageUrl: stageUrl('codex-stage.js'), bundleUrl: pathToFileURL(bundle).href, overlayUrl })
-    );
+        codexPageHtml({ stageUrl: stageUrl('codex-stage.js'), bundleUrl: pathToFileURL(bundle).href, overlayUrl })
+      );
+    }
   } catch (error) {
     await close();
     throw error;
@@ -574,7 +604,7 @@ async function main() {
     console.log(`✓ ${path.relative(REPO_ROOT, writeFrameRateCopy(options.only30, 30))}`);
     return;
   }
-  const { stages, close } = await openStages();
+  const { stages, close } = await openStages(options.host ? [options.host] : undefined);
   try {
     const cut = CUTS[options.cut];
     const scenes = cut.scenes();
@@ -586,6 +616,10 @@ async function main() {
       for (const t of [...options.stills].sort((a, b) => a - b)) {
         await warm(stages, cut, scenes, Math.max(clock, t - PREROLL), t, options.fps);
         const state = frameState(cut, scenes, t);
+        if (!stages[state.host]) {
+          console.log(`– ${t.toFixed(2)} s is a ${state.host} frame, skipped (--host ${options.host})`);
+          continue;
+        }
         if (options.clean) {
           // Covers: the picture alone.
           state.overlay = { caption: null, badge: null, end: null, fade: 0 };
