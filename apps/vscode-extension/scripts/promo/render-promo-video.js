@@ -4,8 +4,10 @@
  * Chrome: the VS Code shots run the built workbench bootstrap on a Monaco-like DOM with
  * the CSS from `buildRuntimeCss` and the shipped effect plugins; the Codex shots run the
  * real Codex overlay and effect plugins on a page laid out like Codex (codex-page.js).
- * A virtual clock (clock.js) makes every frame reproducible; frames go straight into
- * ffmpeg together with the BGM.
+ * A virtual clock (clock.js) makes every frame reproducible. Each page keeps one window
+ * size; the camera is the clip each frame is captured with (Chrome re-rasterizes at the
+ * clip's scale, so push-ins stay sharp), and overlay-page.js keeps captions fixed on
+ * screen. Frames go straight into ffmpeg together with the BGM.
  *
  *   pnpm compile && pnpm runtime:build
  *   node apps/vscode-extension/scripts/promo/render-promo-video.js --bgm <music.mp3>
@@ -40,8 +42,14 @@ const { storyboard, START, END } = require('./storyboard');
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
-/** The VS Code shots render at 200 %, so text and effects keep VS Code's proportions. */
+/** Window sizes in CSS pixels; the full window fills the frame. */
+const PAGES = { codex: { width: 1280, height: 720 }, vscode: { width: 960, height: 540 } };
+/** Device pixels per CSS pixel: enough for the effects canvas to stay crisp when pushed in. */
+const PIXEL_RATIO = 3;
+/** The VS Code page is laid out at half of 1920, so text and effects keep VS Code's proportions. */
 const VS_ZOOM = 2;
+/** Seconds the camera takes to settle on a moving target (exponential easing). */
+const CAMERA_LAG = 0.22;
 const FADE_IN = 0.6;
 const FADE_OUT = 1.9;
 const CAPTION_FADE = 0.3;
@@ -86,7 +94,7 @@ function parseArgs(argv) {
 const roleClass = (role) => `mtk${role[0].toUpperCase()}${role.slice(1)}`;
 const PALETTES = [...core.WOODFISH_PALETTES, DARK_MODERN];
 
-/** Editor colors per palette, keyed by `data-palette`, plus caption colors. */
+/** Editor colors per palette, keyed by `data-palette`. */
 function paletteCss() {
   return PALETTES.map((palette) => {
     const scope = `[data-palette="${palette.slug}"]`;
@@ -95,8 +103,7 @@ function paletteCss() {
       .map(([role, color]) => `${scope} .${roleClass(role)} { color: ${color}; }`)
       .join('\n');
     return `.monaco-workbench${scope} { --vscode-editor-background: ${palette.ui.bg}; --vscode-editor-foreground: ${palette.ui.fg}; background: ${palette.ui.bg}; color: ${palette.ui.fg}; }
-${scope} .caption .main { color: ${palette.ui.fg}; }
-${scope} .caption .sub, ${scope} .pane-label { color: ${palette.ui.fgMuted ?? palette.ui.fg}; }
+${scope} .pane-label { color: ${palette.ui.fgMuted ?? palette.ui.fg}; }
 ${tokens}`;
   }).join('\n');
 }
@@ -138,7 +145,7 @@ window.fetch = (input, init) => String(input).startsWith(${JSON.stringify(`${bas
 <style>:root { --woodfish-effects-url: ${JSON.stringify(base)}; }</style>`;
 }
 
-function vscodePageHtml(stageUrl) {
+function vscodePageHtml(stageUrl, overlayUrl) {
   const suggest = suggestWidget({ font: "15px/24px 'Segoe UI', 'Microsoft YaHei', sans-serif" });
   return `<!doctype html><meta charset="utf-8">${vscodeEffectsHead()}<style>
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
@@ -152,6 +159,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 .view-line { font: ${px(32)}/${px(50)} ${CODE_FONT}; height: ${px(50)}; white-space: pre; }
 .pane.large .view-line { font: ${px(44)}/${px(68)} ${CODE_FONT}; height: ${px(68)}; }
 .pane.compact .view-line { font: ${px(26)}/${px(42)} ${CODE_FONT}; height: ${px(42)}; }
+.pane.centered .view-line { text-align: center; }
 .split { display: inline; }
 .cursors-layer { position: absolute; inset: 0; pointer-events: none; }
 .cursor { position: absolute; width: ${px(6)}; height: ${px(38)}; }
@@ -159,19 +167,14 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 .pane.compact .cursor { height: ${px(32)}; }
 .suggest-slot { position: absolute; transform: scale(${1.75 / VS_ZOOM}); transform-origin: top left; }
 ${suggest.css}
-.caption { position: fixed; left: ${px(180)}; bottom: ${px(92)}; font-family: ${UI_FONT}; z-index: 2147483600; }
-.caption .main { font-size: ${px(40)}; font-weight: 600; letter-spacing: ${px(1)}; }
-.caption .sub { margin-top: ${px(10)}; font-size: ${px(24)}; }
-.fade { position: fixed; inset: 0; background: #000; pointer-events: none; z-index: 2147483601; }
 ${paletteCss()}
 </style>
 <style id="woodfish-css"></style>
 <div class="monaco-workbench"><div class="panes"></div></div>
-<div class="caption"><div class="main"></div><div class="sub"></div></div>
-<div class="fade"></div>
 <script>window.__WOODFISH_CSS = ${JSON.stringify(effectCss())}; window.__SUGGEST_HTML = ${JSON.stringify(suggest.html)}; window.__PROMO_SCALE = ${1 / VS_ZOOM};</script>
 <script src="${BOOTSTRAP_URL}"></script>
-<script src="${stageUrl}"></script>`;
+<script src="${stageUrl}"></script>
+<script src="${overlayUrl}"></script>`;
 }
 
 /**
@@ -233,95 +236,141 @@ function captionOpacity(caption, sceneTime, sceneEnd) {
   return Math.max(0, Math.min(1, caption.at / CAPTION_FADE, (sceneEnd - sceneTime) / 0.2));
 }
 
-/** The stage state for BGM time `t`. */
+/** Everything one frame needs: the shot for the stage, the camera and the overlay. */
 function frameState(scenes, t) {
-  const scene = scenes.find((candidate) => t >= candidate.start && t < candidate.end) ?? scenes.at(-1);
+  let index = scenes.findIndex((candidate) => t >= candidate.start && t < candidate.end);
+  index = index < 0 ? scenes.length - 1 : index;
+  const scene = scenes[index];
   const local = t - scene.start;
   const shot = scene.build(local);
   const palette = resolvePalette(shot.palette) ?? DARK_MODERN;
-  const common = {
-    host: scene.host ?? 'vscode',
-    palette: palette.slug,
-    light: palette.type === 'light',
-    caption: shot.caption
-      ? {
-          main: shot.caption.main,
-          sub: shot.caption.sub,
-          at: shot.caption.position,
-          opacity: captionOpacity(shot.caption, local, scene.end - scene.start),
-        }
-      : null,
-    fade: Math.max(0, 1 - (t - START) / FADE_IN, (t - (END - FADE_OUT)) / FADE_OUT),
-    timeMs: t * 1000,
-  };
-  if (common.host === 'codex') {
-    return { ...shot, ...common, zoom: shot.zoom ?? 1.6 };
-  }
+  const host = scene.host ?? 'vscode';
+  const base = { palette: palette.slug, light: palette.type === 'light', timeMs: t * 1000 };
+  const stage =
+    host === 'codex'
+      ? { ...shot, ...base }
+      : {
+          ...base,
+          css: shot.css,
+          panes: shot.panes.map((pane) => ({
+            html: paneHtml(pane),
+            woodfish: pane.woodfish !== false,
+            label: pane.label,
+            className: [pane.large ? 'large' : pane.compact ? 'compact' : '', pane.centered ? 'centered' : ''].join(' ').trim(),
+            cursor: Boolean(pane.cursor),
+            typed: Number.isFinite(pane.typed) ? pane.typed : null,
+            suggest: pane.suggest ?? null,
+          })),
+        };
   return {
-    ...common,
-    zoom: VS_ZOOM,
-    css: shot.css,
-    panes: shot.panes.map((pane) => ({
-      html: paneHtml(pane),
-      woodfish: pane.woodfish !== false,
-      label: pane.label,
-      className: pane.large ? 'large' : pane.compact ? 'compact' : '',
-      cursor: Boolean(pane.cursor),
-      typed: Number.isFinite(pane.typed) ? pane.typed : null,
-      suggest: pane.suggest ?? null,
-    })),
+    host,
+    shot: index,
+    t,
+    stage,
+    camera: shot.camera ?? { zoom: 1, focus: 'window' },
+    overlay: {
+      caption: shot.caption
+        ? {
+            main: shot.caption.main,
+            sub: shot.caption.sub,
+            at: shot.caption.position,
+            opacity: captionOpacity(shot.caption, local, scene.end - scene.start),
+          }
+        : null,
+      badge: Boolean(shot.badge),
+      end: shot.end ?? null,
+      fade: Math.max(0, 1 - (t - START) / FADE_IN, (t - (END - FADE_OUT)) / FADE_OUT),
+    },
   };
 }
 
-async function openStage(name, workDir, html, zoom) {
-  const browser = await launchPage(findChrome(), path.join(workDir, `profile-${name}`), {
-    width: WIDTH / zoom,
-    height: HEIGHT / zoom,
-  });
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const centerOf = (rect) => [rect[0] + rect[2] / 2, rect[1] + rect[3] / 2];
+
+/**
+ * Where the camera wants to look: the center of `focus` (else the first `fallback` anchor
+ * present, else the whole window), with x taken from `x` (a number) or the anchor `alignX`.
+ */
+function cameraTarget(spec, anchors) {
+  const pick = (name) => (name && anchors[name]) || null;
+  const names = [spec.focus, ...[].concat(spec.fallback ?? [])];
+  let [x, y] = centerOf(names.map(pick).find(Boolean) ?? anchors.window);
+  if (typeof spec.x === 'number') {
+    x = spec.x;
+  } else if (pick(spec.alignX)) {
+    x = centerOf(pick(spec.alignX))[0];
+  }
+  return [x, y + (spec.dy ?? 0)];
+}
+
+/**
+ * One camera per page. The zoom comes from the storyboard (eased on the beat); the center
+ * glides toward its target and snaps at a cut.
+ */
+function createCamera(page) {
+  let center = null;
+  let shot = null;
+  let time = 0;
+  return (state, anchors) => {
+    const spec = state.camera;
+    const target = cameraTarget(spec, anchors);
+    if (center === null || shot !== state.shot || state.t <= time) {
+      center = target;
+    } else {
+      const k = 1 - Math.exp(-(state.t - time) / (spec.lag ?? CAMERA_LAG));
+      center = [center[0] + (target[0] - center[0]) * k, center[1] + (target[1] - center[1]) * k];
+    }
+    shot = state.shot;
+    time = state.t;
+    const width = page.width / spec.zoom;
+    const height = page.height / spec.zoom;
+    return {
+      x: clamp(center[0] - width / 2, 0, page.width - width),
+      y: clamp(center[1] - height / 2, 0, page.height - height),
+      width,
+      height,
+    };
+  };
+}
+
+async function openStage(name, workDir, html) {
+  const page = PAGES[name];
+  const browser = await launchPage(findChrome(), path.join(workDir, `profile-${name}`), page);
   const { session } = browser;
+  await session.send('Emulation.setDeviceMetricsOverride', {
+    ...page,
+    deviceScaleFactor: PIXEL_RATIO,
+    mobile: false,
+  });
   await session.send('Page.addScriptToEvaluateOnNewDocument', {
     source: fs.readFileSync(path.join(__dirname, 'clock.js'), 'utf8'),
   });
   // Effects only run in a focused window (they pause in the background, like the real hosts).
   await session.send('Emulation.setFocusEmulationEnabled', { enabled: true });
-  const page = path.join(workDir, `${name}.html`);
-  fs.writeFileSync(page, html);
+  const file = path.join(workDir, `${name}.html`);
+  fs.writeFileSync(file, html);
   const loaded = session.once('Page.loadEventFired');
-  await session.send('Page.navigate', { url: pathToFileURL(page).href });
+  await session.send('Page.navigate', { url: pathToFileURL(file).href });
   await loaded;
-  const stage = { browser, session, zoom: null };
-  await setZoom(stage, zoom);
-  return stage;
-}
-
-/** A zoomed shot is a smaller window at a higher pixel ratio; the frame stays 1920×1080. */
-async function setZoom(stage, zoom) {
-  if (stage.zoom === zoom) {
-    return;
-  }
-  await stage.session.send('Emulation.setDeviceMetricsOverride', {
-    width: Math.round(WIDTH / zoom),
-    height: Math.round(HEIGHT / zoom),
-    deviceScaleFactor: zoom,
-    mobile: false,
-  });
-  stage.zoom = zoom;
+  return { browser, session, camera: createCamera(page) };
 }
 
 async function renderFrame(stages, state) {
   const stage = stages[state.host];
-  await setZoom(stage, state.zoom);
-  const complete = await stage.session.evaluate(`window.__woodfishPromo.apply(${JSON.stringify(state)})`);
-  if (!complete) {
-    throw new Error(`The engine did not paint every token at ${state.timeMs} ms`);
+  const anchors = await stage.session.evaluate(`window.__woodfishPromo.apply(${JSON.stringify(state.stage)})`);
+  if (!anchors) {
+    throw new Error(`The engine did not paint every token at ${state.t.toFixed(3)} s`);
   }
-  return stage;
+  const clip = stage.camera(state, anchors);
+  await stage.session.evaluate(`window.__promoOverlay.show(${JSON.stringify({ ...state.overlay, clip })})`);
+  return { stage, clip };
 }
 
-async function capture(stage, format) {
+async function capture({ stage, clip }, format) {
   const shot = await stage.session.send('Page.captureScreenshot', {
     format,
     quality: format === 'jpeg' ? 94 : undefined,
+    clip: { ...clip, scale: WIDTH / (clip.width * PIXEL_RATIO) },
   });
   return Buffer.from(shot.data, 'base64');
 }
@@ -336,6 +385,8 @@ function startEncoder(options) {
       '-f', 'image2pipe', '-framerate', String(options.fps), '-c:v', 'mjpeg', '-i', '-',
       '-ss', String(options.from), '-i', options.bgm,
       '-map', '0:v', '-map', '1:a',
+      // A clip can round a pixel off 1920×1080; every frame goes out at the exact size.
+      '-vf', `scale=${WIDTH}:${HEIGHT}:flags=lanczos`,
       '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p',
       '-c:a', 'aac', '-b:a', '192k',
       '-af', `afade=t=in:st=0:d=0.3,afade=t=out:st=${fadeStart}:d=${FADE_OUT}`,
@@ -375,12 +426,12 @@ async function main() {
   const stageUrl = (file) => pathToFileURL(path.join(__dirname, file)).href;
   const stages = {};
   try {
-    stages.vscode = await openStage('vscode', workDir, vscodePageHtml(stageUrl('stage.js')), VS_ZOOM);
+    const overlayUrl = stageUrl('overlay-page.js');
+    stages.vscode = await openStage('vscode', workDir, vscodePageHtml(stageUrl('stage.js'), overlayUrl));
     stages.codex = await openStage(
       'codex',
       workDir,
-      codexPageHtml({ stageUrl: stageUrl('codex-stage.js'), bundleUrl: pathToFileURL(bundle).href }),
-      1.6
+      codexPageHtml({ stageUrl: stageUrl('codex-stage.js'), bundleUrl: pathToFileURL(bundle).href, overlayUrl })
     );
     const scenes = storyboard();
 
@@ -390,10 +441,10 @@ async function main() {
       let clock = -Infinity;
       for (const t of [...options.stills].sort((a, b) => a - b)) {
         await warm(stages, scenes, Math.max(clock, t - PREROLL), t, options.fps);
-        const stage = await renderFrame(stages, frameState(scenes, t));
+        const frame = await renderFrame(stages, frameState(scenes, t));
         clock = t + 1 / options.fps;
         const file = path.join(dir, `still-${t.toFixed(2)}.png`);
-        fs.writeFileSync(file, await capture(stage, 'png'));
+        fs.writeFileSync(file, await capture(frame, 'png'));
         console.log(`✓ ${path.relative(REPO_ROOT, file)}`);
       }
       return;
@@ -405,8 +456,8 @@ async function main() {
     const started = Date.now();
     for (let frame = 0; frame < frames; frame += 1) {
       const t = options.from + frame / options.fps;
-      const stage = await renderFrame(stages, frameState(scenes, t));
-      await encoder.write(await capture(stage, 'jpeg'));
+      const frame = await renderFrame(stages, frameState(scenes, t));
+      await encoder.write(await capture(frame, 'jpeg'));
       if (frame % (options.fps * 5) === 0) {
         const rate = (frame + 1) / ((Date.now() - started) / 1000);
         console.log(`${t.toFixed(1)}s / ${options.to.toFixed(1)}s  (${rate.toFixed(1)} frames/s)`);

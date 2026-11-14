@@ -11,10 +11,6 @@
   const workbench = document.querySelector('.monaco-workbench');
   const panesRoot = document.querySelector('.panes');
   const style = document.getElementById('woodfish-css');
-  const caption = document.querySelector('.caption');
-  const captionMain = caption.querySelector('.main');
-  const captionSub = caption.querySelector('.sub');
-  const fade = document.querySelector('.fade');
   const clock = window.__promoClock;
   const scale = window.__PROMO_SCALE ?? 1;
   const born = new WeakMap();
@@ -147,10 +143,6 @@
       globalThis.__woodfishOverlayController?.refresh();
     }
 
-    captionMain.textContent = state.caption?.main ?? '';
-    captionSub.textContent = state.caption?.sub ?? '';
-    caption.style.opacity = String(state.caption?.opacity ?? 0);
-    fade.style.opacity = String(state.fade ?? 0);
 
     // Observers see the new DOM, the cursor moves, then timers and one animation frame run.
     await clock.settle();
@@ -166,7 +158,21 @@
     }
     pinAnimations(state.timeMs);
     await clock.painted();
-    return painted();
+    return painted() ? anchors() : null;
+  }
+
+  function rectOf(element) {
+    const box = element?.getBoundingClientRect();
+    return box && (box.width || box.height) ? [box.left, box.top, box.width, box.height] : null;
+  }
+
+  /** Where the camera can look: the focused caret and the code. */
+  function anchors() {
+    return {
+      window: [0, 0, innerWidth, innerHeight],
+      cursor: rectOf(document.querySelector('.monaco-editor.focused .cursor')),
+      code: rectOf(panesRoot),
+    };
   }
 
   window.__woodfishPromo = { apply };

@@ -3,7 +3,7 @@
  * The 7.3 promo storyboard. Times are seconds of the BGM ("no more fires" by Sleepy Fish,
  * see docs/promo.md): measured at 57.5 BPM with triplet hi-hats, one bar = 4.174 s starting
  * at 0. The track is quiet for bar 0–1, full from bar 2, drops to a breakdown at bar 22; the
- * video runs from bar 1 (START) to bar 24 (END). Every shot changes on a beat.
+ * video runs from bar 1 (START) to bar 25 (END). Every shot changes on a beat.
  *
  * Shots are either `host: 'codex'` (codex-stage.js: a Codex window running the real
  * Woodfish overlay and effect plugins) or VS Code (stage.js, the default).
@@ -16,7 +16,7 @@ const BEAT = 3 * SUB;
 const BAR = 4 * BEAT;
 const bar = (n) => n * BAR;
 const START = bar(1);
-const END = bar(24);
+const END = bar(25);
 
 /** Characters revealed after `seconds` at `perSecond`, in chunks of `chunk` (stream tokens). */
 const revealed = (seconds, perSecond, chunk = 1) =>
@@ -127,8 +127,6 @@ function codex(shot) {
     palette: 'dark',
     background: true,
     userCss: '',
-    sidebar: true,
-    zoom: 1.6,
     composer: {},
     slash: null,
     ...shot,
@@ -176,6 +174,7 @@ const CODE = {
     [T('  return', 'keyword'), T(' ', 'fg'), T('`', 'string'), T('${', 'escape'), T('word', 'variable'), T('}', 'escape'), T('，', 'string'), T('${', 'escape'), T('name', 'variable'), T('}', 'escape'), T('！`', 'string'), T(';', 'punctuation')],
     [T('}', 'punctuation')],
   ],
+  repo: [[T('https://github.com/woodfishhhh/Woodfish-Theme', 'string')]],
   install: [
     [T('code', 'function'), T(' ', 'fg'), T('--install-extension', 'parameter'), T(' ', 'fg'), T('zhongjun.woodfish-theme', 'string')],
     [T('pnpm', 'function'), T(' ', 'fg'), T('woodfish', 'type'), T(' ', 'fg'), T('codex', 'keyword'), T(' ', 'fg'), T('launch', 'string')],
@@ -195,45 +194,58 @@ const POPULAR = [
   ['gruvbox-dark', 'Gruvbox Dark'],
 ];
 
-/** Scene list: [start, end) in BGM seconds, a host, and a function from local time to a shot. */
+const easeInOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+/** `from` until beat `b0` of the shot, `to` from beat `b1`, eased in between. */
+const glide = (t, b0, b1, from, to) =>
+  from + (to - from) * easeInOut(Math.min(1, Math.max(0, (t - b0 * BEAT) / ((b1 - b0) * BEAT))));
+
+/**
+ * Scene list: [start, end) in BGM seconds, a host, and a function from local time to a shot.
+ * `camera` is what the frame shows: `zoom` 1 is the whole window, `focus` the anchor the
+ * stage reports (stream, caret, composer, thread, menu, reply, code, cursor…) the camera
+ * glides to. `badge` shows 「你可以让 Codex 随时调整此效果」 on effect shots.
+ */
 function storyboard() {
   const scenes = [];
   const add = (start, end, host, build) => scenes.push({ start, end, host, build });
 
-  // Hook (bar 1, the quiet intro): a reply streams in rainbow text, caret, trail and particles.
-  // The shot starts at 0 so the pre-roll before the first frame is part of it.
+  // Hook (bar 1, the quiet intro): the whole window while a reply streams in, then a slow
+  // push toward it. The shot starts at 0 so the pre-roll before the first frame is part of it.
   add(0, bar(2), 'codex', (t) =>
     codex({
       ...rainStream(t),
+      camera: { zoom: glide(t, START / BEAT, bar(2) / BEAT, 1, 1.06), focus: 'window' },
       caption: t > START + 0.5 ? { main: 'Woodfish 7.3', sub: 'Codex 桌面版也换上了 Woodfish', at: t - START - 0.5 } : null,
     })
   );
 
-  // The drop: close-up on the streaming end — rainbow cursor, trail, 120 ms fade-in.
+  // The drop: push in on the line being written — rainbow cursor, trail, fade-in.
   add(bar(2), bar(4), 'codex', (t) =>
     codex({
       ...rainStream(bar(2) + t),
-      zoom: 2,
-      sidebar: false,
+      camera: { zoom: glide(t, 0, 1.5, 1.06, 1.85), focus: 'stream', fallback: 'reply', alignX: 'column', lag: 0.3 },
+      badge: true,
       caption: { main: 'AI 吐字：彩虹光标领着字往外走', sub: '身后一段拖尾，新字轻轻淡入；你打字和 AI 吐字是同一套效果', at: t - BEAT },
     })
   );
 
-  // The selected thread wears the spectrum ring; the selection hops on the beat.
+  // The selected thread wears the spectrum ring: a beat of the whole window, then in on the
+  // sidebar; the selection hops on the beat and the camera follows it.
   const ringOrder = [0, 0, 2, 2, 1, 1, 0, 0];
   const chats = [RAIN, WEEKLY, REACT];
   add(bar(4), bar(6), 'codex', (t) => {
     const active = ringOrder[Math.min(ringOrder.length - 1, Math.floor(t / BEAT))];
     return codex({
-      zoom: 2,
       threads: { items: THREADS, active, running: CI_THREAD },
       title: chats[active].title,
       messages: conversation(chats[active]),
+      camera: { zoom: glide(t, 0.75, 2, 1, 2.5), focus: 'thread', lag: 0.35 },
+      badge: true,
       caption: { main: '选中的会话：七色光环', sub: '光谱环慢慢转，外面一圈柔光；运行中的会话亮一圈弱光', at: t - 0.3 },
     });
   });
 
-  // Frosted glass: the slash menu opens over the rainbow reply; the selection walks down.
+  // Frosted glass: the slash menu opens over the rainbow reply; the camera rises to it.
   add(bar(6), bar(7), 'codex', (t) => {
     const open = t >= 0.5 * BEAT;
     return codex({
@@ -242,19 +254,22 @@ function storyboard() {
       messages: conversation(RAIN),
       composer: { focus: true, text: open ? '/' : '' },
       slash: open ? Math.min(3, Math.floor((t - 0.5 * BEAT) / (0.75 * BEAT))) : null,
-      caption: { main: '毛玻璃浮层', sub: '菜单弹出来，后面的彩虹字透出来', at: t - 0.3, position: 'top' },
+      camera: { zoom: glide(t, 0.25, 1.5, 1.3, 1.75), focus: open ? 'menu' : 'composer', dy: open ? 40 : 0, lag: 0.3 },
+      badge: true,
+      caption: { main: '毛玻璃浮层', sub: '菜单弹出来，后面的彩虹字透出来', at: t - 0.3 },
     });
   });
 
-  // The window background: off for two beats, 《彩云》 on the third.
+  // The window background is the whole window: off for two beats, 《彩云》 on the third.
   add(bar(7), bar(8), 'codex', (t) => {
     const on = t >= 2 * BEAT;
     return codex({
-      zoom: 1.25,
       background: on,
       threads: { items: THREADS, active: 0, running: CI_THREAD },
       title: RAIN.title,
       messages: conversation(RAIN),
+      camera: { zoom: glide(t, 2, 4, 1, 1.08), focus: 'window' },
+      badge: true,
       caption: on
         ? { main: '窗口背景《彩云》', sub: '作者自己画的；侧栏和输入框是磨砂玻璃，也能换成你的图', at: t - 2 * BEAT }
         : { main: '关掉背景', sub: '', at: t },
@@ -274,17 +289,18 @@ function storyboard() {
       text = draft + more.slice(0, revealed(t - 5.5 * BEAT, 6));
     }
     return codex({
-      zoom: 2.4,
-      sidebar: false,
       threads: { items: THREADS, active: 0, running: CI_THREAD },
       title: RAIN.title,
       messages: conversation(RAIN),
       composer: { focus: true, text, caret },
+      camera: { zoom: glide(t, 0, 1.25, 1.25, 1.85), focus: 'composer', dy: -20 },
+      badge: true,
       caption: { main: '输入框：和 VS Code 一样的彩虹光标', sub: '打字迸出粒子，光标一跳就拖出一段尾巴', at: t - 0.3, position: 'top' },
     });
   });
 
   // One sentence to Codex: it reads the effects folder's AGENTS.md and writes user.css.
+  // In on the composer while typing, back out to follow the reply.
   const request = PARTICLES.user;
   const sentAt = 4 * BEAT;
   const replyStart = sentAt + 0.6;
@@ -293,34 +309,36 @@ function storyboard() {
   add(bar(10), bar(10) + 10 * BEAT, 'codex', (t) => {
     const sent = t >= sentAt;
     const streaming = sent && t < replyEnd;
-    const messages = sent
-      ? conversation(PARTICLES, revealed(t - replyStart, replyRate), !streaming)
-      : [];
+    const messages = sent ? conversation(PARTICLES, revealed(t - replyStart, replyRate), !streaming) : [];
     return codex({
       threads: { items: THREADS_LATER, active: 0, running: streaming ? 0 : null },
       title: PARTICLES.title,
       messages,
       composer: sent ? { focus: false, text: '' } : { focus: true, text: request.slice(0, revealed(t - 0.3, 9)) },
+      camera: sent
+        ? { zoom: glide(t, 4, 5, 1.6, 1.4), focus: 'stream', fallback: ['reply', 'column'], alignX: 'column', lag: 0.4 }
+        : { zoom: glide(t, 0, 1.5, 1, 1.6), focus: 'composer' },
+      badge: true,
       caption: { main: '对 Codex 说一句：把打字粒子改成金色', sub: '效果文件夹里有写给 AI 的 AGENTS.md，它照着改 user.css', at: t - 0.3, position: 'top' },
     });
   });
 
-  // Saved: the next keystrokes burst in gold.
+  // Saved: the next keystrokes burst in gold; the camera stays on the caret.
   const tryText = '好看！金色的粒子，大了一号。再打几个字看看，就要这个颜色。';
   add(bar(10) + 10 * BEAT, bar(14), 'codex', (t) =>
     codex({
-      zoom: 2.4,
-      sidebar: false,
       userCss: GOLD_USER_CSS,
       threads: { items: THREADS_LATER, active: 0, running: null },
       title: PARTICLES.title,
       messages: conversation(PARTICLES),
       composer: { focus: true, text: tryText.slice(0, revealed(t - 0.35, 5.5)) },
+      camera: { zoom: 2.1, focus: 'caret', fallback: 'composer', dy: -25, lag: 0.45 },
+      badge: true,
       caption: { main: '保存即生效', sub: 'user.css 里每个参数都是一个 CSS 变量，升级不会覆盖', at: t - 0.3, position: 'top' },
     })
   );
 
-  // Ten popular themes in VS Code, one per beat (the first holds three).
+  // Ten popular themes in VS Code, one per beat (the first holds three); in on the code.
   add(bar(14), bar(17), 'vscode', (t) => {
     const index = Math.max(0, Math.min(POPULAR.length - 1, Math.floor(t / BEAT) - 2));
     const [slug, label] = POPULAR[index];
@@ -328,24 +346,27 @@ function storyboard() {
       palette: slug,
       css: 'base',
       panes: [{ code: CODE.typescript, cursor: true }],
+      camera: { zoom: glide(t, 0, 2, 1, 1.2), focus: 'code' },
       caption: { main: label, sub: '新增 10 套热门主题，原样收录上游配色，渐变按各自配色自动生成', at: index === 0 ? t : 1 },
     };
   });
 
-  // The same effects in VS Code: caret trail and typing particles.
+  // The same effects in VS Code: the camera follows the caret as the code is typed.
   add(bar(17), bar(20), 'vscode', (t) => ({
     palette: 'dark',
     css: 'base',
     panes: [{ code: CODE.greet, typed: revealed(t - 0.3, 15), cursor: true, large: true }],
+    // x stays where whole lines fit (the pane starts at 90 px); y follows the caret.
+    camera: { zoom: glide(t, 0, 1.5, 1, 1.7), focus: 'cursor', fallback: 'code', x: 370, lag: 0.45 },
+    badge: true,
     caption: { main: 'VS Code 里也有：光标拖尾、打字粒子', sub: '和 Codex 共用一个效果文件夹，改一次两边都变', at: t - 0.3 },
   }));
 
-  // Codex wears every theme too.
+  // Codex wears every theme too: the whole window recolors.
   const codexThemes = [['tokyonight', 'Tokyo Night'], ['catppuccin-latte', 'Catppuccin Latte'], ['gruvbox-dark', 'Gruvbox Dark'], ['nord', 'Nord']];
   add(bar(20), bar(21), 'codex', (t) => {
     const index = Math.min(codexThemes.length - 1, Math.floor(t / BEAT));
     return codex({
-      zoom: 1.25,
       palette: codexThemes[index][0],
       threads: { items: THREADS, active: 2, running: CI_THREAD },
       title: REACT.title,
@@ -357,7 +378,6 @@ function storyboard() {
   // Finale.
   add(bar(21), bar(22), 'codex', (t) =>
     codex({
-      zoom: 1.25,
       threads: { items: THREADS, active: 0, running: CI_THREAD },
       title: RAIN.title,
       messages: conversation(RAIN),
@@ -365,12 +385,20 @@ function storyboard() {
     })
   );
 
-  // Outro: how to get it.
-  add(bar(22), END + 1, 'vscode', (t) => ({
+  // How to get it.
+  add(bar(22), bar(23), 'vscode', (t) => ({
     palette: 'dark',
     css: 'base',
-    panes: [{ code: CODE.install, typed: revealed(t - 0.4, 22), cursor: true, large: true }],
-    caption: { main: 'Woodfish Theme 7.3', sub: 'VS Code Marketplace · Open VSX 搜 Woodfish Theme；Codex 版见 GitHub 仓库', at: t - 2.2 },
+    panes: [{ code: CODE.install, typed: revealed(t - 0.3, 26), cursor: true, large: true }],
+    caption: { main: 'Woodfish Theme 7.3', sub: 'VS Code Marketplace · Open VSX 搜 Woodfish Theme；Codex 版见 GitHub 仓库', at: t - 0.3 },
+  }));
+
+  // End card: the repository and a star, long enough to read and screenshot.
+  add(bar(23), END + 1, 'vscode', (t) => ({
+    palette: 'dark',
+    css: 'base',
+    panes: [{ code: CODE.repo, typed: revealed(t - 0.2, 30), cursor: true, large: true, centered: true }],
+    end: 'Woodfish Theme 7.3 · VS Code 扩展商店 / Open VSX 搜 Woodfish Theme',
   }));
 
   return scenes;

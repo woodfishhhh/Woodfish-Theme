@@ -138,8 +138,6 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 body { font: 14px/1.5 ${UI_FONT}; color: var(--color-text); background: var(--app-color-background-shell); -webkit-font-smoothing: antialiased; }
 .icon { display: block; flex: none; }
 #app { position: fixed; inset: 0; display: grid; grid-template-rows: 36px 1fr; grid-template-columns: 48px 222px 1fr; }
-#app.no-sidebar { grid-template-columns: 48px 0 1fr; }
-#app.no-sidebar [data-sidebar-navigation-root] { visibility: hidden; }
 [data-app-shell-titlebar] { grid-column: 1 / -1; display: flex; align-items: center; gap: 4px; padding-left: 10px; color: var(--color-text-secondary); font-size: 13px; }
 [data-app-shell-titlebar] .nav-buttons { display: flex; gap: 14px; margin-right: 18px; opacity: .8; }
 [data-app-shell-titlebar] .menus { display: flex; gap: 22px; }
@@ -201,16 +199,9 @@ pre[data-code-block-source="true"] { margin: 0; padding: 10px 18px 14px; font: 1
 .slash-item span { color: var(--color-text-tertiary); }
 .slash-item i { margin-left: auto; color: var(--color-text-tertiary); }
 .slash-item[aria-selected="true"] { background: color-mix(in oklab, var(--color-text) 9%, transparent); }
-.promo-overlay { position: fixed; inset: 0; z-index: 2147483600; pointer-events: none; }
-.caption { position: absolute; left: 56px; bottom: 48px; padding: 18px 28px 20px; border-radius: 18px; background: rgb(12 14 24 / 74%); border: 1px solid rgb(255 255 255 / 10%); box-shadow: 0 18px 50px -18px rgb(0 0 0 / 70%); -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); font-family: 'Microsoft YaHei UI', 'Segoe UI', sans-serif; color: #f4f6fb; }
-.caption.top { bottom: auto; top: 64px; }
-.caption .sub:empty { display: none; }
-.caption .main { font-size: 36px; font-weight: 600; letter-spacing: 1px; }
-.caption .sub { margin-top: 8px; font-size: 22px; color: #d6dbe6; }
-.fade { position: absolute; inset: 0; background: #000; }
 `;
 
-function pageHtml({ stageUrl, bundleUrl }) {
+function pageHtml({ stageUrl, bundleUrl, overlayUrl }) {
   const rail = ['home', 'chats', 'clock', 'book', 'at', 'dots']
     .map((name, index) => `<button class="${index === 0 ? 'on' : ''}">${icon(name, 18)}</button>`)
     .join('');
@@ -245,11 +236,11 @@ function pageHtml({ stageUrl, bundleUrl }) {
     </div>
   </main>
 </div>
-<div class="promo-overlay"><div class="caption"><div class="main"></div><div class="sub"></div></div><div class="fade"></div></div>
 <script>window.__promoCodexEffects = ${effectsList('codex')};
 window.__promoIcons = ${JSON.stringify({ copy: icon('copy', 15), speaker: icon('speaker', 15), thumb: icon('thumb', 15), code: icon('code', 14), split: icon('split', 14) })};</script>
 <script src="${bundleUrl}"></script>
 <script src="${stageUrl}"></script>
+<script src="${overlayUrl}"></script>
 </body></html>`;
 }
 

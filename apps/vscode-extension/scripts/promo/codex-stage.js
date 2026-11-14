@@ -9,7 +9,6 @@
 
   const clock = window.__promoClock;
   const root = document.documentElement;
-  const app = document.getElementById('app');
   const threadsRoot = document.querySelector('.threads');
   const title = document.querySelector('.thread-title');
   const column = document.querySelector('.column');
@@ -18,9 +17,6 @@
   const slashItems = [...floating.querySelectorAll('[role="option"]')];
   const timeline = document.querySelector('[data-app-action-timeline-scroll]');
   const send = document.querySelector('.bg-composer-primary');
-  const overlay = document.querySelector('.promo-overlay');
-  const caption = overlay.querySelector('.caption');
-  const fade = overlay.querySelector('.fade');
   const icons = window.__promoIcons;
   const born = new WeakMap();
   let controller = null;
@@ -264,15 +260,30 @@
     send.classList.toggle('idle', want === '');
   }
 
-  function applyOverlay(state) {
-    overlay.style.zoom = String(1 / (state.zoom ?? 1));
-    const opacity = state.caption?.opacity ?? 0;
-    const at = state.caption?.at === 'top' ? 'top' : 'bottom';
-    caption.classList.toggle('top', at === 'top');
-    caption.querySelector('.main').textContent = state.caption?.main ?? '';
-    caption.querySelector('.sub').textContent = state.caption?.sub ?? '';
-    caption.style.opacity = String(opacity);
-    fade.style.opacity = String(state.fade ?? 0);
+  function rectOf(element) {
+    if (!element || element.hidden || element.closest('[hidden]')) {
+      return null;
+    }
+    const box = element.getBoundingClientRect();
+    return box.width || box.height ? [box.left, box.top, box.width, box.height] : null;
+  }
+
+  /** Where the camera can look: the effect being shown and the parts around it. */
+  function anchors() {
+    const replies = column.querySelectorAll('[data-markdown-text-style="assistant-message"]');
+    const reply = replies[replies.length - 1];
+    const codes = column.querySelectorAll('[data-code-block="true"]');
+    return {
+      window: [0, 0, innerWidth, innerHeight],
+      stream: rectOf(document.querySelector('[data-woodfish-stream-cursor]')),
+      caret: rectOf(document.querySelector('[data-woodfish-caret]')),
+      composer: rectOf(document.querySelector('[data-composer-body]')),
+      thread: rectOf(document.querySelector('[data-app-action-sidebar-thread-active="true"]')),
+      menu: rectOf(floating.firstElementChild),
+      column: rectOf(column),
+      reply: rectOf(reply?.lastElementChild),
+      code: rectOf(codes[codes.length - 1]),
+    };
   }
 
   /** CSS animations and transitions follow the frame clock, not the wall clock. */
@@ -288,7 +299,6 @@
 
   async function apply(state) {
     await applyCore(state);
-    app.classList.toggle('no-sidebar', state.sidebar === false);
     applyThreads(state.threads);
     title.textContent = state.title ?? '';
     applyMessages(state.messages ?? []);
@@ -297,7 +307,6 @@
     timeline.scrollTop = timeline.scrollHeight;
     floating.hidden = state.slash == null;
     slashItems.forEach((item, index) => item.setAttribute('aria-selected', String(index === state.slash)));
-    applyOverlay(state);
     // Observers, input and selection events first, then timers and one animation frame.
     await clock.settle();
     await clock.settle();
@@ -306,7 +315,7 @@
     await clock.settle();
     pinAnimations(state.timeMs);
     await clock.painted();
-    return true;
+    return anchors();
   }
 
   window.__woodfishPromo = { apply };
