@@ -2,7 +2,7 @@
   "name": "woodfish-theme",
   "displayName": "Woodfish Theme",
   "description": "为 VS Code、Cursor、Kiro、Windsurf、Trae 等编辑器的任意颜色主题叠加 OKLCH 渐变、发光、彩色光标与毛玻璃；内置 Woodfish Dark / Dracula / Black / Neon / Light 五套主题",
-  "version": "8.0.0",
+  "version": "8.1.0",
   "publisher": "zhongjun",
   "author": {
     "name": "Woodfish"
