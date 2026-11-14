@@ -25,6 +25,8 @@ type GlassTarget = {
   colorVariable: string;
   /** Elements Woodfish always paints. */
   selectors: string[];
+  /** Paint the surface on a pseudo-element so nested menus remain visible. */
+  pseudoSurface?: boolean;
   /** Elements VS Code's native frosted glass paints when `.modern-ui-frosted-glass` is on. */
   nativeSelectors?: string[];
   /** Descendants that paint their own opaque background over the glass. */
@@ -38,12 +40,10 @@ const WORKBENCH = '.monaco-workbench:not(.hc-black):not(.hc-light)';
 export const GLASS_TARGETS: Record<GlassTargetKey, GlassTarget> = {
   menu: {
     colorVariable: '--vscode-menu-background',
-    selectors: [
-      '.monaco-menu-container .monaco-scrollable-element',
-      '.dropdownMenu',
-      '.contextMenu',
-    ],
-    rounded: ['.monaco-menu-container', '.monaco-menu-container .monaco-scrollable-element'],
+    selectors: ['.monaco-menu-container', '.dropdownMenu', '.contextMenu'],
+    pseudoSurface: true,
+    transparentChildren: ['.monaco-menu-container .monaco-scrollable-element'],
+    rounded: ['.monaco-menu-container'],
   },
   hover: {
     colorVariable: '--vscode-editorHoverWidget-background',
@@ -197,10 +197,44 @@ function paintRule(selectorList: string, colorVariable: string): string {
   ].join('\n');
 }
 
+function paintPseudoSurface(selectorList: string, colorVariable: string): string {
+  const pseudoSelectorList = selectorList
+    .split(',\n')
+    .map((selector) => `${selector}::before`)
+    .join(',\n');
+  return [
+    `${selectorList} {`,
+    '  background-color: transparent !important;',
+    '  background-image: none !important;',
+    '  -webkit-backdrop-filter: none !important;',
+    '  backdrop-filter: none !important;',
+    '  isolation: isolate !important;',
+    '  overflow: visible !important;',
+    '}',
+    `${pseudoSelectorList} {`,
+    "  content: '' !important;",
+    '  position: absolute !important;',
+    '  inset: 0 !important;',
+    '  z-index: -1 !important;',
+    '  pointer-events: none !important;',
+    `  background-color: var(${colorVariable}) !important;`,
+    `  background-color: color-mix(in srgb, var(${colorVariable}) var(--woodfish-glass-opacity), transparent) !important;`,
+    '  background-image: var(--woodfish-glass-noise) !important;',
+    '  -webkit-backdrop-filter: var(--woodfish-glass-filter) !important;',
+    '  backdrop-filter: var(--woodfish-glass-filter) !important;',
+    '}',
+  ].join('\n');
+}
+
 function buildTargetCss(target: GlassTarget, radius: number): string {
   const parts: string[] = [];
   if (target.selectors.length > 0) {
-    parts.push(paintRule(scoped(target.selectors), target.colorVariable));
+    const selectorList = scoped(target.selectors);
+    parts.push(
+      target.pseudoSurface
+        ? paintPseudoSurface(selectorList, target.colorVariable)
+        : paintRule(selectorList, target.colorVariable)
+    );
   }
 
   const native = target.nativeSelectors ?? [];
