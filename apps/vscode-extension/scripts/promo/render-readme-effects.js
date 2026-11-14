@@ -18,7 +18,8 @@ const fs = require('fs');
 const path = require('path');
 const { REPO_ROOT } = require('../lib/scene-kit');
 const { PREROLL, capture, frameState, openStages, renderFrame, warm } = require('./render-promo-video');
-const { storyboard, BEAT, bar } = require('./storyboard');
+const { BEAT, bar } = require('./storyboard');
+const { CUTS } = require('./cuts');
 
 const OUT_DIR = path.join(REPO_ROOT, 'assets', 'readme', 'effects');
 /** 2× the size the README shows them at. */
@@ -68,15 +69,15 @@ function finished(child) {
 }
 
 async function renderStill(stages, scenes, shot, adjust) {
-  await warm(stages, scenes, shot.at - PREROLL, shot.at, RENDER_FPS, adjust);
-  const frame = await renderFrame(stages, adjust(frameState(scenes, shot.at)));
+  await warm(stages, CUTS.full, scenes, shot.at - PREROLL, shot.at, RENDER_FPS, adjust);
+  const frame = await renderFrame(stages, adjust(frameState(CUTS.full, scenes, shot.at)));
   const encoder = ffmpeg(['-f', 'png_pipe', '-i', '-', '-c:v', 'libwebp', '-quality', '90', path.join(OUT_DIR, `${shot.name}.webp`)], true);
   encoder.stdin.end(await capture(frame, 'png', WIDTH));
   await finished(encoder);
 }
 
 async function renderLoop(stages, scenes, shot, adjust) {
-  await warm(stages, scenes, shot.from - PREROLL, shot.from, RENDER_FPS, adjust);
+  await warm(stages, CUTS.full, scenes, shot.from - PREROLL, shot.from, RENDER_FPS, adjust);
   const encoder = ffmpeg(
     [
       '-f', 'image2pipe', '-framerate', String(RENDER_FPS), '-c:v', 'mjpeg', '-i', '-',
@@ -89,7 +90,7 @@ async function renderLoop(stages, scenes, shot, adjust) {
   const done = finished(encoder);
   const frames = Math.round((shot.to - shot.from) * RENDER_FPS);
   for (let index = 0; index < frames; index += 1) {
-    const frame = await renderFrame(stages, adjust(frameState(scenes, shot.from + index / RENDER_FPS)));
+    const frame = await renderFrame(stages, adjust(frameState(CUTS.full, scenes, shot.from + index / RENDER_FPS)));
     if (!encoder.stdin.write(await capture(frame, 'jpeg', WIDTH))) {
       await new Promise((resolve) => encoder.stdin.once('drain', resolve));
     }
@@ -123,7 +124,7 @@ async function main() {
   }
   const { stages, close } = await openStages();
   try {
-    const scenes = storyboard();
+    const scenes = CUTS.full.scenes();
     // Each page's clock only runs forward, so shots render in time order.
     const start = (shot) => shot.at ?? shot.from;
     for (const shot of [...shots].sort((a, b) => start(a) - start(b))) {

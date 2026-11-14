@@ -237,6 +237,7 @@ function pageHtml({ stageUrl, bundleUrl, overlayUrl }) {
     </div>
   </main>
 </div>
+<img class="promo-picture" hidden alt="" style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:2147482000">
 <script>window.__promoCodexEffects = ${effectsList('codex')};
 window.__promoIcons = ${JSON.stringify({ copy: icon('copy', 15), speaker: icon('speaker', 15), thumb: icon('thumb', 15), code: icon('code', 14), split: icon('split', 14) })};</script>
 <script src="${bundleUrl}"></script>

@@ -16,6 +16,7 @@
   const floating = document.querySelector('[data-composer-overlay-floating-ui]');
   const slashItems = [...floating.querySelectorAll('[role="option"]')];
   const timeline = document.querySelector('[data-app-action-timeline-scroll]');
+  const picture = document.querySelector('.promo-picture');
   const send = document.querySelector('.bg-composer-primary');
   const icons = window.__promoIcons;
   const born = new WeakMap();
@@ -24,10 +25,10 @@
 
   const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-  function settingsFor(slug, light) {
+  function settingsFor(slug, light, image) {
     return {
       palette: { dark: light ? 'dark' : slug, light: light ? slug : 'light' },
-      backgroundImage: 'caiyun',
+      backgroundImage: image,
       customCss: [],
     };
   }
@@ -54,19 +55,21 @@
   async function applyCore(state) {
     const userCss = state.userCss ?? '';
     const background = state.background !== false;
-    const key = JSON.stringify([state.palette, state.light, background, userCss]);
+    const image = state.backgroundImage ?? 'caiyun';
+    const key = JSON.stringify([state.palette, state.light, background, userCss, image]);
     if (key === last.core) {
       return;
     }
     root.setAttribute('data-theme', state.light ? 'light' : 'dark');
-    const settings = settingsFor(state.palette, state.light);
+    const settings = settingsFor(state.palette, state.light, image);
     if (controller) {
       controller.update(settings, effectsFor(background), 0, userCss);
     } else {
       controller = window.__promoStartCodex(settings, 'userscript', effectsFor(background), 0, userCss);
     }
     last.core = key;
-    if (background) {
+    // The 彩云渐变 is a CSS gradient; only pictures load asynchronously.
+    if (background && image !== 'gradient') {
       await waitForBackground();
     }
   }
@@ -297,14 +300,31 @@
     }
   }
 
+  /** A real screenshot over the window (the settings page has no stand-in). */
+  async function applyPicture(spec) {
+    picture.hidden = !spec;
+    if (!spec) {
+      return;
+    }
+    // Only the part of the screenshot that shows the feature, at about its own size.
+    picture.style.objectViewBox = spec.viewBox ?? 'none';
+    picture.style.objectFit = spec.viewBox ? 'contain' : 'cover';
+    if (picture.getAttribute('src') !== spec.src) {
+      picture.src = spec.src;
+      await picture.decode();
+    }
+  }
+
   async function apply(state) {
     await applyCore(state);
+    await applyPicture(state.picture);
     applyThreads(state.threads);
     title.textContent = state.title ?? '';
     applyMessages(state.messages ?? []);
     applyComposer(state.composer ?? {});
-    // Codex keeps the newest text in view while a reply streams.
-    timeline.scrollTop = timeline.scrollHeight;
+    // Codex keeps the newest text in view while a reply streams; `scrollBack` (px above the
+    // end) lets a shot scroll the thread, e.g. under a frosted menu.
+    timeline.scrollTop = timeline.scrollHeight - timeline.clientHeight - (state.scrollBack ?? 0);
     floating.hidden = state.slash == null;
     slashItems.forEach((item, index) => item.setAttribute('aria-selected', String(index === state.slash)));
     // Observers, input and selection events first, then timers and one animation frame.

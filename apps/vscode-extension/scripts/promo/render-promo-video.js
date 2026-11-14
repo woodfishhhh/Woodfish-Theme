@@ -12,11 +12,12 @@
  *   pnpm compile && pnpm runtime:build
  *   node apps/vscode-extension/scripts/promo/render-promo-video.js --bgm <music.mp3>
  *     [--out output/promo/woodfish-8.0-promo.mp4] [--fps 60] [--from <s>] [--to <s>]
- *     [--still 12.3,40] (writes PNG stills instead of a video)
+ *     [--still 12.3,40] [--clean] (writes PNG stills instead of a video; --clean: no captions)
  *     [--also-30fps] (also writes <out>-30fps.mp4 from the 60 fps master)
  *   node …/render-promo-video.js --only-30fps <master.mp4>   (30 fps copy of a finished video)
  *
- * Times are seconds of the BGM; the video starts at the storyboard's START.
+ * `--cut full|codex|vscode` picks the film (cuts.js); times are seconds of the BGM and a
+ * cut starts at its own `start`.
  * Needs ffmpeg on PATH and Chrome / Edge (CHROME_PATH to override).
  */
 'use strict';
@@ -40,7 +41,8 @@ const {
 } = require('../lib/scene-kit');
 const { launchPage } = require('./cdp');
 const { BUILTIN_EFFECTS, buildOverlayBundle, codexPageHtml, effectsPackage } = require('./codex-page');
-const { storyboard, START, END } = require('./storyboard');
+const { CUTS, USER_CSS_VARIANTS } = require('./cuts');
+const { prepareSoundtrack } = require('./sfx');
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
@@ -60,8 +62,10 @@ const PREROLL = 2;
 const CODE_FONT = "Consolas, 'Microsoft YaHei', monospace";
 const UI_FONT = "'Microsoft YaHei UI', 'Segoe UI', sans-serif";
 /** The VS Code effects Woodfish ships, on as in the owner's setup (they default to off). */
-const VSCODE_EFFECTS_ON = new Set(['caret-trail', 'typing-particles']);
-const EFFECTS_VERSION = { hash: 'promo', reload: 0 };
+const VSCODE_EFFECTS_ON = new Set(['caret-trail', 'typing-particles', 'mouse-trail']);
+/** user.css as the effects module carries it; a shot switches by hash, like saving the file. */
+const VSCODE_USER_CSS = ['', ...USER_CSS_VARIANTS];
+const effectsHash = (userCss) => `promo-${Math.max(0, VSCODE_USER_CSS.indexOf(userCss ?? ''))}`;
 
 /** 《彩云》, the default window background (the extension loads the same file). */
 const CAIYUN_URL = pathToFileURL(path.join(REPO_ROOT, 'packages', 'renderer-runtime', 'assets', 'caiyun.webp')).href;
@@ -69,32 +73,45 @@ const px = (value) => `${value / VS_ZOOM}px`;
 
 function parseArgs(argv) {
   const options = {
-    out: path.join(REPO_ROOT, 'output', 'promo', 'woodfish-8.0-promo.mp4'),
+    cut: 'full',
+    out: null,
     // The caret trail moves once per animation frame (like VS Code Animations), so 60 fps
     // shows it as long as on a 60 Hz screen.
     fps: 60,
-    from: START,
-    to: END,
+    from: null,
+    to: null,
     bgm: null,
     stills: null,
     also30: false,
+    clean: false,
     only30: null,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const [key, value] = [argv[index], argv[index + 1]];
-    if (key === '--out') options.out = path.resolve(value);
+    if (key === '--cut') options.cut = value;
+    else if (key === '--out') options.out = path.resolve(value);
     else if (key === '--bgm') options.bgm = path.resolve(value);
     else if (key === '--fps') options.fps = Number(value);
     else if (key === '--from') options.from = Number(value);
     else if (key === '--to') options.to = Number(value);
     else if (key === '--still') options.stills = value.split(',').map(Number);
-    else if (key === '--also-30fps') {
+    else if (key === '--clean') {
+      options.clean = true;
+      index -= 1;
+    } else if (key === '--also-30fps') {
       options.also30 = true;
       index -= 1;
     } else if (key === '--only-30fps') options.only30 = path.resolve(value);
     else throw new Error(`Unknown option ${key}`);
     index += 1;
   }
+  const cut = CUTS[options.cut];
+  if (!cut) {
+    throw new Error(`Unknown cut ${options.cut}; use ${Object.keys(CUTS).join(', ')}`);
+  }
+  options.out ??= path.join(REPO_ROOT, 'output', 'promo', cut.out);
+  options.from ??= cut.start;
+  options.to ??= cut.end;
   if (!options.stills && !options.bgm && !options.only30) {
     throw new Error('--bgm <music> is required to render the video');
   }
@@ -130,6 +147,8 @@ function effectCss() {
     );
   const variants = {
     base: css({}),
+    // The same without the window background (the shot that switches it on).
+    plain: runtimeCss({ cursor: { enabled: true } }),
     glass: css({ glass: { enabled: true, opacity: 0.5, blur: 14 } }),
     'glow-off': css({ glow: { enabled: false } }),
   };
@@ -146,18 +165,25 @@ function effectCss() {
  * import map (headless Chrome has no vscode-file:// scheme).
  */
 function vscodeEffectsHead() {
-  const module = effectsPackage.buildEffectsModule(
-    effectsPackage.readUserEffects(BUILTIN_EFFECTS),
-    'vscode',
-    (effect) => ({ enabled: VSCODE_EFFECTS_ON.has(effect.id) })
-  );
+  const effects = effectsPackage.readUserEffects(BUILTIN_EFFECTS);
   const base = 'vscode-file://promo/';
-  const specifier = `${base}effects.mjs?v=${encodeURIComponent(`${EFFECTS_VERSION.hash}|${EFFECTS_VERSION.reload}`)}`;
-  const imports = { [specifier]: `data:text/javascript;base64,${Buffer.from(module).toString('base64')}` };
+  // One module per user.css; effects.json names the one in use (the bootstrap polls it).
+  const imports = {};
+  for (const userCss of VSCODE_USER_CSS) {
+    const module = effectsPackage.buildEffectsModule(
+      effects,
+      'vscode',
+      (effect) => ({ enabled: VSCODE_EFFECTS_ON.has(effect.id) }),
+      userCss
+    );
+    const specifier = `${base}effects.mjs?v=${encodeURIComponent(`${effectsHash(userCss)}|0`)}`;
+    imports[specifier] = `data:text/javascript;base64,${Buffer.from(module).toString('base64')}`;
+  }
   return `<script type="importmap">${JSON.stringify({ imports })}</script>
 <script>{ const realFetch = window.fetch.bind(window);
+window.__promoEffectsHash = ${JSON.stringify(effectsHash(''))};
 window.fetch = (input, init) => String(input).startsWith(${JSON.stringify(`${base}effects.json`)})
-  ? Promise.resolve(new Response(${JSON.stringify(JSON.stringify(EFFECTS_VERSION))}, { headers: { 'content-type': 'application/json' } }))
+  ? Promise.resolve(new Response(JSON.stringify({ hash: window.__promoEffectsHash, reload: 0 }), { headers: { 'content-type': 'application/json' } }))
   : realFetch(input, init); }</script>
 <style>:root { --woodfish-effects-url: ${JSON.stringify(base)}; }</style>`;
 }
@@ -256,7 +282,7 @@ function captionOpacity(caption, sceneTime, sceneEnd) {
 }
 
 /** Everything one frame needs: the shot for the stage, the camera and the overlay. */
-function frameState(scenes, t) {
+function frameState(cut, scenes, t) {
   let index = scenes.findIndex((candidate) => t >= candidate.start && t < candidate.end);
   index = index < 0 ? scenes.length - 1 : index;
   const scene = scenes[index];
@@ -280,6 +306,8 @@ function frameState(scenes, t) {
             typed: Number.isFinite(pane.typed) ? pane.typed : null,
             suggest: pane.suggest ?? null,
           })),
+          pointer: shot.pointer ?? null,
+          effectsHash: effectsHash(shot.userCss),
         };
   return {
     host,
@@ -296,9 +324,9 @@ function frameState(scenes, t) {
             opacity: captionOpacity(shot.caption, local, scene.end - scene.start),
           }
         : null,
-      badge: Boolean(shot.badge),
+      badge: shot.badge ? cut.badge : null,
       end: shot.end ?? null,
-      fade: Math.max(0, 1 - (t - START) / FADE_IN, (t - (END - FADE_OUT)) / FADE_OUT),
+      fade: Math.max(0, 1 - (t - cut.start) / FADE_IN, (t - (cut.end - FADE_OUT)) / FADE_OUT),
     },
   };
 }
@@ -308,7 +336,8 @@ const centerOf = (rect) => [rect[0] + rect[2] / 2, rect[1] + rect[3] / 2];
 
 /**
  * Where the camera wants to look: the center of `focus` (else the first `fallback` anchor
- * present, else the whole window), with x taken from `x` (a number) or the anchor `alignX`.
+ * present, else the whole window), with x taken from `x` (a number) or the anchor `alignX`,
+ * and y from `y` (a number).
  */
 function cameraTarget(spec, anchors) {
   const pick = (name) => (name && anchors[name]) || null;
@@ -318,6 +347,9 @@ function cameraTarget(spec, anchors) {
     x = spec.x;
   } else if (pick(spec.alignX)) {
     x = centerOf(pick(spec.alignX))[0];
+  }
+  if (typeof spec.y === 'number') {
+    y = spec.y;
   }
   return [x, y + (spec.dy ?? 0)];
 }
@@ -430,23 +462,22 @@ function writeFrameRateCopy(input, fps) {
   return output;
 }
 
-function startEncoder(options) {
+/** Frames from stdin, the soundtrack (BGM + sound effects, sfx.js) from its own inputs. */
+function startEncoder(options, soundtrack) {
   fs.mkdirSync(path.dirname(options.out), { recursive: true });
-  const fadeStart = (options.to - options.from - FADE_OUT).toFixed(2);
   const ffmpeg = spawn(
     'ffmpeg',
     [
       '-y', '-loglevel', 'error',
       '-f', 'image2pipe', '-framerate', String(options.fps), '-c:v', 'mjpeg', '-i', '-',
-      '-ss', String(options.from), '-i', options.bgm,
-      '-map', '0:v', '-map', '1:a',
+      ...soundtrack.inputs,
       // Every frame goes out at exactly 1920×1080 (a clip can round a pixel off). The JPEG
       // frames are full-range BT.601; players hardware-decode limited-range BT.709 H.264 at
       // level 4.2, and stutter on the full-range level 5.0 stream an mjpeg pipe gives by default.
-      '-vf', `scale=${WIDTH}:${HEIGHT}:flags=lanczos,${JPEG_TO_BT709}`,
+      '-filter_complex', `[0:v]scale=${WIDTH}:${HEIGHT}:flags=lanczos,${JPEG_TO_BT709}[vout];${soundtrack.filter}`,
+      '-map', '[vout]', '-map', '[aout]',
       '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', ...standardVideoArgs(options.fps),
-      '-c:a', 'aac', '-b:a', '192k',
-      '-af', `afade=t=in:st=0:d=0.3,afade=t=out:st=${fadeStart}:d=${FADE_OUT}`,
+      '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
       '-shortest', '-movflags', '+faststart',
       options.out,
     ],
@@ -472,9 +503,9 @@ function startEncoder(options) {
  * Renders without capturing from `from` up to (not including) `to`. `adjust` may change
  * each frame's state (the README renders use their own camera and no overlay).
  */
-async function warm(stages, scenes, from, to, fps, adjust = (state) => state) {
+async function warm(stages, cut, scenes, from, to, fps, adjust = (state) => state) {
   for (let frame = 0; from + frame / fps < to - 1e-6; frame += 1) {
-    await renderFrame(stages, adjust(frameState(scenes, from + frame / fps)));
+    await renderFrame(stages, adjust(frameState(cut, scenes, from + frame / fps)));
   }
 }
 
@@ -514,15 +545,21 @@ async function main() {
   }
   const { stages, close } = await openStages();
   try {
-    const scenes = storyboard();
+    const cut = CUTS[options.cut];
+    const scenes = cut.scenes();
 
     if (options.stills) {
       const dir = path.join(path.dirname(options.out), 'stills');
       fs.mkdirSync(dir, { recursive: true });
       let clock = -Infinity;
       for (const t of [...options.stills].sort((a, b) => a - b)) {
-        await warm(stages, scenes, Math.max(clock, t - PREROLL), t, options.fps);
-        const frame = await renderFrame(stages, frameState(scenes, t));
+        await warm(stages, cut, scenes, Math.max(clock, t - PREROLL), t, options.fps);
+        const state = frameState(cut, scenes, t);
+        if (options.clean) {
+          // Covers: the picture alone.
+          state.overlay = { caption: null, badge: null, end: null, fade: 0 };
+        }
+        const frame = await renderFrame(stages, state);
         clock = t + 1 / options.fps;
         const file = path.join(dir, `still-${t.toFixed(2)}.png`);
         fs.writeFileSync(file, await capture(frame, 'png'));
@@ -531,13 +568,25 @@ async function main() {
       return;
     }
 
-    await warm(stages, scenes, options.from - PREROLL, options.from, options.fps);
-    const encoder = startEncoder(options);
+    await warm(stages, cut, scenes, options.from - PREROLL, options.from, options.fps);
+    const soundDir = fs.mkdtempSync(path.join(os.tmpdir(), 'woodfish-sfx-'));
+    const soundtrack = prepareSoundtrack({
+      stateAt: (t) => frameState(cut, scenes, t),
+      from: options.from,
+      to: options.to,
+      fps: options.fps,
+      bgm: options.bgm,
+      dir: soundDir,
+      fadeOut: FADE_OUT,
+      first: 1,
+    });
+    console.log(`♪ ${soundtrack.events.length} sound events`);
+    const encoder = startEncoder(options, soundtrack);
     const frames = Math.round((options.to - options.from) * options.fps);
     const started = Date.now();
     for (let frame = 0; frame < frames; frame += 1) {
       const t = options.from + frame / options.fps;
-      const rendered = await renderFrame(stages, frameState(scenes, t));
+      const rendered = await renderFrame(stages, frameState(cut, scenes, t));
       await encoder.write(await capture(rendered, 'jpeg'));
       if (frame % (options.fps * 5) === 0) {
         const rate = (frame + 1) / ((Date.now() - started) / 1000);
@@ -545,6 +594,7 @@ async function main() {
       }
     }
     await encoder.end();
+    fs.rmSync(soundDir, { recursive: true, force: true });
     console.log(`✓ ${path.relative(REPO_ROOT, options.out)}`);
     if (options.also30) {
       console.log(`✓ ${path.relative(REPO_ROOT, writeFrameRateCopy(options.out, 30))}`);

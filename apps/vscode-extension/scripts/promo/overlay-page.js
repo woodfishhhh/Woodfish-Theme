@@ -31,7 +31,7 @@
   const root = document.createElement('div');
   root.className = 'promo-overlay';
   root.innerHTML = `<div class="promo-card promo-caption"><div class="main"></div><div class="sub"></div></div>
-<div class="promo-card promo-badge"><b>✦</b>你可以让 Codex 随时调整此效果</div>
+<div class="promo-card promo-badge"><b>✦</b><span></span></div>
 <div class="promo-end"><div class="promo-card"><div class="star">觉得好看，就点个 Star ⭐</div><div class="note"></div></div></div>
 <div class="promo-fade"></div>`;
   document.body.append(root);
@@ -40,7 +40,7 @@
   const end = root.querySelector('.promo-end');
   const fade = root.querySelector('.promo-fade');
 
-  /** `clip` is the camera's rectangle in page pixels; the rest is what the shot shows. */
+  /** `clip` is the camera's rectangle in page pixels; `badge` the badge text (or null). */
   async function show({ clip, caption: text, badge: withBadge, end: endNote, fade: dark }) {
     root.style.transform = `translate(${clip.x}px, ${clip.y}px) scale(${clip.width / 1920})`;
     caption.classList.toggle('top', text?.at === 'top');
@@ -48,6 +48,7 @@
     caption.querySelector('.sub').textContent = text?.sub ?? '';
     caption.style.opacity = String(text?.opacity ?? 0);
     badge.style.opacity = withBadge ? '1' : '0';
+    badge.querySelector('span').textContent = withBadge ?? '';
     end.style.opacity = endNote ? '1' : '0';
     end.querySelector('.note').textContent = endNote ?? '';
     fade.style.opacity = String(dark ?? 0);

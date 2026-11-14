@@ -272,7 +272,7 @@ function storyboard() {
       camera: { zoom: glide(t, 2, 4, 1, 1.08), focus: 'window' },
       badge: true,
       caption: on
-        ? { main: '窗口背景《彩云》', sub: '作者自己画的；侧栏和输入框是磨砂玻璃，也能换成你的图', at: t - 2 * BEAT }
+        ? { main: '窗口背景《彩云》', sub: '默认背景；侧栏和输入框是磨砂玻璃，也能换成你的图', at: t - 2 * BEAT }
         : { main: '关掉背景', sub: '', at: t },
     });
   });
@@ -405,4 +405,28 @@ function storyboard() {
   return scenes;
 }
 
-module.exports = { storyboard, BEAT, BAR, bar, START, END };
+module.exports = {
+  storyboard,
+  BEAT,
+  BAR,
+  bar,
+  START,
+  END,
+  // Shared with the Codex and VS Code cuts (cuts.js).
+  CODE,
+  POPULAR,
+  RAIN,
+  WEEKLY,
+  REACT,
+  PARTICLES,
+  GOLD_USER_CSS,
+  THREADS,
+  THREADS_LATER,
+  CI_THREAD,
+  T,
+  blocksLength,
+  codex,
+  conversation,
+  glide,
+  revealed,
+};
