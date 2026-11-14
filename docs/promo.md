@@ -107,7 +107,30 @@ BGM：Sleepy Fish - no more fires（Chillhop Music）
 
 透明感：凡是展示毛玻璃的镜头背后都有运动（菜单后面的对话在滚）。Codex 的侧栏和输入框是预先模糊好的静态背景副本（实时 backdrop-filter 会让流式输出时的帧时间翻倍，所以产品里就没用），背后本来就不会动，片子里不伪造这种效果。
 
-每段开头，效果名字先在屏幕中间出现（Woodfish 渐变字 + 毛玻璃底卡，0.45 秒从放大、模糊到清晰，停约 1 秒，0.4 秒淡出），让开后左下角才出小字说明卡，不一直挡住效果。
+效果名字的样式：最早每段开头在屏幕中间出大标题（`cuts.js` 的 `heading`，`overlay-page.js` 的 `.promo-title`），负责人觉得丑、挡视野，否了；按下面的调研做了 playground，他选了「眉标 + 大标题 + 指示线」（playground #14，2026-11-14）：一行金色小字眉标（CODEX 桌面版 / VS CODE · 8.0 新功能）、白色特粗大标题（72px，按 1920×1080 算）、一行小字说明，放在画面里空的地方；一根细线从字旁边直走，再 45° 拐到效果上，末端一个点。入场顺序：点落在效果上 → 线画出去 → 眉标淡入 → 标题上浮 → 说明淡入，约 0.45 秒；停 2.4 秒，0.35 秒淡出。
+
+### 效果名和说明文字：别人怎么做
+
+下面的总结来自这些文章和通行做法，没有逐帧分析原片：
+
+- 下三分之一字幕条的做法和规矩：[Riverside](https://riverside.com/blog/lower-thirds)、[Olaf Motion：动画技巧](https://olafmotion.com/tips/lower-thirds-animation-tips-guide/)、[Olaf Motion：现代样式](https://olafmotion.com/trends-inspiration/modern-lower-thirds-design/)、[Infinite Creation 教程](https://infinitecreation.io/tutorial-lower-thirds)
+- 发布片结构：[720+ 个 AI/创业公司发布片的统计](https://dev.to/shipscenes/we-analyzed-720-ai-startup-launch-videos-openai-linear-cursor-raycast-here-is-the-4-beat-43c)（OpenAI、Linear、Cursor、Raycast 等；84% 是 60 秒内四段：0–4 秒钩子直接上产品界面或动态文字，然后问题、演示、品牌收尾）、[按形式分类的 12 个发布片](https://www.moonb.io/blog/product-launch-video)
+- Linear / Raycast / Vercel 的风格：[Studio Maydit](https://studiomaydit.com/blog/linear-vercel-raycast-aesthetic)（动效克制，只为引导视线，不做装饰）、[Linear 和 Raycast 的转场组合](https://pixicstudio.medium.com/the-micro-transition-stack-used-by-linear-and-raycast-4fac298d5b9e)、[复刻 Linear Agent 发布片的模板](https://www.raylight.app/templates/nCsvgGbd)（裁切画面、翻卡转场、文字动画）
+- 动态排版：[27 个动态文字广告](https://advids.co/blog/30-animated-typography-ad-video-examples-for-compelling-impact)（其中一种是每个更新先出一行动起来的关键词，再切到界面演示）
+- Apple 发布会和产品片、B 站科技区的视频：凭一般印象，没有逐帧核对
+
+几种主流做法（括号里是 playground 里对应的编号）：
+
+1. **时间上错开**：一行字单独占一拍（纯文字卡或模糊背景上的大字），然后切到效果，字和效果不同时出现。Apple 的产品片、Linear/Raycast 一类发布片常这样（#4）。
+2. **空间上错开**：字放在负空间里，或把产品画面缩小，字写在画面外的留白里（#5、#7、#8）。
+3. **小而固定的标签**：下三分之一字幕条、角落小标签、底部字幕，整段都在但只占很小一块（#1、#2、#12）。广播、发布会、B 站视频最常见。
+4. **指向效果**：细线标注、圈出效果的细框、贴在效果旁边的小胶囊，适合“看这里”（#3、#9、#13）。
+5. **先大后小**：开头一下大字，随即缩成角标留下（#6）。
+6. **只加一点装饰**：渐变下划线、竖排侧边条（#10、#11）。
+
+通行的规矩：主标题 2–6 个字、一行只说一件事；离画面边缘留 5%–10% 的安全区；入场出场 0.3–0.5 秒、ease-out，停留时间够读两遍；字压在画面上时用很轻的暗角渐变或模糊衬底，少用整块实心条；全片只用一种样式；字永远不压在焦点上，要么错开时间，要么放到负空间。
+
+Playground：[`docs/playground/promo-titles.html`](playground/promo-titles.html)，双击打开。背景是 `docs/playground/promo-frames/` 里的真实渲染帧（Codex 吐字、光环、毛玻璃菜单、输入框，VS Code 打字），14 种方案并排循环播放（#14 是选定的组合，排在第一个），「显示效果区」用红框标出每帧的效果在哪。点一种在下面放大，能调位置（含「自动避开」效果区）、字号、字重、入场/停留/出场时长、入场动画、底板（无/毛玻璃/纯色）、颜色（白/渐变）、副标题，「我选这个」输出编号和全部参数（JSON）。加 `?still=14&frame=codex-ring&eyebrow=…&main=…&sub=…` 只显示一张 1920×1080 的定格（标题已完全入场），用无头 Chrome 截下来就是关键帧。
 
 ### 音效
 

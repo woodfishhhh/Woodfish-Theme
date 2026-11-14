@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>宣传片标题方案 · Woodfish playground</title>
+<style>
+  :root { color-scheme: dark; --ui: 'Microsoft YaHei UI', 'Segoe UI', system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.6 var(--ui); background: #0d1018; color: #e6e9f0; }
+  header { padding: 18px 28px 6px; }
+  header h1 { margin: 0 0 4px; font-size: 22px; }
+  header p { margin: 0; color: #9aa3b5; }
+  .bar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 10px 28px 16px; }
+  .bar label { display: flex; gap: 6px; align-items: center; color: #aeb6c6; }
+  input[type=text], select { background: #161b27; color: #e6e9f0; border: 1px solid #2a3142; border-radius: 8px; padding: 5px 8px; font: inherit; }
+  input[type=text] { width: 220px; }
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; padding: 0 28px 24px; }
+  .tile { background: #141925; border: 1px solid #232a3a; border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color .15s; }
+  .tile:hover, .tile.on { border-color: #e9c96a; }
+  .tile .meta { padding: 8px 12px 10px; }
+  .tile .meta b { color: #f3d17a; margin-right: 6px; }
+  .tile .meta span { color: #9aa3b5; font-size: 12.5px; display: block; }
+  .stage { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
+  .inner { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; font-family: var(--ui); }
+  .inner > img.frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .zone { position: absolute; border: 3px dashed rgb(255 120 120 / 85%); border-radius: 10px; background: rgb(255 80 80 / 8%); pointer-events: none; }
+  #editor { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; padding: 6px 28px 40px; border-top: 1px solid #1f2533; }
+  #editor h2 { grid-column: 1 / -1; margin: 14px 0 0; font-size: 18px; }
+  #controls { display: grid; gap: 10px; align-content: start; }
+  #controls label { display: grid; grid-template-columns: 92px 1fr 44px; gap: 8px; align-items: center; color: #aeb6c6; }
+  #controls output { color: #e6e9f0; font-variant-numeric: tabular-nums; }
+  #controls input[type=range] { width: 100%; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  button { background: #2a3245; color: #f0f2f7; border: 1px solid #3a4459; border-radius: 9px; padding: 7px 14px; font: inherit; cursor: pointer; }
+  button.primary { background: linear-gradient(135deg, #e9c96a, #ff8fb1); color: #1a1420; border: 0; font-weight: 700; }
+  textarea { width: 100%; height: 150px; background: #0f131c; color: #cfe3ff; border: 1px solid #2a3142; border-radius: 10px; padding: 10px; font: 12.5px/1.5 Consolas, monospace; }
+  .hint { color: #8b93a5; font-size: 12.5px; }
+
+  /* —— Title pieces, all in 1920×1080 output pixels —— */
+  .t { position: absolute; color: #f5f7fb; }
+  .t .main { font-weight: var(--w, 700); font-size: var(--s, 56px); line-height: 1.15; letter-spacing: 1px; white-space: nowrap; }
+  .t .sub { margin-top: .35em; font-size: calc(var(--s, 56px) * .42); color: #d8deea; font-weight: 400; white-space: nowrap; }
+  .t .eyebrow { font-size: calc(var(--s, 56px) * .34); color: #f3d17a; font-weight: 600; letter-spacing: .22em; white-space: nowrap; margin-bottom: .25em; }
+  .t.soft .main, .t.soft .sub, .t.soft .eyebrow { text-shadow: 0 2px 14px rgb(0 0 0 / 55%); }
+  .t.gradient .main { background: linear-gradient(90deg, #ffd25e, #ff8fb1, #b89cff, #7ad7ff, #8ff0c0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .t.glass { padding: .55em .9em .62em; border-radius: 20px; background: rgb(12 14 24 / 62%); border: 1px solid rgb(255 255 255 / 12%); backdrop-filter: blur(18px) saturate(140%); box-shadow: 0 20px 60px -24px rgb(0 0 0 / 80%); }
+  .t.solid { padding: .55em .9em .62em; border-radius: 16px; background: #10131d; }
+  .t.shadow .main, .t.shadow .sub { text-shadow: 0 2px 4px rgb(0 0 0 / 90%), 0 0 18px rgb(0 0 0 / 60%); }
+  .accent { position: absolute; width: 6px; border-radius: 3px; background: linear-gradient(180deg, #ffd25e, #ff8fb1, #7ad7ff); }
+  .underline { position: absolute; height: 5px; border-radius: 3px; background: linear-gradient(90deg, #ffd25e, #ff8fb1, #b89cff, #7ad7ff); transform-origin: left center; }
+  .dot { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px rgb(255 255 255 / 25%); }
+  svg.lines { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: visible; }
+  .card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #0b0e16; }
+  .card img { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(30px) brightness(.45) saturate(1.3); }
+  .scrim-top { position: absolute; left: 0; right: 0; top: 0; height: 420px; background: linear-gradient(to bottom, rgb(0 0 0 / 55%), transparent); }
+  .vertical { writing-mode: vertical-rl; letter-spacing: 8px; }
+  .chip { display: flex; align-items: center; gap: 12px; padding: 12px 22px; border-radius: 999px; }
+  .char { display: inline-block; white-space: pre; }
+  body.still { background: #000; }
+  body.still > :not(.still-stage) { display: none !important; }
+  .still-stage { width: 1920px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>宣传片标题方案</h1>
+  <p>每个格子是一种做法，在真实渲染的 Woodfish 关键帧上循环播放。打开「显示效果区」能看到每帧要展示的效果在哪（红色虚线框），好的方案不压住它。点格子在下面放大调参数，选好了点「我选这个」。</p>
+</header>
+<div class="bar">
+  <label>眉标 <input type="text" id="eyebrowText" value="CODEX 桌面版" style="width:150px"></label>
+  <label>主标题 <input type="text" id="mainText" value="七色光环"></label>
+  <label>副标题 <input type="text" id="subText" value="选中的会话外圈慢慢转"></label>
+  <label>画面 <select id="frameSel"></select></label>
+  <label><input type="checkbox" id="zoneToggle"> 显示效果区</label>
+</div>
+<section id="grid"></section>
+<section id="editor">
+  <h2 id="edTitle">放大调整</h2>
+  <div>
+    <div class="stage" id="bigStage"></div>
+    <p class="hint">参数都按 1920×1080 成片的像素算；「自动避开」会挑一个不和效果区重叠的位置。</p>
+  </div>
+  <div>
+    <form id="controls"></form>
+    <div class="row" style="margin: 14px 0">
+      <button type="button" id="play">播放一遍</button>
+      <button type="button" class="primary" id="pick">我选这个</button>
+    </div>
+    <textarea id="out" readonly placeholder="点「我选这个」后，编号和全部参数会出现在这里，复制给我就行"></textarea>
+  </div>
+</section>
+
+<script>
+'use strict';
+/* Frames rendered by apps/vscode-extension/scripts/promo (real Woodfish code); zone = effect area, target = what a leader line points at,
+   free = a hand-picked empty spot (left edge, vertical middle of the text), all in %. */
+const FRAMES = {
+  'codex-ring': { src: 'promo-frames/codex-ring.jpg', label: 'Codex · 侧栏光环（推近）', zone: [11, 42, 51, 77], target: [51.5, 49], free: [59.5, 49], prefer: ['free', 'br', 'tr'] },
+  'codex-stream': { src: 'promo-frames/codex-stream.jpg', label: 'Codex · 吐字（推近）', zone: [0, 44, 56, 58], target: [44, 50], prefer: ['mr', 'bl', 'br'] },
+  'codex-glass': { src: 'promo-frames/codex-glass.jpg', label: 'Codex · 毛玻璃菜单', zone: [11, 12, 89, 87], target: [86, 30], prefer: ['tr', 'tl', 'br'] },
+  'codex-composer': { src: 'promo-frames/codex-composer.jpg', label: 'Codex · 输入框打字', zone: [0, 70, 40, 88], target: [32, 78.5], prefer: ['mr', 'ml', 'tr'] },
+  'vscode-typing': { src: 'promo-frames/vscode-typing.jpg', label: 'VS Code · 打字拖尾', zone: [3, 22, 84, 58], target: [48, 50], free: [58, 64], prefer: ['free', 'bl', 'br'] },
+};
+
+const W = 1920;
+const H = 1080;
+const BASE = { position: 'auto', size: 56, weight: 700, inMs: 450, holdMs: 1600, outMs: 350, animation: 'rise', backing: 'glass', color: 'white', sub: true };
+const STYLES = [
+  { id: 14, layout: 'eyebrowCallout', name: '眉标 + 大标题 + 指示线（负责人选定）', note: '#7 和 #3 的组合：一行金色小字眉标、白色大标题、一行小字说明，放在空处；一根细线从字旁边走直线再 45° 拐到效果上，末端一个点', p: { position: 'auto', size: 72, weight: 800, backing: 'none', animation: 'rise', holdMs: 2400 } },
+  { id: 1, layout: 'lowerThird', name: '下三分之一字幕条', note: '放在画面一角的空处（先找下方），左侧一道渐变竖条先画出来，字从左滑入；电视台、发布会最常见', p: { position: 'auto', size: 50, backing: 'none', animation: 'slide', holdMs: 2200 } },
+  { id: 2, layout: 'cornerTag', name: '角落小标签', note: '极简：只在角落放一个小胶囊，整段都在，几乎不占画面', p: { position: 'auto', size: 30, backing: 'glass', animation: 'fade', holdMs: 3000, sub: false } },
+  { id: 3, layout: 'callout', name: '指示线标注', note: '字放在空的地方，一根细线指到效果上；说明“就是这个”最清楚', p: { size: 46, backing: 'none', animation: 'fade', holdMs: 2200 } },
+  { id: 4, layout: 'interstitial', name: '段间文字卡', note: '效果出现前先给 0.8 秒的纯文字卡（背景是这帧的模糊），然后切走，标题从不压在效果上', p: { position: 'center', size: 110, weight: 800, color: 'gradient', backing: 'none', animation: 'blur', holdMs: 900 } },
+  { id: 5, layout: 'gutter', name: '外侧留白', note: '画面缩到右边 74%，左边留白写字（Apple 产品页视频常这样），字和效果完全分开', p: { position: 'left', size: 64, weight: 800, backing: 'none', animation: 'rise', holdMs: 2600 } },
+  { id: 6, layout: 'shrinkToCorner', name: '大字缩到角落', note: '先在中间大字一下，0.6 秒后缩成角落小标签留下来；有冲击又不一直挡', p: { size: 100, weight: 800, color: 'gradient', backing: 'none', animation: 'blur', holdMs: 600 } },
+  { id: 7, layout: 'eyebrow', name: '眉标 + 大标题', note: '一行小字眉标，下面大标题，放在画面边上的暗处（产品发布页的版式）', p: { position: 'auto', size: 72, weight: 800, backing: 'none', animation: 'rise', holdMs: 2200 } },
+  { id: 8, layout: 'kinetic', name: '逐字动态排版', note: '字一个个弹出来，自动放在离效果最远的空白处，跟拍点', p: { size: 76, weight: 800, color: 'gradient', backing: 'none', animation: 'stagger', holdMs: 1800 } },
+  { id: 9, layout: 'chip', name: '贴着效果的毛玻璃胶囊', note: '一个小胶囊贴在效果旁边、带小箭头，像界面里的提示', p: { size: 34, backing: 'glass', animation: 'scale', holdMs: 2400 } },
+  { id: 10, layout: 'underline', name: '渐变下划线', note: '下方居中一行字，一条 Woodfish 渐变线从左划过（Linear/Vercel 那种克制的动效）', p: { position: 'bc', size: 52, backing: 'none', animation: 'fade', holdMs: 2200 } },
+  { id: 11, layout: 'vertical', name: '竖排侧边条', note: '右侧边缘竖排小字加一根细线，完全不进画面中心', p: { position: 'right', size: 40, backing: 'none', animation: 'fade', holdMs: 3000 } },
+  { id: 12, layout: 'subtitle', name: '纯字幕', note: '国内科技视频常见：底部居中白字描边阴影，标题词用颜色强调，没有底板', p: { position: 'bc', size: 46, backing: 'none', color: 'gradient', animation: 'fade', holdMs: 2400 } },
+  { id: 13, layout: 'focusRing', name: '细线框住效果', note: '在效果外画一圈细圆角框，框角挂一个小标签；不盖内容，只圈出来', p: { size: 32, backing: 'solid', animation: 'fade', holdMs: 2400, sub: false } },
+];
+
+const $ = (sel) => document.querySelector(sel);
+const ui = { eyebrow: $('#eyebrowText'), main: $('#mainText'), sub: $('#subText'), frame: $('#frameSel'), zone: $('#zoneToggle') };
+for (const [key, frame] of Object.entries(FRAMES)) ui.frame.add(new Option(frame.label, key));
+
+/* —— geometry —— */
+function zoneRect(frame) {
+  const [x0, y0, x1, y1] = FRAMES[frame].zone;
+  return { x: (x0 / 100) * W, y: (y0 / 100) * H, w: ((x1 - x0) / 100) * W, h: ((y1 - y0) / 100) * H, prefer: FRAMES[frame].prefer, free: FRAMES[frame].free, target: { x: (FRAMES[frame].target[0] / 100) * W, y: (FRAMES[frame].target[1] / 100) * H } };
+}
+const overlaps = (a, b, pad = 24) => a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y;
+const SLOTS = {
+  tl: (w, h) => ({ x: 80, y: 72 }), tc: (w, h) => ({ x: (W - w) / 2, y: 72 }), tr: (w, h) => ({ x: W - w - 80, y: 72 }),
+  bl: (w, h) => ({ x: 80, y: H - h - 80 }), bc: (w, h) => ({ x: (W - w) / 2, y: H - h - 80 }), br: (w, h) => ({ x: W - w - 80, y: H - h - 80 }),
+  free: (w, h, zone) => ({ x: (zone.free[0] / 100) * W, y: (zone.free[1] / 100) * H - h / 2 }),
+  center: (w, h) => ({ x: (W - w) / 2, y: (H - h) / 2 }), ml: (w, h) => ({ x: 80, y: (H - h) / 2 }), mr: (w, h) => ({ x: W - w - 80, y: (H - h) / 2 }),
+};
+/** Where a w×h block goes: the asked slot, or for "auto" the frame's first free slot clear of the effect (else its first choice). */
+function place(position, w, h, zone) {
+  if (position !== 'auto' && SLOTS[position]) return SLOTS[position](w, h);
+  const order = [...zone.prefer, 'bl', 'tl', 'br', 'tr', 'bc', 'tc', 'ml', 'mr'];
+  for (const key of order) {
+    if (key === 'free') return SLOTS.free(w, h, zone); // picked by eye, trusted over the coarse zone
+    const spot = SLOTS[key](w, h);
+    if (!overlaps({ ...spot, w, h }, zone)) return spot;
+  }
+  return SLOTS[order[0]](w, h);
+}
+
+/**
+ * A callout line from a text block to `target`: it leaves the side (or top/bottom) of the block
+ * that faces the target, runs straight, then turns 45° into the target. `lineY` is where a
+ * line leaving from the side starts (the middle of the title).
+ */
+function leaderLine(box, target, lineY) {
+  const gap = 22;
+  const outX = target.x < box.x ? box.x - target.x : Math.max(0, target.x - (box.x + box.w));
+  const outY = target.y < box.y ? box.y - target.y : Math.max(0, target.y - (box.y + box.h));
+  const start = outX >= outY
+    ? { x: target.x < box.x ? box.x - gap : box.x + box.w + gap, y: lineY }
+    : { x: Math.min(box.x + box.w - 24, Math.max(box.x + 24, target.x)), y: target.y < box.y ? box.y - gap : box.y + box.h + gap };
+  // Nearly level or plumb: make it one straight line instead of a tiny kink at the target.
+  if (outX >= outY && Math.abs(target.y - start.y) < 48) start.y = target.y;
+  if (outX < outY && Math.abs(target.x - start.x) < 48) start.x = target.x;
+  const dx = target.x - start.x;
+  const dy = target.y - start.y;
+  const elbow = Math.abs(dx) > Math.abs(dy)
+    ? { x: target.x - Math.sign(dx) * Math.abs(dy), y: start.y }
+    : { x: start.x, y: target.y - Math.sign(dy) * Math.abs(dx) };
+  return { start, elbow, target };
+}
+
+/* —— building blocks —— */
+function el(tag, cls, parent) { const node = document.createElement(tag); if (cls) node.className = cls; parent?.append(node); return node; }
+function textBlock(parent, p, text, extra = '') {
+  const block = el('div', `t ${p.backing === 'none' ? '' : p.backing} ${p.color === 'gradient' ? 'gradient' : ''} ${extra}`, parent);
+  block.style.setProperty('--s', `${p.size}px`);
+  block.style.setProperty('--w', p.weight);
+  el('div', 'main', block).textContent = text.main;
+  if (p.sub && text.sub) el('div', 'sub', block).textContent = text.sub;
+  return block;
+}
+function measure(block) { const r = block.getBoundingClientRect(); const k = block.closest('.inner')._scale || 1; return { w: r.width / k, h: r.height / k }; }
+const ENTER = {
+  fade: [{ opacity: 0 }, { opacity: 1 }],
+  rise: [{ opacity: 0, transform: 'translateY(36px)' }, { opacity: 1, transform: 'none' }],
+  slide: [{ opacity: 0, transform: 'translateX(-48px)' }, { opacity: 1, transform: 'none' }],
+  blur: [{ opacity: 0, filter: 'blur(16px)', transform: 'scale(1.08)' }, { opacity: 1, filter: 'blur(0)', transform: 'none' }],
+  scale: [{ opacity: 0, transform: 'scale(.82)' }, { opacity: 1, transform: 'none' }],
+  wipe: [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }],
+  stagger: [{ opacity: 0, transform: 'translateY(40px)' }, { opacity: 1, transform: 'none' }],
+};
+const EASE = 'cubic-bezier(.22,1,.36,1)';
+
+/* Each layout builds its pieces and returns a timeline: [element, keyframes, {delay, duration}] lists. */
+const LAYOUTS = {
+  eyebrowCallout(inner, p, text, zone) {
+    const block = el('div', `t ${p.backing === 'none' ? 'soft' : p.backing} ${p.color === 'gradient' ? 'gradient' : ''}`, inner);
+    block.style.setProperty('--s', `${p.size}px`);
+    block.style.setProperty('--w', p.weight);
+    const eyebrow = el('div', 'eyebrow', block);
+    eyebrow.textContent = text.eyebrow;
+    const main = el('div', 'main', block);
+    main.textContent = text.main;
+    const sub = p.sub && text.sub ? el('div', 'sub', block) : null;
+    if (sub) sub.textContent = text.sub;
+    const { w, h } = measure(block);
+    const spot = place(p.position, w, h, zone);
+    Object.assign(block.style, { left: `${spot.x}px`, top: `${spot.y}px` });
+    const { start, elbow, target } = leaderLine({ x: spot.x, y: spot.y, w, h }, zone.target, spot.y + eyebrow.offsetHeight + main.offsetHeight / 2);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'lines');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const length = Math.hypot(elbow.x - target.x, elbow.y - target.y) + Math.hypot(start.x - elbow.x, start.y - elbow.y);
+    Object.entries({ d: `M${target.x},${target.y} L${elbow.x},${elbow.y} L${start.x},${start.y}`, stroke: 'rgb(255 255 255 / 85%)', 'stroke-width': 2.5, fill: 'none', 'stroke-linecap': 'round', 'stroke-dasharray': length, 'stroke-dashoffset': length }).forEach(([k, v]) => line.setAttribute(k, v));
+    svg.append(line);
+    inner.append(svg);
+    const dot = el('div', 'dot', inner);
+    Object.assign(dot.style, { left: `${target.x - 7}px`, top: `${target.y - 7}px` });
+    // The dot lands on the effect, the line draws out to the words, then eyebrow → title → sub.
+    const enter = [[dot, ENTER.scale, 0, 0.6], [line, [{ strokeDashoffset: length }, { strokeDashoffset: 0 }], 0.2], [eyebrow, ENTER.fade, 0.6], [main, ENTER[p.animation], 0.75]];
+    if (sub) enter.push([sub, ENTER.fade, 1]);
+    return { enter, pieces: [svg, dot, block] };
+  },
+  lowerThird(inner, p, text, zone) {
+    const block = textBlock(inner, p, text);
+    const { w, h } = measure(block);
+    const spot = place(p.position, w + 30, h, zone);
+    Object.assign(block.style, { left: `${spot.x + 30}px`, top: `${spot.y}px` });
+    const bar = el('div', 'accent', inner);
+    Object.assign(bar.style, { left: `${spot.x}px`, top: `${spot.y + 4}px`, height: `${h - 8}px` });
+    return { enter: [[bar, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], 0], [block, ENTER[p.animation], 0.25]], pieces: [bar, block] };
+  },
+  cornerTag(inner, p, text, zone) {
+    const block = textBlock(inner, p, text, 'chip');
+    block.prepend(Object.assign(el('span', 'dot'), { style: 'position:relative;width:12px;height:12px' }));
+    const { w, h } = measure(block);
+    const spot = place(p.position, w, h, zone);
+    Object.assign(block.style, { left: `${spot.x}px`, top: `${spot.y}px` });
+    return { enter: [[block, ENTER[p.animation], 0]], pieces: [block] };
+  },
+  callout(inner, p, text, zone) {
+    const block = textBlock(inner, p, text);
+    const { w, h } = measure(block);
+    const spot = place(p.position, w, h, zone);
+    Object.assign(block.style, { left: `${spot.x}px`, top: `${spot.y}px` });
+    const from = { x: spot.x + w / 2, y: spot.y + (spot.y > zone.y ? -14 : h + 14) };
+    const to = { x: Math.max(zone.x, Math.min(zone.x + zone.w, from.x)), y: Math.max(zone.y, Math.min(zone.y + zone.h, from.y)) };
+    if (to.x === from.x && to.y === from.y) to.y = zone.y + zone.h / 2;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'lines');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const mid = { x: from.x, y: (from.y + to.y) / 2 };
+    line.setAttribute('d', `M${from.x},${from.y} L${mid.x},${mid.y} L${to.x},${to.y}`);
+    line.setAttribute('stroke', '#ffffff'); line.setAttribute('stroke-width', '3'); line.setAttribute('fill', 'none');
+    line.setAttribute('stroke-dasharray', '2000'); line.setAttribute('stroke-dashoffset', '2000');
+    svg.append(line); inner.append(svg);
+    const dot = el('div', 'dot', inner);
+    Object.assign(dot.style, { left: `${to.x - 7}px`, top: `${to.y - 7}px` });
+    return { enter: [[line, [{ strokeDashoffset: 2000 }, { strokeDashoffset: 0 }], 0], [dot, ENTER.scale, 0.35], [block, ENTER[p.animation], 0.2]], pieces: [svg, dot, block] };
+  },
+  interstitial(inner, p, text) {
+    const card = el('div', 'card', inner);
+    el('img', '', card).src = inner.querySelector('img.frame').src;
+    const block = textBlock(card, { ...p, backing: 'none' }, text);
+    block.style.position = 'relative';
+    block.style.textAlign = 'center';
+    return { enter: [[card, [{ opacity: 0 }, { opacity: 1 }], 0, 0.6], [block, ENTER[p.animation], 0.15]], pieces: [card] };
+  },
+  gutter(inner, p, text) {
+    const img = inner.querySelector('img.frame');
+    const right = p.position !== 'right';
+    const shrunk = { transform: `translate(${right ? 22 : 4}%, 13%) scale(.74)`, borderRadius: '24px', boxShadow: '0 40px 90px -30px #000' };
+    img.style.transformOrigin = '0 0';
+    const block = textBlock(inner, { ...p, backing: 'none' }, text);
+    Object.assign(block.style, { left: right ? '80px' : `${W * 0.79}px`, top: '42%', width: `${W * 0.19}px` });
+    block.querySelectorAll('.main, .sub').forEach((n) => (n.style.whiteSpace = 'normal'));
+    inner.style.background = '#0b0e16';
+    return { enter: [[img, [{ transform: 'none', borderRadius: '0' }, shrunk], 0, 0.7], [block, ENTER[p.animation], 0.35]], pieces: [block], restore: [[img, [shrunk, { transform: 'none', borderRadius: '0' }]]] };
+  },
+  shrinkToCorner(inner, p, text, zone) {
+    const block = textBlock(inner, p, text);
+    const { w, h } = measure(block);
+    const centre = SLOTS.center(w, h);
+    Object.assign(block.style, { left: `${centre.x}px`, top: `${centre.y}px`, transformOrigin: '0 0' });
+    const k = 0.34;
+    const corner = place('auto', w * k, h * k, zone);
+    const moved = { transform: `translate(${corner.x - centre.x}px, ${corner.y - centre.y}px) scale(${k})` };
+    return { enter: [[block, ENTER[p.animation], 0]], afterHold: [[block, [{ transform: 'none' }, moved], 0.5]], pieces: [block], keep: true };
+  },
+  eyebrow(inner, p, text, zone) {
+    const scrim = el('div', 'scrim-top', inner);
+    const block = el('div', `t ${p.backing === 'none' ? '' : p.backing}`, inner);
+    block.style.setProperty('--s', `${p.size}px`);
+    block.style.setProperty('--w', p.weight);
+    const eyebrow = el('div', 'sub', block);
+    eyebrow.textContent = p.sub ? text.sub : 'Woodfish 8.0';
+    eyebrow.style.cssText = 'margin:0 0 .3em;letter-spacing:4px;color:#f3d17a;font-weight:600';
+    const main = el('div', 'main', block);
+    main.textContent = text.main;
+    if (p.color === 'gradient') block.classList.add('gradient');
+    const { w, h } = measure(block);
+    const spot = place(p.position, w, h, zone);
+    Object.assign(block.style, { left: `${spot.x}px`, top: `${spot.y}px` });
+    if (spot.y > H / 2) Object.assign(scrim.style, { top: 'auto', bottom: '0', transform: 'scaleY(-1)' });
+    return { enter: [[scrim, [{ opacity: 0 }, { opacity: 1 }], 0], [eyebrow, ENTER.fade, 0.05], [main, ENTER[p.animation], 0.18]], pieces: [scrim, block] };
+  },
+  kinetic(inner, p, text, zone) {
+    const block = textBlock(inner, p, { main: '', sub: text.sub });
+    const main = block.querySelector('.main');
+    const chars = [...text.main].map((c) => { const s = el('span', 'char', main); s.textContent = c; return s; });
+    const { w, h } = measure(block);
+    const spot = place(p.position, w, h, zone);
+    Object.assign(block.style, { left: `${spot.x}px`, top: `${spot.y}px` });
+    const sub = block.querySelector('.sub');
+    const steps = chars.map((c, i) => [c, ENTER.stagger, i * 0.06]);
+    if (sub) steps.push([sub, ENTER.fade, chars.length * 0.06 + 0.1]);
+    return { enter: steps, pieces: [block], gradientChars: p.color === 'gradient' ? chars : null };
+  },
+  chip(inner, p, text, zone) {
+    const block = textBlock(inner, p, text, 'chip');
+    const { w, h } = measure(block);
+    // Beside the effect (right, left), else above or below it, else just inside its top edge.
+    const midY = Math.min(H - h - 60, Math.max(60, zone.y + zone.h / 2 - h / 2));
+    const midX = Math.min(W - w - 60, Math.max(60, zone.x + zone.w / 2 - w / 2));
+    const spots = [
+      [zone.x + zone.w + 36, midY, '◀'], [zone.x - w - 36, midY, '▶'],
+      [midX, zone.y - h - 24, '▼'], [midX, zone.y + zone.h + 24, '▲'],
+    ];
+    const [x, y, arrow] = spots.find(([sx, sy]) => sx >= 40 && sx + w <= W - 40 && sy >= 30 && sy + h <= H - 30) ?? [midX, zone.y + 24, '▼'];
+    Object.assign(block.style, { left: `${x}px`, top: `${y}px` });
+    const tip = el('span', '', block);
+    tip.textContent = arrow;
+    tip.style.cssText = `order:${arrow === '◀' ? -1 : 2};font-size:${p.size * 0.6}px;color:#f3d17a`;
+    return { enter: [[block, ENTER[p.animation], 0]], pieces: [block] };
+  },
+  underline(inner, p, text, zone) {
+    const block = textBlock(inner, p, text);
+    const { w, h } = measure(block);
+    const spot = place(p.position, w, h + 20, zone);
+    Object.assign(block.style, { left: `${spot.x}px`, top: `${spot.y}px` });
+    const line = el('div', 'underline', inner);
+    Object.assign(line.style, { left: `${spot.x}px`, top: `${spot.y + h + 12}px`, width: `${w}px` });
+    return { enter: [[block, ENTER[p.animation], 0], [line, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], 0.15, 0.8]], pieces: [block, line] };
+  },
+  vertical(inner, p, text) {
+    const block = textBlock(inner, p, text, 'vertical');
+    const { w, h } = measure(block);
+    const left = p.position === 'left';
+    Object.assign(block.style, { left: left ? '60px' : `${W - w - 60}px`, top: `${(H - h) / 2}px` });
+    const line = el('div', 'accent', inner);
+    Object.assign(line.style, { left: left ? `${60 + w + 18}px` : `${W - w - 84}px`, top: `${(H - h) / 2}px`, height: `${h}px`, width: '3px' });
+    return { enter: [[line, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], 0], [block, ENTER[p.animation], 0.2]], pieces: [block, line] };
+  },
+  subtitle(inner, p, text, zone) {
+    const block = textBlock(inner, { ...p, backing: 'none' }, text, 'shadow');
+    block.style.textAlign = 'center';
+    const { w, h } = measure(block);
+    const spot = place(p.position, w, h, zone);
+    Object.assign(block.style, { left: `${spot.x}px`, top: `${spot.y}px` });
+    return { enter: [[block, ENTER[p.animation], 0]], pieces: [block] };
+  },
+  focusRing(inner, p, text, zone) {
+    const pad = 18;
+    const ring = { x: zone.x - pad, y: zone.y - pad, w: zone.w + pad * 2, h: zone.h + pad * 2 };
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'lines');
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    Object.entries({ x: Math.max(6, ring.x), y: Math.max(6, ring.y), width: Math.min(W - 12, ring.w), height: Math.min(H - 12, ring.h), rx: 22, fill: 'none', stroke: '#f3d17a', 'stroke-width': 3, 'stroke-dasharray': 6000, 'stroke-dashoffset': 6000 }).forEach(([k, v]) => rect.setAttribute(k, v));
+    svg.append(rect); inner.append(svg);
+    const block = textBlock(inner, p, text);
+    const { w, h } = measure(block);
+    const above = ring.y - h - 14 > 20;
+    Object.assign(block.style, { left: `${Math.max(20, Math.min(W - w - 20, ring.x))}px`, top: `${above ? ring.y - h - 14 : Math.min(H - h - 20, ring.y + ring.h + 14)}px` });
+    return { enter: [[rect, [{ strokeDashoffset: 6000 }, { strokeDashoffset: 0 }], 0, 0.9], [block, ENTER[p.animation], 0.35]], pieces: [svg, block] };
+  },
+};
+
+/* —— a stage: picture + one style, and its timeline —— */
+function makeStage(container) {
+  container.innerHTML = '';
+  const inner = el('div', 'inner', container);
+  const fit = () => { const k = container.clientWidth / W; inner._scale = k; inner.style.transform = `scale(${k})`; };
+  new ResizeObserver(fit).observe(container);
+  fit();
+  return inner;
+}
+
+function build(inner, style, p, frame) {
+  inner.innerHTML = '';
+  inner.style.background = '';
+  const img = el('img', 'frame', inner);
+  img.src = FRAMES[frame].src;
+  const zone = zoneRect(frame);
+  if (ui.zone.checked) Object.assign(el('div', 'zone', inner).style, { left: `${zone.x}px`, top: `${zone.y}px`, width: `${zone.w}px`, height: `${zone.h}px` });
+  const text = { eyebrow: ui.eyebrow.value, main: ui.main.value || '效果名', sub: ui.sub.value };
+  const plan = LAYOUTS[style.layout](inner, p, text, zone);
+  plan.pieces.forEach((n) => (n.style.opacity = '0'));
+  if (plan.gradientChars) plan.gradientChars.forEach((c, i, all) => {
+    const hue = ['#ffd25e', '#ff8fb1', '#b89cff', '#7ad7ff', '#8ff0c0'][Math.floor((i / all.length) * 5)];
+    c.style.color = hue; c.style.webkitTextFillColor = hue;
+  });
+  return plan;
+}
+
+/** Plays enter → hold → exit once; resolves when done. */
+async function play(inner, style, p, frame, token) {
+  const plan = build(inner, style, p, frame);
+  await new Promise((r) => requestAnimationFrame(r));
+  plan.pieces.forEach((n) => (n.style.opacity = ''));
+  const enterMs = p.inMs;
+  const runs = plan.enter.map(([node, frames, delay = 0, length = 1]) =>
+    node.animate(frames, { duration: enterMs * length, delay: delay * enterMs, easing: EASE, fill: 'both' }));
+  await Promise.all(runs.map((a) => a.finished));
+  if (plan.afterHold) {
+    await wait(p.holdMs, token);
+    await Promise.all(plan.afterHold.map(([node, frames]) => node.animate(frames, { duration: 600, easing: EASE, fill: 'forwards' }).finished));
+    await wait(1800, token);
+  } else {
+    await wait(p.holdMs, token);
+  }
+  if (token.stop) return;
+  const outs = plan.pieces.map((n) => n.animate([{ opacity: 1 }, { opacity: 0 }], { duration: p.outMs, easing: 'ease-in', fill: 'forwards' }));
+  (plan.restore ?? []).forEach(([node, frames]) => outs.push(node.animate(frames, { duration: p.outMs + 200, easing: EASE, fill: 'forwards' })));
+  await Promise.all(outs.map((a) => a.finished));
+}
+function wait(ms, token) { return new Promise((r) => setTimeout(r, token.stop ? 0 : ms)); }
+
+/* —— grid —— */
+const tiles = [];
+function startGrid() {
+  const grid = $('#grid');
+  grid.innerHTML = '';
+  tiles.forEach((t) => (t.token.stop = true));
+  tiles.length = 0;
+  for (const style of STYLES) {
+    const tile = el('div', 'tile', grid);
+    const stage = el('div', 'stage', tile);
+    const meta = el('div', 'meta', tile);
+    meta.innerHTML = `<b>#${style.id}</b>${style.name}<span>${style.note}</span>`;
+    const inner = makeStage(stage);
+    const token = { stop: false };
+    tiles.push({ token, tile });
+    tile.onclick = () => select(style);
+    (async () => {
+      await new Promise((r) => setTimeout(r, style.id * 180));
+      while (!token.stop) {
+        await play(inner, style, { ...BASE, ...style.p }, ui.frame.value, token);
+        await wait(700, token);
+      }
+    })();
+  }
+}
+
+/* —— editor —— */
+const FIELDS = [
+  ['position', '位置', ['auto', 'tl', 'tc', 'tr', 'ml', 'center', 'mr', 'bl', 'bc', 'br', 'left', 'right'], { auto: '自动避开', tl: '左上', tc: '上中', tr: '右上', ml: '左中', center: '正中', mr: '右中', bl: '左下', bc: '下中', br: '右下', left: '左侧留白/左边', right: '右侧留白/右边' }],
+  ['size', '主标题字号', [18, 140, 1]],
+  ['weight', '字重', [400, 600, 700, 800], { 400: '常规', 600: '中粗', 700: '粗', 800: '特粗' }],
+  ['inMs', '入场 ms', [150, 1500, 50]],
+  ['holdMs', '停留 ms', [300, 4000, 100]],
+  ['outMs', '出场 ms', [150, 1500, 50]],
+  ['animation', '入场动画', ['fade', 'rise', 'slide', 'blur', 'scale', 'wipe', 'stagger'], { fade: '淡入', rise: '上浮', slide: '左滑入', blur: '模糊到清晰', scale: '缩放', wipe: '擦出', stagger: '逐字弹出' }],
+  ['backing', '底板', ['none', 'glass', 'solid'], { none: '无', glass: '毛玻璃', solid: '纯色' }],
+  ['color', '颜色', ['white', 'gradient'], { white: '白字', gradient: 'Woodfish 渐变' }],
+  ['sub', '副标题', [true, false], { true: '显示', false: '不显示' }],
+];
+let current = { style: STYLES[0], p: { ...BASE, ...STYLES[0].p } };
+const bigInner = makeStage($('#bigStage'));
+let bigToken = { stop: true };
+
+function renderControls() {
+  const form = $('#controls');
+  form.innerHTML = '';
+  for (const [key, label, range, names] of FIELDS) {
+    const row = el('label', '', form);
+    el('span', '', row).textContent = label;
+    let input;
+    if (typeof range[0] === 'number' && range.length === 3 && !names) {
+      input = Object.assign(el('input', '', row), { type: 'range', min: range[0], max: range[1], step: range[2], value: current.p[key] });
+      const out = el('output', '', row);
+      out.textContent = current.p[key];
+      input.oninput = () => { current.p[key] = Number(input.value); out.textContent = input.value; replay(); };
+    } else {
+      input = el('select', '', row);
+      for (const v of range) input.add(new Option(names?.[v] ?? v, v));
+      input.value = String(current.p[key]);
+      input.onchange = () => { const v = input.value; current.p[key] = v === 'true' ? true : v === 'false' ? false : /^\d+$/.test(v) ? Number(v) : v; replay(); };
+      el('span', '', row);
+    }
+  }
+}
+function select(style, scroll = true) {
+  current = { style, p: { ...BASE, ...style.p } };
+  tiles.forEach((t, i) => t.tile.classList.toggle('on', STYLES[i] === style));
+  $('#edTitle').textContent = `放大调整：#${style.id} ${style.name}`;
+  renderControls();
+  replay();
+  if (scroll) $('#editor').scrollIntoView({ behavior: 'smooth' });
+}
+async function replay() {
+  bigToken.stop = true;
+  const token = { stop: false };
+  bigToken = token;
+  while (!token.stop) {
+    await play(bigInner, current.style, current.p, ui.frame.value, token);
+    await wait(700, token);
+  }
+}
+$('#play').onclick = replay;
+$('#pick').onclick = () => {
+  const result = {
+    编号: current.style.id,
+    方案: current.style.name,
+    画面: ui.frame.value,
+    眉标: ui.eyebrow.value,
+    主标题: ui.main.value,
+    副标题: ui.sub.value,
+    参数: current.p,
+  };
+  $('#out').value = JSON.stringify(result, null, 2);
+  $('#out').select();
+};
+for (const input of [ui.eyebrow, ui.main, ui.sub, ui.frame, ui.zone]) input.addEventListener('change', () => { startGrid(); replay(); });
+
+/* ?still=<id>&frame=<key>&eyebrow=…&main=…&sub=… shows one 1920×1080 frame with the title fully in (for exporting keyframes). */
+const query = new URLSearchParams(location.search);
+if (query.has('still')) {
+  document.body.classList.add('still');
+  for (const key of ['eyebrow', 'main', 'sub', 'frame']) if (query.has(key)) ui[key].value = query.get(key);
+  const style = STYLES.find((s) => s.id === Number(query.get('still')));
+  const plan = build(makeStage(el('div', 'stage still-stage', document.body)), style, { ...BASE, ...style.p }, ui.frame.value);
+  plan.pieces.forEach((n) => (n.style.opacity = ''));
+  plan.enter.forEach(([node, frames]) => node.animate(frames, { duration: 1, fill: 'both' }).finish());
+} else {
+  startGrid();
+  select(STYLES[0], false);
+}
+</script>
+</body>
+</html>
