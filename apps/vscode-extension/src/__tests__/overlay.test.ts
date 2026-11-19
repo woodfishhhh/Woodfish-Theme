@@ -69,6 +69,20 @@ class FakeViewLines extends FakeElement {
   }
 }
 
+class FakeStickyLines extends FakeElement {
+  public constructor(private readonly tokens: FakeToken[]) {
+    super();
+  }
+
+  public override matches(selector: string): boolean {
+    return selector.includes('.sticky-widget') && !selector.includes('[class*="mtk"]');
+  }
+
+  public override querySelectorAll(selector: string): FakeElement[] {
+    return selector.includes('[class*="mtk"]') ? this.tokens : [];
+  }
+}
+
 class FakeMutationObserver {
   public constructor(private readonly callback: () => void) {}
 
@@ -223,6 +237,8 @@ describe('universal token overlay', () => {
     expect(bootstrap).toContain('function pruneViewLines()');
     expect(bootstrap).not.toMatch(/mtk\d+/);
     expect(bootstrap).not.toContain('oklch(from');
+    expect(bootstrap).toContain(':is(.view-lines, .sticky-widget)');
+    expect(bootstrap).toContain('.monaco-editor .sticky-widget-lines');
   });
 
   it('keeps the approved overlay defaults stable', () => {
@@ -291,5 +307,44 @@ describe('universal token overlay', () => {
       /^rgba\(243, 140, 236, 1\) 0%, rgba\(\d+, \d+, \d+, 1\) 100%$/
     );
     expect(other.style.getPropertyValue('--woodfish-overlay-gradient-angle')).toBe('initial');
+  });
+
+  it('paints tokens inside the sticky scroll widget (.sticky-widget)', () => {
+    const stickyToken = new FakeToken('rgb(255, 121, 198)', 'class');
+    const tokens = [stickyToken];
+    const stickyLines = new FakeStickyLines(tokens);
+    const animationFrames: Array<() => void> = [];
+
+    vm.runInNewContext(bootstrap, {
+      Element: FakeElement,
+      MutationObserver: FakeMutationObserver,
+      Node: { TEXT_NODE: 3 },
+      cancelAnimationFrame: jest.fn(),
+      clearInterval: jest.fn(),
+      clearTimeout: jest.fn(),
+      document: {
+        body: new FakeElement(),
+        documentElement: new FakeElement(),
+        querySelector: () => null,
+        querySelectorAll: (selector: string) =>
+          selector.includes('[class*="mtk"]') ? tokens : [stickyLines],
+      },
+      getComputedStyle: (element: FakeElement) => ({
+        color: element instanceof FakeToken ? element.cssColor : 'rgb(248, 248, 242)',
+        getPropertyValue: () => '',
+      }),
+      requestAnimationFrame: (callback: () => void) => {
+        animationFrames.push(callback);
+        return animationFrames.length;
+      },
+      setInterval: jest.fn(() => 1),
+      setTimeout: jest.fn(() => 1),
+    });
+    while (animationFrames.length > 0) {
+      animationFrames.shift()?.();
+    }
+
+    expect(stickyToken.dataset.woodfishOverlayToken).toBe('true');
+    expect(stickyToken.style.getPropertyValue('--woodfish-overlay-glow-near')).toBeTruthy();
   });
 });

@@ -26,8 +26,8 @@ declare const __WOODFISH_VERSION__: string;
 const VERSION = __WOODFISH_VERSION__;
 const CONTROLLER_KEY = '__woodfishOverlayController';
 const TOKEN_SELECTOR =
-  '.monaco-editor .view-lines span[class*="mtk"]:not(.cursor):not(.colorpicker-color-decoration)';
-const VIEW_LINES_SELECTOR = '.monaco-editor .view-lines';
+  '.monaco-editor :is(.view-lines, .sticky-widget) span[class*="mtk"]:not(.cursor):not(.colorpicker-color-decoration)';
+const VIEW_LINES_SELECTOR = '.monaco-editor .view-lines, .monaco-editor .sticky-widget-lines';
 const MAX_TOKENS_PER_FRAME = 600;
 const THEME_POLL_INTERVAL_MS = 1200;
 const ACCENT_VARIABLES = [
