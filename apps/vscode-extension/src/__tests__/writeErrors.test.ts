@@ -49,7 +49,10 @@ describe('write failure guidance', () => {
     expect(canTakeOwnership(fsError('EACCES'), at('darwin', workbench))).toBe(false);
     expect(canTakeOwnership(fsError('EROFS'), at('linux', '/snap/code/1/x'))).toBe(false);
     expect(
-      canTakeOwnership(fsError('EACCES'), at('linux', '/var/lib/flatpak/app/com.visualstudio.code/x'))
+      canTakeOwnership(
+        fsError('EACCES'),
+        at('linux', '/var/lib/flatpak/app/com.visualstudio.code/x')
+      )
     ).toBe(false);
     expect(ownershipTargets('/usr/share/code/resources/app')).toEqual([
       '/usr/share/code/resources/app/out',
