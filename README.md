@@ -409,7 +409,8 @@ code --install-extension woodfish-theme-7.2.0.vsix
 
 - **小地图（minimap）没有渐变**：小地图是 canvas 绘制的，CSS 改不了。
 - **网页版和 Remote 服务器端**：效果只能注入到桌面版编辑器的本地界面。
-- **JetBrains 系列（如 CLion）、Visual Studio**：它们不是基于 VS Code 的，Woodfish 无法支持。
+- **JetBrains 系列（如 CLion）**：不是基于 VS Code 的，这个扩展装不上；社区的 [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch) 移植了一版 [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains)，可以试试。
+- **Visual Studio**：不是基于 VS Code 的，Woodfish 无法支持。
 - **截图类扩展（如 CodeSnap）**：截图里不会带上 Woodfish 的效果。
 
 ## Codex 桌面端

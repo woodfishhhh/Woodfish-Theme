@@ -226,7 +226,8 @@ To restore everything, uninstall the extension and fully restart the editor, or 
 
 - The minimap is drawn on a canvas and cannot receive gradients.
 - Web editors and the remote server side cannot be patched.
-- JetBrains IDEs (such as CLion) and Visual Studio are not based on VS Code and are not supported.
+- JetBrains IDEs (such as CLion) are not based on VS Code, so this extension does not install there; [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch) maintains a community port, [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains).
+- Visual Studio is not based on VS Code and is not supported.
 - Screenshot extensions such as CodeSnap do not capture Woodfish effects.
 
 ## Codex desktop app
