@@ -1,5 +1,15 @@
 # 更新日志
 
+## [8.1.3] - 2026-11-19
+
+### 修复
+
+- 用 OpenAI 官方离线 MSIX 安装的 Windows Codex 现在也能启用 Woodfish。不支持的安装方式会说明原因：ChatGPT Classic 不含 Codex 工作区；网页版、PWA 和 Codex CLI 没有 Woodfish 所需的 Windows 桌面版应用包身份。
+
+### 文档
+
+- README 补充了社区版 [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains) 的入口。
+
 ## [8.1.2] - 2026-11-19
 
 ### 修复
