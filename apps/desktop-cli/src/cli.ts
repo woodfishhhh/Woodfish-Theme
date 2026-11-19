@@ -70,7 +70,7 @@ export const HELP = `Woodfish 桌面工具
   relaunch --normal [--yes]
                          不带调试端口重启 Codex（关闭端口）
   autostart [on|off] [--accept-risk]
-                         登录后常驻：Codex 重启、商店更新后自动恢复效果；
+                         登录后常驻：Codex 重启、应用更新后自动恢复效果；
                          不带参数时查看状态
   settings [--set 键=值]… [--reset]
                          查看或修改效果设置，例如：

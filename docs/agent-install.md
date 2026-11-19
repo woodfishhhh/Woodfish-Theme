@@ -11,7 +11,7 @@
 
 命令都在 PowerShell 里运行，每条前面加上 [Console]::OutputEncoding = [Text.Encoding]::UTF8; ，否则中文输出是乱码。你的 shell 不是 PowerShell 的话，用 powershell -NoProfile -Command 运行。
 
-1. 确认环境：必须是 Windows 10 / 11，并且装了 Microsoft Store 版的 Codex 桌面版。运行 Get-AppxPackage OpenAI.Codex*，没有输出就停下来，告诉我先从 Microsoft Store 安装 Codex。
+1. 确认环境：必须是 Windows 10 / 11，并且当前 Windows 用户装了官方 ChatGPT（含 Codex）。运行 Get-AppxPackage OpenAI.Codex*，没有输出就停下来，告诉我可通过 Microsoft Store（9PLM9XGG6VKS）、官网登录页提供的 Windows 安装器或官方离线 MSIX（https://learn.chatgpt.com/codex/enterprise/windows-deployment）安装；ChatGPT Classic 和浏览器版不支持。
 2. 看是不是已经装过：运行 (Get-ScheduledTask -TaskPath '\Woodfish\' -TaskName 'Woodfish Codex' -ErrorAction SilentlyContinue).Actions | Format-List Execute, Arguments。有输出就是装过了，不要重新安装：Arguments 里 --headless 之后、codex daemon 之前的部分就是装好的 woodfish 命令（例如 & 'C:\…\woodfish.exe'，或 & cmd.exe /d /c 'C:\…\woodfish.cmd'），下文的 woodfish 都换成它，直接跳到第 6 步。
 3. 准备 woodfish 命令，按顺序选第一个能用的：
    a. 有 VS Code（code --version 能运行）：运行 code --list-extensions --show-versions，找 zhongjun.woodfish-theme。
@@ -58,7 +58,7 @@ Please install Woodfish (colors and effects) for the Codex desktop app and keep 
 
 Run every command in PowerShell and start each one with [Console]::OutputEncoding = [Text.Encoding]::UTF8; or the Chinese output turns into garbage. If your shell is not PowerShell, run them through powershell -NoProfile -Command.
 
-1. Check the system: it must be Windows 10 / 11 with the Microsoft Store build of the Codex desktop app. Run Get-AppxPackage OpenAI.Codex*; if it prints nothing, stop and tell me to install Codex from the Microsoft Store first.
+1. Check the system: it must be Windows 10 / 11 with the official ChatGPT app with Codex registered for the current Windows user. Run Get-AppxPackage OpenAI.Codex*; if it prints nothing, stop and tell me to use the Microsoft Store (9PLM9XGG6VKS), the Windows installer on OpenAI's site, or the official offline MSIX (https://learn.chatgpt.com/codex/enterprise/windows-deployment). ChatGPT Classic and the browser version are not supported.
 2. Check whether Woodfish is already installed: run (Get-ScheduledTask -TaskPath '\Woodfish\' -TaskName 'Woodfish Codex' -ErrorAction SilentlyContinue).Actions | Format-List Execute, Arguments. If it prints anything, it is installed; do not install it again. The part of Arguments after --headless and before codex daemon is the installed woodfish command (such as & 'C:\…\woodfish.exe' or & cmd.exe /d /c 'C:\…\woodfish.cmd'); use it wherever woodfish appears below and skip to step 6.
 3. Get a woodfish command, using the first option that works:
    a. VS Code (code --version runs): run code --list-extensions --show-versions and look for zhongjun.woodfish-theme.

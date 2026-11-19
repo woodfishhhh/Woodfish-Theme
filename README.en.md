@@ -232,7 +232,9 @@ To restore everything, uninstall the extension and fully restart the editor, or 
 
 ## Codex desktop app
 
-Woodfish can give the OpenAI Codex desktop app the same colors and effects: rainbow reply text, the streaming cursor and its trail, the ring around the selected thread, frosted glass and the 《彩云》 background (see [Effects at a glance](#effects-at-a-glance)). It needs the Microsoft Store build of Codex on Windows 10 / 11.
+Woodfish can give the OpenAI Codex desktop app the same colors and effects: rainbow reply text, the streaming cursor and its trail, the ring around the selected thread, frosted glass and the 《彩云》 background (see [Effects at a glance](#effects-at-a-glance)).
+
+On Windows 10 / 11, Woodfish supports the official **ChatGPT app with Codex** installed through the [Microsoft Store](https://apps.microsoft.com/detail/9PLM9XGG6VKS), the Windows installer on OpenAI's site, `winget install 9PLM9XGG6VKS -s msstore`, or the [official offline MSIX](https://learn.chatgpt.com/codex/enterprise/windows-deployment). ChatGPT Classic, browser/PWA versions, Codex CLI, and unpacked copies without MSIX registration are not supported.
 
 **Let your AI install it**: send this sentence to the AI you use (Codex, Claude Code, Cursor, …). It installs Woodfish and keeps the effects on after Codex restarts, updates and reboots, and stops to ask you wherever a decision is yours (accepting the debugging-port risk, restarting Codex).
 
@@ -248,7 +250,7 @@ If the AI cannot open GitHub, use `https://cdn.jsdelivr.net/gh/woodfishhhh/Woodf
    - **With VS Code**: install this extension, press `Ctrl+Shift+P` and run **Woodfish Theme: 为 Codex 启用 Woodfish** (turn on Woodfish for Codex).
    - **Without VS Code**: download `woodfish.exe` from the [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) and double-click it. It is unsigned, so if Windows says "Windows protected your PC", click "More info", then "Run anyway".
 2. Read the notice about the debugging port and accept it (type `yes` in the exe). If Codex is open, you are asked whether it may be restarted.
-3. Codex opens again with the effects. When the exe finally asks whether to restore the effects after signing in to Windows, type `y` (the VS Code command turns this on by itself); from then on the effects come back after Codex restarts, Store updates and reboots.
+3. Codex opens again with the effects. When the exe finally asks whether to restore the effects after signing in to Windows, type `y` (the VS Code command turns this on by itself); from then on the effects come back after Codex restarts, app updates and reboots.
 
 **Once installed**
 

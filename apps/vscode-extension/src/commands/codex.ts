@@ -81,7 +81,7 @@ async function enableCodex(deps: CommandDeps): Promise<void> {
       // The CLI wraps its risk text for a terminal; a dialog wraps by itself.
       result.stdout.trim().replace(/\n {3}/g, ''),
       '',
-      `启用后还会注册一个登录 Windows 时运行的后台任务（无窗口、普通权限，用 ${hostName()} 自带的运行时），Codex 重启或商店更新后效果自动恢复。`,
+      `启用后还会注册一个登录 Windows 时运行的后台任务（无窗口、普通权限，用 ${hostName()} 自带的运行时），Codex 重启或更新后效果自动恢复。`,
       SHORTCUT_NOTE,
       '随时可以运行「为 Codex 停用 Woodfish」撤下。',
     ].join('\n');

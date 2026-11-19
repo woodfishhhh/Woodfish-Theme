@@ -10,6 +10,9 @@ export interface CodexInstallation {
   appId: string;
 }
 
+export type CodexDiscovery =
+  { installation: CodexInstallation; problem?: never } | { installation: null; problem: string };
+
 export interface CodexProcess {
   pid: number;
   commandLine: string;
@@ -34,7 +37,7 @@ export interface CodexRuntimeState {
 /** Everything the CLI needs from the operating system; one implementation per platform. */
 export interface CodexPlatform {
   readonly name: 'windows' | 'darwin';
-  discover(): CodexInstallation | null;
+  discover(): CodexDiscovery;
   inspect(installation: CodexInstallation): CodexRuntimeState;
   /** Cheap check whether any Codex process runs (does not read command lines). */
   isRunning(): boolean;

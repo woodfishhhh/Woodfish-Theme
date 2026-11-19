@@ -11,7 +11,13 @@ import {
   isProcessAlive,
   sleep,
 } from './context';
-import { ensureConsent, runWatcher, startCodexWithPort, waitForExit } from './inject';
+import {
+  ensureConsent,
+  requireInstallation,
+  runWatcher,
+  startCodexWithPort,
+  waitForExit,
+} from './inject';
 
 /** Codex started this recently (by the user, without a port) is restarted with one. */
 export const FRESH_START_SECONDS = 90;
@@ -76,7 +82,7 @@ function daemonLogger(context: CommandContext): (message: string) => void {
 
 /**
  * The running Codex. The installation is looked up once, and again only when no Codex
- * process matches it (a Store update moves the install folder).
+ * process matches it (an MSIX update moves the install folder).
  */
 function observeCodex(
   platform: CodexPlatform,
@@ -85,10 +91,10 @@ function observeCodex(
   if (!platform.isRunning()) {
     return { installation: known, state: null };
   }
-  let installation = known ?? platform.discover();
+  let installation = known ?? platform.discover().installation;
   let state = installation ? platform.inspect(installation) : null;
   if (installation && !state?.main) {
-    const fresh = platform.discover();
+    const fresh = platform.discover().installation;
     if (fresh && fresh.installLocation !== installation.installLocation) {
       installation = fresh;
       state = platform.inspect(fresh);
@@ -138,7 +144,7 @@ export function codexStartNaps(dir: string | null): {
 
 /**
  * Hidden `woodfish codex daemon`, started at logon by the autostart task. Keeps the effects
- * on across Codex restarts and Store updates (the install folder is looked up again for
+ * on across Codex restarts and MSIX updates (the install folder is looked up again for
  * every Codex start).
  */
 export async function daemonCommand(
@@ -164,7 +170,7 @@ export async function daemonCommand(
   const platform = context.platform();
   let installation: CodexInstallation | null = null;
   try {
-    installation = platform.discover();
+    installation = platform.discover().installation;
     // Remembered by the platform: spares the first restart a PowerShell round trip.
     platform.isElevated();
   } catch (error) {
@@ -268,6 +274,7 @@ export async function autostartCommand(
   if (mode !== 'on') {
     throw new CommandError('用法：woodfish codex autostart [on|off]', EXIT.usage);
   }
+  requireInstallation(platform);
   await ensureConsent(context, options.acceptRisk);
   stopDaemon(context);
   const copy = installPrivateCopy(context);
@@ -277,7 +284,7 @@ export async function autostartCommand(
   });
   context.io.out('已开启自动恢复：登录 Windows 后，Woodfish 会在后台常驻（无窗口、普通权限）。');
   context.io.out(
-    `之后 Codex 每次不带调试端口启动（开机、用原来的快捷方式打开、商店更新后），Woodfish 会马上把它重启为带效果的 Codex，通常在它的窗口出现之前，所以只是比平时晚几秒出现；已运行超过 ${FRESH_START_SECONDS} 秒的 Codex 不会被打断。`
+    `之后 Codex 每次不带调试端口启动（开机、用原来的快捷方式打开、应用更新后），Woodfish 会马上把它重启为带效果的 Codex，通常在它的窗口出现之前，所以只是比平时晚几秒出现；已运行超过 ${FRESH_START_SECONDS} 秒的 Codex 不会被打断。`
   );
   context.io.out(
     '你原来的 Codex 快捷方式不会被修改。想省掉这次重启：woodfish codex shortcut 会在开始菜单另加一个“Woodfish Codex”，直接带效果启动。'

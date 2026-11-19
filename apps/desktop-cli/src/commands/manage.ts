@@ -312,6 +312,7 @@ export function shortcutCommand(context: CommandContext): number {
 
 interface StatusReport {
   installation: { name: string; version: string; tested: boolean } | null;
+  installationProblem?: string;
   running: boolean;
   debugPort: number | null;
   debugPortAlive: boolean;
@@ -324,7 +325,7 @@ interface StatusReport {
 
 async function collectStatus(context: CommandContext): Promise<StatusReport> {
   const platform = context.platform();
-  const installation = platform.discover();
+  const { installation, problem } = platform.discover();
   const state = installation ? platform.inspect(installation) : null;
   const watcher = loadWatcherState(context.paths);
   const manifests = listNativeThemeManifests(context.paths);
@@ -337,6 +338,7 @@ async function collectStatus(context: CommandContext): Promise<StatusReport> {
           tested: TESTED_CODEX_VERSIONS.includes(installation.version),
         }
       : null,
+    installationProblem: problem,
     running: Boolean(state?.main),
     debugPort: port,
     debugPortAlive: port ? await isDebugPortAlive(port, context.fetchImpl) : false,
@@ -357,7 +359,7 @@ function printStatus(context: CommandContext, status: StatusReport): void {
   io.out(
     status.installation
       ? `Codex：${status.installation.name} ${status.installation.version}${status.installation.tested ? '' : '（未经 Woodfish 测试的版本）'}`
-      : 'Codex：未安装'
+      : `Codex：${status.installationProblem}`
   );
   io.out(`运行中：${status.running ? '是' : '否'}`);
   io.out(

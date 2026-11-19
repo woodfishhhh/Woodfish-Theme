@@ -31,8 +31,12 @@ function findImageSources(markdown: string): string[] {
 const REPOSITORY_RAW_IMAGE =
   /^https:\/\/github\.com\/woodfishhhh\/Woodfish-Theme\/raw\/(?:HEAD|v\d+\.\d+\.\d+)\/(.+)$/;
 
-/** The owner's other projects the READMEs recommend to contributors (Obituary and its Scoop bucket). */
-const OTHER_PROJECTS = new Set(['woodfishhhh/obituary', 'woodfishhhh/scoop-bucket']);
+/** Separate projects linked in the READMEs, not the published VS Code extension. */
+const OTHER_PROJECTS = new Set([
+  'woodfishhhh/obituary',
+  'woodfishhhh/scoop-bucket',
+  'yyyyolo7a79-sketch/woodfish-theme-for-jetbrains',
+]);
 
 function findGithubRepos(markdown: string): string[] {
   return [...markdown.matchAll(/https:\/\/github\.com\/[^)\s"'<>`]+/gi)]

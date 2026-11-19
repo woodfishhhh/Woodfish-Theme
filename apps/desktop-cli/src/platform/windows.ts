@@ -4,13 +4,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   PowerShellRunner,
-  encodeCommand,
   psQuote,
   runPowerShell,
   runPowerShellJson,
+  writePowerShellScript,
 } from './powershell';
 import {
   AutostartCommand,
+  CodexDiscovery,
   CodexInstallation,
   CodexPlatform,
   CodexProcess,
@@ -18,14 +19,20 @@ import {
   PlatformError,
 } from './types';
 
-/** Store package names, most preferred first. */
-export const CODEX_PACKAGE_NAMES = ['OpenAI.Codex', 'OpenAI.CodexBeta', 'OpenAI.ChatGPT-Desktop'];
+// The Store and OpenAI's offline MSIX have the same stable package family.
+const CODEX_PACKAGE_NAMES = ['OpenAI.Codex', 'OpenAI.CodexBeta'];
+const CLASSIC_PACKAGE_NAME = 'OpenAI.ChatGPT-Desktop';
+const PUBLISHER_ID = '2p2nqsd0c76g0';
+const INSTALL_HINT =
+  '请安装 OpenAI 官网的 ChatGPT（含 Codex）：可用 Microsoft Store（9PLM9XGG6VKS）或官方离线 MSIX。';
 
 interface AppxRecord {
   Name: string;
   PackageFamilyName: string;
   Version: string;
   InstallLocation: string;
+  Executable: string | null;
+  AppId: string | null;
 }
 
 interface ProcessRecord {
@@ -58,26 +65,39 @@ function compareVersions(left: string, right: string): number {
   return 0;
 }
 
-/** Picks the preferred package: by name preference, then the newest version. */
-export function pickInstallation(records: readonly AppxRecord[]): CodexInstallation | null {
-  const sorted = [...records]
-    .filter((record) => CODEX_PACKAGE_NAMES.includes(record.Name) && record.InstallLocation)
+/** Prefer the stable package, then the newest version, independent of the install channel. */
+export function pickInstallation(records: readonly AppxRecord[]): CodexDiscovery {
+  const codex = records.filter((record) => CODEX_PACKAGE_NAMES.includes(record.Name));
+  const sorted = codex
+    .filter((record) => record.PackageFamilyName === `${record.Name}_${PUBLISHER_ID}`)
     .sort(
       (left, right) =>
         CODEX_PACKAGE_NAMES.indexOf(left.Name) - CODEX_PACKAGE_NAMES.indexOf(right.Name) ||
         compareVersions(right.Version, left.Version)
     );
-  const record = sorted[0];
-  if (!record) {
-    return null;
+  for (const record of sorted) {
+    if (record.InstallLocation && record.Executable && record.AppId) {
+      return {
+        installation: {
+          name: record.Name,
+          familyName: record.PackageFamilyName,
+          version: record.Version,
+          installLocation: record.InstallLocation,
+          executable: path.win32.join(record.InstallLocation, record.Executable),
+          appId: record.AppId,
+        },
+      };
+    }
   }
   return {
-    name: record.Name,
-    familyName: record.PackageFamilyName,
-    version: record.Version,
-    installLocation: record.InstallLocation,
-    executable: path.win32.join(record.InstallLocation, 'app', 'ChatGPT.exe'),
-    appId: 'App',
+    installation: null,
+    problem:
+      (codex.length > 0
+        ? '发现 Codex 安装包，但它不是受支持的 OpenAI 包，或缺少可启动的 Codex 入口。'
+        : records.some((record) => record.Name === CLASSIC_PACKAGE_NAME)
+          ? '检测到 ChatGPT Classic（旧版 Windows 应用），它不是带 Codex 工作区的 Electron 客户端。'
+          : '当前 Windows 用户未注册 Codex 桌面版的 MSIX。浏览器/PWA、命令行版和解包版没有 Woodfish 所需的桌面应用包身份。') +
+      INSTALL_HINT,
   };
 }
 
@@ -88,10 +108,8 @@ export function summarizeProcesses(
   installation: CodexInstallation,
   records: readonly ProcessRecord[]
 ): CodexRuntimeState {
-  const prefix = installation.installLocation.toLowerCase();
-  const own = records.filter(
-    (record) => record.ExecutablePath && record.ExecutablePath.toLowerCase().startsWith(prefix)
-  );
+  const executable = installation.executable.toLowerCase();
+  const own = records.filter((record) => record.ExecutablePath?.toLowerCase() === executable);
   const mainRecord = own.find((record) => !(record.CommandLine ?? '').includes('--type='));
   const main: CodexProcess | null = mainRecord
     ? {
@@ -109,7 +127,7 @@ export function summarizeProcesses(
   };
 }
 
-/** Characters cmd.exe would interpret; a Store install path never contains them. */
+/** Characters cmd.exe would interpret; reject them before writing a batch file. */
 const UNSAFE_CMD_CHARACTERS = /["%^&|<>!\r\n]/;
 
 /** The wrapper Invoke-CommandInDesktopPackage runs inside the package context. */
@@ -144,13 +162,13 @@ export function buildLaunchScript(installation: CodexInstallation, wrapperPath: 
 
 /**
  * A batch file that runs `script` with PowerShell. Opened through `explorer.exe`, it runs in
- * the desktop shell's (non-elevated) context: started from an elevated shell, Store Codex
+ * the desktop shell's (non-elevated) context: started from an elevated shell, packaged Codex
  * does not reliably come up with the extra arguments.
  */
-export function buildDeelevatedRelay(script: string): string {
+export function buildDeelevatedRelay(): string {
   return [
     '@echo off',
-    `powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand ${encodeCommand(script)}`,
+    'powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dpn0.ps1"',
     '',
   ].join('\r\n');
 }
@@ -181,7 +199,7 @@ export function buildAutostartScript(command: AutostartCommand): string {
 export interface WindowsPlatformOptions {
   runner?: PowerShellRunner;
   runtimeDir: string;
-  /** `%LOCALAPPDATA%`, where Store apps keep their data. */
+  /** `%LOCALAPPDATA%`, where MSIX apps keep their data. */
   localAppData?: string;
 }
 
@@ -195,13 +213,21 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
   return {
     name: 'windows',
 
-    discover(): CodexInstallation | null {
-      const names = CODEX_PACKAGE_NAMES.map(psQuote).join(',');
+    discover(): CodexDiscovery {
+      const names = [...CODEX_PACKAGE_NAMES, CLASSIC_PACKAGE_NAME].map(psQuote).join(',');
       const records = runPowerShellJson<AppxRecord | AppxRecord[]>(
         runner,
         [
           `$packages = @(${names} | ForEach-Object { Get-AppxPackage -Name $_ })`,
-          "$packages | Select-Object Name, PackageFamilyName, @{n='Version';e={$_.Version.ToString()}}, InstallLocation | ConvertTo-Json -Compress",
+          '$packages | ForEach-Object {',
+          '  $package = $_',
+          '  $app = $null',
+          `  if ($package.Name -ne ${psQuote(CLASSIC_PACKAGE_NAME)} -and $package.InstallLocation) {`,
+          '    $apps = (Get-AppxPackageManifest -Package $package.PackageFullName).Package.Applications.Application',
+          "    $app = $apps | Where-Object { $_.EntryPoint -eq 'Windows.FullTrustApplication' -and $_.Executable -and [IO.Path]::GetFileName($_.Executable) -eq 'ChatGPT.exe' } | Select-Object -First 1",
+          '  }',
+          '  [pscustomobject]@{ Name = $package.Name; PackageFamilyName = $package.PackageFamilyName; Version = $package.Version.ToString(); InstallLocation = $package.InstallLocation; Executable = $app.Executable; AppId = $app.Id }',
+          '} | ConvertTo-Json -Compress',
         ].join('\n')
       );
       return pickInstallation(asArray(records));
@@ -230,11 +256,13 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
       const id = randomBytes(8).toString('hex');
       const wrapperPath = path.join(runDir, `launch-${id}.cmd`);
       const relayPath = path.join(runDir, `relay-${id}.cmd`);
-      fs.writeFileSync(wrapperPath, buildLaunchWrapper(installation.executable, port), 'ascii');
+      const relayScriptPath = path.join(runDir, `relay-${id}.ps1`);
       const script = buildLaunchScript(installation, wrapperPath);
       try {
+        fs.writeFileSync(wrapperPath, buildLaunchWrapper(installation.executable, port), 'ascii');
         if (this.isElevated()) {
-          fs.writeFileSync(relayPath, buildDeelevatedRelay(script), 'ascii');
+          writePowerShellScript(relayScriptPath, script);
+          fs.writeFileSync(relayPath, buildDeelevatedRelay(), 'ascii');
           runner(
             `Start-Process -FilePath 'explorer.exe' -ArgumentList ${psQuote(`"${relayPath}"`)}`
           );
@@ -246,6 +274,7 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
         setTimeout(() => {
           fs.rmSync(wrapperPath, { force: true });
           fs.rmSync(relayPath, { force: true });
+          fs.rmSync(relayScriptPath, { force: true });
         }, 20000).unref();
       }
     },
@@ -311,7 +340,7 @@ export function createWindowsPlatform(options: WindowsPlatformOptions): CodexPla
     },
 
     userDataDir(installation: CodexInstallation): string | null {
-      // Codex keeps its Electron profile in %APPDATA%\Codex, which the Store redirects here.
+      // Codex keeps its Electron profile in %APPDATA%\Codex, which MSIX redirects here.
       const localAppData = options.localAppData ?? process.env.LOCALAPPDATA;
       return localAppData
         ? path.win32.join(

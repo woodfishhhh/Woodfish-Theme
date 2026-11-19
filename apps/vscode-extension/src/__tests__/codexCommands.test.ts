@@ -103,11 +103,11 @@ describe('为 Codex 启用 Woodfish', () => {
 
   it('reports what the CLI printed when it fails', async () => {
     cliResults = [
-      { code: 1, stdout: '', stderr: '错误：没有找到 Codex 桌面端，请先从 Microsoft Store 安装\n' },
+      { code: 1, stdout: '', stderr: '错误：检测到 ChatGPT Classic，请改用官方离线 MSIX。\n' },
     ];
     await handlers.get(COMMANDS.codexEnable)?.();
     expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-      expect.stringContaining('没有找到 Codex 桌面端')
+      expect.stringContaining('检测到 ChatGPT Classic，请改用官方离线 MSIX。')
     );
     expect(cliCalls).toHaveLength(1);
   });

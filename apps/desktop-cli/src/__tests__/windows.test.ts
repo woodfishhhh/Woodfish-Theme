@@ -2,18 +2,10 @@ import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { decodeCommand } from './helpers/powershell';
-import {
-  encodeCommand,
-  prepareScript,
-  psQuote,
-  runPowerShell,
-  runPowerShellJson,
-} from '../platform/powershell';
+import { prepareScript, psQuote, runPowerShell, runPowerShellJson } from '../platform/powershell';
 import {
   buildAutostartArguments,
   buildAutostartScript,
-  buildDeelevatedRelay,
   buildLaunchScript,
   buildLaunchWrapper,
   createWindowsPlatform,
@@ -31,14 +23,28 @@ const installation = {
   appId: 'App',
 };
 
-describe('PowerShell helpers', () => {
-  it('encodes scripts as UTF-16LE Base64 with UTF-8 output and silent progress', () => {
-    const decoded = decodeCommand(encodeCommand("Write-Output '中文'"));
-    expect(decoded).toBe(prepareScript("Write-Output '中文'"));
-    expect(decoded).toContain("$ProgressPreference = 'SilentlyContinue'");
-    expect(decoded).toContain('[Console]::OutputEncoding = [System.Text.Encoding]::UTF8');
-  });
+const store = {
+  Name: installation.name,
+  PackageFamilyName: installation.familyName,
+  Version: installation.version,
+  InstallLocation: INSTALL,
+  Executable: 'app/ChatGPT.exe',
+  AppId: 'App',
+};
+const offline = {
+  ...store,
+  Version: '26.1111.2228.0',
+  InstallLocation: String.raw`D:\WindowsApps\OpenAI.Codex_26.1111.2228.0_arm64__2p2nqsd0c76g0`,
+};
+const classic = {
+  ...store,
+  Name: 'OpenAI.ChatGPT-Desktop',
+  PackageFamilyName: 'OpenAI.ChatGPT-Desktop_2p2nqsd0c76g0',
+  Executable: null,
+  AppId: null,
+};
 
+describe('PowerShell helpers', () => {
   it('quotes single-quoted literals', () => {
     expect(psQuote("it's")).toBe("'it''s'");
   });
@@ -51,48 +57,50 @@ describe('PowerShell helpers', () => {
 });
 
 describe('package discovery', () => {
-  it('prefers OpenAI.Codex, then the newest version', () => {
-    const picked = pickInstallation([
-      {
-        Name: 'OpenAI.ChatGPT-Desktop',
-        PackageFamilyName: 'c',
-        Version: '9.0.0.0',
-        InstallLocation: 'C:\\c',
-      },
-      {
-        Name: 'OpenAI.Codex',
-        PackageFamilyName: 'a',
-        Version: '26.1013.3656.0',
-        InstallLocation: 'C:\\a',
-      },
-      {
-        Name: 'OpenAI.Codex',
-        PackageFamilyName: 'a2',
-        Version: '26.1100.1.0',
-        InstallLocation: 'C:\\a2',
-      },
-    ]);
-    expect(picked?.familyName).toBe('a2');
-    expect(picked?.executable).toBe('C:\\a2\\app\\ChatGPT.exe');
-    expect(pickInstallation([])).toBeNull();
+  it('prefers stable Codex, then the newest version, regardless of the install drive', () => {
+    const beta = {
+      ...offline,
+      Name: 'OpenAI.CodexBeta',
+      PackageFamilyName: 'OpenAI.CodexBeta_2p2nqsd0c76g0',
+      Version: '27.0.0.0',
+    };
+    const picked = pickInstallation([classic, beta, store, offline]).installation;
+    expect(picked?.name).toBe('OpenAI.Codex');
+    expect(picked?.version).toBe(offline.Version);
+    expect(picked?.executable).toBe(`${offline.InstallLocation}\\app\\ChatGPT.exe`);
+    expect(pickInstallation([{ ...offline, AppId: null }, store]).installation).toEqual(
+      installation
+    );
   });
 
-  it('runs Get-AppxPackage once per package name', () => {
+  it('distinguishes Classic, unregistered apps, and packages with no supported entry or publisher', () => {
+    expect(pickInstallation([classic]).problem).toContain('ChatGPT Classic');
+    expect(pickInstallation([]).problem).toContain('未注册');
+    expect(pickInstallation([{ ...store, Executable: null }]).problem).toContain('缺少可启动');
+    expect(
+      pickInstallation([{ ...store, PackageFamilyName: 'OpenAI.Codex_other' }]).problem
+    ).toContain('不是受支持');
+  });
+
+  it('queries current-user Appx registration and uses the manifest entry', () => {
     const scripts: string[] = [];
     const platform = createWindowsPlatform({
       runtimeDir: 'C:\\tmp',
       runner: (script) => {
         scripts.push(script);
         return JSON.stringify({
-          Name: 'OpenAI.Codex',
-          PackageFamilyName: installation.familyName,
-          Version: installation.version,
-          InstallLocation: INSTALL,
+          ...offline,
+          AppId: 'ActualEntry',
+          Executable: 'desktop/ChatGPT.exe',
         });
       },
     });
-    expect(platform.discover()?.familyName).toBe(installation.familyName);
+    expect(platform.discover().installation).toMatchObject({
+      appId: 'ActualEntry',
+      executable: `${offline.InstallLocation}\\desktop\\ChatGPT.exe`,
+    });
     expect(scripts[0]).toContain('ForEach-Object { Get-AppxPackage -Name $_ }');
+    expect(scripts[0]).toContain('Get-AppxPackageManifest');
   });
 });
 
@@ -110,6 +118,11 @@ describe('process inspection', () => {
         CommandLine: `"${installation.executable}" --type=renderer`,
       },
       { ProcessId: 12, ExecutablePath: 'C:\\Other\\ChatGPT.exe', CommandLine: 'ChatGPT.exe' },
+      {
+        ProcessId: 13,
+        ExecutablePath: `${INSTALL}-other\\app\\ChatGPT.exe`,
+        CommandLine: 'ChatGPT.exe',
+      },
     ]);
     expect(state.main?.pid).toBe(10);
     expect(state.processCount).toBe(2);
@@ -145,15 +158,15 @@ describe('launching from an elevated shell', () => {
     expect(scripts.some((script) => script.includes('Invoke-CommandInDesktopPackage'))).toBe(false);
     const relayCall = scripts.find((script) => script.includes("-FilePath 'explorer.exe'"));
     expect(relayCall).toMatch(/relay-[0-9a-f]{16}\.cmd/);
-  });
-
-  it('wraps the launch script so cmd.exe never sees its quotes', () => {
-    const script = buildLaunchScript(installation, String.raw`C:\r\launch-ab.cmd`);
-    const relay = buildDeelevatedRelay(script);
-    expect(relay.startsWith('@echo off\r\npowershell.exe ')).toBe(true);
-    expect(relay).toContain('-WindowStyle Hidden -EncodedCommand ');
-    const encoded = /-EncodedCommand (\S+)/.exec(relay)?.[1] ?? '';
-    expect(decodeCommand(encoded)).toContain(script);
+    const run = path.join(runtimeDir, 'run');
+    const batch =
+      fs.readdirSync(run).find((file) => file.startsWith('relay-') && file.endsWith('.cmd')) ?? '';
+    const relay = fs.readFileSync(path.join(run, batch), 'ascii');
+    expect(relay).toContain('-WindowStyle Hidden -File "%~dpn0.ps1"');
+    expect(relay).not.toContain('-EncodedCommand');
+    const script = fs.readFileSync(path.join(run, batch.replace(/\.cmd$/, '.ps1')), 'utf8');
+    expect(script.startsWith('\uFEFF')).toBe(true);
+    expect(script).toContain('Invoke-CommandInDesktopPackage');
   });
 });
 
@@ -211,6 +224,33 @@ describe('stopping', () => {
 });
 
 describe('launching', () => {
+  it.each([
+    ['Store', store],
+    ['offline MSIX', offline],
+  ])('%s uses the registered entry and the same profile', (_channel, record) => {
+    const installed = pickInstallation([record]).installation;
+    if (!installed) throw new Error('expected an installation');
+    const script = buildLaunchScript(installed, String.raw`C:\run\launch-ab.cmd`);
+    expect(script).toContain(`-PackageFamilyName '${record.PackageFamilyName}'`);
+    expect(script).toContain("-AppId 'App'");
+    expect(buildLaunchWrapper(installed.executable, 24680)).toContain(
+      `"${installed.executable}" --remote-debugging-port=24680 --remote-allow-origins=http://127.0.0.1:24680`
+    );
+    const runner = jest.fn(() => '');
+    const platform = createWindowsPlatform({
+      runtimeDir: String.raw`C:\run`,
+      localAppData: String.raw`C:\Users\me\AppData\Local`,
+      runner,
+    });
+    platform.launchNormal(installed);
+    expect(runner).toHaveBeenCalledWith(
+      `Start-Process -FilePath 'explorer.exe' -ArgumentList 'shell:AppsFolder\\${record.PackageFamilyName}!App'`
+    );
+    expect(platform.userDataDir(installed)).toBe(
+      String.raw`C:\Users\me\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex`
+    );
+  });
+
   it('writes a wrapper that binds the port to loopback origins only', () => {
     expect(buildLaunchWrapper(installation.executable, 24680)).toBe(
       `@echo off\r\nstart "" /b "${installation.executable}" --remote-debugging-port=24680 --remote-allow-origins=http://127.0.0.1:24680\r\n`
@@ -265,12 +305,7 @@ onWindows('generated PowerShell is syntactically valid', () => {
       runner: (script) => {
         scripts.push(script);
         if (script.includes('Get-AppxPackage')) {
-          return JSON.stringify({
-            Name: 'OpenAI.Codex',
-            PackageFamilyName: installation.familyName,
-            Version: installation.version,
-            InstallLocation: INSTALL,
-          });
+          return JSON.stringify(store);
         }
         if (script.includes('IsInRole')) {
           return 'False';

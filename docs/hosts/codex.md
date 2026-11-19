@@ -90,14 +90,15 @@ VS Code 一侧在 1.144 的测试版里实测：工作台的 CSP 带 `require-tr
 
 ### 编辑器运行时与单文件 exe 的坑
 
-- **不要用 `-EncodedCommand` 调 PowerShell**：单文件 `woodfish.exe`（没有签名）起的 `powershell -EncodedCommand` 会被 Windows Defender 扣住 30 秒以上（同一脚本用 `-Command` 或 `-File` 0.6 秒，node.exe 起的 `-EncodedCommand` 也是 0.6 秒）；从测试版 VS Code 起的也出现过。CLI 改为把脚本写进 `%TEMP%` 的临时 `.ps1`（UTF-8 带 BOM，Windows PowerShell 5.1 才认中文）再 `-File` 运行，用完删除。管理员终端走的 `explorer` 中转批处理仍用 `-EncodedCommand`，它不是 woodfish.exe 起的。
+- **不要用 `-EncodedCommand` 调 PowerShell**：单文件 `woodfish.exe`（没有签名）起的 `powershell -EncodedCommand` 会被 Windows Defender 扣住 30 秒以上（同一脚本用 `-Command` 或 `-File` 0.6 秒，node.exe 起的 `-EncodedCommand` 也是 0.6 秒）；从测试版 VS Code 起的也出现过。直接执行和管理员终端的 `explorer` 中转都通过 `-File` 执行临时 `.ps1`（UTF-8 带 BOM，Windows PowerShell 5.1 才认中文），用完删除。
 - **`ELECTRON_RUN_AS_NODE` 不能往下传**：VS Code 扩展用 `Code.exe` + `ELECTRON_RUN_AS_NODE=1` 跑 CLI。CLI 一启动就从环境里删掉它（否则经它打开的 Electron 程序，比如用 VS Code 打开 `user.css`，会以 Node 方式启动、打不开窗口），只在启动自己的监视进程时加回去。Codex 自己的 RunAsNode fuse 是关的，不受影响。
 - **VS Code 更新会结束常驻进程**：VS Code 的 inno-updater 会等安装目录里的 `Code.exe` 进程 30 秒，然后 `TerminateProcess`（退出码 0，计划任务不会重启它）。扩展激活时看到 `woodfish.cmd` 在、常驻进程不在，就 `schtasks /Run` 一次。监视进程被结束时效果仍留在页面里，常驻进程回来后重新接管。
 - 单文件 exe 是 Node 22 的 single executable application：`process.argv[1]` 也是 exe 本身、`require.main === module` 成立，所以 `cliPath` 为空、自启命令不带脚本。文件属性里显示的是 Node.js 的名字和版本，没有代码签名，下载后第一次运行可能出现 SmartScreen 提示。
 
 ## 安装形态
 
-- 商店签名的 MSIX 包，family 为 `OpenAI.Codex_2p2nqsd0c76g0`，AppId 为 `App`。主程序是 `app\ChatGPT.exe`，安装在只读的 `C:\Program Files\WindowsApps\...`。
+- 2026-11-19 核对 [OpenAI 部署文档](https://learn.chatgpt.com/codex/enterprise/windows-deployment)：官网安装器和 `winget install 9PLM9XGG6VKS -s msstore` 都通过商店安装；企业可在不打开商店的情况下部署官方离线 MSIX。Microsoft 目录中 `9PLM9XGG6VKS` 对应 `OpenAI.Codex_2p2nqsd0c76g0`，`9NT1R1C2HH7J` 是独立的 ChatGPT Classic（`OpenAI.ChatGPT-Desktop`），不是适配目标。
+- 本机商店包 `26.1013.3656.0` 和官方离线 x64、Arm64 包 `26.1111.2228.0` 的清单具有相同身份、发布者、`App` 启动入口和 `app\ChatGPT.exe`；离线包也包含 `app/resources/app.asar`。按当前用户注册信息取安装目录（默认 `C:\Program Files\WindowsApps\...`，不假定盘符），Electron 数据目录同为 `%LOCALAPPDATA%\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex`。离线包结论来自清单和包内容，未安装或带调试端口实启。
 - 运行时是 OpenAI 的 owl（Chromium 155.0.8059.80），里面承载 Electron 42 打包的应用 `openai-codex-electron`。
 - Electron fuse 中，asar 完整性校验和 OnlyLoadAppFromAsar 已开启，RunAsNode、NODE_OPTIONS、`--inspect` 已关闭。**Woodfish 从不修改应用文件。**
 - 应用只允许单实例运行。正式版禁用 DevTools，主进程代码里也没有远程调试相关逻辑，但 Chromium 自身的 `--remote-debugging-port` 开关有效。

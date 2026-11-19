@@ -88,9 +88,9 @@ export async function ensureConsent(context: CommandContext, acceptRisk: boolean
 }
 
 export function requireInstallation(platform: CodexPlatform): CodexInstallation {
-  const installation = platform.discover();
+  const { installation, problem } = platform.discover();
   if (!installation) {
-    throw new CommandError('没有找到 Codex 桌面端，请先从 Microsoft Store 安装');
+    throw new CommandError(problem);
   }
   return installation;
 }
@@ -208,9 +208,9 @@ export async function launchCommand(
   context: CommandContext,
   options: LaunchOptions
 ): Promise<number> {
-  await ensureConsent(context, options.acceptRisk);
   const platform = context.platform();
   const installation = requireInstallation(platform);
+  await ensureConsent(context, options.acceptRisk);
   const state = platform.inspect(installation);
   let port: number;
 
@@ -375,7 +375,7 @@ export async function stopInjectCommand(context: CommandContext): Promise<number
   const watcher = loadWatcherState(context.paths);
   stopWatcher(context);
   const platform = context.platform();
-  const installation = platform.discover();
+  const { installation } = platform.discover();
   const port =
     watcher?.port ?? (installation ? platform.inspect(installation).debugPort : null) ?? null;
   if (port && (await isDebugPortAlive(port, context.fetchImpl))) {
@@ -422,7 +422,7 @@ export async function restartForNativeTheme(
   assumeYes: boolean
 ): Promise<void> {
   const platform = context.platform();
-  const installation = platform.discover();
+  const { installation } = platform.discover();
   if (!installation) {
     return;
   }

@@ -153,7 +153,7 @@ function fakePlatform(overrides: Partial<CodexPlatform> = {}): CodexPlatform & {
   return {
     calls,
     name: 'windows',
-    discover: () => installation,
+    discover: () => ({ installation }),
     inspect: () => stopped,
     isRunning: () => false,
     launchWithPort: () => calls.push('launchWithPort'),
@@ -172,6 +172,25 @@ function fakePlatform(overrides: Partial<CodexPlatform> = {}): CodexPlatform & {
 }
 
 describe('run', () => {
+  it('reports an unsupported installation without writing consent or setting up a task', async () => {
+    const problem = '检测到 ChatGPT Classic，请改用官方离线 MSIX。';
+    const platform = fakePlatform({ discover: () => ({ installation: null, problem }) });
+    const io = memoryIo();
+    const context = { paths, platform: () => platform };
+    expect(await run(['codex', 'launch', '--accept-risk'], { io, context })).toBe(1);
+    expect(await run(['codex', 'autostart', 'on', '--accept-risk'], { io, context })).toBe(1);
+    expect(io.output).toEqual([`ERR 错误：${problem}`, `ERR 错误：${problem}`]);
+    expect(fs.existsSync(paths.settingsFile)).toBe(false);
+    expect(platform.calls).toEqual([]);
+    expect(await run(['codex', 'status', '--json'], { io, context })).toBe(0);
+    expect(JSON.parse(io.output.at(-1) ?? '')).toMatchObject({
+      installation: null,
+      installationProblem: problem,
+    });
+    expect(await run(['codex', 'uninstall', '--keep-settings'], { io, context })).toBe(0);
+    expect(platform.calls).toEqual(['removeAutostart', 'removeShortcut']);
+  });
+
   it('prints help and rejects unknown commands with usage errors', async () => {
     const io = memoryIo();
     expect(await run([], { io })).toBe(0);

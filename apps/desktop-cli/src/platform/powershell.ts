@@ -16,9 +16,8 @@ export function prepareScript(script: string): string {
   ].join('\n');
 }
 
-/** PowerShell's -EncodedCommand takes Base64 of UTF-16LE. */
-export function encodeCommand(script: string): string {
-  return Buffer.from(prepareScript(script), 'utf16le').toString('base64');
+export function writePowerShellScript(file: string, script: string): void {
+  fs.writeFileSync(file, `\uFEFF${prepareScript(script)}`, { encoding: 'utf8', flag: 'wx' });
 }
 
 /** Quotes a value as a PowerShell single-quoted literal. */
@@ -39,7 +38,7 @@ export const runPowerShell: PowerShellRunner = (script, timeoutMs = 30000) => {
     os.tmpdir(),
     `woodfish-${process.pid}-${randomBytes(6).toString('hex')}.ps1`
   );
-  fs.writeFileSync(file, `\uFEFF${prepareScript(script)}`, { encoding: 'utf8', flag: 'wx' });
+  writePowerShellScript(file, script);
   let result;
   try {
     result = spawnSync(

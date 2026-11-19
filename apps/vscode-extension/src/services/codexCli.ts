@@ -33,7 +33,7 @@ export function codexCliUnsupported(
   nodeVersion: string = process.versions.node
 ): string | undefined {
   if (platform !== 'win32') {
-    return 'Codex 桌面端目前只支持 Windows 上的 Microsoft Store 版';
+    return 'Woodfish 的 Codex 桌面效果目前只支持 Windows 10 / 11 上的官方 ChatGPT（含 Codex）MSIX';
   }
   if (Number(nodeVersion.split('.')[0]) < 22) {
     return `${host} 自带的 Node.js 是 ${nodeVersion}，Woodfish 的 Codex 工具需要 22 或更高。可以改用 GitHub Release 里的 woodfish.exe（不用装 Node.js）`;

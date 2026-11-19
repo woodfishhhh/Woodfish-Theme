@@ -1,14 +1,16 @@
 # Woodfish 桌面工具（Codex 桌面端、dsh Web 版）
 
-`woodfish` 命令行工具负责把 Woodfish 的配色和效果带到 OpenAI Codex 桌面端，并为 DeepSeek Harness（dsh）的 Web 版生成油猴脚本（见文末）。Codex 目前支持 Windows 上的 Microsoft Store 版，macOS 还没有支持。
+`woodfish` 命令行工具负责把 Woodfish 的配色和效果带到 OpenAI Codex 桌面端，并为 DeepSeek Harness（dsh）的 Web 版生成油猴脚本（见文末）。
 
-Woodfish 不修改 Codex 的安装文件。商店版的安装目录是只读的，而且有签名和完整性校验，改动会导致 Codex 无法启动。
+Codex 效果支持 Windows 10 / 11 上的官方 **ChatGPT（含 Codex）**。通过 [Microsoft Store](https://apps.microsoft.com/detail/9PLM9XGG6VKS)、OpenAI 官网的 Windows 安装器、`winget install 9PLM9XGG6VKS -s msstore` 或 [官方离线 MSIX](https://learn.chatgpt.com/codex/enterprise/windows-deployment) 安装均可；离线部署后，应用须已在当前 Windows 用户下注册。ChatGPT Classic、浏览器/PWA、Codex CLI、未注册的解包版以及 macOS 不支持。
+
+Woodfish 不修改 Codex 的安装文件。MSIX 安装目录是只读的，并受签名和完整性校验保护。
 
 ## 安装：三种方式，效果相同
 
 最省事的是让 AI 帮你装：把“读 https://github.com/woodfishhhh/Woodfish-Theme/blob/main/docs/agent-install.md ，照里面的步骤帮我给 Codex 装上 Woodfish。”发给你正在用的 AI，步骤见 [docs/agent-install.md](../../docs/agent-install.md)。
 
-三种方式运行的是同一个 `woodfish.js`，版本号和 VS Code 扩展一致（8.0.0 起），功能、效果、设置文件完全一样，选一种即可。都需要 Windows 上的 Microsoft Store 版 Codex。
+三种方式运行的是同一个 `woodfish.js`，版本号和 VS Code 扩展一致（8.0.0 起），功能、效果、设置文件完全一样，选一种即可。
 
 | 方式 | 怎么用 | 需要 |
 | --- | --- | --- |
@@ -134,7 +136,7 @@ woodfish codex background remove <编号>          # 删除保存的图片
 woodfish codex stop-inject                 # 立即撤下效果
 woodfish codex relaunch --normal           # 不带端口重启，关闭调试端口
 
-# 一直生效（Codex 重启、商店更新后自动恢复）
+# 一直生效（Codex 重启、更新后自动恢复）
 woodfish codex autostart on                # 登录时启动的后台任务，无窗口、普通权限（原快捷方式打开的 Codex 会在出窗口前被带端口重启）
 woodfish codex autostart                   # 查看状态
 woodfish codex autostart off               # 删除任务并停止后台进程
@@ -181,7 +183,7 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 
 ## 注入是怎么做的
 
-1. 商店版 Codex 只能在它的包环境里启动。Woodfish 通过 `Invoke-CommandInDesktopPackage` 运行一个临时启动脚本，以 `--remote-debugging-port=<随机端口> --remote-allow-origins=http://127.0.0.1:<端口>` 启动 Codex。这一步不需要开发者模式。
+1. 商店安装和官网离线安装使用同一个 Codex 包身份。Woodfish 从当前用户的 MSIX 注册信息和清单读取安装路径与启动入口，在包环境内用 `Invoke-CommandInDesktopPackage` 运行临时脚本，以 `--remote-debugging-port=<随机端口> --remote-allow-origins=http://127.0.0.1:<端口>` 启动 Codex。这一步不需要开发者模式。
 2. 后台监视进程（`woodfish codex watch`）连接调试端口，把样式注入主窗口，并在页面刷新、新开窗口、设置变化时重新注入。这类注入只在调试连接保持期间有效，所以监视进程必须一直运行。
 3. Codex 的主题变量都定义在 CSS 的 `@layer theme` 中。Woodfish 注入的样式不带 layer，优先级天然更高，不需要 `!important`。
 

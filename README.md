@@ -415,7 +415,9 @@ code --install-extension woodfish-theme-7.2.0.vsix
 
 ## Codex 桌面端
 
-Woodfish 也能给 OpenAI Codex 桌面版换上同样的配色和效果：彩虹回复字、吐字光标和拖尾、选中会话的光环、毛玻璃、《彩云》背景（见上面的[效果一览](#效果一览)）。需要 Windows 10 / 11 上的 Microsoft Store 版 Codex。
+Woodfish 也能给 OpenAI Codex 桌面版换上同样的配色和效果：彩虹回复字、吐字光标和拖尾、选中会话的光环、毛玻璃、《彩云》背景（见上面的[效果一览](#效果一览)）。
+
+支持 Windows 10 / 11 上的官方 **ChatGPT（含 Codex）**：从 [Microsoft Store](https://apps.microsoft.com/detail/9PLM9XGG6VKS)、官网 Windows 安装器、`winget install 9PLM9XGG6VKS -s msstore` 或 [官方离线 MSIX](https://learn.chatgpt.com/codex/enterprise/windows-deployment) 安装均可。不支持 ChatGPT Classic、浏览器/PWA、Codex CLI 或未注册的解包版。
 
 **让 AI 帮你装**：把这句话发给你正在用的 AI（Codex、Claude Code、Cursor……都行），它会装好 Woodfish，让效果在 Codex 重启、更新、重新开机之后一直都在；要你拍板的地方（同意调试端口的风险说明、重启 Codex）会停下来问你。
 
@@ -431,7 +433,7 @@ AI 打不开 GitHub 的话，把地址换成 `https://cdn.jsdelivr.net/gh/woodfi
    - **用 VS Code**：装好本扩展，按 `Ctrl+Shift+P`，运行 **Woodfish Theme: 为 Codex 启用 Woodfish**。
    - **不用 VS Code**：从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) 下载 `woodfish.exe`，双击。它没有代码签名，Windows 提示“Windows 已保护你的电脑”时，点“更多信息”，再点“仍要运行”。
 2. 读一遍调试端口的风险说明，同意（exe 里输入 `yes`）。Codex 正开着的话，会先问你能不能重启它。
-3. Codex 带着效果重新打开。exe 最后问“登录 Windows 后自动恢复效果吗”时输入 `y`（VS Code 的启用命令会自己开好），以后 Codex 重启、商店更新、重新开机，效果都会自己回来。
+3. Codex 带着效果重新打开。exe 最后问“登录 Windows 后自动恢复效果吗”时输入 `y`（VS Code 的启用命令会自己开好），以后 Codex 重启、更新、重新开机，效果都会自己回来。
 
 **装好以后**
 
