@@ -3,6 +3,8 @@
  * Most “照着视频做了没效果” and Cursor/Linux reports were permission errors that
  * previously surfaced as a bare `EPERM` string.
  */
+import * as path from 'path';
+
 export type WriteFailureContext = {
   platform: typeof process.platform;
   targetPath: string;
@@ -33,7 +35,7 @@ function platformHint({ platform, targetPath, appName }: WriteFailureContext): s
     return `${product} 通过 Flatpak 安装，安装目录只读，无法注入。请改用官方 .deb / .rpm / .tar.gz 安装包。`;
   }
   if (platform === 'linux') {
-    return `当前用户没有 ${product} 安装目录的写权限。可执行：sudo chown -R "$USER" "<安装目录>/resources/app/out"，然后运行“修复 Woodfish 注入”。`;
+    return `当前用户没有 ${product} 安装目录的写权限（系统包管理器装的通常归 root）。点“授权并修复”输入密码即可；也可以自己执行：sudo chown -R "$USER" "<安装目录>/resources/app/out"，然后运行“修复 Woodfish 注入”。`;
   }
   if (platform === 'darwin' && normalized.includes('/apptranslocation/')) {
     return `${product} 正以“隔离运行”方式启动（未放入“应用程序”文件夹）。请把 ${product} 拖进 /Applications 后重新打开。`;
@@ -60,4 +62,33 @@ export function describeWriteFailure(error: unknown, context: WriteFailureContex
   }
 
   return `没有权限写入 ${context.targetPath}。${platformHint(context)}`;
+}
+
+/**
+ * A Linux permission failure on a root-owned install (deb/rpm/AUR...). The extension can
+ * fix it itself by taking ownership of the files it patches through polkit (pkexec).
+ */
+export class OwnershipError extends Error {
+  constructor(
+    message: string,
+    readonly appRoot: string
+  ) {
+    super(message);
+  }
+}
+
+/** Snap and Flatpak images are read-only, chown cannot help there. */
+export function canTakeOwnership(error: unknown, context: WriteFailureContext): boolean {
+  const normalized = context.targetPath.toLowerCase();
+  return (
+    context.platform === 'linux' &&
+    isPermissionError(error) &&
+    !normalized.startsWith('/snap/') &&
+    !normalized.includes('flatpak')
+  );
+}
+
+/** Everything Woodfish writes inside the install: workbench, bootstrap, main.js hook, checksum. */
+export function ownershipTargets(appRoot: string): string[] {
+  return [path.posix.join(appRoot, 'out'), path.posix.join(appRoot, 'product.json')];
 }

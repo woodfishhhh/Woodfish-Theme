@@ -20,7 +20,7 @@ export async function withProgressNotification<T>(
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         getOutputChannel().appendLine(`[Error] ${title}: ${message}`);
-        showErrorMessage(`操作失败: ${message}`);
+        showErrorMessage(`操作失败: ${message}`, error);
         throw error;
       }
     }

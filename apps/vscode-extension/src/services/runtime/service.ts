@@ -25,7 +25,7 @@ import {
   isValidWorkbenchDocument,
   stripWoodfishPayloads,
 } from './cleanup';
-import { describeWriteFailure } from './errors';
+import { canTakeOwnership, describeWriteFailure, OwnershipError } from './errors';
 import { resolveBackgroundFile, toWorkbenchFileUrl } from './background';
 import { isNativeWindowActive } from './glass';
 import { recordInstallation } from './installManifest';
@@ -382,11 +382,12 @@ export class IntegratedThemeService {
   }
 
   private wrapWriteFailure(error: unknown, targetPath: string): Error {
-    const message = describeWriteFailure(error, {
-      platform: process.platform,
-      targetPath,
-      appName: vscode.env?.appName,
-    });
+    const context = { platform: process.platform, targetPath, appName: vscode.env?.appName };
+    const message = describeWriteFailure(error, context);
+    const appRoot = this.getLocation()?.appRoot;
+    if (appRoot && canTakeOwnership(error, context)) {
+      return new OwnershipError(message, appRoot);
+    }
     return new Error(message);
   }
 
@@ -658,7 +659,7 @@ export class IntegratedThemeService {
     void this.syncWithCurrentSettings(options).catch((error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
       getOutputChannel().appendLine(`Background runtime sync failed: ${message}`);
-      showErrorMessage(`自动同步失败: ${message}`);
+      showErrorMessage(`自动同步失败: ${message}`, error);
     });
   }
 

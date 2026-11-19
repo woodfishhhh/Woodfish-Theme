@@ -7,6 +7,7 @@ jest.mock(
       executeCommand: jest.fn().mockResolvedValue(undefined),
     },
     window: {
+      showErrorMessage: jest.fn().mockResolvedValue('授权并修复'),
       showInformationMessage: jest.fn(
         () =>
           new Promise<string | undefined>((resolve) => {
@@ -18,8 +19,16 @@ jest.mock(
   { virtual: true }
 );
 
+jest.mock('child_process', () => ({
+  execFile: jest.fn((_file: string, _args: string[], callback: (error: null) => void) =>
+    callback(null)
+  ),
+}));
+
+import { execFile } from 'child_process';
 import * as vscode from 'vscode';
-import { showReloadPrompt } from '../ui/notifications';
+import { OwnershipError } from '../services/runtime/errors';
+import { showErrorMessage, showReloadPrompt } from '../ui/notifications';
 
 describe('reload prompt behavior', () => {
   const showInformationMessageMock = vscode.window.showInformationMessage as jest.Mock;
@@ -62,5 +71,21 @@ describe('reload prompt behavior', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     expect(executeCommandMock).toHaveBeenCalledWith('workbench.action.reloadWindow');
+  });
+
+  it('takes ownership through pkexec and repairs when the user grants access', async () => {
+    const appRoot = '/usr/share/code/resources/app';
+    showErrorMessage('操作失败: 没有权限写入', new OwnershipError('没有权限写入', appRoot));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
+      '[Woodfish Theme] 操作失败: 没有权限写入',
+      '授权并修复'
+    );
+    const [file, args] = (execFile as unknown as jest.Mock).mock.calls[0] as [string, string[]];
+    expect(file).toBe('pkexec');
+    expect(args.slice(0, 2)).toEqual(['chown', '-R']);
+    expect(args.slice(3)).toEqual([`${appRoot}/out`, `${appRoot}/product.json`]);
+    expect(executeCommandMock).toHaveBeenCalledWith('woodfish-theme.repairWorkbench');
   });
 });

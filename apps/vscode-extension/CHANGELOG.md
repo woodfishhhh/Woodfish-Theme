@@ -2,6 +2,10 @@
 
 ## [未发布]
 
+### 修复
+
+- Linux 上用系统包管理器装的 VS Code（装在 `/usr/share/code` 等 root 目录）启用叠层时报“没有权限写入”：错误提示里多了「授权并修复」，输入系统密码后 Woodfish 通过 `pkexec` 把 `resources/app/out` 和 `product.json` 改归当前用户，然后自动重新注入（[#34](https://github.com/woodfishhhh/Woodfish-Theme/issues/34)）
+
 ### 文档
 
 - 给 Codex 装 Woodfish 可以交给 AI 了：把 README 里的一句话发给你正在用的 AI（Codex、Claude Code、Cursor……），它照 [docs/agent-install.md](https://github.com/woodfishhhh/Woodfish-Theme/blob/main/docs/agent-install.md) 的步骤装好并让效果一直生效；调试端口的风险说明只能由你本人同意，重启 Codex 前也会先问你。README 的「Codex 桌面端」一节改成新手版：三步自己装、装好后在哪换主题、怎么让 AI 改效果、怎么停用和卸载；进阶命令留在 Woodfish 桌面工具的 README

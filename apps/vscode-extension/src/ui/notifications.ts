@@ -1,4 +1,7 @@
+import { execFile } from 'child_process';
 import * as vscode from 'vscode';
+import { COMMANDS } from '../constants/commands';
+import { OwnershipError, ownershipTargets } from '../services/runtime/errors';
 import { hostName } from './hostApp';
 
 const PREFIX = '[Woodfish Theme]';
@@ -7,8 +10,43 @@ export function showInfoMessage(message: string): void {
   void vscode.window.showInformationMessage(`${PREFIX} ${message}`);
 }
 
-export function showErrorMessage(message: string): void {
-  void vscode.window.showErrorMessage(`${PREFIX} ${message}`);
+const GRANT_ACTION = '授权并修复';
+
+export function showErrorMessage(message: string, cause?: unknown): void {
+  if (!(cause instanceof OwnershipError)) {
+    void vscode.window.showErrorMessage(`${PREFIX} ${message}`);
+    return;
+  }
+  void vscode.window.showErrorMessage(`${PREFIX} ${message}`, GRANT_ACTION).then(async (choice) => {
+    if (choice !== GRANT_ACTION) {
+      return;
+    }
+    try {
+      await takeOwnership(cause.appRoot);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      void vscode.window.showErrorMessage(`${PREFIX} 授权没有完成（${reason}）。${message}`);
+      return;
+    }
+    await vscode.commands.executeCommand(COMMANDS.repairWorkbench);
+  });
+}
+
+/** Polkit shows the system password dialog; the files then belong to the editor's user. */
+export function takeOwnership(appRoot: string): Promise<void> {
+  const owner = `${process.getuid?.() ?? ''}:${process.getgid?.() ?? ''}`;
+  return new Promise((resolve, reject) => {
+    execFile('pkexec', ['chown', '-R', owner, ...ownershipTargets(appRoot)], (error) => {
+      if (!error) {
+        resolve();
+      } else if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        reject(new Error('系统里没有 pkexec'));
+      } else {
+        // pkexec exits 126 when the dialog is dismissed and 127 when not authorized.
+        reject(new Error(error.code === 126 ? '已取消' : error.message));
+      }
+    });
+  });
 }
 
 function reloadHint(): string {

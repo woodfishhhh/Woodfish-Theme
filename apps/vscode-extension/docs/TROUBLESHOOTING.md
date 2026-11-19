@@ -43,7 +43,8 @@ Woodfish has to write into the editor's installation folder.
 - **macOS, started from a terminal**: launching with `code .` or `cursor .` makes macOS attribute the write to the terminal, which usually lacks “App Management”. Quit the editor completely, open it from the Dock, then run `Woodfish Theme: 修复 Woodfish 注入`.
 - **macOS, otherwise**: allow the editor under System Settings → Privacy & Security → App Management. If it runs from Downloads (App Translocation), move it to `/Applications` first.
 - **Windows**: installs under `Program Files` need the editor to run once as administrator; the user installer avoids this.
-- **Linux**: Snap and Flatpak installs are read-only. Use the official `.deb`, `.rpm` or `.tar.gz`, or `chown` the `resources/app/out` folder to your user.
+- **Linux, installed by the system package manager** (`/usr/share/code` and the like, owned by root): click **授权并修复** in the error, enter your password, and Woodfish takes ownership of `resources/app/out` and `product.json` through `pkexec` and injects again. Without polkit, run `sudo chown -R "$USER" <install>/resources/app/out <install>/resources/app/product.json` yourself. A package upgrade hands the files back to root; the button appears again then.
+- **Linux, Snap or Flatpak**: these installs are read-only. Use the official `.deb`, `.rpm` or `.tar.gz`.
 
 ### Issue: “Your installation appears to be corrupt”
 Woodfish updates the matching checksum in `product.json` (`woodfishTheme.runtime.fixChecksums`), but the editor only reads checksums at startup. The notice therefore keeps appearing until the editor is fully quit after any change to the effects; reloading the window is not enough.
