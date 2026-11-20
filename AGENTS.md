@@ -26,6 +26,7 @@ Woodfish-Theme/
 │   │   ├── scripts/           # Theme generation, renderer build, package, publish
 │   │   └── out/               # Compiled output
 │   ├── chatgpt-app/           # Codex desktop selectors, CSS builders, native theme mapping and renderer overlay
+│   ├── claude-app/            # Reserved for the Claude app adapter; currently empty
 │   ├── dsh-web/               # dsh Web selectors, CSS builders and renderer overlay
 │   └── cli/                   # `woodfish codex …` / `woodfish dsh …` commands and release artifacts
 ├── packages/
