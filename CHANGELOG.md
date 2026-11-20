@@ -14,6 +14,10 @@
 
 - [Neovim 配色](./apps/neovim/README.md)：15 套主题作为 Neovim 配色方案提供，仓库是 [woodfish.nvim](https://github.com/woodfishhhh/woodfish.nvim)。语法颜色和字体样式按 VS Code 给 TypeScript / JavaScript / TSX / Python / Lua / Go / Rust / JSON / Markdown 的实际结果量出来，只定义带语言后缀的高亮组；另含 Treesitter、LSP、诊断、diff / git、telescope、nvim-cmp、blink.cmp、gitsigns、neo-tree、nvim-tree、which-key、indent-blankline 和 lualine。
 
+### 改进
+
+- Neovim 配色：JavaScript、JSX、TSX 各有自己的统计样例（含组件、JSX 标签和属性），不再借用 TypeScript 的结果；15 套主题在这三种语言上的颜色一致率平均从 82.8% 提高到 86.1%（Night Owl 66.2% → 74.1%，Tokyo Night 73.2% → 78.9%），其他语言不变。
+
 ## [8.1.5] - 2026-11-21
 
 ### 新增

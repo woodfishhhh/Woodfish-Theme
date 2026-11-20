@@ -1,4 +1,4 @@
-// Comparison sample (reuses the TypeScript statistics): a tiny job queue with retries.
+// Comparison sample: a tiny job queue with retries.
 import { EventEmitter } from 'node:events';
 import { setTimeout as sleep } from 'node:timers/promises';
 import * as path from 'node:path';

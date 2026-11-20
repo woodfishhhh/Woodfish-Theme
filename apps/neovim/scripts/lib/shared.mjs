@@ -26,18 +26,17 @@ export const STATS_SAMPLES = [
   sample('rust', 'example.rs'),
   sample('json', 'example.json'),
   sample('markdown', 'example.md'),
-];
-
-/** Held-out samples (samples/): every measured language, plus the ones that reuse another language's statistics. */
-export const COMPARE_SAMPLES = [
-  ...STATS_SAMPLES,
   sample('javascript', 'example.js'),
+  // Neovim has no JSX parser: .jsx files use `javascript`, so jsx and javascript samples land in the same `@capture.javascript` groups.
   sample('jsx', 'example.jsx', { parser: 'javascript' }),
-  sample('tsx', 'example.tsx', { parser: 'tsx' }),
+  sample('tsx', 'example.tsx'),
 ];
 
-/** Treesitter languages that share the grammar family of a measured language and take its colors: parser -> measured parser. */
-export const REUSED_STATISTICS = { javascript: 'typescript', tsx: 'typescript' };
+/** The samples that were added after the first seven; reports show them apart so the older languages can be compared before / after. */
+export const WEB_SAMPLE_KEYS = ['javascript', 'jsx', 'tsx'];
+
+/** Held-out samples (samples/): the same languages as STATS_SAMPLES, different code. */
+export const COMPARE_SAMPLES = STATS_SAMPLES;
 
 /** Palette slug -> [theme folder, VS Code theme file]. */
 export const THEME_FILES = {

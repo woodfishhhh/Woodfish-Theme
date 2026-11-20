@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { generatedFiles, isStale, run, selectedPalettes } from './generate.mjs';
 import { analyze, attachRendered, parseTohtml } from './lib/analysis.mjs';
-import { CAPTURES_DIR, COMPARE_SAMPLES, REUSED_STATISTICS, ROOT, STATS_DIR, STATS_SAMPLES } from './lib/shared.mjs';
+import { CAPTURES_DIR, COMPARE_SAMPLES, ROOT, STATS_DIR, STATS_SAMPLES, WEB_SAMPLE_KEYS } from './lib/shared.mjs';
 import { createShiki, joinChars, loadCaptures, loadTheme, majority, splitName, themeTargets } from './lib/targets.mjs';
 
 const hex = /^#[0-9A-F]{6}$/;
@@ -21,7 +21,7 @@ for (const palette of palettes) {
   }
   assert.equal(palette.ansi.length, 16, `${palette.slug} terminal colors`);
   const languages = Object.keys(palette.language);
-  for (const language of [...STATS_SAMPLES.map((sample) => sample.parser), 'markdown_inline', ...Object.keys(REUSED_STATISTICS)]) {
+  for (const language of [...STATS_SAMPLES.map((sample) => sample.parser), 'markdown_inline']) {
     assert.ok(languages.includes(language), `${palette.slug} has no colors for ${language}`);
   }
   for (const [language, captures] of Object.entries(palette.language)) {
@@ -35,9 +35,8 @@ for (const palette of palettes) {
       }
     }
   }
-  for (const [reusing, measured] of Object.entries(REUSED_STATISTICS)) {
-    assert.deepEqual(palette.language[reusing], palette.language[measured], `${palette.slug}: ${reusing} must equal ${measured}`);
-  }
+  assert.ok(palette.language.javascript.tag && palette.language.tsx.tag, `${palette.slug}: JSX tags are measured`);
+  assert.equal(palette.language.typescript.tag, undefined, `${palette.slug}: typescript has no JSX tags`);
 }
 const dracula = palettes.find((palette) => palette.slug === 'dracula');
 assert.ok(Object.values(dracula.language.typescript).some((value) => typeof value === 'object' && value.italic), 'Dracula italicizes some TypeScript captures');
@@ -77,7 +76,9 @@ for (const sample of STATS_SAMPLES) {
   const stats = linesOf(path.join(STATS_DIR, sample.file));
   const compare = linesOf(path.join(ROOT, 'samples', sample.file));
   assert.ok(stats.length >= 100, `${sample.file}: statistics samples need 100+ lines, has ${stats.length}`);
-  assert.ok(compare.length >= 100, `${sample.file}: comparison samples need 100+ lines, has ${compare.length}`);
+  // The held-out javascript / jsx / tsx samples (92 to 102 lines) predate their statistics samples and stay unchanged so numbers before and after compare like for like.
+  const minimum = WEB_SAMPLE_KEYS.includes(sample.key) ? 90 : 100;
+  assert.ok(compare.length >= minimum, `${sample.file}: comparison samples need ${minimum}+ lines, has ${compare.length}`);
   assert.notEqual(compare.join('\n'), stats.join('\n'), `${sample.file}: comparison and statistics samples must differ`);
 }
 for (const sample of COMPARE_SAMPLES) assert.ok(fs.existsSync(path.join(ROOT, 'samples', sample.file)), `missing samples/${sample.file}`);
@@ -120,10 +121,15 @@ const draculaTargets = await themeTargets(shiki, 'dracula', captures);
 assert.equal(draculaTargets.language.typescript['variable.parameter'].style, 1);
 assert.equal(draculaTargets.language.typescript.function.style, 0);
 
-// Reuse: javascript and tsx get the typescript colors of the same theme.
-const targets = await themeTargets(shiki, 'dark', captures);
-assert.deepEqual(targets.language.javascript, targets.language.typescript);
-assert.notEqual(targets.language.javascript, targets.language.typescript, 'reused tables are copies');
+// javascript, jsx and tsx are measured on their own samples (jsx and javascript share Neovim's javascript parser).
+assert.deepEqual(WEB_SAMPLE_KEYS, ['javascript', 'jsx', 'tsx']);
+assert.deepEqual(STATS_SAMPLES.filter((sample) => WEB_SAMPLE_KEYS.includes(sample.key)).map((sample) => sample.parser), ['javascript', 'javascript', 'tsx']);
+const nightOwl = await themeTargets(shiki, 'nightowl', captures);
+assert.notDeepEqual(nightOwl.language.javascript, nightOwl.language.typescript, 'javascript is not a copy of typescript');
+assert.notDeepEqual(nightOwl.language.tsx, nightOwl.language.typescript, 'tsx is not a copy of typescript');
+const darkTargets = await themeTargets(shiki, 'dark', captures);
+assert.ok(darkTargets.counts.has('javascript\ttag'), 'JSX tags of the jsx sample are tallied under the javascript parser');
+assert.ok(darkTargets.language.tsx['tag.attribute'] && darkTargets.language.javascript['tag.delimiter']);
 
 // Reading :TOhtml output: the innermost colored span wins, styles add up, entities and blanks are handled.
 const html = `<style>

@@ -1,4 +1,4 @@
-// Comparison sample (reuses the TypeScript statistics): a typed, filterable data table.
+// Comparison sample: a typed, filterable data table.
 import { type ReactNode, useMemo, useState } from 'react';
 
 export type SortDirection = 'asc' | 'desc';

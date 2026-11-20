@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url';
 import { analyze, attachRendered, parseTohtml } from './lib/analysis.mjs';
 import { renderMarkdown } from './lib/report.mjs';
 import { ensureTreesitterRuntime, nvimBinary, nvimVersion, runNvim } from './lib/nvim-env.mjs';
-import { COMPARE_DIR, COMPARE_SAMPLES, REUSED_STATISTICS, ROOT, STATS_DIR, STATS_SAMPLES, WOODFISH_PALETTES } from './lib/shared.mjs';
+import { COMPARE_DIR, COMPARE_SAMPLES, ROOT, STATS_DIR, STATS_SAMPLES, WEB_SAMPLE_KEYS, WOODFISH_PALETTES } from './lib/shared.mjs';
 import { createShiki, joinChars, loadCaptures, loadTheme, themeTargets } from './lib/targets.mjs';
 
 const args = process.argv.slice(2);
@@ -20,15 +20,13 @@ const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name
 const OUT = path.resolve(option('--out', path.join(os.tmpdir(), 'wf-neovim')));
 const ONLY = option('--only', null);
 const EXCERPT = Number(option('--lines', 30));
-const REUSED_EXCERPT = Math.min(EXCERPT, 24);
 const SCREENSHOTS = !args.includes('--no-screenshots');
 const LINE_HEIGHT = 20;
 
 const git = (...gitArgs) => execFileSync('git', gitArgs, { cwd: ROOT, encoding: 'utf8' }).trim();
 const percent = (part, whole) => (whole === 0 ? 100 : Math.round((part / whole) * 10000) / 100);
 const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const isReused = (sample) => sample.parser in REUSED_STATISTICS;
-const excerptLines = (sample) => (isReused(sample) ? REUSED_EXCERPT : EXCERPT);
+const isWeb = (sample) => WEB_SAMPLE_KEYS.includes(sample.key);
 
 function findBrowser() {
   const found = [
@@ -68,15 +66,14 @@ function pictureHtml({ palette, theme, rendered, highlighter, meta, summary }) {
     const html = fs.readFileSync(rendered[sample.key].file, 'utf8');
     styles += [...html.matchAll(/^\.[^\s{]+\s*\{[^}]*\}/gm)].map((m) => m[0]).join('\n') + '\n';
     const body = html.slice(html.indexOf('<pre>') + 5, html.lastIndexOf('</pre>')).replace(/^\n/, '');
-    const shown = excerptLines(sample);
+    const shown = EXCERPT;
     const source = fs.readFileSync(path.join(COMPARE_DIR, sample.file), 'utf8').split('\n');
     const total = source.length - (source.at(-1) === '' ? 1 : 0);
     const scored = summary.byLanguage[sample.key];
     const shiki = highlighter.codeToHtml(source.slice(0, shown).join('\n'), { lang: sample.shiki, theme: theme.name });
-    const note = isReused(sample) ? ' · colors reused from typescript' : '';
     const colors = `${scored.consistency}% of all ${scored.chars} characters match in color, ${scored.styleConsistency}% in font style`;
     const { background, foreground } = rendered[sample.key];
-    return `<section><h2>${sample.file} <small>lines 1–${Math.min(shown, total)} of ${total} · ${colors}${note}</small></h2>
+    return `<section><h2>${sample.file} <small>lines 1–${Math.min(shown, total)} of ${total} · ${colors}</small></h2>
 <div class="row" style="--h:${shown * LINE_HEIGHT + 16}px"><div class="pane"><div class="cap">Neovim · Treesitter · :TOhtml</div><pre class="nv" style="background:${background};color:${foreground}">${body.split('\n').slice(0, shown).join('\n')}</pre></div>
 <div class="pane"><div class="cap">VS Code · theme engine (Shiki)</div>${shiki}</div></div></section>`;
   });
@@ -93,8 +90,8 @@ pre.shiki code{font:inherit!important}
 </style>
 <h1>${escapeHtml(palette.label)}: Neovim / VS Code</h1>
 <p class="meta">commit ${meta.commit}${meta.dirty ? ' (dirty tree)' : ''} · generated ${meta.generatedAt} · ${escapeHtml(meta.neovim)} · Shiki ${meta.shiki}.
-Held-out samples, the seven measured languages: ${summary.consistency}% of ${summary.chars} characters get the same color and ${summary.styleConsistency}% the same font style; mapping errors ${summary.mappingErrors} (statistics samples: ${summary.statsMappingErrors}).
-javascript / jsx / tsx reuse the typescript statistics: ${summary.reusedConsistency}% of ${summary.reusedChars} characters match in color.
+Held-out samples, all ten languages: ${summary.allConsistency}% of ${summary.allChars} characters get the same color and ${summary.allStyleConsistency}% the same font style; mapping errors ${summary.mappingErrors} (statistics samples: ${summary.statsMappingErrors}).
+The seven base languages: ${summary.baseConsistency}% in color; javascript / jsx / tsx: ${summary.webConsistency}% of ${summary.webChars} characters.
 The right side is VS Code's TextMate theme engine without language-server semantic tokens.</p>
 ${rows.join('\n')}`;
 }
@@ -143,7 +140,7 @@ async function main() {
   const compareCaptures = captureSamples(nvim, runtime, scratch);
   const palettes = WOODFISH_PALETTES.filter((palette) => !ONLY || palette.slug === ONLY);
   runNvim(nvim, runtime, path.join(ROOT, 'scripts', 'nvim', 'smoke.lua'), palettes.map((palette) => palette.slug));
-  const report = { ...meta, excerptLines: EXCERPT, reusedExcerptLines: REUSED_EXCERPT, loadCheck: `${palettes.length} colorschemes loaded headless without errors`, themes: [] };
+  const report = { ...meta, excerptLines: EXCERPT, loadCheck: `${palettes.length} colorschemes loaded headless without errors`, themes: [] };
 
   for (const palette of palettes) {
     const theme = await loadTheme(highlighter, palette.slug);
@@ -172,13 +169,13 @@ async function main() {
     const rate = (records, test) => percent(records.filter(test).length, records.length);
     const sameColor = (record) => record.nvim === record.color;
     const sameStyle = (record) => record.nvimStyle === record.style;
-    const reusedKeys = new Set(COMPARE_SAMPLES.filter(isReused).map((sample) => sample.key));
-    const measured = heldRecords.filter((record) => !reusedKeys.has(record.sample));
-    const reused = heldRecords.filter((record) => reusedKeys.has(record.sample));
+    const webKeys = new Set(COMPARE_SAMPLES.filter(isWeb).map((sample) => sample.key));
+    const base = heldRecords.filter((record) => !webKeys.has(record.sample));
+    const web = heldRecords.filter((record) => webKeys.has(record.sample));
     const byLanguage = Object.fromEntries(
       COMPARE_SAMPLES.map((sample) => {
         const own = heldRecords.filter((record) => record.sample === sample.key);
-        return [sample.key, { chars: own.length, consistency: rate(own, sameColor), styleConsistency: rate(own, sameStyle), reused: reusedKeys.has(sample.key) }];
+        return [sample.key, { chars: own.length, consistency: rate(own, sameColor), styleConsistency: rate(own, sameStyle) }];
       })
     );
     const describe = (group) => ({
@@ -189,12 +186,15 @@ async function main() {
     const summary = {
       slug: palette.slug,
       label: palette.label,
-      chars: measured.length,
-      consistency: rate(measured, sameColor),
-      styleConsistency: rate(measured, sameStyle),
-      reusedChars: reused.length,
-      reusedConsistency: rate(reused, sameColor),
-      reusedStyleConsistency: rate(reused, sameStyle),
+      allChars: heldRecords.length,
+      allConsistency: rate(heldRecords, sameColor),
+      allStyleConsistency: rate(heldRecords, sameStyle),
+      baseChars: base.length,
+      baseConsistency: rate(base, sameColor),
+      baseStyleConsistency: rate(base, sameStyle),
+      webChars: web.length,
+      webConsistency: rate(web, sameColor),
+      webStyleConsistency: rate(web, sameStyle),
       statsChars: stats.chars,
       statsConsistency: percent(stats.hits, stats.chars),
       statsStyleConsistency: percent(stats.styleHits, stats.chars),
@@ -222,7 +222,7 @@ async function main() {
       screenshot(browser, page, path.join(OUT, `compare-${palette.slug}.png`), 1800, height);
     }
     console.log(
-      `${palette.slug}: color ${summary.consistency}% style ${summary.styleConsistency}% (7 measured), js/jsx/tsx ${summary.reusedConsistency}%; mapping errors ${summary.statsMappingErrors} (stats) / ${summary.mappingErrors} (held-out)`
+      `${palette.slug}: color ${summary.baseConsistency}% style ${summary.baseStyleConsistency}% (7 base), js/jsx/tsx ${summary.webConsistency}% / ${summary.webStyleConsistency}%; mapping errors ${summary.statsMappingErrors} (stats) / ${summary.mappingErrors} (held-out)`
     );
   }
 

@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHighlighter } from 'shiki';
-import { CAPTURES_DIR, COMPARE_SAMPLES, REUSED_STATISTICS, STATS_DIR, STATS_SAMPLES, opaqueHex, parseJsonc, themeFile } from './shared.mjs';
+import { CAPTURES_DIR, COMPARE_SAMPLES, STATS_DIR, STATS_SAMPLES, opaqueHex, parseJsonc, themeFile } from './shared.mjs';
 
 /** Grammars VS Code embeds in the samples (Markdown fences and inline HTML) plus the sample languages themselves. */
 const SHIKI_LANGUAGES = [...new Set([...COMPARE_SAMPLES.map((sample) => sample.shiki), 'html'])];
@@ -110,7 +110,8 @@ export function majority(counts) {
 
 /**
  * Everything the generator and the reports need for one theme: `language[parser][capture] = { fg, style }`
- * (style is a bit set, see FONT_STYLES) and the raw counts. Languages in REUSED_STATISTICS copy a measured one.
+ * (style is a bit set, see FONT_STYLES) and the raw counts. Every language is measured on its own samples;
+ * samples that share a parser (javascript and jsx) are counted together.
  */
 export async function themeTargets(highlighter, slug, captures) {
   const theme = await loadTheme(highlighter, slug);
@@ -125,6 +126,5 @@ export async function themeTargets(highlighter, slug, captures) {
     if (capture === NO_CAPTURE) continue;
     (language[lang] ??= {})[capture] = { fg: majority(group.color), style: majority(group.style) };
   }
-  for (const [reusing, measured] of Object.entries(REUSED_STATISTICS)) language[reusing] = structuredClone(language[measured]);
   return { language, counts };
 }

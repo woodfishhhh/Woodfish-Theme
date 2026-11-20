@@ -1,4 +1,4 @@
-// Comparison sample (reuses the TypeScript statistics): a small React todo list.
+// Comparison sample: a small React todo list.
 import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import PropTypes from 'prop-types';
 

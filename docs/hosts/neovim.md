@@ -8,11 +8,11 @@
 
 1. **界面与通用语法**：界面色、语法 8 槽、终端 16 色来自 `WOODFISH_PALETTES`，编辑器小部件、选区、行号等来自 VS Code 主题文件的 `colors`。覆盖基础高亮组、Treesitter、LSP 语义、诊断、diff / git，以及 telescope、nvim-cmp、blink.cmp、gitsigns、neo-tree、nvim-tree、which-key、indent-blankline 和 lualine 主题。
 2. **按语言取色**：Treesitter 的捕获名比 TextMate 的 scope 粗得多，同一个 `@variable` 在 VS Code 里可能有好几种颜色。生成器不手写对应表，而是量出来：
-   - `stats-samples/` 里每种语言一份 100 行以上的常见代码（TypeScript、Python、Lua、Go、Rust、JSON、Markdown）。
+   - `stats-samples/` 里每种语言一份 100 行以上的常见代码（TypeScript、JavaScript、JSX、TSX、Python、Lua、Go、Rust、JSON、Markdown）；JSX 和 TSX 的样例含组件、标签、属性、表达式，以及 `<h1>`、`<a href>` 这类 Neovim 的 JSX 查询单独着色的标签。
    - Shiki（vscode-textmate，与 VS Code 解析主题的是同一个库）按主题给这些代码上色，得到每个字符的颜色和字体样式。
    - Neovim 0.12 的 Treesitter 给同样的字符分配捕获组（`scripts/captures/`，已提交，用 `pnpm nvim:capture` 重新生成）。取实际生效的那个：优先级最高，同级取后一个。
    - 每个“捕获组 + 语言”取字符数占多数的颜色和字体样式（粗体、斜体、下划线、删除线），写成 `@capture.language`。没有开关选项，不加装饰。
-   - `javascript`（含 jsx）和 `tsx` 复用 `typescript` 的结果。
+   - 每种语言用自己的样例统计，不借用别的语言的结果。Neovim 没有 JSX 解析器，`.jsx` 文件用 `javascript` 解析器，所以 jsx 和 javascript 两份样例合起来统计 `@capture.javascript`（`@tag.*` 只出现在 jsx 样例里）；`tsx` 自成一套。
 3. **不改别人的东西**：只定义带语言后缀的高亮组，不写 query，不建自动命令。换成别的配色后，Woodfish 不留下任何影响。
 
 ## 命令
@@ -33,14 +33,15 @@
 
 - **映射错误**：某个“捕获组 + 语言”在 Neovim 里的颜色不是统计样例里 VS Code 占多数的颜色，或缺少所选的字体样式。15 套都是 **0**（统计样例和比对样例都是），并且 Neovim 实际着色与捕获归属一致。
 - **拆不开**：同一个捕获组在 VS Code 里本来就对应好几种颜色（或根本没有捕获组），一个高亮组无法全部对上。其余差异都归这一类，包括多数色在统计样例与比对样例之间翻转的组合。
-- 7 种语言的颜色一致率：80.9%（Tokyo Night）到 93.8%（One Dark Pro），平均 90.6%；字体样式一致率 95.9% 到 100%。Tokyo Night 最低，主要因为它按嵌套深度给 JSON 键换 6 种颜色，以及 Markdown 正文色与编辑器前景不同而 Neovim 对段落没有捕获。
-- javascript / jsx / tsx 复用 typescript 的结果，在各自的样例上颜色一致率 66% 到 89%（Night Owl 最低，它的 JS 规则带 `.js` 后缀，与 TypeScript 差别大）。JSX 标签的 `@tag.*` 不在统计里，走通用映射。
+- 前 7 种语言（TypeScript、Python、Lua、Go、Rust、JSON、Markdown）的颜色一致率：80.9%（Tokyo Night）到 93.8%（One Dark Pro），平均 90.6%；字体样式一致率 95.9% 到 100%。Tokyo Night 最低，主要因为它按嵌套深度给 JSON 键换 6 种颜色，以及 Markdown 正文色与编辑器前景不同而 Neovim 对段落没有捕获。
+- javascript / jsx / tsx 各自统计后，在各自的样例上颜色一致率 74.1%（Night Owl）到 91.8%（Dracula），平均 86.1%（只借用 typescript 时是 66.2% 到 90.5%，平均 82.8%）；字体样式一致率平均 97.8%（之前 95.5%）。Night Owl 仍最低：它的 JS 规则带 `.js` 后缀，同一个 `@variable` 在 VS Code 里有 4 种颜色。JSX 标签的 `@tag.*` 现在也量出来了，样例里没有“没统计过”的组合。前 7 种语言的结果不变（它们的统计样例和捕获没有动）。
 - 每套主题的“拆不开”清单（组、各色占比、差异字符数）见 `report.md`。跨主题最多的：rust `@constant`、json `@property`、lua `@comment.documentation`、typescript `@variable.member` / `@variable` / `@type`、python `@variable` / `@type`。
 
 边界：
 
 - 右侧是 VS Code 的 TextMate 主题引擎，不是打开着的窗口，不含语言服务器的语义着色。
 - Neovim 合并重叠高亮的属性，而一个高亮组无法关掉下层的样式（`nocombine` 实测会连颜色一起丢掉），所以下层捕获的斜体可能留在上层捕获上。报告单独列出。
+- jsx 和 javascript 共用 Neovim 的 `javascript` 解析器，也就共用一套 `@capture.javascript` 高亮组；VS Code 里 `.js` 与 `.jsx` 的 TextMate 规则不同时，只能取两份样例合起来的多数色。
 - 只测了上面这些语言；其他语言走通用映射。捕获名用 nvim-treesitter 当前的命名，Neovim 0.11 以下没有测过。
 
 ## 第二版：渐变、发光、光标
