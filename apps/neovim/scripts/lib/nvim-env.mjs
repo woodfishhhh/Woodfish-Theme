@@ -68,7 +68,7 @@ export function ensureTreesitterRuntime() {
   return runtime;
 }
 
-/** Run `nvim --headless -l script args…` with the pinned Treesitter runtime (and the plugin) on the runtimepath. */
+/** Run `nvim --headless -l script args…` with the plugin (and, when given, the pinned Treesitter runtime) on the runtimepath. */
 export function runNvim(nvim, runtime, script, args, env = {}) {
   const result = spawnSync(
     nvim,
@@ -76,12 +76,12 @@ export function runNvim(nvim, runtime, script, args, env = {}) {
       '--clean',
       '--headless',
       '--cmd',
-      'lua vim.opt.rtp:prepend(vim.env.WOODFISH_RT); vim.opt.rtp:prepend(vim.env.WOODFISH_PLUGIN)',
+      `lua ${runtime ? 'vim.opt.rtp:prepend(vim.env.WOODFISH_RT); ' : ''}vim.opt.rtp:prepend(vim.env.WOODFISH_PLUGIN)`,
       '-l',
       script,
       ...args,
     ],
-    { encoding: 'utf8', env: { ...process.env, WOODFISH_RT: runtime, WOODFISH_PLUGIN: ROOT, ...env }, maxBuffer: 1 << 28 }
+    { encoding: 'utf8', env: { ...process.env, WOODFISH_RT: runtime ?? '', WOODFISH_PLUGIN: ROOT, ...env }, maxBuffer: 1 << 28 }
   );
   // TOhtml warns about the missing terminal on stderr; only a failing exit status or a Lua error matters.
   if (result.status !== 0 || /\bE\d{3,4}:/.test(result.stderr)) {

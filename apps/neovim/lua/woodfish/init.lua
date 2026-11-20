@@ -73,7 +73,6 @@ local function apply_treesitter(tokens)
   for group, value in pairs(groups) do
     set(group, value)
   end
-  return groups
 end
 
 local function apply_lsp(tokens)
@@ -103,25 +102,12 @@ local function apply_lsp(tokens)
   end
 end
 
--- Colors VS Code gives each capture in a language (majority over the sample code, see scripts/lib/targets.mjs).
--- Only the color is language specific; bold / italic / underline come from the generic capture.
-local function style_of(groups, capture)
-  local name = capture
-  while name ~= "" do
-    local base = groups["@" .. name]
-    if base then
-      return base
-    end
-    name = name:match("^(.*)%.[^.]*$") or ""
-  end
-  return {}
-end
-
-local function apply_languages(languages, groups)
+-- What VS Code does with each capture in a language: the majority color and font style over the sample code
+-- (see scripts/lib/targets.mjs). An entry is "#RRGGBB" or { fg = "#RRGGBB", italic = true, ... }.
+local function apply_languages(languages)
   for language, captures in pairs(languages or {}) do
-    for capture, color in pairs(captures) do
-      local base = style_of(groups, capture)
-      set("@" .. capture .. "." .. language, { fg = color, bold = base.bold, italic = base.italic, underline = base.underline })
+    for capture, value in pairs(captures) do
+      set("@" .. capture .. "." .. language, type(value) == "string" and { fg = value } or value)
     end
   end
 end
@@ -261,8 +247,8 @@ local function apply(name, options)
     vim.g["terminal_color_" .. (index - 1)] = color
   end
 
-  local groups = apply_treesitter(tokens)
-  apply_languages(palette.language, groups)
+  apply_treesitter(tokens)
+  apply_languages(palette.language)
   apply_lsp(tokens)
   apply_plugins(ui, tokens)
 end

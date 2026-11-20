@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { ensureTreesitterRuntime, nvimBinary, nvimVersion, runNvim } from './lib/nvim-env.mjs';
-import { CAPTURES_DIR, LANGUAGES, ROOT, STATS_DIR } from './lib/shared.mjs';
+import { CAPTURES_DIR, ROOT, STATS_DIR, STATS_SAMPLES } from './lib/shared.mjs';
 
 const nvim = nvimBinary();
 const runtime = ensureTreesitterRuntime();
@@ -15,14 +15,14 @@ const version = nvimVersion(nvim);
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'wf-capture-'));
 fs.mkdirSync(CAPTURES_DIR, { recursive: true });
 
-for (const [language, name] of Object.entries(LANGUAGES)) {
+for (const { key, file: name, parser } of STATS_SAMPLES) {
   const file = path.join(STATS_DIR, name);
-  const raw = path.join(scratch, `${language}.json`);
-  runNvim(nvim, runtime, path.join(ROOT, 'scripts', 'nvim', 'capture.lua'), [raw, file, language]);
+  const raw = path.join(scratch, `${key}.json`);
+  runNvim(nvim, runtime, path.join(ROOT, 'scripts', 'nvim', 'capture.lua'), [raw, file, parser]);
   const { names, lines } = JSON.parse(fs.readFileSync(raw, 'utf8'));
   const body = [
     '{',
-    `  "language": ${JSON.stringify(language)},`,
+    `  "language": ${JSON.stringify(key)},`,
     `  "sha256": ${JSON.stringify(createHash('sha256').update(fs.readFileSync(file)).digest('hex'))},`,
     `  "neovim": ${JSON.stringify(version)},`,
     `  "names": ${JSON.stringify(names)},`,
@@ -32,7 +32,7 @@ for (const [language, name] of Object.entries(LANGUAGES)) {
     '}',
     '',
   ].join('\n');
-  fs.writeFileSync(path.join(CAPTURES_DIR, `${language}.json`), body);
-  console.log(`captured ${language}: ${lines.length} lines, ${names.length} capture names`);
+  fs.writeFileSync(path.join(CAPTURES_DIR, `${key}.json`), body);
+  console.log(`captured ${key}: ${lines.length} lines, ${names.length} capture names`);
 }
 fs.rmSync(scratch, { recursive: true, force: true });

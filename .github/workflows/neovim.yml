@@ -1,0 +1,31 @@
+name: Neovim colorschemes
+
+on:
+  push:
+    paths: ['apps/neovim/**', 'packages/theme-core/**', 'apps/vscode-extension/themes/**', '.github/workflows/neovim.yml']
+  pull_request:
+    paths: ['apps/neovim/**', 'packages/theme-core/**', 'apps/vscode-extension/themes/**', '.github/workflows/neovim.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  neovim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generated files match the palettes, theme files and captures
+        run: pnpm nvim:check
+      - name: Install Neovim
+        run: |
+          curl -fsSL https://github.com/neovim/neovim/releases/download/v0.12.6/nvim-linux-x86_64.tar.gz | tar -xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+      - name: Every colorscheme loads headless
+        run: pnpm nvim:smoke

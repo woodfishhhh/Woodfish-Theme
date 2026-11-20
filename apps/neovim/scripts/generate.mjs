@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createShiki, loadCaptures, themeTargets } from './lib/targets.mjs';
-import { ROOT, WOODFISH_PALETTES, opaqueHex, parseJsonc, themeFile } from './lib/shared.mjs';
+import { FONT_STYLES, ROOT, WOODFISH_PALETTES, opaqueHex, parseJsonc, themeFile } from './lib/shared.mjs';
 
 const PALETTE_FILE = 'lua/woodfish/palettes.lua';
 const LUALINE_FILE = 'lua/lualine/themes/woodfish.lua';
@@ -49,6 +49,21 @@ function hostColors(palette) {
   );
 }
 
+/** `capture = "#RRGGBB"`, or `capture = { fg = "#RRGGBB", italic = true, ... }` when VS Code styles the text. */
+function luaLanguages(language) {
+  return Object.fromEntries(
+    Object.entries(language).map(([parser, captures]) => [
+      parser,
+      Object.fromEntries(
+        Object.entries(captures).map(([capture, { fg, style }]) => {
+          const attributes = FONT_STYLES.filter(([bit]) => style & bit).map(([, name]) => [name, true]);
+          return [capture, attributes.length ? { fg, ...Object.fromEntries(attributes) } : fg];
+        })
+      ),
+    ])
+  );
+}
+
 export async function selectedPalettes() {
   const highlighter = await createShiki();
   const captures = loadCaptures();
@@ -61,7 +76,7 @@ export async function selectedPalettes() {
       tokens: normalize(palette.tokens),
       ansi: palette.ansi.map((color) => opaqueHex(color, palette.ui.bg)),
       host: hostColors(palette),
-      language: (await themeTargets(highlighter, palette.slug, captures)).language,
+      language: luaLanguages((await themeTargets(highlighter, palette.slug, captures)).language),
     });
   }
   return palettes;
@@ -72,9 +87,13 @@ const LUA_KEYWORDS = new Set('and break do else elseif end false for function go
 function lua(value, depth = 0) {
   if (Array.isArray(value)) return `{ ${value.map((child) => lua(child, depth)).join(', ')} }`;
   if (value && typeof value === 'object') {
-    const pad = '  '.repeat(depth + 1);
+    const entriesOf = Object.entries(value);
     const key = (name) => (/^[A-Za-z_]\w*$/.test(name) && !LUA_KEYWORDS.has(name) ? name : `[${JSON.stringify(name)}]`);
-    const entries = Object.entries(value).map(([name, child]) => `${pad}${key(name)} = ${lua(child, depth + 1)},`);
+    if (entriesOf.length <= 4 && entriesOf.every(([, child]) => typeof child !== 'object' || child === null)) {
+      return `{ ${entriesOf.map(([name, child]) => `${key(name)} = ${lua(child, depth)}`).join(', ')} }`;
+    }
+    const pad = '  '.repeat(depth + 1);
+    const entries = entriesOf.map(([name, child]) => `${pad}${key(name)} = ${lua(child, depth + 1)},`);
     return `{\n${entries.join('\n')}\n${'  '.repeat(depth)}}`;
   }
   if (typeof value === 'string') return JSON.stringify(value);

@@ -14,16 +14,30 @@ export const CAPTURES_DIR = path.join(ROOT, 'scripts', 'captures');
 export const { parseJsonc } = require('../../../vscode-extension/scripts/lib/jsonc');
 export const { WOODFISH_PALETTES } = require('@woodfish/theme-core');
 
-/** Language key = Shiki language id = Neovim filetype of the sample file. */
-export const LANGUAGES = {
-  typescript: 'example.ts',
-  python: 'example.py',
-  lua: 'example.lua',
-  go: 'example.go',
-  rust: 'example.rs',
-  json: 'example.json',
-  markdown: 'example.md',
-};
+/** `key` names the sample; `shiki` is the VS Code grammar and `parser` the Neovim Treesitter language it is painted with. */
+const sample = (key, file, extra = {}) => ({ key, file, shiki: key, parser: key, ...extra });
+
+/** Measured samples (stats-samples/): their colors and styles become the highlight groups. */
+export const STATS_SAMPLES = [
+  sample('typescript', 'example.ts'),
+  sample('python', 'example.py'),
+  sample('lua', 'example.lua'),
+  sample('go', 'example.go'),
+  sample('rust', 'example.rs'),
+  sample('json', 'example.json'),
+  sample('markdown', 'example.md'),
+];
+
+/** Held-out samples (samples/): every measured language, plus the ones that reuse another language's statistics. */
+export const COMPARE_SAMPLES = [
+  ...STATS_SAMPLES,
+  sample('javascript', 'example.js'),
+  sample('jsx', 'example.jsx', { parser: 'javascript' }),
+  sample('tsx', 'example.tsx', { parser: 'tsx' }),
+];
+
+/** Treesitter languages that share the grammar family of a measured language and take its colors: parser -> measured parser. */
+export const REUSED_STATISTICS = { javascript: 'typescript', tsx: 'typescript' };
 
 /** Palette slug -> [theme folder, VS Code theme file]. */
 export const THEME_FILES = {
@@ -49,6 +63,14 @@ export function themeFile(slug) {
   if (!source) throw new Error(`no VS Code theme file registered for palette "${slug}"`);
   return path.join(VSCODE_THEMES, source[0], source[1]);
 }
+
+/** Font styles as Shiki / vscode-textmate encode them; Neovim highlight attribute names alongside. */
+export const FONT_STYLES = [
+  [1, 'italic'],
+  [2, 'bold'],
+  [4, 'underline'],
+  [8, 'strikethrough'],
+];
 
 /** Blend `#RRGGBB[AA]` over `background` and return `#RRGGBB`. */
 export function opaqueHex(value, background) {

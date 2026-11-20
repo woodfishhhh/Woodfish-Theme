@@ -7,6 +7,7 @@
   "scripts": {
     "nvim:generate": "pnpm --filter @woodfish/theme-core run compile && node scripts/generate.mjs",
     "nvim:check": "pnpm --filter @woodfish/theme-core run compile && node scripts/generate.mjs --check",
+    "nvim:smoke": "node scripts/smoke.mjs",
     "nvim:capture": "node scripts/capture.mjs",
     "nvim:compare": "node scripts/compare.mjs",
     "nvim:sync": "node scripts/sync.mjs",
