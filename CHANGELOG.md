@@ -7,21 +7,18 @@
 > 说明：
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
-## [Unreleased]
+
+## [8.1.4] - 2026-11-20
+
+### 改进
+
+- [文档索引](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.1.4/docs/README.md)按 VS Code、Codex 桌面端和 dsh 网页版整理了使用说明；安装包内容和安装方式不因目录调整而改变。
 
 ### 修复
 
-- Codex：输入框光标、吐字光标和光标拖尾只画在文字看得见的地方。草稿长到要滚动时，滚出输入框的那一行上的光标不再画到对话上；回复滚到输入框后面时，吐字光标和拖尾跟着被遮住，输入框里不会多出一根光标（[#37](https://github.com/woodfishhhh/Woodfish-Theme/issues/37)）
-- Codex：切换会话后吐字光标不再串台。Codex 会把最近打开过的会话藏在页面里，吐字特效以前可能挂到藏起来的会话上：正在输出的会话没有吐字光标，切过去的会话最后一条回复上却冒出光标。现在只认屏幕上的会话，离开时立即清掉，回到还在输出的会话要等新字出来才显示光标（[#37](https://github.com/woodfishhhh/Woodfish-Theme/issues/37)）
-
-
-### 优化
-
-- 📦 **精简 VSIX** - 仓库预览图继续用于 GitHub 和 Marketplace 展示，README 显式使用远程链接且资源不再重复写入扩展安装包；新增包体预算和运行所需文件检查。
-- ⚡ **运行时资源缓存** - 同一扩展上下文内复用静态主题元数据与 CSS，减少重复同步时的文件读取。
-- 🛡️ **CSS 边界加固** - 拒绝通过注释或 CSS 转义混淆的外部资源加载与样式边界注入。
-- 🧹 **跨平台质量门** - 统一 LF 行尾，并确保发布失败会正确返回非零状态。
-- 🔧 **开发工具链** - 在现有主版本范围内更新 VSCE、ESLint、Prettier 与测试工具，并让 VS Code 类型定义和最低兼容版本保持一致。
+- VS Code：滚动编辑器时，固定在顶部的代码行也会保留正文的渐变和发光（[#35](https://github.com/woodfishhhh/Woodfish-Theme/issues/35)、[#36](https://github.com/woodfishhhh/Woodfish-Theme/pull/36)）。
+- Codex：滚动长草稿或回复时，输入光标、吐字光标和拖尾只出现在可见文字处。切换对话后，上一段回复的吐字光标不会出现在新对话里；切回窗口时，输入光标会立即恢复，无需再敲一个字（[#37](https://github.com/woodfishhhh/Woodfish-Theme/issues/37)）。
+- Codex：开启毛玻璃后，悬浮卡仍会贴着触发它的控件打开（[#38](https://github.com/woodfishhhh/Woodfish-Theme/issues/38)）。
 
 ## [8.1.3] - 2026-11-19
 
