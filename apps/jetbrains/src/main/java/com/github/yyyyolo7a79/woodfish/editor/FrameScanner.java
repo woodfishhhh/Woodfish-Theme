@@ -1,0 +1,542 @@
+package com.github.yyyyolo7a79.woodfish.editor;
+
+import com.github.yyyyolo7a79.woodfish.core.color.TextClassifier;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.FoldRegion;
+import com.intellij.openapi.editor.Inlay;
+import com.intellij.openapi.editor.VisualPosition;
+import com.intellij.openapi.editor.colors.FontPreferences;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.ex.FoldingModelEx;
+import com.intellij.openapi.editor.impl.ComplementaryFontsRegistry;
+import com.intellij.openapi.editor.impl.FontFallbackIterator;
+import com.intellij.openapi.editor.impl.FontInfo;
+import com.intellij.util.DocumentUtil;
+import com.intellij.util.text.CharArrayUtil;
+import org.jetbrains.annotations.NotNull;
+
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.text.Bidi;
+import java.util.Arrays;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 把 clip 覆盖的视觉行扫描成 {@link PaintFrame}：每段文字的最终颜色、字体、x 坐标与跳过规则。
+ *
+ * <p>正确性要点（对照 243 的 EditorPainter / LineLayout / IterationState）：
+ * <ul>
+ *   <li>颜色：见 {@link TokenRunCollector} / {@link RunMerger}。高亮器的查询范围按平台为每个视觉行新建
+ *       IterationState 的方式划分：软换行续行从前一个码点开始，折叠区之后从折叠终点开始</li>
+ *   <li>字体：与 LineLayout 一样用 {@link FontFallbackIterator}（配色方案的字体偏好 + 字体样式 +
+ *       绘制用的 FontRenderContext），CJK 等由回退字体显示的字符也拿到与编辑器相同的 FontInfo。
+ *       每个 piece 另记 {@code pieceNativeRisk}：LCD 抗锯齿下回退字体与系统字体由原生光栅化，
+ *       插件不能用灰度缓存重画它们（见 {@link NativeGlyphs}），渲染器据此改走逐字纯色 / 逐字定位</li>
+ *   <li>x 坐标：一律取编辑器的 {@code offsetToPoint2D(offset, true, false)}，leanForward = true 落在
+ *       同一偏移处 inline inlay 的右侧（即该字符真正的起点），beforeSoftWrap = false 落在软换行后的新行上；
+ *       inlay 所在偏移处把 token 切开，片段内部的字形位置交给与编辑器相同的排版，保证逐像素重合。
+ *       piece 内逐字的位置照 SimpleTextFragment 累加 {@code charWidth2D}，记在 {@code PaintFrame.charX}；
+ *       字符网格模式（{@link EditorGrid}，如含中文的 Markdown 表格）下改按格宽累加，字宽与格宽不符的字在格子里居中</li>
+ *   <li>y：行顶来自 {@code visualLineToY}（已计入上方的 block inlay），基线 = 行顶 + {@code getAscent()}，
+ *       与 EditorPainter 画字用的 {@code y + myAscent} 相同</li>
+ * </ul>
+ *
+ * <p>跳过而不是画错：折叠区与占位符、空白与 Tab、控制 / 格式字符、代理对（emoji 等）、需要双向排版的
+ * 行（从右到左文字）。超长行只扫 clip 左右附近的一段，避免逐片段换算坐标的代价随行长平方增长。
+ *
+ * <p>只在 EDT 的绘制过程中使用。
+ */
+final class FrameScanner {
+
+    /** 单帧最多处理的视觉行：截图类插件可能用超高 clip 绘制整篇文档 */
+    static final int MAX_LINES = 400;
+    /** 单帧最多的绘制单元，防止病态文件（超长压缩行）拖慢 EDT */
+    static final int MAX_PIECES = 20_000;
+    /** 超过这个长度的视觉行只扫描 clip 水平范围附近 */
+    static final int LONG_LINE = 512;
+
+    private final EditorEx editor;
+    private final PaintFrame frame = new PaintFrame();
+    private final TokenRunCollector collector = new TokenRunCollector();
+    private final RunMerger.Runs runs = new RunMerger.Runs();
+    private final FontFallbackIterator fallback = new FontFallbackIterator();
+    private final CharSlice slice = new CharSlice();
+    private final FontInfo[] primaryFonts = new FontInfo[4];
+
+    // ===== 每帧临时状态 =====
+    private FontRenderContext frc;
+    private Object textAntialiasing;
+    private FontPreferences preferences;
+    /** 编辑器的字符网格；null = 不在网格模式 */
+    private EditorGrid grid;
+    private int foldCount;
+    private int[] foldStart = new int[16];
+    private int[] foldEnd = new int[16];
+    private int foldCursor;
+    private int inlayCount;
+    private int[] inlayOffsets = new int[16];
+
+    // ===== 跨帧缓存：字体能否用灰度缓存原样重画（FRC 变化时作废） =====
+    private static final int MAX_FONT_CHECKS = 256;
+    private final Map<java.awt.Font, Boolean> grayscaleSafe = new IdentityHashMap<>();
+    private FontRenderContext lastFrc;
+    private FontRenderContext probeContext;
+
+    // ===== 每行临时状态 =====
+    private int lineTop;
+    private int windowStart;
+    private int windowEnd;
+
+    FrameScanner(@NotNull EditorEx editor) {
+        this.editor = editor;
+    }
+
+    /**
+     * 扫描 clip 上下各外扩 {@code padUser} 的视觉行；同一绘制会话内重复调用直接返回上次的结果。
+     *
+     * @param selection 是否收集选区（只有配色方案定义了选区前景色时，渐变才需要跳过选中文字）
+     */
+    PaintFrame scan(@NotNull Graphics2D g, @NotNull Rectangle clip, int padUser, boolean selection) {
+        if (frame.isSession(g, clip, padUser, selection)) {
+            return frame;
+        }
+        frame.begin(g, clip, padUser, selection);
+        try {
+            fill(g, clip, padUser, selection);
+        } catch (RuntimeException | Error e) {
+            frame.end(); // 半成品不能留给同一会话里的另一个渲染器复用
+            throw e;
+        } finally {
+            collector.release();
+            Arrays.fill(primaryFonts, null);
+            frc = null;
+            textAntialiasing = null;
+            preferences = null;
+            grid = null;
+        }
+        return frame;
+    }
+
+    /** 本次绘制会话结束：下一次调用 scan 必定重新扫描，也放开对 Graphics 的引用 */
+    void endSession() {
+        frame.end();
+    }
+
+    void dispose() {
+        frame.clearAll();
+        collector.release();
+        grayscaleSafe.clear();
+        lastFrc = null;
+        probeContext = null;
+    }
+
+    private void fill(Graphics2D g, Rectangle clip, int padUser, boolean selection) {
+        Document document = editor.getDocument();
+        int length = document.getTextLength();
+        frame.lineHeight = editor.getLineHeight();
+        frame.ascent = editor.getAscent();
+        if (length == 0) {
+            return;
+        }
+
+        int yFrom = Math.max(0, clip.y - padUser);
+        int yTo = clip.y + clip.height + padUser;
+        int lastLine = editor.offsetToVisualLine(length, false);
+        int first = editor.yToVisualLine(yFrom);
+        int last = Math.min(lastLine, editor.yToVisualLine(Math.max(yFrom, yTo - 1)));
+        if (first > last) {
+            return;
+        }
+        last = Math.min(last, first + MAX_LINES - 1);
+
+        int rangeStart = visualLineStart(first);
+        int rangeEnd = last < lastLine ? visualLineStart(last + 1) : length;
+        if (rangeEnd <= rangeStart) {
+            return;
+        }
+
+        frame.setText(rangeStart, rangeEnd - rangeStart);
+        CharArrayUtil.getChars(document.getImmutableCharSequence(), frame.chars, rangeStart, 0, rangeEnd - rangeStart);
+        frc = g.getFontRenderContext();
+        // 取 FRC 里已解析的值：Graphics 上的提示可能是 DEFAULT（随 KEY_ANTIALIASING），FRC 给出实际生效的模式
+        textAntialiasing = frc.getAntiAliasingHint();
+        updateProbeContext();
+        preferences = editor.getColorsScheme().getFontPreferences();
+        grid = EditorGrid.of(editor);
+        frame.gridUnit = grid != null ? grid.unit : 0;
+        collector.prepare(editor, rangeStart > 0 ? DocumentUtil.getPreviousCodePointOffset(document, rangeStart) : 0,
+                rangeStart, rangeEnd);
+        collectFolds(rangeStart, rangeEnd);
+        collectInlays(rangeStart, rangeEnd);
+        if (selection) {
+            collectSelection(rangeStart, rangeEnd);
+        }
+
+        int lineStart = rangeStart;
+        for (int visualLine = first; visualLine <= last; visualLine++) {
+            int lineEnd = visualLine < last ? visualLineStart(visualLine + 1) : rangeEnd;
+            int top = editor.visualLineToY(visualLine);
+            int line = frame.addLine(top, lineStart);
+            if (lineEnd > lineStart && frame.pieceCount < MAX_PIECES) {
+                scanLine(top, lineStart, lineEnd, clip, padUser);
+            }
+            frame.endLine(line);
+            lineStart = lineEnd;
+        }
+    }
+
+    private int visualLineStart(int visualLine) {
+        return editor.visualPositionToOffset(new VisualPosition(visualLine, 0));
+    }
+
+    // ==================== 帧级输入 ====================
+
+    private void collectFolds(int rangeStart, int rangeEnd) {
+        foldCount = 0;
+        foldCursor = 0;
+        FoldingModelEx folding = editor.getFoldingModel();
+        FoldRegion[] collapsed = folding.fetchTopLevel(); // 顶层折叠区，按偏移排序
+        if (collapsed == null) {
+            return;
+        }
+        int from = Math.max(0, folding.getLastCollapsedRegionBefore(rangeStart) + 1);
+        for (int i = from; i < collapsed.length; i++) {
+            FoldRegion region = collapsed[i];
+            if (!region.isValid() || region.isExpanded()) {
+                continue;
+            }
+            if (region.getStartOffset() >= rangeEnd) {
+                break;
+            }
+            if (region.getEndOffset() <= rangeStart) {
+                continue;
+            }
+            if (foldCount == foldStart.length) {
+                foldStart = Arrays.copyOf(foldStart, foldCount * 2);
+                foldEnd = Arrays.copyOf(foldEnd, foldCount * 2);
+            }
+            foldStart[foldCount] = region.getStartOffset();
+            foldEnd[foldCount] = region.getEndOffset();
+            foldCount++;
+        }
+    }
+
+    private void collectInlays(int rangeStart, int rangeEnd) {
+        inlayCount = 0;
+        List<Inlay<?>> inlays = editor.getInlayModel().getInlineElementsInRange(rangeStart, rangeEnd);
+        for (Inlay<?> inlay : inlays) {
+            if (inlayCount == inlayOffsets.length) {
+                inlayOffsets = Arrays.copyOf(inlayOffsets, inlayCount * 2);
+            }
+            inlayOffsets[inlayCount++] = inlay.getOffset();
+        }
+        Arrays.sort(inlayOffsets, 0, inlayCount);
+    }
+
+    private void collectSelection(int rangeStart, int rangeEnd) {
+        int[] starts = editor.getSelectionModel().getBlockSelectionStarts();
+        int[] ends = editor.getSelectionModel().getBlockSelectionEnds();
+        int n = Math.min(starts.length, ends.length);
+        long[] packed = new long[n];
+        int count = 0;
+        for (int i = 0; i < n; i++) {
+            if (ends[i] > starts[i] && ends[i] > rangeStart && starts[i] < rangeEnd) {
+                packed[count++] = (long) starts[i] << 32 | ends[i];
+            }
+        }
+        Arrays.sort(packed, 0, count);
+        for (int i = 0; i < count; i++) {
+            frame.addSelection((int) (packed[i] >>> 32), (int) packed[i]);
+        }
+    }
+
+    // ==================== 行 ====================
+
+    private void scanLine(int top, int lineStart, int lineEnd, Rectangle clip, int padUser) {
+        int base = frame.textBase;
+        if (Bidi.requiresBidi(frame.chars, lineStart - base, lineEnd - base)) {
+            return; // 从右到左文字的视觉顺序由编辑器的双向排版决定，逐段重画无法保证重合
+        }
+        lineTop = top;
+        windowStart = lineStart;
+        windowEnd = lineEnd;
+        if (lineEnd - lineStart > LONG_LINE) {
+            windowStart = Math.max(lineStart, offsetAtX(clip.x - padUser, top) - 1);
+            windowEnd = Math.min(lineEnd, offsetAtX(clip.x + clip.width + padUser, top) + 2);
+        }
+
+        // 平台为软换行续行新建 IterationState 时从前一个码点开始查询高亮器，这里保持一致
+        boolean softWrapped = lineStart > 0 && editor.getSoftWrapModel().getSoftWrap(lineStart) != null;
+        int queryStart = softWrapped ? DocumentUtil.getPreviousCodePointOffset(editor.getDocument(), lineStart) : lineStart;
+        int applyStart = lineStart;
+
+        while (foldCursor < foldCount && foldEnd[foldCursor] <= lineStart) {
+            foldCursor++;
+        }
+        int fold = foldCursor;
+        while (applyStart < lineEnd) {
+            boolean hasFold = fold < foldCount && foldStart[fold] < lineEnd;
+            int applyEnd = hasFold ? Math.max(applyStart, foldStart[fold]) : lineEnd;
+            if (applyEnd > applyStart) {
+                collector.collect(queryStart, lineEnd, applyStart, applyEnd, runs);
+                for (int r = 0; r < runs.count && frame.pieceCount < MAX_PIECES; r++) {
+                    splitAtInlays(runs.start[r], runs.end[r], runs.foreground[r], runs.font[r]);
+                }
+            }
+            if (!hasFold) {
+                break;
+            }
+            // 折叠区之后平台新建 IterationState，从折叠终点开始查询
+            applyStart = Math.max(applyStart, foldEnd[fold]);
+            queryStart = applyStart;
+            fold++;
+        }
+    }
+
+    private int offsetAtX(int x, int y) {
+        return editor.visualPositionToOffset(editor.xyToVisualPosition(new Point2D.Double(Math.max(0, x), y)));
+    }
+
+    /** inline inlay 把 token 切开：原版里注入文字同样会把 span 一分为二 */
+    private void splitAtInlays(int start, int end, java.awt.Color color, int fontType) {
+        int i = Arrays.binarySearch(inlayOffsets, 0, inlayCount, start + 1);
+        if (i < 0) {
+            i = -i - 1;
+        }
+        int s = start;
+        while (i < inlayCount && inlayOffsets[i] < end) {
+            if (inlayOffsets[i] > s) {
+                addToken(s, inlayOffsets[i], color, fontType);
+                s = inlayOffsets[i];
+            }
+            i++;
+        }
+        addToken(s, end, color, fontType);
+    }
+
+    // ==================== token 与 piece ====================
+
+    private void addToken(int start, int end, java.awt.Color color, int fontType) {
+        int base = frame.textBase;
+        char[] chars = frame.chars;
+        int a = start;
+        int b = end;
+        while (a < b && !isDrawable(chars[a - base])) {
+            a++;
+        }
+        while (b > a && !isDrawable(chars[b - 1 - base])) {
+            b--;
+        }
+        if (a >= b || b <= windowStart || a >= windowEnd) {
+            return;
+        }
+
+        FontInfo primary = primaryFont(fontType);
+        FontMetrics metrics = primary.fontMetrics();
+        float em = primary.getSize2D();
+        float baseline = lineTop + frame.ascent;
+        boolean punctuation = TextClassifier.isPunctuationOnly(slice.set(chars, a - base, b - base));
+        int token = frame.addToken(color, punctuation,
+                baseline - metrics.getAscent() - 0.08f * em, baseline + metrics.getDescent() + 0.08f * em, em);
+
+        int from = Math.max(a, windowStart);
+        int to = Math.min(b, windowEnd);
+        int i = from;
+        while (i < to && frame.pieceCount < MAX_PIECES) {
+            while (i < to && !isDrawable(chars[i - base])) {
+                i += Character.isHighSurrogate(chars[i - base]) ? 2 : 1;
+            }
+            int word = i;
+            while (i < to && isDrawable(chars[i - base])) {
+                i++;
+            }
+            if (i > word) {
+                addWord(word, Math.min(i, to), fontType, primary);
+            }
+        }
+
+        int firstPiece = frame.tokenPieceFrom[token];
+        if (firstPiece == frame.pieceCount) {
+            frame.endToken(token, 0, 0);
+            return;
+        }
+        int lastPiece = frame.pieceCount - 1;
+        // 被水平窗口截断的 token 用编辑器换算真实边界，渐变几何才不会随横向滚动漂移
+        float x0 = a < from ? xOf(a, true) : frame.pieceX[firstPiece];
+        float x1 = b > to ? xOf(b, false) : frame.pieceX[lastPiece] + frame.pieceWidth[lastPiece];
+        frame.endToken(token, x0, x1);
+    }
+
+    private void addWord(int start, int end, int fontType, FontInfo primary) {
+        int base = frame.textBase;
+        char[] chars = frame.chars;
+        boolean ascii = true;
+        for (int i = start; i < end; i++) {
+            if (chars[i - base] >= 0x80) {
+                ascii = false;
+                break;
+            }
+        }
+        if (ascii) {
+            // 码点 < 128 时 ComplementaryFontsRegistry 总是返回首选字体，省去逐字符查询
+            addPiece(start, end, primary);
+            return;
+        }
+        fallback.setPreferredFonts(preferences).setFontStyle(fontType).setFontRenderContext(frc);
+        fallback.start(chars, start - base, end - base);
+        while (!fallback.atEnd()) {
+            addPiece(base + fallback.getStart(), base + fallback.getEnd(), fallback.getFontInfo());
+            fallback.advance();
+        }
+    }
+
+    private void addPiece(int start, int end, FontInfo font) {
+        Point2D point = editor.offsetToPoint2D(start, true, false);
+        if ((int) point.getY() != lineTop) {
+            return; // 坐标换算落到了别的视觉行（不应发生），宁可不画
+        }
+        int base = frame.textBase;
+        float x = (float) point.getX();
+        float width = 0;
+        boolean aligned = false;
+        for (int i = start; i < end; i++) {
+            char c = frame.chars[i - base];
+            float advance = font.charWidth2D(c);
+            if (grid == null) {
+                // 与 SimpleTextFragment 的 myCharPositions 同样从片段起点累加：编辑器逐字的位置
+                frame.charX[i - base] = x + width;
+                width += advance;
+                continue;
+            }
+            // 字符网格：与 TextFragment.adjustedWidth 相同，字宽与格宽差得太多就占满格子，字形在格子里居中
+            float cell = grid.cellWidth(c);
+            frame.charCell[i - base] = cell;
+            if (Math.abs(advance - cell) < TextPieces.GRID_TOLERANCE) {
+                frame.charX[i - base] = x + width;
+                width += advance;
+            } else {
+                frame.charX[i - base] = x + width + (cell - advance) / 2;
+                width += cell;
+                aligned = true;
+            }
+        }
+        int piece = frame.addPiece(start - base, end - base, x, width,
+                frame.fontIndex(font.getFont()), frame.selectionState(start, end));
+        frame.pieceNativeRisk[piece] = nativeRisk(frame.pieceCjk[piece], font.getFont());
+        // 需要复杂排版的 piece 由 TextPieces.alignToGrid 移动整段的字形位置，不逐字画
+        frame.pieceGridAligned[piece] = aligned
+                && !TextPieces.needsLayout(font.getFont(), frame.chars, start - base, end - base);
+    }
+
+    /**
+     * 这个 piece 在编辑器的抗锯齿设置下能否用灰度字形缓存原样重画（见 {@link NativeGlyphs}）。
+     * 编辑器本身就用灰度时恒为安全；中日韩恒有风险；其余按字体判定一次后缓存到 FRC 变化为止。
+     */
+    private boolean nativeRisk(boolean cjk, java.awt.Font font) {
+        if (NativeGlyphs.isGrayscale(textAntialiasing)) {
+            return false;
+        }
+        if (cjk || probeContext == null) {
+            return true;
+        }
+        Boolean safe = grayscaleSafe.get(font);
+        if (safe == null) {
+            if (grayscaleSafe.size() >= MAX_FONT_CHECKS) {
+                grayscaleSafe.clear();
+            }
+            safe = NativeGlyphs.grayscaleMatches(font, probeContext);
+            grayscaleSafe.put(font, safe);
+        }
+        return !safe;
+    }
+
+    /**
+     * 本帧用于判定字体的 FRC：画字 FRC 去掉平移（编辑器滚动后带平移，步进与平移无关）。
+     * 只在画字 FRC 变化时重建，并作废按字体缓存的判定结果。
+     */
+    private void updateProbeContext() {
+        if (frc.equals(lastFrc)) {
+            return;
+        }
+        lastFrc = frc;
+        grayscaleSafe.clear();
+        AffineTransform t = frc.getTransform();
+        try {
+            probeContext = new FontRenderContext(new AffineTransform(t.getScaleX(), t.getShearY(),
+                    t.getShearX(), t.getScaleY(), 0, 0), textAntialiasing, frc.getFractionalMetricsHint());
+        } catch (IllegalArgumentException e) {
+            probeContext = null; // 非标准的抗锯齿提示：一律按有风险处理
+        }
+    }
+
+    private float xOf(int offset, boolean leanForward) {
+        return (float) editor.offsetToPoint2D(offset, leanForward, !leanForward).getX();
+    }
+
+    private FontInfo primaryFont(int fontType) {
+        int style = fontType & 3;
+        FontInfo info = primaryFonts[style];
+        if (info == null) {
+            info = ComplementaryFontsRegistry.getFontAbleToDisplay('a', style, preferences, frc);
+            primaryFonts[style] = info;
+        }
+        return info;
+    }
+
+    /**
+     * 我们会重画的字符：排除空白、控制字符、格式字符（零宽空格、BOM、ZWJ……编辑器可能把它们画成
+     * 特殊符号）与代理对（emoji 等多为彩色字形，叠渐变没有意义）。
+     */
+    static boolean isDrawable(char c) {
+        if (c <= ' ' || c == '\u007F') {
+            return false;
+        }
+        if (c < 0x80) {
+            return true;
+        }
+        if (c <= '\u009F' || Character.isSurrogate(c) || Character.isSpaceChar(c)) {
+            return false;
+        }
+        return Character.getType(c) != Character.FORMAT;
+    }
+
+    /** 帧缓冲上的轻量 CharSequence 视图，给 TextClassifier 用，不分配对象 */
+    private static final class CharSlice implements CharSequence {
+        private char[] chars;
+        private int offset;
+        private int length;
+
+        CharSlice set(char[] chars, int from, int to) {
+            this.chars = chars;
+            this.offset = from;
+            this.length = to - from;
+            return this;
+        }
+
+        @Override
+        public int length() {
+            return length;
+        }
+
+        @Override
+        public char charAt(int index) {
+            return chars[offset + index];
+        }
+
+        @Override
+        public @NotNull CharSequence subSequence(int start, int end) {
+            return new String(chars, offset + start, end - start);
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return new String(chars, offset, length);
+        }
+    }
+}
