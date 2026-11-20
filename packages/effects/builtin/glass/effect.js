@@ -39,8 +39,9 @@ module.exports = function glass(ctx) {
     if (p.animations) {
       const curve = 'cubic-bezier(0.22, 1, 0.36, 1)';
       const drop =
-        '[role="menu"][data-state="open"], [role="listbox"][data-state="open"], [data-slot="popover-content"][data-state="open"]';
-      const zoom = '[role="dialog"][data-state="open"]';
+        '[role="menu"][data-state="open"]:not([data-anchor-positioning="native"]), [role="listbox"][data-state="open"]:not([data-anchor-positioning="native"]), [data-slot="popover-content"][data-state="open"]:not([data-anchor-positioning="native"])';
+      const zoom =
+        '[role="dialog"][data-state="open"]:not([data-anchor-positioning="native"]), [data-anchor-positioning="native"] > *[data-state="open"]';
       parts.push(
         '@keyframes woodfish-glass-drop { from { opacity: 0; transform: translateY(-6px) scale(0.985); } }',
         '@keyframes woodfish-glass-zoom { from { opacity: 0; transform: scale(0.97); } }',

@@ -295,6 +295,18 @@ describe('buildCodexCss', () => {
   });
 });
 
+describe('Codex floating layer selectors', () => {
+  it('paints native anchor surfaces without styling their positioning container', () => {
+    const selectors = CODEX_SELECTORS.floatingLayer.selectors;
+    expect(selectors).toContain('[data-anchor-positioning="native"] > *');
+    expect(selectors).toContain('[role="dialog"]:not([data-anchor-positioning="native"])');
+    expect(selectors).toContain(
+      '[data-slot="popover-content"]:not([data-anchor-positioning="native"])'
+    );
+    expect(selectors).not.toContain('[role="dialog"]');
+  });
+});
+
 describe('paletteToChromeTheme', () => {
   it('offers every Woodfish theme the VS Code extension ships', () => {
     expect(CODEX_PALETTE_SLUGS).toEqual(WOODFISH_PALETTES.map((palette) => palette.slug));

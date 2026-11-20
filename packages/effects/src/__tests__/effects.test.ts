@@ -304,3 +304,43 @@ describe('the shipped effects', () => {
     expect(current).toContain('`--woodfish-caret-trail-color`');
   });
 });
+
+describe('glass effect', () => {
+  it('keeps native anchor containers free of glass and entry transforms', () => {
+    const source = builtinEffectFiles()['glass/effect.js'];
+    const module: { exports: unknown } = { exports: {} };
+    vm.runInNewContext(source, { module, exports: module.exports });
+    const factory = module.exports as (ctx: Record<string, unknown>) => { dispose: () => void };
+    const styles: string[] = [];
+    const instance = factory({
+      params: {
+        mode: 'acrylic',
+        blur: 24,
+        saturate: 150,
+        opacity: 0.4,
+        noise: 0.02,
+        borderRadius: 0,
+        animations: true,
+        reveal: false,
+      },
+      selectors: {
+        floatingLayer: '[data-anchor-positioning="native"] > *',
+        composerMenuHeader: '[data-composer-menu-header]',
+        revealTarget: '[data-reveal-target]',
+      },
+      style: (css: string) => styles.push(css),
+      lib: {
+        acrylicFilterId: 'woodfish-acrylic',
+        noiseDataUri: () => 'none',
+        mountAcrylicFilter: () => () => undefined,
+        startReveal: () => () => undefined,
+      },
+    });
+
+    expect(styles[0]).toContain('[data-anchor-positioning="native"] > *');
+    expect(styles[0]).toContain(':not([data-anchor-positioning="native"])');
+    expect(styles[0]).toContain('[data-anchor-positioning="native"] > *[data-state="open"]');
+    expect(styles[0]).not.toContain('[data-anchor-positioning="native"] {');
+    instance.dispose();
+  });
+});

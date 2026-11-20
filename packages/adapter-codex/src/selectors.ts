@@ -149,10 +149,11 @@ export const CODEX_SELECTORS = {
   floatingLayer: {
     selectors: [
       '[data-radix-popper-content-wrapper] > *',
-      '[data-slot="popover-content"]',
-      '[role="menu"]',
-      '[role="listbox"]',
-      '[role="dialog"]',
+      '[data-slot="popover-content"]:not([data-anchor-positioning="native"])',
+      '[data-anchor-positioning="native"] > *',
+      '[role="menu"]:not([data-anchor-positioning="native"])',
+      '[role="listbox"]:not([data-anchor-positioning="native"])',
+      '[role="dialog"]:not([data-anchor-positioning="native"])',
       // Sonner toasts (notifications in the corner).
       '[data-sonner-toast]',
       // The composer's / command and @ mention menu.
