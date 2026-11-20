@@ -1,0 +1,21 @@
+{
+  "name": "@woodfish/neovim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generated Woodfish colorschemes for Neovim.",
+  "license": "MIT",
+  "scripts": {
+    "nvim:generate": "pnpm --filter @woodfish/theme-core run compile && node scripts/generate.mjs",
+    "nvim:check": "pnpm --filter @woodfish/theme-core run compile && node scripts/generate.mjs --check",
+    "nvim:capture": "node scripts/capture.mjs",
+    "nvim:compare": "node scripts/compare.mjs",
+    "nvim:sync": "node scripts/sync.mjs",
+    "test": "pnpm --filter @woodfish/theme-core run compile && node scripts/test.mjs"
+  },
+  "dependencies": {
+    "@woodfish/theme-core": "workspace:*"
+  },
+  "devDependencies": {
+    "shiki": "4.6.0"
+  }
+}

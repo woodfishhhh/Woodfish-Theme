@@ -1,0 +1,31 @@
+{
+  "queries": {
+    "url": "https://github.com/nvim-treesitter/nvim-treesitter",
+    "revision": "37e52c733ada9d8d544d53a763140ef1ba404353",
+    "folders": ["typescript", "ecma", "python", "go", "rust", "json"]
+  },
+  "grammars": {
+    "typescript": {
+      "url": "https://github.com/tree-sitter/tree-sitter-typescript",
+      "revision": "75b3874edb2dc714fb1fd77a32013d0f8699989f",
+      "location": "typescript"
+    },
+    "python": {
+      "url": "https://github.com/tree-sitter/tree-sitter-python",
+      "revision": "v0.25.0"
+    },
+    "go": {
+      "url": "https://github.com/tree-sitter/tree-sitter-go",
+      "revision": "2346a3ab1bb3857b48b29d779a1ef9799a248cd7"
+    },
+    "rust": {
+      "url": "https://github.com/tree-sitter/tree-sitter-rust",
+      "revision": "77a3747266f4d621d0757825e6b11edcbf991ca5"
+    },
+    "json": {
+      "url": "https://github.com/tree-sitter/tree-sitter-json",
+      "revision": "254c42a6476413b776221e03982ac8ae159eeb72"
+    }
+  },
+  "bundledWithNeovim": ["lua", "markdown", "markdown_inline"]
+}

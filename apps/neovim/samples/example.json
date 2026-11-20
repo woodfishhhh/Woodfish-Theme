@@ -1,0 +1,103 @@
+{
+  // Comparison sample: an editor settings file, a build matrix and some API data.
+  "$schema": "https://json.schemastore.org/package.json",
+  "editor.fontFamily": "'Cascadia Code', Consolas, monospace",
+  "editor.fontSize": 14,
+  "editor.lineHeight": 1.5,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": true,
+  "editor.rulers": [80, 100, 120],
+  "editor.minimap.enabled": false,
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/dist": false
+  },
+  "files.associations": { "*.json5": "jsonc", "Dockerfile.*": "dockerfile" },
+  "workbench.colorTheme": "Woodfish Dark",
+  "terminal.integrated.env.linux": { "EDITOR": "nvim", "LANG": "en_US.UTF-8" },
+  "search.exclude": null,
+  "build": {
+    "matrix": [
+      { "os": "ubuntu-latest", "node": 20, "experimental": false },
+      { "os": "windows-latest", "node": 22, "experimental": false },
+      { "os": "macos-14", "node": 22, "experimental": true }
+    ],
+    "steps": [
+      "checkout",
+      "install",
+      "lint",
+      "test --coverage",
+      "package"
+    ],
+    "timeout": 600,
+    "cache": { "key": "pnpm-${{ hashFiles('pnpm-lock.yaml') }}", "paths": ["~/.pnpm-store"] }
+  },
+  "response": {
+    "status": 200,
+    "ok": true,
+    "requestId": "7f9c24e8-3b1a-4d6e-9d0a-5b8a1f2c3d4e",
+    "elapsed": 12.75,
+    "data": {
+      "users": [
+        {
+          "id": 1,
+          "name": "Ada Lovelace",
+          "email": "ada@example.com",
+          "roles": ["admin", "author"],
+          "profile": { "bio": "Wrote the first \"program\".\nLoved math.", "age": 36, "website": null },
+          "lastLogin": "2026-11-20T09:30:00Z",
+          "score": 98.6
+        },
+        {
+          "id": 2,
+          "name": "Grace Hopper",
+          "email": "grace@example.com",
+          "roles": ["author"],
+          "profile": { "bio": "Compiler pioneer – and a rear admiral.", "age": 85, "website": "https://example.org" },
+          "lastLogin": null,
+          "score": 99.1
+        },
+        {
+          "id": 3,
+          "name": "Linus",
+          "email": "linus@example.com",
+          "roles": [],
+          "profile": { "bio": "", "age": 55, "website": "https://example.net/~linus" },
+          "lastLogin": "2026-11-18T22:05:41Z",
+          "score": -0.5
+        }
+      ],
+      "page": { "number": 1, "size": 3, "total": 120, "hasMore": true },
+      "links": {
+        "self": "https://api.example.com/users?page=1",
+        "next": "https://api.example.com/users?page=2",
+        "prev": null
+      }
+    },
+    "warnings": ["deprecated field: score", "rate limit at 80%"],
+    "errors": []
+  },
+  "pagination": {
+    "defaults": { "size": 25, "max": 100 },
+    "cursors": ["eyJvZmZzZXQiOjB9", "eyJvZmZzZXQiOjI1fQ==", null],
+    "sort": [
+      { "field": "name", "order": "asc" },
+      { "field": "score", "order": "desc" }
+    ]
+  },
+  "features": {
+    "darkMode": true,
+    "betaBanner": false,
+    "maxUploadMb": 25,
+    "allowedTypes": ["image/png", "image/jpeg", "application/pdf"],
+    "rollout": { "percent": 12.5, "groups": ["staff", "beta-testers"], "since": "2026-10-01" }
+  },
+  "numbers": [0, -1, 3.14159, 2e10, 1.5E-3, 123456789012, -0.0],
+  "booleans": [true, false, true],
+  "nested": [[["deep", 1], ["deeper", 2]], [[], {}]],
+  "escapes": "tab\t newline\n quote\" slash\\ solidus\/ bell\b unicodeé",
+  "emptyString": "",
+  "version": "1.0.0"
+}

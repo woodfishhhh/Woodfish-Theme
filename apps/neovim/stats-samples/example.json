@@ -1,0 +1,110 @@
+{
+  // Statistics corpus: a package manifest, a compiler config and a small data set.
+  "name": "@example/inventory-service",
+  "version": "2.4.1",
+  "private": false,
+  "description": "Inventory service with \"quoted\" text, tabs\tand unicode é escapes",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": { "node": ">=20.11.0", "pnpm": "^9.0.0" },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/main.ts",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run --coverage",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "keywords": ["inventory", "stock", "warehouse", "api"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/example/inventory-service.git"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "zod": "~3.23.8",
+    "pino": "9.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.2"
+  },
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "sourceMap": false,
+    "paths": {
+      "@/*": ["./src/*"],
+      "#utils/*": ["./src/utils/*"]
+    },
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"],
+  "items": [
+    {
+      "sku": "A-1001",
+      "name": "Widget",
+      "quantity": 42,
+      "price": 2.5,
+      "discount": null,
+      "tags": ["small", "metal"],
+      "active": true,
+      "dimensions": { "width": 1.25, "height": 0.5, "depth": 3e-2 }
+    },
+    {
+      "sku": "B-2002",
+      "name": "Gadget",
+      "quantity": 0,
+      "price": 10,
+      "discount": 0.15,
+      "tags": [],
+      "active": false,
+      "dimensions": { "width": 12, "height": 8, "depth": -1.5E+1 }
+    },
+    {
+      "sku": "C-3003",
+      "name": "Thing with a \\ backslash and a \/ slash",
+      "quantity": 1000000,
+      "price": 0.99,
+      "discount": 0,
+      "tags": ["bulk"],
+      "active": true,
+      "dimensions": null
+    }
+  ],
+  "matrix": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+  "limits": {
+    "maxItems": 1024,
+    "timeoutMs": 30000,
+    "ratio": 0.75,
+    "negative": -42,
+    "exponent": 6.022e23,
+    "empty": {},
+    "list": []
+  },
+  "warehouses": [
+    { "code": "EU-1", "city": "Rotterdam", "capacity": 50000, "open": true },
+    { "code": "US-2", "city": "Reno", "capacity": 120000, "open": true },
+    { "code": "AS-3", "city": "Singapore", "capacity": 80000, "open": false }
+  ],
+  "pricing": {
+    "currency": "EUR",
+    "taxRate": 0.21,
+    "tiers": [
+      { "from": 0, "to": 99, "discount": 0 },
+      { "from": 100, "to": 999, "discount": 0.05 },
+      { "from": 1000, "to": null, "discount": 0.1 }
+    ]
+  },
+  "flags": { "beta": true, "legacy": false, "experimental": null },
+  "locales": ["en", "fr", "de", "ja", "zh-Hans"],
+  "contact": "support@example.com",
+  "homepage": "https://example.com/docs?lang=en#intro"
+}
