@@ -3,13 +3,18 @@
  * （editor.cursorWidth 6、cursorBlinking solid、cursorSmoothCaretAnimation on）。
  * 彩虹来自 Woodfish 的光标样式（themes/shared/cursor-core.css）：一个 900% 高的渐变在光标里
  * 慢慢往上滑，所以颜色一直在变。原生光标没法做渐变，这里把它设成透明，再在宿主报告的
- * 光标位置（ctx.onCaret，来源 user）画一根同样的光标。
+ * 光标位置（ctx.onCaret，来源 user）画一根同样的光标。光标只画在输入框露出文字的范围里
+ * （事件里的 clip），草稿长到要滚动时，滚出去的那一行上的光标也跟着被遮住。
  */
 module.exports = function caret(ctx) {
+  // 铺满窗口的一层，按 clip 裁剪；光标在里面移动，平滑动画不受裁剪范围变化影响。
+  const clip = document.createElement('div');
+  clip.setAttribute('data-woodfish-caret-clip', '');
   const bar = document.createElement('div');
   bar.setAttribute('data-woodfish-caret', '');
   bar.hidden = true;
-  ctx.layer.append(bar);
+  clip.append(bar);
+  ctx.layer.append(clip);
   let last = null;
   let typedAt = 0;
   let cancelSettle = null;
@@ -42,6 +47,10 @@ module.exports = function caret(ctx) {
     ctx.style(`
 ${ctx.selectors.composerEditor} {
   caret-color: transparent !important;
+}
+[data-woodfish-caret-clip] {
+  position: absolute;
+  inset: 0;
 }
 [data-woodfish-caret] {
   position: absolute;
@@ -92,6 +101,13 @@ ${blink || ''}
 
   bar.append(document.createElement('i'));
 
+  /** The rectangle (viewport px) the caret may show in; none means the whole window. */
+  function clipPath(r) {
+    return r
+      ? `polygon(${r.left}px ${r.top}px, ${r.right}px ${r.top}px, ${r.right}px ${r.bottom}px, ${r.left}px ${r.bottom}px)`
+      : '';
+  }
+
   ctx.onInsert((event) => {
     if (event.source === 'user') typedAt = performance.now();
   });
@@ -108,6 +124,7 @@ ${blink || ''}
     const glide =
       last !== null && !ctx.simplified() && (mode === 'on' || (mode === 'explicit' && !typing));
     bar.toggleAttribute('data-glide', glide);
+    clip.style.clipPath = clipPath(caret.clip);
     bar.style.height = `${caret.height}px`;
     bar.style.transform = `translate(${caret.x}px, ${caret.y}px)`;
     bar.hidden = false;
@@ -123,6 +140,6 @@ ${blink || ''}
 
   return {
     update: restyle,
-    dispose: () => bar.remove(),
+    dispose: () => clip.remove(),
   };
 };

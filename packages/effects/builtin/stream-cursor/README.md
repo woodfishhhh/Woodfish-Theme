@@ -1,6 +1,6 @@
 # 吐字光标 `stream-cursor`
 
-Codex 流式输出时，回复末尾跟着一根彩虹光标：随新字往右滑，换行时跳到下一行开头，生成结束就消失、不留任何元素。这是 `docs/playground/streaming-text.html` 里默认方案 #1 的光标部分；身后的单色拖尾是 `caret-trail`，新字淡入是 `text-reveal`，三者可以分开开关。
+Codex 流式输出时，回复末尾跟着一根彩虹光标：随新字往右滑，换行时跳到下一行开头，生成结束就消失、不留任何元素。光标只画在回复露出文字的范围里（事件的 `clip`）：回复滚到输入框后面时，光标和那段字一起被遮住；切到别的会话立即消失，那边有新字出来才出现。这是 `docs/playground/streaming-text.html` 里默认方案 #1 的光标部分；身后的单色拖尾是 `caret-trail`，新字淡入是 `text-reveal`，三者可以分开开关。
 
 光标的长相和 VS Code 里 Woodfish 的光标一样（`themes/shared/cursor-core.css`）：一个 900% 高的渐变在光标里慢慢往上滑，颜色一直在变。
 

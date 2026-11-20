@@ -6,6 +6,7 @@
  * CursorAnimation，MIT 协议，Copyright (c) 2023 Brandon Kirbyson）：一串点首尾相连，
  * 每帧第一个点贴着光标，后面每个点向前一个点挪 42%（横向）和 35%（纵向），画成一条实心
  * 带子，宽 = 光标宽，高 = 光标高。光标停下、带子收拢后停止绘制。
+ * 带子只画在光标所在文字露出来的范围里（事件里的 clip），不会盖到输入框或滚出去的地方。
  */
 module.exports = function caretTrail(ctx) {
   /** One chain per caret: the user's and the AI's streaming end can move at the same time. */
@@ -73,7 +74,15 @@ module.exports = function caretTrail(ctx) {
     for (const trail of trails.values()) {
       if (step(trail)) {
         moving = true;
+        g.save();
+        const r = trail.clip;
+        if (r) {
+          g.beginPath();
+          g.rect(r.left, r.top, r.right - r.left, r.bottom - r.top);
+          g.clip();
+        }
         draw(g, trail);
+        g.restore();
       }
     }
     return moving;
@@ -104,6 +113,7 @@ module.exports = function caretTrail(ctx) {
     trail.head.y = caret.y;
     trail.width = width;
     trail.height = caret.height;
+    trail.clip = caret.clip || null;
     painter.wake();
   });
   ctx.onStreamEnd(() => trails.delete('ai'));

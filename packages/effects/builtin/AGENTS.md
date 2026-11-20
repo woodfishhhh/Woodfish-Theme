@@ -88,8 +88,8 @@ module.exports = function (ctx) {
 | `ctx.host` | `'codex'` 或 `'vscode'` |
 | `ctx.theme()` | `{ mode: 'dark'/'light', stops: 主题渐变色数组, accent, accent2, background, foreground, cursor?: 主题自带的光标色, reply?: 回复正文渐变 }` |
 | `ctx.rainbow` | Woodfish 彩虹（VS Code 光标那套颜色） |
-| `ctx.onInsert(fn)` | **插入了文字**：VS Code 里你打字、Codex 里你打字或 AI 流式吐字都会触发。`fn({ x, y, height, text, source: 'user'/'ai', rate, rects, block, node, start })`，`x`/`y` 是插入末尾在窗口里的位置 |
-| `ctx.onCaret(fn)` | **光标动了**：你的光标，或 AI 吐字的末尾。`fn({ x, y, width, height, source, visible })`，`visible` 为假表示光标没了 |
+| `ctx.onInsert(fn)` | **插入了文字**：VS Code 里你打字、Codex 里你打字或 AI 流式吐字都会触发。`fn({ x, y, height, text, source: 'user'/'ai', rate, rects, block, node, start })`，`x`/`y` 是插入末尾在窗口里的位置。看不见的字（滚出去了、在输入框后面）不发 |
+| `ctx.onCaret(fn)` | **光标动了**：你的光标，或 AI 吐字的末尾。`fn({ x, y, width, height, source, visible, clip })`，`visible` 为假表示光标没了或看不见（滚出输入框、被输入框或菜单挡住）；`clip` 是光标所在文字露出来的范围 `{ left, top, right, bottom }`（窗口坐标），画在光标处的东西只画在它里面，没有 `clip` 就是整个窗口 |
 | `ctx.onStreamEnd(fn)` | AI 这一段回复写完了 |
 | `ctx.onTheme(fn)` | 主题或深浅色变了 |
 | `ctx.painter(fn)` | 在全窗口共用的画布上逐帧画：`fn(g, now, dt)`，`g` 是 Canvas 2D，坐标就是窗口坐标；返回 `false` 表示画完了，停帧；之后 `painter.wake()` 再开始 |

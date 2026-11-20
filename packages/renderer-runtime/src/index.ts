@@ -61,6 +61,7 @@ export {
 export { startEffectHost } from './effectHost';
 export type {
   CaretEvent,
+  ClipRect,
   EffectContext,
   EffectFactory,
   EffectHostApi,
@@ -74,5 +75,5 @@ export type {
   Painter,
   StreamEndEvent,
 } from './effectHost';
-export { selectionCaretRect, watchEditableTyping, watchStream } from './textEvents';
-export type { StreamWatcher, TextEventSink } from './textEvents';
+export { cutArea, selectionCaretRect, watchEditableTyping, watchStream } from './textEvents';
+export type { StreamOptions, StreamWatcher, TextEventSink } from './textEvents';

@@ -13,7 +13,7 @@
 
 光标的长相和 VS Code 里 Woodfish 的光标一样（`themes/shared/cursor-core.css`）：一个 900% 高的渐变在光标里慢慢往上滑。颜色“跟 VS Code 一样”：主题自带光标色（Dracula、Neon 等）就用主题的，没有的（Woodfish Dark）用 Woodfish 彩虹。
 
-原生光标没法画渐变，所以这里把输入框的 `caret-color` 设成透明，在宿主报告的光标位置（`ctx.onCaret`，来源 `user`）画一根 div。关掉这个效果，原生光标立刻回来。
+原生光标没法画渐变，所以这里把输入框的 `caret-color` 设成透明，在宿主报告的光标位置（`ctx.onCaret`，来源 `user`）画一根 div，只画在输入框露出文字的范围里（事件的 `clip`）：草稿长到要滚动时，滚出去的那一行上的光标跟着看不见。关掉这个效果，原生光标立刻回来。
 
 ## 想改哪里
 

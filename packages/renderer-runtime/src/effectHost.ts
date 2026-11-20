@@ -30,7 +30,18 @@ export interface EffectTheme {
   [extra: string]: unknown;
 }
 
-/** Text appeared at a position: the user typed it, or an AI streamed it. */
+/** A rectangle in viewport px. */
+export interface ClipRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/**
+ * Text appeared at a position: the user typed it, or an AI streamed it. Only sent for text
+ * that can be seen: none while a reply streams behind the composer or out of view.
+ */
 export interface InsertEvent {
   /** Where the inserted text ends (viewport px): the caret after the insertion. */
   x: number;
@@ -56,8 +67,17 @@ export interface CaretEvent {
   width: number;
   height: number;
   source: 'user' | 'ai';
-  /** False when the caret went away (editor blurred, reply finished). */
+  /**
+   * False when the caret went away (editor blurred, reply finished) or cannot be seen
+   * (scrolled out of its editor, behind the composer, under a menu).
+   */
   visible: boolean;
+  /**
+   * The part of the window where the caret's text can be seen: what its scroll containers
+   * show, minus what the host knows covers it. Draw at the caret only inside it. Absent:
+   * the whole window.
+   */
+  clip?: ClipRect;
 }
 
 export interface StreamEndEvent {

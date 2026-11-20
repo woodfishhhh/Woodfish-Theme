@@ -1,10 +1,12 @@
 import {
   ACRYLIC_FILTER_ID,
+  ClipRect,
   Disposer,
   EffectHostApi,
   EffectTheme,
   StreamWatcher,
   buildNoiseDataUri,
+  cutArea,
   mountAcrylicFilter,
   startEffectHost,
   startReveal,
@@ -92,18 +94,28 @@ export function codexEffectTheme(settings: CodexSettings): EffectTheme {
   };
 }
 
+/** Set on the sidebar row of the thread Codex shows (the `sidebarActiveThread` selector). */
+const ACTIVE_THREAD_ATTRIBUTE = 'data-app-action-sidebar-thread-active';
+
 /**
  * Finds the reply Codex is streaming: the active thread shows its spinner and its last
- * assistant reply comes after the last user message. A light poll, no observer on the
+ * assistant reply comes after the last user message. Codex keeps recently visited threads
+ * mounted but hidden, so only the thread on screen counts. A light poll, no observer on the
  * whole thread.
  */
-function findStreamingReply(): Element | null {
+export function findStreamingReply(): Element | null {
   const running = `${CODEX_SELECTORS.sidebarRunningThread.selectors[0]}${CODEX_SELECTORS.sidebarActiveThread.selectors[0]}`;
   if (!document.querySelector(running)) {
     return null;
   }
-  const replies = document.querySelectorAll(joined('assistantMarkdown'));
-  const users = document.querySelectorAll(joined('userMessage'));
+  const thread = [...document.querySelectorAll(joined('timeline'))].find(
+    (timeline) => timeline.getClientRects().length > 0
+  );
+  if (!thread) {
+    return null;
+  }
+  const replies = thread.querySelectorAll(joined('assistantMarkdown'));
+  const users = thread.querySelectorAll(joined('userMessage'));
   const reply = replies[replies.length - 1] ?? null;
   const user = users[users.length - 1] ?? null;
   const afterUser =
@@ -113,8 +125,20 @@ function findStreamingReply(): Element | null {
   return afterUser ? reply : null;
 }
 
+/** The reply's text is hidden from the top of the strip behind the composer downwards. */
+function coverByComposer(reply: Element): (area: ClipRect) => ClipRect {
+  // Found once per reply: it sits after the whole thread in the DOM.
+  let strip = reply.closest(joined('timeline'))?.querySelector(joined('threadFooter')) ?? null;
+  return (area) => {
+    if (strip && !strip.isConnected) {
+      strip = reply.closest(joined('timeline'))?.querySelector(joined('threadFooter')) ?? null;
+    }
+    return strip ? cutArea(area, { ...area, bottom: strip.getBoundingClientRect().top }) : area;
+  };
+}
+
 /** Feeds the host with the reply being streamed: inserts, the AI caret, and its end. */
-function trackStreaming(host: EffectHostApi): Disposer {
+export function trackStreaming(host: EffectHostApi): Disposer {
   let reply: Element | null = null;
   let watcher: StreamWatcher | null = null;
 
@@ -131,21 +155,31 @@ function trackStreaming(host: EffectHostApi): Disposer {
   function tick(): void {
     const next = findStreamingReply();
     if (next === reply) {
+      // The composer may have grown over the caret or a menu opened on it meanwhile.
+      watcher?.reposition();
       return;
     }
     end();
     if (next) {
       reply = next;
-      watcher = watchStream(next, host);
+      watcher = watchStream(next, host, { cover: coverByComposer(next) });
     }
   }
 
   const onScroll = (): void => watcher?.reposition();
   document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+  // Leaving the thread ends its effects at once instead of at the next poll.
+  const switches = new MutationObserver(tick);
+  switches.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: [ACTIVE_THREAD_ATTRIBUTE],
+  });
   const timer = globalThis.setInterval(tick, STREAM_POLL_MS);
   tick();
   return () => {
     globalThis.clearInterval(timer);
+    switches.disconnect();
     document.removeEventListener('scroll', onScroll, { capture: true });
     end();
   };

@@ -4,18 +4,34 @@
  * 光标随之消失；光标本身是一个 div，长相和 VS Code 里 Woodfish 的光标一样：
  * 900% 高的渐变在光标里慢慢往上滑，所以颜色一直在变。
  * 身后的单色拖尾是另一个效果（caret-trail），两个可以分开开关。
+ * 光标只画在回复露出文字的范围里（事件里的 clip）：滚到输入框后面的那段字连同光标一起被遮住。
  */
 module.exports = function streamCursor(ctx) {
+  // 铺满窗口的一层，按 clip 裁剪；光标在里面移动，平滑动画不受裁剪范围变化影响。
+  const clip = document.createElement('div');
+  clip.setAttribute('data-woodfish-stream-cursor-clip', '');
   const bar = document.createElement('div');
   bar.setAttribute('data-woodfish-stream-cursor', '');
   bar.hidden = true;
-  ctx.layer.append(bar);
+  clip.append(bar);
+  ctx.layer.append(clip);
   let last = null;
+
+  /** The rectangle (viewport px) the cursor may show in; none means the whole window. */
+  function clipPath(r) {
+    return r
+      ? `polygon(${r.left}px ${r.top}px, ${r.right}px ${r.top}px, ${r.right}px ${r.bottom}px, ${r.left}px ${r.bottom}px)`
+      : '';
+  }
 
   function restyle() {
     const p = ctx.params;
     const stops = p.followTheme ? ctx.theme().stops : ctx.rainbow;
     ctx.style(`
+[data-woodfish-stream-cursor-clip] {
+  position: absolute;
+  inset: 0;
+}
 [data-woodfish-stream-cursor] {
   position: absolute;
   left: 0;
@@ -66,6 +82,7 @@ module.exports = function streamCursor(ctx) {
     // A new line (or a still frame) jumps; moving along the line glides.
     const jump = !last || Math.abs(caret.y - last.y) > caret.height / 2 || ctx.simplified();
     bar.toggleAttribute('data-jump', jump);
+    clip.style.clipPath = clipPath(caret.clip);
     bar.style.height = `${caret.height}px`;
     bar.style.transform = `translate(${caret.x + ctx.params.gap}px, ${caret.y}px)`;
     bar.hidden = false;
@@ -77,6 +94,6 @@ module.exports = function streamCursor(ctx) {
 
   return {
     update: restyle,
-    dispose: () => bar.remove(),
+    dispose: () => clip.remove(),
   };
 };
