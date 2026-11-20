@@ -4,6 +4,12 @@
 
 实测环境：Windows 11，商店版 `OpenAI.Codex` 26.1013.3656.0（应用版本 26.1013.31256），实测日期 2026-10-28，2026-11-13 复测。
 
+## 原生悬浮卡的定位（#38）
+
+官方 `OpenAI.Codex` 26.1117.3838.0 x64 离线包中，`webview/assets/async/136061.090860cc8e.js` 有两条渲染路径：一条把 `popover` 和透传的角色放在外层，直接子卡面带 `data-anchor-positioning="native"` 和 `data-placement`；另一条把这些属性放在同一元素。`0011cf82f3ca.css` 将外层设为零尺寸、固定在原点，右侧卡面用 `position-area: inline-end span-block-end` 加间距定位。8.1.4 把 `native` 节点的子元素当成卡面，漏掉了仍匹配对话框角色的外层。
+
+在无头 Chromium 的双层复现页上，触发行是 `(60, 492, 262, 30)`。相同的 acrylic 参数下，卡面从 `(2, 0)` 回到 `(324, 492)`，鼠标能从行内横移并点击卡面按钮。外层的滤镜和动画均为 `none`，卡面保留 `url("#woodfish-acrylic") saturate(1.5)`；Radix 外层则保留宿主自己的定位 `transform`，Woodfish 不覆盖它。这是离线包静态核对与浏览器复现，不是对应版本的桌面实测。
+
 ## 2026-11-13 复测
 
 版本没变（仍是 26.1013.3656.0），选择器和注入全部有效（`doctor` 无问题）。这次“效果没了”的根源不在 Woodfish：

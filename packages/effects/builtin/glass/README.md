@@ -21,7 +21,7 @@ Codex 的菜单、弹窗、下拉和浮层用磨砂玻璃；弹出时轻轻落�
 
 ## 想改哪里
 
-- 哪些元素算浮层：宿主的 `ctx.selectors.floatingLayer`。
+- 哪些元素算卡面：宿主的 `ctx.selectors.floatingLayer`。毛玻璃和入场动画都只加在卡面，不加在外层定位容器，否则悬浮卡会离开触发行。
 - 玻璃的边和阴影：`css()` 里的 `border-color`、`box-shadow`。
 - 弹出动画：`woodfish-glass-drop` / `woodfish-glass-zoom` 关键帧和 200/250 ms。
 - 柔光大小、颜色：`--woodfish-reveal-size`、`--woodfish-reveal-color`。

@@ -14,6 +14,10 @@
 
 - [终端配色包](./apps/terminal/README.md)：Ghostty、Windows Terminal、bat、Yazi、Starship、lsd 和 zsh-syntax-highlighting 可使用与编辑器对应的静态配色。
 
+### 修复
+
+- Codex：开启毛玻璃时，侧栏悬浮卡不再跑到窗口左上角，可以从项目行移入卡片点击「编辑项目」。亚克力参数不变（[#38](https://github.com/woodfishhhh/Woodfish-Theme/issues/38)）。
+
 ## [8.1.4] - 2026-11-20
 
 ### 改进

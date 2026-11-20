@@ -296,14 +296,55 @@ describe('buildCodexCss', () => {
 });
 
 describe('Codex floating layer selectors', () => {
-  it('paints native anchor surfaces without styling their positioning container', () => {
-    const selectors = CODEX_SELECTORS.floatingLayer.selectors;
-    expect(selectors).toContain('[data-anchor-positioning="native"] > *');
-    expect(selectors).toContain('[role="dialog"]:not([data-anchor-positioning="native"])');
-    expect(selectors).toContain(
-      '[data-slot="popover-content"]:not([data-anchor-positioning="native"])'
+  const sheet = document.createElement('style');
+  beforeAll(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const glass = require('../../../../packages/effects/builtin/glass/effect.js') as (
+      ctx: Record<string, unknown>
+    ) => unknown;
+    glass({
+      params: { mode: 'acrylic', saturate: 150, blur: 24, opacity: 0.4, animations: true },
+      selectors: {
+        floatingLayer: CODEX_SELECTORS.floatingLayer.selectors.join(', '),
+        composerMenuHeader: '.header',
+      },
+      lib: { acrylicFilterId: 'woodfish-acrylic', mountAcrylicFilter: jest.fn() },
+      style: (css: string) => {
+        sheet.textContent = css;
+      },
+    });
+    document.head.append(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  it.each([
+    ['native', 'popover role="dialog"', 'data-anchor-positioning="native"', 'zoom'],
+    [
+      'Radix',
+      'data-radix-popper-content-wrapper data-slot="popover-content"',
+      'role="menu" data-state="open"',
+      'drop',
+    ],
+  ])('applies glass and entry transforms only to the direct %s card', (_, wrapper, card, entry) => {
+    const root = document.createElement('div');
+    root.innerHTML = `<div ${wrapper} data-state="open"><div ${card}><button></button></div></div>`;
+    const rules = Array.from(sheet.sheet!.cssRules).flatMap((rule) =>
+      rule.type === CSSRule.SUPPORTS_RULE ? Array.from((rule as CSSSupportsRule).cssRules) : [rule]
     );
-    expect(selectors).not.toContain('[role="dialog"]');
+    const applied = (node: Element) =>
+      rules
+        .filter(
+          (rule): rule is CSSStyleRule =>
+            rule.type === CSSRule.STYLE_RULE && node.matches((rule as CSSStyleRule).selectorText)
+        )
+        .map((rule) => rule.style.cssText)
+        .join(' ');
+    const outer = root.firstElementChild!;
+    expect(applied(outer)).not.toMatch(/filter:|transform:|animation:|contain:|will-change:/);
+    const surface = applied(outer.firstElementChild!);
+    expect(surface).toContain('backdrop-filter: url(#woodfish-acrylic) saturate(150%)');
+    expect(surface).toContain(`animation: woodfish-glass-${entry}`);
+    expect(applied(root.querySelector('button')!)).not.toContain('backdrop-filter:');
   });
 });
 

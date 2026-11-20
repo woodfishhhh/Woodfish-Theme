@@ -1,7 +1,7 @@
 {
   "name": "浮层毛玻璃",
   "description": "菜单、弹窗、下拉和浮层用磨砂玻璃；弹出时轻轻落下或放大淡入，列表项跟着指针微微发亮。主界面不动，Codex 自己的 Mica 照常。",
-  "version": 2,
+  "version": 3,
   "hosts": ["codex"],
   "enabled": true,
   "order": 90,

@@ -15,6 +15,19 @@ export interface SelectorGroup {
   readonly description: string;
 }
 
+const floatingSurfaces = [
+  '[popover] > [data-anchor-positioning="native"]',
+  '[popover][data-anchor-positioning="native"]',
+  '[data-radix-popper-content-wrapper] > *',
+  'div[role="tooltip"][id]',
+  '[data-slot="popover-content"]',
+  '[role="menu"]',
+  '[role="listbox"]',
+  '[role="dialog"]',
+  '[data-sonner-toast]',
+  '[data-composer-overlay-floating-ui="true"] > *',
+].join(', ');
+
 export const CODEX_SELECTORS = {
   appShell: {
     selectors: ['[data-app-shell-main-surface]'],
@@ -147,17 +160,9 @@ export const CODEX_SELECTORS = {
     description: '输入框底板',
   },
   floatingLayer: {
+    // Positioning wrappers can also carry a dialog role or popover slot.
     selectors: [
-      '[data-radix-popper-content-wrapper] > *',
-      '[data-slot="popover-content"]:not([data-anchor-positioning="native"])',
-      '[data-anchor-positioning="native"] > *',
-      '[role="menu"]:not([data-anchor-positioning="native"])',
-      '[role="listbox"]:not([data-anchor-positioning="native"])',
-      '[role="dialog"]:not([data-anchor-positioning="native"])',
-      // Sonner toasts (notifications in the corner).
-      '[data-sonner-toast]',
-      // The composer's / command and @ mention menu.
-      '[data-composer-overlay-floating-ui="true"] > *',
+      `:is(${floatingSurfaces}):not([popover]:has(> [data-anchor-positioning="native"]), [data-radix-popper-content-wrapper], [data-composer-overlay-floating-ui="true"])`,
     ],
     alwaysPresent: false,
     description: '菜单与浮层',
