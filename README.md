@@ -225,7 +225,7 @@ code --install-extension woodfish-theme-7.2.0.vsix
 
 </details>
 
-## 支持的编辑器
+## 支持的编辑器 / 工具
 
 | 编辑器 | 基于 VS Code | 从哪里安装 | 实测 |
 |---|---|---|---|
@@ -235,6 +235,7 @@ code --install-extension woodfish-theme-7.2.0.vsix
 | Kiro | 1.131 | 扩展面板（Open VSX） | 结构已核对 |
 | Windsurf / Devin | 1.126 | 扩展面板（Open VSX） | 结构已核对 |
 | Trae / Trae CN | 1.107 | 扩展面板（Open VSX） | 结构已核对 |
+| Ghostty、Windows Terminal、bat、Yazi、Starship、lsd、zsh-syntax-highlighting | 不依赖 VS Code | [终端配色与安装说明](./apps/terminal/README.md) | 静态配色 |
 
 “结构已核对”表示已逐项检查过该编辑器安装包里的 workbench 路径、安全策略（CSP）、校验和与主进程格式，与实测通过的编辑器一致。提示信息会显示你正在用的编辑器名字，比如“请重新加载 Cursor”。Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地界面这一侧。
 

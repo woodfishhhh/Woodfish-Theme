@@ -1,0 +1,28 @@
+[app]
+overall = { fg = "#1F2328", bg = "#FFFFFF" }
+
+[mgr]
+cwd = { fg = "#0969DA" }
+border_style = { fg = "#D0D7DE" }
+find_keyword = { fg = "#4D2D00" }
+marker_copied = { fg = "#1A7F37", bg = "#1A7F37" }
+marker_cut = { fg = "#CF222E", bg = "#CF222E" }
+marker_selected = { fg = "#0969DA", bg = "#0969DA" }
+
+[tabs]
+active = { fg = "#FFFFFF", bg = "#0969DA" }
+inactive = { fg = "#626568", bg = "#F6F8FA" }
+
+[indicator]
+current = { fg = "#1F2328", bg = "#b5d2f4" }
+
+[mode]
+normal_main = { fg = "#FFFFFF", bg = "#0969DA" }
+normal_alt = { fg = "#0969DA", bg = "#F6F8FA" }
+
+[filetype]
+rules = [
+  { url = "*", is = "orphan", fg = "#CF222E" },
+  { url = "*", is = "exec", fg = "#1A7F37" },
+  { url = "*/", fg = "#0969DA" },
+]

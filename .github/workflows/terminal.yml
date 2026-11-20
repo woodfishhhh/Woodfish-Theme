@@ -1,0 +1,23 @@
+name: Terminal palettes
+
+on:
+  push:
+    paths: ['apps/terminal/**', 'packages/theme-core/**']
+  pull_request:
+    paths: ['apps/terminal/**', 'packages/theme-core/**']
+
+permissions:
+  contents: read
+
+jobs:
+  terminal-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm terminal:check

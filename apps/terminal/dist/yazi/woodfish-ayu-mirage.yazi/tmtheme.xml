@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0"><dict><key>name</key><string>Woodfish Ayu Mirage</string><key>settings</key><array>
+<dict><key>settings</key><dict><key>foreground</key><string>#fefaecc4</string><key>background</key><string>#242936</string></dict></dict>
+<dict><key>scope</key><string>comment</string><key>settings</key><dict><key>fontStyle</key><string>italic</string><key>foreground</key><string>#6e7c8f</string></dict></dict>
+<dict><key>scope</key><string>string, constant.other.symbol</string><key>settings</key><dict><key>foreground</key><string>#d5ff80</string></dict></dict>
+<dict><key>scope</key><string>string.regexp, constant.character, constant.other</string><key>settings</key><dict><key>foreground</key><string>#95e6cb</string></dict></dict>
+<dict><key>scope</key><string>constant.numeric</string><key>settings</key><dict><key>foreground</key><string>#dfbfff</string></dict></dict>
+<dict><key>scope</key><string>constant.language</string><key>settings</key><dict><key>foreground</key><string>#dfbfff</string></dict></dict>
+<dict><key>scope</key><string>variable, variable.parameter.function-call</string><key>settings</key><dict><key>foreground</key><string>#fefaecc4</string></dict></dict>
+<dict><key>scope</key><string>variable.member</string><key>settings</key><dict><key>foreground</key><string>#f28779</string></dict></dict>
+<dict><key>scope</key><string>variable.language</string><key>settings</key><dict><key>fontStyle</key><string>italic</string><key>foreground</key><string>#5ccfe6</string></dict></dict>
+<dict><key>scope</key><string>storage</string><key>settings</key><dict><key>foreground</key><string>#ffa659</string></dict></dict>
+<dict><key>scope</key><string>keyword</string><key>settings</key><dict><key>foreground</key><string>#ffa659</string></dict></dict>
+<dict><key>scope</key><string>keyword.operator</string><key>settings</key><dict><key>foreground</key><string>#f29e74</string></dict></dict>
+<dict><key>scope</key><string>punctuation.separator, punctuation.terminator</string><key>settings</key><dict><key>foreground</key><string>#fefaec89</string></dict></dict>
+<dict><key>scope</key><string>punctuation.section</string><key>settings</key><dict><key>foreground</key><string>#fefaecc4</string></dict></dict>
+<dict><key>scope</key><string>punctuation.accessor</string><key>settings</key><dict><key>foreground</key><string>#f29e74</string></dict></dict>
+<dict><key>scope</key><string>punctuation.definition.template-expression</string><key>settings</key><dict><key>foreground</key><string>#ffa659</string></dict></dict>
+<dict><key>scope</key><string>punctuation.section.embedded</string><key>settings</key><dict><key>foreground</key><string>#ffa659</string></dict></dict>
+<dict><key>scope</key><string>meta.embedded</string><key>settings</key><dict><key>foreground</key><string>#fefaecc4</string></dict></dict>
+<dict><key>scope</key><string>source.java storage.type, source.haskell storage.type, source.c storage.type</string><key>settings</key><dict><key>foreground</key><string>#73d0ff</string></dict></dict>
+<dict><key>scope</key><string>entity.other.inherited-class</string><key>settings</key><dict><key>foreground</key><string>#5ccfe6</string></dict></dict>
+<dict><key>scope</key><string>storage.type.function</string><key>settings</key><dict><key>foreground</key><string>#ffa659</string></dict></dict>
+<dict><key>scope</key><string>source.java storage.type.primitive</string><key>settings</key><dict><key>foreground</key><string>#5ccfe6</string></dict></dict>
+<dict><key>scope</key><string>entity.name.function</string><key>settings</key><dict><key>foreground</key><string>#ffcd66</string></dict></dict>
+<dict><key>scope</key><string>variable.parameter, meta.parameter</string><key>settings</key><dict><key>foreground</key><string>#dfbfff</string></dict></dict>
+<dict><key>scope</key><string>variable.function, variable.annotation, meta.function-call.generic, support.function.go</string><key>settings</key><dict><key>foreground</key><string>#ffcd66</string></dict></dict>
+<dict><key>scope</key><string>support.function, support.macro</string><key>settings</key><dict><key>foreground</key><string>#f28779</string></dict></dict>
+<dict><key>scope</key><string>entity.name.import, entity.name.package</string><key>settings</key><dict><key>foreground</key><string>#d5ff80</string></dict></dict>
+<dict><key>scope</key><string>entity.name</string><key>settings</key><dict><key>foreground</key><string>#73d0ff</string></dict></dict>
+<dict><key>scope</key><string>entity.name.tag, meta.tag.sgml</string><key>settings</key><dict><key>foreground</key><string>#5ccfe6</string></dict></dict>
+<dict><key>scope</key><string>support.class.component</string><key>settings</key><dict><key>foreground</key><string>#73d0ff</string></dict></dict>
+<dict><key>scope</key><string>punctuation.definition.tag.end, punctuation.definition.tag.begin, punctuation.definition.tag</string><key>settings</key><dict><key>foreground</key><string>#5ccfe680</string></dict></dict>
+<dict><key>scope</key><string>entity.other.attribute-name</string><key>settings</key><dict><key>foreground</key><string>#ffcd66</string></dict></dict>
+<dict><key>scope</key><string>entity.other.attribute-name.pseudo-class</string><key>settings</key><dict><key>foreground</key><string>#95e6cb</string></dict></dict>
+<dict><key>scope</key><string>support.constant</string><key>settings</key><dict><key>fontStyle</key><string>italic</string><key>foreground</key><string>#f29e74</string></dict></dict>
+<dict><key>scope</key><string>support.type, support.class, source.go storage.type</string><key>settings</key><dict><key>foreground</key><string>#5ccfe6</string></dict></dict>
+<dict><key>scope</key><string>meta.decorator variable.other, meta.decorator punctuation.decorator, storage.type.annotation, entity.name.function.decorator</string><key>settings</key><dict><key>foreground</key><string>#d9be98</string></dict></dict>
+<dict><key>scope</key><string>invalid</string><key>settings</key><dict><key>foreground</key><string>#ff6666</string></dict></dict>
+<dict><key>scope</key><string>meta.diff, meta.diff.header</string><key>settings</key><dict><key>foreground</key><string>#dfbfff</string></dict></dict>
+<dict><key>scope</key><string>source.ruby variable.other.readwrite</string><key>settings</key><dict><key>foreground</key><string>#ffcd66</string></dict></dict>
+<dict><key>scope</key><string>source.css entity.name.tag, source.sass entity.name.tag, source.scss entity.name.tag, source.less entity.name.tag, source.stylus entity.name.tag</string><key>settings</key><dict><key>foreground</key><string>#73d0ff</string></dict></dict>
+<dict><key>scope</key><string>source.css support.type, source.sass support.type, source.scss support.type, source.less support.type, source.stylus support.type</string><key>settings</key><dict><key>foreground</key><string>#6e7c8f</string></dict></dict>
+<dict><key>scope</key><string>support.type.property-name</string><key>settings</key><dict><key>fontStyle</key><string>normal</string><key>foreground</key><string>#5ccfe6</string></dict></dict>
+<dict><key>scope</key><string>constant.numeric.line-number.find-in-files - match</string><key>settings</key><dict><key>foreground</key><string>#6e7c8f</string></dict></dict>
+<dict><key>scope</key><string>constant.numeric.line-number.match</string><key>settings</key><dict><key>foreground</key><string>#ffa659</string></dict></dict>
+<dict><key>scope</key><string>entity.name.filename.find-in-files</string><key>settings</key><dict><key>foreground</key><string>#d5ff80</string></dict></dict>
+<dict><key>scope</key><string>message.error</string><key>settings</key><dict><key>foreground</key><string>#ff6666</string></dict></dict>
+<dict><key>scope</key><string>markup.heading, markup.heading entity.name</string><key>settings</key><dict><key>fontStyle</key><string>bold</string><key>foreground</key><string>#d5ff80</string></dict></dict>
+<dict><key>scope</key><string>markup.underline.link, string.other.link</string><key>settings</key><dict><key>foreground</key><string>#5ccfe6</string></dict></dict>
+<dict><key>scope</key><string>markup.italic, emphasis</string><key>settings</key><dict><key>fontStyle</key><string>italic</string><key>foreground</key><string>#f28779</string></dict></dict>
+<dict><key>scope</key><string>markup.bold</string><key>settings</key><dict><key>fontStyle</key><string>bold</string><key>foreground</key><string>#f28779</string></dict></dict>
+<dict><key>scope</key><string>markup.underline</string><key>settings</key><dict><key>fontStyle</key><string>underline</string></dict></dict>
+<dict><key>scope</key><string>markup.italic markup.bold, markup.bold markup.italic</string><key>settings</key><dict><key>fontStyle</key><string>bold italic</string></dict></dict>
+<dict><key>scope</key><string>meta.separator</string><key>settings</key><dict><key>fontStyle</key><string>bold</string><key>foreground</key><string>#6e7c8f</string></dict></dict>
+<dict><key>scope</key><string>markup.quote</string><key>settings</key><dict><key>foreground</key><string>#95e6cb</string><key>fontStyle</key><string>italic</string></dict></dict>
+<dict><key>scope</key><string>markup.list punctuation.definition.list.begin</string><key>settings</key><dict><key>foreground</key><string>#ffcd66</string></dict></dict>
+<dict><key>scope</key><string>markup.inserted</string><key>settings</key><dict><key>foreground</key><string>#87d96c</string></dict></dict>
+<dict><key>scope</key><string>markup.changed</string><key>settings</key><dict><key>foreground</key><string>#80bfff</string></dict></dict>
+<dict><key>scope</key><string>markup.deleted</string><key>settings</key><dict><key>foreground</key><string>#f27983</string></dict></dict>
+<dict><key>scope</key><string>markup.strike</string><key>settings</key><dict><key>foreground</key><string>#d9be98</string></dict></dict>
+<dict><key>scope</key><string>markup.strong</string><key>settings</key><dict><key>fontStyle</key><string>bold</string></dict></dict>
+<dict><key>scope</key><string>markup.table</string><key>settings</key><dict><key>foreground</key><string>#5ccfe6</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown markup.inline.raw</string><key>settings</key><dict><key>foreground</key><string>#f29e74</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown meta.dummy.line-break</string><key>settings</key><dict><key>foreground</key><string>#6e7c8f</string></dict></dict>
+<dict><key>scope</key><string>punctuation.definition.markdown</string><key>settings</key><dict><key>foreground</key><string>#6e7c8f</string></dict></dict>
+</array></dict></plist>

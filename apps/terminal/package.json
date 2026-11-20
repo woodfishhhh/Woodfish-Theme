@@ -1,0 +1,14 @@
+{
+  "name": "@woodfish/terminal",
+  "private": true,
+  "scripts": {
+    "terminal:generate": "tsc -b ../../packages/theme-core && node generate.js",
+    "terminal:check": "tsc -b ../../packages/theme-core && node generate.js --check",
+    "test": "tsc -b ../../packages/theme-core && jest --testEnvironment=node",
+    "lint": "eslint --no-ignore --config eslint.config.mjs generate*.js",
+    "format:check": "prettier --check generate*.js eslint.config.mjs"
+  },
+  "dependencies": {
+    "@woodfish/theme-core": "workspace:*"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Woodfish Night Owl",
+  "background": "#011627",
+  "foreground": "#d6deeb",
+  "cursorColor": "#80a4c2",
+  "selectionBackground": "#093b5e",
+  "black": "#011627",
+  "red": "#EF5350",
+  "green": "#22DA6E",
+  "yellow": "#C5E478",
+  "blue": "#82AAFF",
+  "purple": "#C792EA",
+  "cyan": "#21C7A8",
+  "white": "#FFFFFF",
+  "brightBlack": "#575656",
+  "brightRed": "#EF5350",
+  "brightGreen": "#22DA6E",
+  "brightYellow": "#FFEB95",
+  "brightBlue": "#82AAFF",
+  "brightPurple": "#C792EA",
+  "brightCyan": "#7FDBCA",
+  "brightWhite": "#FFFFFF"
+}

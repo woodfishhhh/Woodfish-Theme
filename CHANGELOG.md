@@ -14,6 +14,10 @@
 
 - [文档索引](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.1.4/docs/README.md)按 VS Code、Codex 桌面端和 dsh 网页版整理了使用说明；安装包内容和安装方式不因目录调整而改变。
 
+### 新增
+
+- [终端配色包](./apps/terminal/README.md)：Ghostty、Windows Terminal、bat、Yazi、Starship、lsd 和 zsh-syntax-highlighting 可使用与编辑器对应的静态配色。
+
 ### 修复
 
 - VS Code：滚动编辑器时，固定在顶部的代码行也会保留正文的渐变和发光（[#35](https://github.com/woodfishhhh/Woodfish-Theme/issues/35)、[#36](https://github.com/woodfishhhh/Woodfish-Theme/pull/36)）。

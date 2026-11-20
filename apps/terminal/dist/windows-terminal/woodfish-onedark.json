@@ -1,0 +1,23 @@
+{
+  "name": "Woodfish One Dark Pro",
+  "background": "#282c34",
+  "foreground": "#abb2bf",
+  "cursorColor": "#528bff",
+  "selectionBackground": "#41454e",
+  "black": "#3F4451",
+  "red": "#E05561",
+  "green": "#8CC265",
+  "yellow": "#D18F52",
+  "blue": "#4AA5F0",
+  "purple": "#C162DE",
+  "cyan": "#42B3C2",
+  "white": "#D7DAE0",
+  "brightBlack": "#4F5666",
+  "brightRed": "#FF616E",
+  "brightGreen": "#A5E075",
+  "brightYellow": "#F0A45D",
+  "brightBlue": "#4DC4FF",
+  "brightPurple": "#DE73FF",
+  "brightCyan": "#4CD1E0",
+  "brightWhite": "#E6E6E6"
+}

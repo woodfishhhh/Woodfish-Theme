@@ -1,0 +1,23 @@
+{
+  "name": "Woodfish Ayu Mirage",
+  "background": "#1f2430",
+  "foreground": "#cac8c1",
+  "cursorColor": "#ffcc66",
+  "selectionBackground": "#274364",
+  "black": "#171B24",
+  "red": "#F28273",
+  "green": "#87D96C",
+  "yellow": "#FCCA60",
+  "blue": "#6ACDFF",
+  "purple": "#DDBBFF",
+  "cyan": "#93E2C8",
+  "white": "#C7C7C7",
+  "brightBlack": "#686868",
+  "brightRed": "#F28779",
+  "brightGreen": "#D5FF80",
+  "brightYellow": "#FFCD66",
+  "brightBlue": "#73D0FF",
+  "brightPurple": "#DFBFFF",
+  "brightCyan": "#95E6CB",
+  "brightWhite": "#FFFFFF"
+}

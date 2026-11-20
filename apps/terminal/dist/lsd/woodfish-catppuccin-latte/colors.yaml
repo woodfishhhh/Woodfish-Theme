@@ -1,0 +1,17 @@
+user: [76, 79, 105]
+group: [223, 142, 29]
+permission:
+  read: [64, 160, 43]
+  write: [254, 100, 11]
+  exec: [210, 15, 57]
+  no-access: [161, 163, 178]
+date:
+  hour-old: [64, 160, 43]
+  day-old: [30, 102, 245]
+  older: [125, 127, 147]
+size:
+  none: [161, 163, 178]
+  small: [254, 100, 11]
+  medium: [254, 100, 11]
+  large: [210, 15, 57]
+tree-edge: [161, 163, 178]

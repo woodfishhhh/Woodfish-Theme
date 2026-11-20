@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0"><dict><key>name</key><string>Woodfish Nord</string><key>settings</key><array>
+<dict><key>settings</key><dict><key>foreground</key><string>#d8dee9ff</string><key>background</key><string>#2e3440ff</string></dict></dict>
+<dict><key>scope</key><string>emphasis</string><key>settings</key><dict><key>fontStyle</key><string>italic</string></dict></dict>
+<dict><key>scope</key><string>strong</string><key>settings</key><dict><key>fontStyle</key><string>bold</string></dict></dict>
+<dict><key>scope</key><string>comment</string><key>settings</key><dict><key>foreground</key><string>#616E88</string></dict></dict>
+<dict><key>scope</key><string>constant.character</string><key>settings</key><dict><key>foreground</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>constant.character.escape</string><key>settings</key><dict><key>foreground</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>constant.language</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>constant.numeric</string><key>settings</key><dict><key>foreground</key><string>#B48EAD</string></dict></dict>
+<dict><key>scope</key><string>constant.regexp</string><key>settings</key><dict><key>foreground</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>entity.name.class, entity.name.type.class</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>entity.name.function</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>entity.name.tag</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>entity.other.attribute-name</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>entity.other.inherited-class</string><key>settings</key><dict><key>fontStyle</key><string>bold</string><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>invalid.deprecated</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string><key>background</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>invalid.illegal</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string><key>background</key><string>#BF616A</string></dict></dict>
+<dict><key>scope</key><string>keyword</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>keyword.operator</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>keyword.other.new</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>markup.bold</string><key>settings</key><dict><key>fontStyle</key><string>bold</string></dict></dict>
+<dict><key>scope</key><string>markup.changed</string><key>settings</key><dict><key>foreground</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>markup.deleted</string><key>settings</key><dict><key>foreground</key><string>#BF616A</string></dict></dict>
+<dict><key>scope</key><string>markup.inserted</string><key>settings</key><dict><key>foreground</key><string>#A3BE8C</string></dict></dict>
+<dict><key>scope</key><string>meta.preprocessor</string><key>settings</key><dict><key>foreground</key><string>#5E81AC</string></dict></dict>
+<dict><key>scope</key><string>punctuation</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>punctuation.definition.method-parameters, punctuation.definition.function-parameters, punctuation.definition.parameters</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>punctuation.definition.tag</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>punctuation.definition.comment, punctuation.end.definition.comment, punctuation.start.definition.comment</string><key>settings</key><dict><key>foreground</key><string>#616E88</string></dict></dict>
+<dict><key>scope</key><string>punctuation.section</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>punctuation.section.embedded.begin, punctuation.section.embedded.end</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>punctuation.terminator</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>punctuation.definition.variable</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>storage</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>string</string><key>settings</key><dict><key>foreground</key><string>#A3BE8C</string></dict></dict>
+<dict><key>scope</key><string>string.regexp</string><key>settings</key><dict><key>foreground</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>support.class</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>support.constant</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>support.function</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>support.function.construct</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>support.type</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>support.type.exception</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>token.debug-token</string><key>settings</key><dict><key>foreground</key><string>#b48ead</string></dict></dict>
+<dict><key>scope</key><string>token.error-token</string><key>settings</key><dict><key>foreground</key><string>#bf616a</string></dict></dict>
+<dict><key>scope</key><string>token.info-token</string><key>settings</key><dict><key>foreground</key><string>#88c0d0</string></dict></dict>
+<dict><key>scope</key><string>token.warn-token</string><key>settings</key><dict><key>foreground</key><string>#ebcb8b</string></dict></dict>
+<dict><key>scope</key><string>variable.other</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>variable.language</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>variable.parameter</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>punctuation.separator.pointer-access.c</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.c meta.preprocessor.include, source.c string.quoted.other.lt-gt.include</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.cpp keyword.control.directive.conditional, source.cpp punctuation.definition.directive, source.c keyword.control.directive.conditional, source.c punctuation.definition.directive</string><key>settings</key><dict><key>foreground</key><string>#5E81AC</string><key>fontStyle</key><string>bold</string></dict></dict>
+<dict><key>scope</key><string>source.css constant.other.color.rgb-value</string><key>settings</key><dict><key>foreground</key><string>#B48EAD</string></dict></dict>
+<dict><key>scope</key><string>source.css meta.property-value</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.css keyword.control.at-rule.media, source.css keyword.control.at-rule.media punctuation.definition.keyword</string><key>settings</key><dict><key>foreground</key><string>#D08770</string></dict></dict>
+<dict><key>scope</key><string>source.css punctuation.definition.keyword</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.css support.type.property-name</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>source.diff meta.diff.range.context</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.diff meta.diff.header.from-file</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.diff punctuation.definition.from-file</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.diff punctuation.definition.range</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.diff punctuation.definition.separator</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>entity.name.type.module.elixir</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>variable.other.readwrite.module.elixir</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string><key>fontStyle</key><string>bold</string></dict></dict>
+<dict><key>scope</key><string>constant.other.symbol.elixir</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string><key>fontStyle</key><string>bold</string></dict></dict>
+<dict><key>scope</key><string>variable.other.constant.elixir</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.go constant.other.placeholder.go</string><key>settings</key><dict><key>foreground</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>source.java comment.block.documentation.javadoc punctuation.definition.entity.html</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.java constant.other</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>source.java keyword.other.documentation</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java keyword.other.documentation.author.javadoc</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java keyword.other.documentation.directive, source.java keyword.other.documentation.custom</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java keyword.other.documentation.see.javadoc</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java meta.method-call meta.method</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.java meta.tag.template.link.javadoc, source.java string.other.link.title.javadoc</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java meta.tag.template.value.javadoc</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.java punctuation.definition.keyword.javadoc</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java punctuation.definition.tag.begin.javadoc, source.java punctuation.definition.tag.end.javadoc</string><key>settings</key><dict><key>foreground</key><string>#616E88</string></dict></dict>
+<dict><key>scope</key><string>source.java storage.modifier.import</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java storage.modifier.package</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java storage.type</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java storage.type.annotation</string><key>settings</key><dict><key>foreground</key><string>#D08770</string></dict></dict>
+<dict><key>scope</key><string>source.java storage.type.generic</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.java storage.type.primitive</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.js punctuation.decorator, source.js meta.decorator variable.other.readwrite, source.js meta.decorator entity.name.function</string><key>settings</key><dict><key>foreground</key><string>#D08770</string></dict></dict>
+<dict><key>scope</key><string>source.js meta.object-literal.key</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.js storage.type.class.jsdoc</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.js string.quoted.template punctuation.quasi.element.begin, source.js string.quoted.template punctuation.quasi.element.end, source.js string.template punctuation.definition.template-expression</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.js string.quoted.template meta.method-call.with-arguments</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>source.js string.template meta.template.expression support.variable.property, source.js string.template meta.template.expression variable.other.object</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>source.js support.type.primitive</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.js variable.other.object</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>source.js variable.other.readwrite.alias</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.js meta.embedded.line meta.brace.square, source.js meta.embedded.line meta.brace.round, source.js string.quoted.template meta.brace.square, source.js string.quoted.template meta.brace.round</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>text.html.basic constant.character.entity.html</string><key>settings</key><dict><key>foreground</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>text.html.basic constant.other.inline-data</string><key>settings</key><dict><key>foreground</key><string>#D08770</string><key>fontStyle</key><string>italic</string></dict></dict>
+<dict><key>scope</key><string>text.html.basic meta.tag.sgml.doctype</string><key>settings</key><dict><key>foreground</key><string>#5E81AC</string></dict></dict>
+<dict><key>scope</key><string>text.html.basic punctuation.definition.entity</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.properties entity.name.section.group-title.ini</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.properties punctuation.separator.key-value.ini</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown markup.fenced_code.block, text.html.markdown markup.fenced_code.block punctuation.definition</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>markup.heading</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown markup.inline.raw, text.html.markdown markup.inline.raw punctuation.definition.raw</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown markup.italic</string><key>settings</key><dict><key>fontStyle</key><string>italic</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown markup.underline.link</string><key>settings</key><dict><key>fontStyle</key><string>underline</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown beginning.punctuation.definition.list</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown beginning.punctuation.definition.quote</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown markup.quote</string><key>settings</key><dict><key>foreground</key><string>#616E88</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown constant.character.math.tex</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown punctuation.definition.math.begin, text.html.markdown punctuation.definition.math.end</string><key>settings</key><dict><key>foreground</key><string>#5E81AC</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown punctuation.definition.function.math.tex</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown punctuation.math.operator.latex</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown punctuation.definition.heading</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown punctuation.definition.constant, text.html.markdown punctuation.definition.string</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>text.html.markdown constant.other.reference.link, text.html.markdown string.other.link.description, text.html.markdown string.other.link.title</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.perl punctuation.definition.variable</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>source.php meta.function-call, source.php meta.function-call.object</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.python entity.name.function.decorator, source.python meta.function.decorator support.type</string><key>settings</key><dict><key>foreground</key><string>#D08770</string></dict></dict>
+<dict><key>scope</key><string>source.python meta.function-call.generic</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.python support.type</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.python variable.parameter.function.language</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>source.python meta.function.parameters variable.parameter.function.language.special.self</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.css.scss punctuation.definition.interpolation.begin.bracket.curly, source.css.scss punctuation.definition.interpolation.end.bracket.curly</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.css.scss variable.interpolation</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string><key>fontStyle</key><string>italic</string></dict></dict>
+<dict><key>scope</key><string>source.ts punctuation.decorator, source.ts meta.decorator variable.other.readwrite, source.ts meta.decorator entity.name.function, source.tsx punctuation.decorator, source.tsx meta.decorator variable.other.readwrite, source.tsx meta.decorator entity.name.function</string><key>settings</key><dict><key>foreground</key><string>#D08770</string></dict></dict>
+<dict><key>scope</key><string>source.ts meta.object-literal.key, source.tsx meta.object-literal.key</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>source.ts meta.object-literal.key entity.name.function, source.tsx meta.object-literal.key entity.name.function</string><key>settings</key><dict><key>foreground</key><string>#88C0D0</string></dict></dict>
+<dict><key>scope</key><string>source.ts support.class, source.ts support.type, source.ts entity.name.type, source.ts entity.name.class, source.tsx support.class, source.tsx support.type, source.tsx entity.name.type, source.tsx entity.name.class</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.ts support.constant.math, source.ts support.constant.dom, source.ts support.constant.json, source.tsx support.constant.math, source.tsx support.constant.dom, source.tsx support.constant.json</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>source.ts support.variable, source.tsx support.variable</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>source.ts meta.embedded.line meta.brace.square, source.ts meta.embedded.line meta.brace.round, source.tsx meta.embedded.line meta.brace.square, source.tsx meta.embedded.line meta.brace.round</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>text.xml entity.name.tag.namespace</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>text.xml keyword.other.doctype</string><key>settings</key><dict><key>foreground</key><string>#5E81AC</string></dict></dict>
+<dict><key>scope</key><string>text.xml meta.tag.preprocessor entity.name.tag</string><key>settings</key><dict><key>foreground</key><string>#5E81AC</string></dict></dict>
+<dict><key>scope</key><string>text.xml string.unquoted.cdata, text.xml string.unquoted.cdata punctuation.definition.string</string><key>settings</key><dict><key>foreground</key><string>#D08770</string><key>fontStyle</key><string>italic</string></dict></dict>
+<dict><key>scope</key><string>source.yaml entity.name.tag</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+</array></dict></plist>

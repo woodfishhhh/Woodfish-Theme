@@ -1,0 +1,23 @@
+{
+  "name": "Woodfish Black",
+  "background": "#0a0a0a",
+  "foreground": "#e6e6e6",
+  "cursorColor": "#ea618e",
+  "selectionBackground": "#2a2440",
+  "black": "#1A1A1A",
+  "red": "#FF5C7A",
+  "green": "#3CEC85",
+  "yellow": "#EACD61",
+  "blue": "#61AFEA",
+  "purple": "#B78AFF",
+  "cyan": "#22ECDB",
+  "white": "#D4D4D4",
+  "brightBlack": "#5C5C5C",
+  "brightRed": "#FF8197",
+  "brightGreen": "#6AF5A2",
+  "brightYellow": "#F5DD85",
+  "brightBlue": "#8AC6F2",
+  "brightPurple": "#CDB0FF",
+  "brightCyan": "#6BF5EA",
+  "brightWhite": "#FFFFFF"
+}

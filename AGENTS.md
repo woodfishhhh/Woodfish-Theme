@@ -132,6 +132,8 @@ pnpm compile          # Build theme-core, type-check extension + browser scripts
 pnpm test                 # Jest in every workspace
 pnpm lint             # ESLint in every workspace
 pnpm themes:check     # Generated theme JSON is current
+pnpm terminal:generate # Regenerate and commit apps/terminal/dist after palette or VS Code token changes
+pnpm terminal:check    # Check all terminal colors, syntax rules and licenses without writing dist
 pnpm runtime:check    # Built renderer scripts are current
 pnpm codex:check      # Built renderer bundles in apps/cli/assets (Codex + dsh) are current
 pnpm dsh:check        # Same check, named for the dsh user script

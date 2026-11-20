@@ -147,7 +147,7 @@ One focused picture per effect; moving effects are short animations. In the Code
 
 Pick any color theme, then click **重新加载窗口** (Reload Window) when prompted. The overlay is on by default and never switches your color theme. Click `Woodfish ...` in the status bar for the feature menu.
 
-## Supported editors
+## Supported editors and tools
 
 | Editor | Based on VS Code | Install from | Tested |
 |---|---|---|---|
@@ -157,6 +157,7 @@ Pick any color theme, then click **重新加载窗口** (Reload Window) when pro
 | Kiro | 1.131 | Open VSX | Package layout verified |
 | Windsurf / Devin | 1.126 | Open VSX | Package layout verified |
 | Trae / Trae CN | 1.107 | Open VSX | Package layout verified |
+| Ghostty, Windows Terminal, bat, Yazi, Starship, lsd, zsh-syntax-highlighting | Independent of VS Code | [Terminal colors and setup](./apps/terminal/README.md) | Color schemes only |
 
 "Package layout verified" means the workbench path, CSP, checksums and main-process format in the editor's installer were checked and match the editors that were tested end to end. Remote SSH, WSL and dev containers work too, because Woodfish always runs on the local UI side.
 

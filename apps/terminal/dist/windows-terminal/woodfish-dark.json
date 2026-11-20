@@ -1,0 +1,23 @@
+{
+  "name": "Woodfish Dark",
+  "background": "#1a212f",
+  "foreground": "#d0d7e4",
+  "cursorColor": "#eacd61",
+  "selectionBackground": "#394457",
+  "black": "#1C2433",
+  "red": "#E35535",
+  "green": "#3CEC85",
+  "yellow": "#EACD61",
+  "blue": "#69C3FF",
+  "purple": "#F38CEC",
+  "cyan": "#22ECDB",
+  "white": "#D0D7E4",
+  "brightBlack": "#3E4F71",
+  "brightRed": "#FF4319",
+  "brightGreen": "#29FF82",
+  "brightYellow": "#FFD94C",
+  "brightBlue": "#69C3FF",
+  "brightPurple": "#FF80F6",
+  "brightCyan": "#0FFFEB",
+  "brightWhite": "#FFFFFF"
+}

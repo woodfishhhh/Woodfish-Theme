@@ -5,6 +5,7 @@ node_modules/
 # Production
 out/
 dist/
+!/apps/terminal/dist/
 build/
 
 # Extension packaging
