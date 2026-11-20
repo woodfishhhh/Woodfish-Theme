@@ -2,7 +2,7 @@
 
 The JetBrains port of [Woodfish Theme](https://github.com/woodfishhhh/Woodfish-Theme) for VS Code.
 This module contains the universal **gradient + glow overlay** that runs on top of any editor
-color scheme. The five bundled color schemes and the theme generator live in a follow-up change.
+color scheme. This module does not include color schemes or a theme generator.
 
 ## What it does
 
@@ -56,9 +56,8 @@ samples/      visual check files: English code, Chinese comments, ligatures, emo
 
 ## Implementation notes
 
-- **The mount point is a highlighter, not a component.** A custom `EditorHighlighter` wraps the
-  platform's highlighter and repaints the glyphs, so the overlay follows scrolling, folding and
-  selection without owning the editor component.
+- **The mount point is a range highlighter, not a component.** The overlay attaches custom
+  renderers to the editor's markup model without replacing its syntax highlighter.
 - **Colors are resolved the way the editor resolves them**, not read from a theme file.
 - **Gradient vs. glow.** The gradient repaints the glyphs; the glow is rasterized into a cached
   image off the EDT and drawn beneath them.
@@ -72,8 +71,7 @@ Plugin code: [MIT](LICENSE). Copyright (c) 2024 Woodfish (original theme) and Co
 yyyyolo7a79 (JetBrains port).
 
 This module does not bundle theme files. The gradient and glow implement the color math of the
-original MIT-licensed Woodfish Theme; upstream notices for the five color schemes ship with the
-theme files in the follow-up change.
+original MIT-licensed Woodfish Theme. See [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Credits
 

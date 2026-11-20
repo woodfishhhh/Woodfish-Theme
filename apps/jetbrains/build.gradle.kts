@@ -27,7 +27,10 @@ val platformLocalPath = localProperty("platformLocalPath")
 repositories {
     mavenCentral()
     intellijPlatform {
-        defaultRepositories()
+        jetbrainsIdeInstallers()
+        jetbrainsRuntime()
+        releases()
+        intellijDependencies()
         // 使用 local() 指向本地 IDE 时，必须从本地安装提取平台构件
         localPlatformArtifacts()
     }
@@ -36,13 +39,13 @@ repositories {
 dependencies {
     intellijPlatform {
         // 声明 IntelliJ Platform 2.x 的 JUnit 5 测试框架，供 test runner 组装其测试依赖。
-        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.JUnit5)
+        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.JUnit5, "243.28141.18")
         if (platformLocalPath != null) {
             local(platformLocalPath)
         } else {
             intellijIdeaCommunity(providers.gradleProperty("platformVersion"))
         }
-        pluginVerifier()
+        pluginVerifier("1.411")
     }
 
     // 纯 Java 单元测试（颜色数学、设置规范化等），不依赖 IntelliJ 测试框架
@@ -69,7 +72,7 @@ intellijPlatform {
             // 242 = 2024.2：平台改用 JBR 21 的起点，与编译目标 Java 21 一致。
             // 更早的 2024.1 跑在 JBR 17 上，加载 Java 21 字节码会抛 UnsupportedClassVersionError。
             sinceBuild = "242"
-            // 刻意不设上限：只用平台公开 API，留空表示兼容后续版本（JetBrains 官方建议）。
+            // 不设置上限；渲染依赖部分内部 API，升级平台后仍须验证。
             // 2026.1+ 换成 JBR 25 后仍能加载 Java 21 字节码。
             untilBuild = provider { null }
         }
@@ -86,7 +89,8 @@ intellijPlatform {
             val localIdes = listOf("platformLocalPath", "ide252LocalPath", "ide262LocalPath")
                 .mapNotNull { localProperty(it)?.takeIf { p -> file(p).isDirectory } }
             if (localIdes.isEmpty()) {
-                recommended()
+                create("IC", "2024.2")
+                create("IC", providers.gradleProperty("platformVersion"))
             } else {
                 localIdes.forEach { local(file(it)) }
             }
@@ -94,15 +98,8 @@ intellijPlatform {
     }
 }
 
-// 沙盒 IDE 启动时自动打开样例目录，并跳过首次启动的各类引导对话框，方便直接截图检查效果
+// 沙盒 IDE 启动时打开样例目录，保留 IDE 自身的项目安全与隐私提示。
 val samplesDir = layout.projectDirectory.dir("samples").asFile.absolutePath
-val sandboxJvmArgs = listOf(
-    "-Didea.trust.all.projects=true",
-    "-Djb.consents.confirmation.enabled=false",
-    "-Djb.privacy.policy.text=<!--999.999-->",
-    "-Didea.initially.ask.config=never",
-    "-Dide.show.tips.on.startup.default.value=false",
-)
 
 // 在更新的本机 IDE 上实测：./gradlew runIde252 / runIde262
 intellijPlatformTesting {
@@ -113,7 +110,6 @@ intellijPlatformTesting {
                 register("runIde$suffix") {
                     localPath = file(path)
                     task {
-                        jvmArgs(sandboxJvmArgs)
                         args(samplesDir)
                     }
                 }
@@ -124,7 +120,6 @@ intellijPlatformTesting {
 
 tasks {
     named<JavaExec>("runIde") {
-        jvmArgs(sandboxJvmArgs)
         args(samplesDir)
     }
 
