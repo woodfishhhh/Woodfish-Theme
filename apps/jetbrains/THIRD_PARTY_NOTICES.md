@@ -5,9 +5,10 @@ The plugin code is licensed under the MIT License in `LICENSE`. It is a JetBrain
 Copyright (c) 2024 Woodfish); the gradient and glow color math is a Java port of that
 project's runtime overlay.
 
-This module does not bundle any theme files. The five Woodfish color schemes and their
-upstream notices (Bearded Theme Arc 10.1.0, GPL-3.0-only; Dracula for Visual Studio Code
-2.25.1, MIT; original Woodfish palettes, MIT) ship in the follow-up theme change.
+This module does not bundle any color schemes. The Gradle 9.6.0 wrapper (scripts and
+`gradle/wrapper/gradle-wrapper.jar`) is distributed with the source under Apache-2.0;
+the complete license is in `META-INF/LICENSE` inside the wrapper JAR. The wrapper is
+not included in the installable IDE plugin.
 
 ---
 
@@ -17,6 +18,5 @@ upstream notices (Bearded Theme Arc 10.1.0, GPL-3.0-only; Dracula for Visual Stu
 [Woodfish Theme](https://github.com/woodfishhhh/Woodfish-Theme)（MIT，Copyright (c) 2024 Woodfish），
 渐变与发光的颜色算法是原版运行时叠层的 Java 移植。
 
-本模块不包含任何主题文件。五套 Woodfish 配色方案及其上游声明
-（Bearded Theme Arc 10.1.0，GPL-3.0-only；Dracula for Visual Studio Code 2.25.1，MIT；
-Woodfish 原创调色板，MIT）会随后续主题变更一起提交。
+本模块不包含配色方案。源码中附带的 Gradle 9.6.0 wrapper（启动脚本和 JAR）使用
+Apache-2.0 许可，完整条文见该 JAR 内的 `META-INF/LICENSE`；它不随可安装的 IDE 插件分发。
