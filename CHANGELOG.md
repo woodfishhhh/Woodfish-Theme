@@ -8,15 +8,15 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
-## [Unreleased]
+## [8.1.5] - 2026-11-21
 
 ### 新增
 
-- [终端配色包](./apps/terminal/README.md)：Ghostty、Windows Terminal、bat、Yazi、Starship、lsd 和 zsh-syntax-highlighting 可使用与编辑器对应的静态配色。
+- [终端配色包](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.1.5/apps/terminal/README.md)：Ghostty、Windows Terminal、bat、Yazi、Starship、lsd 和 zsh-syntax-highlighting 现在可以使用与编辑器一致的 Woodfish 配色。
 
 ### 修复
 
-- Codex：开启毛玻璃时，侧栏悬浮卡不再跑到窗口左上角，可以从项目行移入卡片点击「编辑项目」。亚克力参数不变（[#38](https://github.com/woodfishhhh/Woodfish-Theme/issues/38)）。
+- Codex 26.1117：开启毛玻璃后，侧栏的项目和聊天悬浮卡会在对应行旁边打开，不再跳到窗口左上角。鼠标可以从项目行移入卡片，点击「编辑项目」（[#38](https://github.com/woodfishhhh/Woodfish-Theme/issues/38)）。
 
 ## [8.1.4] - 2026-11-20
 

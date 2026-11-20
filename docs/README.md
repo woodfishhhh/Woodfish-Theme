@@ -1,6 +1,6 @@
 # 文档索引
 
-- [8.1.4 更新说明](../CHANGELOG.md#814---2026-11-20)：VS Code 粘滞滚动代码效果、Codex 光标与悬浮卡定位修复。
+- [8.1.5 更新说明](../CHANGELOG.md#815---2026-11-21)：七款终端工具的配色，以及 Codex 26.1117 开启毛玻璃时的侧栏悬浮卡定位修复。
 - [仓库结构](./ARCHITECTURE.md)：共享核心、宿主应用和构建边界。
 - [故障排查](./TROUBLESHOOTING.md)：VS Code 扩展的常见问题。
 - [安装提示](./agent-install.md)：给 AI 使用的 Codex 安装流程。

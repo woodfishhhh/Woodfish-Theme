@@ -1,6 +1,6 @@
 # 让 AI 帮你给 Codex 装上 Woodfish
 
-要用本版的光标和悬浮卡修复，运行 `woodfish --version` 确认版本为 **8.1.4** 或更高。下文的 8.0.0 是安装工具的最低兼容版本。
+要在 Codex 26.1117 开启毛玻璃后正常使用侧栏悬浮卡，运行 `woodfish --version` 确认版本为 **8.1.5** 或更高。下文的 8.0.0 是安装工具的最低兼容版本。
 
 > 如果你是 agent，被要求照这一页给 Codex 装 Woodfish：执行下面代码块里的步骤（用户说英文就用 [In English](#in-english) 那一段），遵守里面的规则。
 
@@ -53,7 +53,7 @@
 
 ## In English
 
-For the caret and popover fixes, check that `woodfish --version` reports **8.1.4** or newer. The 8.0.0 mentioned below is the minimum compatible installer version.
+For correctly positioned sidebar popovers with frosted glass in Codex 26.1117, check that `woodfish --version` reports **8.1.5** or newer. The 8.0.0 mentioned below is the minimum compatible installer version.
 
 Paste this to the AI you use and it will install Woodfish's colors and effects for the Codex desktop app on Windows and keep them on after Codex restarts, Store updates and reboots, stopping wherever a decision is yours (accepting the debugging-port risk, restarting Codex). If your AI cannot open GitHub, the same page is at `https://cdn.jsdelivr.net/gh/woodfishhhh/Woodfish-Theme@main/docs/agent-install.md`.
 
