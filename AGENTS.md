@@ -152,6 +152,12 @@ pnpm cli:dist         # CLI release artifacts: apps/cli/out/npm and out/release 
 - Theme-specific syntax and metadata stay separate from shared runtime CSS
 - `README.md` and `LICENSE` live at the repo root and are copied into the extension only while packaging
 
+### JetBrains plugin maintenance
+
+- Build and test from apps/jetbrains with JDK 21: ./gradlew test buildPlugin verifyPlugin.
+- The plugin currently contains only the gradient and glow core; color schemes are a separate follow-up and it is not published yet.
+- Do not run runIde in CI or during this repository's non-visual checks; visual acceptance waits until the official color schemes are integrated.
+
 ## Finishing a Task
 
 - Do not push work in progress: every push mails the owner (CI result, automated PR review). Commit locally, run the full CI set locally (`pnpm compile`, `themes:check`, `runtime:check`, `codex:check`, `dsh:check`, `format:check`, `lint`, `test --runInBand`, `test:integration`, `pre-publish`, `package`), then push once to `feat/monorepo-theme-core` without a PR.

@@ -1,0 +1,36 @@
+name: JetBrains
+
+on:
+  push:
+    paths:
+      - apps/jetbrains/**
+      - .github/workflows/jetbrains.yml
+  pull_request:
+    paths:
+      - apps/jetbrains/**
+      - .github/workflows/jetbrains.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Test, build and verify the plugin
+        working-directory: apps/jetbrains
+        run: ./gradlew test buildPlugin verifyPlugin --console=plain
