@@ -66,6 +66,9 @@ Woodfish-Theme/
 | Self-spawn, private copy for the logon task / shortcut | `apps/cli/src/commands/context.ts` (`selfCommand`, `installPrivateCopy`) |
 | Autostart daemon, fast start detection | `apps/cli/src/commands/autostart.ts` (`decideDaemonAction`, `codexStartNaps`) |
 | VS Code commands for Codex | `apps/vscode-extension/src/commands/codex.ts`, `src/services/codexCli.ts` |
+| Neovim colorschemes (generated) | `apps/neovim/` (`colors/`, `lua/woodfish/` are generated; `scripts/generate.mjs`, `scripts/lib/targets.mjs`) |
+| Neovim capture / compare tools | `apps/neovim/scripts/capture.mjs`, `compare.mjs`, `smoke.mjs`, `scripts/nvim/*.lua`; samples in `apps/neovim/stats-samples/` (measured) and `samples/` (held out) |
+| Neovim measurements | `docs/hosts/neovim.md` |
 | Effect plugins (shipped) | `packages/effects/builtin/<id>/` (`effect.json`, `effect.js`, `README.md`), guide for AIs `packages/effects/builtin/AGENTS.md` |
 | Effects folder sync / load / payload | `packages/effects/src/index.ts` |
 | Effect manifest & value normalization | `packages/theme-core/src/effects/plugins.ts` |
@@ -134,6 +137,9 @@ pnpm lint             # ESLint in every workspace
 pnpm themes:check     # Generated theme JSON is current
 pnpm terminal:generate # Regenerate and commit apps/terminal/dist after palette or VS Code token changes
 pnpm terminal:check    # Check all terminal colors, syntax rules and licenses without writing dist
+pnpm nvim:generate    # Regenerate apps/neovim/colors and lua/ (needs only Node); commit the result
+pnpm nvim:check       # Generated Neovim files, committed captures and the VS Code theme files agree
+pnpm nvim:smoke       # Every colorscheme loads in headless Neovim (WOODFISH_NVIM names the binary)
 pnpm runtime:check    # Built renderer scripts are current
 pnpm codex:check      # Built renderer bundles in apps/cli/assets (Codex + dsh) are current
 pnpm dsh:check        # Same check, named for the dsh user script
@@ -157,6 +163,14 @@ pnpm cli:dist         # CLI release artifacts: apps/cli/out/npm and out/release 
 - Build and test from apps/jetbrains with JDK 21: ./gradlew test buildPlugin verifyPlugin.
 - The plugin currently contains only the gradient and glow core; color schemes are a separate follow-up and it is not published yet.
 - Do not run runIde in CI or during this repository's non-visual checks; visual acceptance waits until the official color schemes are integrated.
+
+### Neovim colorscheme maintenance
+
+- `apps/neovim` is the source of the public plugin repository `woodfishhhh/woodfish.nvim`. `pnpm nvim:sync -- <checkout>` replaces its `colors/` and `lua/` with the generated ones; edit nothing there by hand.
+- Colors of languages come from VS Code itself: Shiki (vscode-textmate) colors `stats-samples/`, Neovim's Treesitter says which capture each character gets (`scripts/captures/`, committed), and the majority color and font style of every "capture + language" becomes `@capture.language`. `javascript` and `tsx` copy `typescript`. No custom Treesitter queries and no autocommands: a colorscheme must not change queries or highlights for other colorschemes.
+- After changing a sample or the parser pins in `scripts/treesitter-sources.json`: `pnpm nvim:capture` (Neovim 0.11+, git, a C compiler; parsers are built under `%TEMP%/wf-neovim/ts`), `pnpm nvim:generate`, commit. After changing a palette or a VS Code theme file: `pnpm nvim:generate` only. `nvim:check` fails on stale captures too.
+- `pnpm nvim:compare` renders every theme in Neovim (`:TOhtml`) and in Shiki, scores them and writes pictures and `report.md` (default `%TEMP%/wf-neovim`); run it on a clean tree, the report records the commit. It never opens a window: Neovim runs `--headless`, pictures come from headless Chrome/Edge. Judge a change by that report, not by the unit tests.
+- Pitfalls: `nocombine` does not remove an inherited style (Neovim 0.12.6: with another highlight underneath it also loses the color), so an overlapping capture can leave an extra italic; groups with the same name as a capture in another language are untouched because only `@capture.language` is defined. Shell heredocs eat double backslashes, write regexes with the editor tools.
 
 ## Finishing a Task
 

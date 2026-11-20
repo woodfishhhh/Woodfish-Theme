@@ -4,3 +4,4 @@
 - [ChatGPT/Codex 桌面端](./chatgpt-app.md)
 - [DeepSeek Harness Web 版](./dsh-web.md)
 - [终端工具配色](./terminal.md)
+- [Neovim 配色](./neovim.md)

@@ -36,6 +36,14 @@ for _, slug in ipairs(arg) do
   if hl("Normal").bg ~= nil then
     fail(scheme .. ": transparent = true still paints a Normal background")
   end
+  vim.cmd.colorscheme(scheme) -- options given to setup() apply to later loads too
+  if hl("Normal").bg ~= nil then
+    fail(scheme .. ": setup({ transparent = true }) was forgotten when the colorscheme was loaded again")
+  end
+  require("woodfish").setup({})
+  if hl("Normal").bg == nil then
+    fail(scheme .. ": setup({}) did not restore the Normal background")
+  end
   if vim.v.errmsg ~= "" then
     fail(scheme .. ": " .. vim.v.errmsg)
   end

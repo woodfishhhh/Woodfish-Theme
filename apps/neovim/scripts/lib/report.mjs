@@ -12,7 +12,7 @@ export function renderMarkdown(report) {
     `- load check: ${report.loadCheck}`,
     '- match: share of non-blank characters Neovim paints in the same color (or font style) as VS Code; "7 languages" are the measured ones (typescript, python, lua, go, rust, json, markdown) on samples the statistics never saw',
     '- javascript / jsx / tsx reuse the typescript statistics and are checked on their own samples',
-    '- mapping error: a capture + language combination painted in another color or font style than the majority one VS Code gives it in the statistics samples',
+    '- mapping error: a capture + language combination painted in another color than the majority one VS Code gives it in the statistics samples, or without the font style chosen for it',
     '- unsplittable: VS Code gives the same capture + language several colors (or no capture exists), so one highlight group cannot match them all',
     '- font styles: Neovim merges the attributes of overlapping highlights and a group cannot switch a style off, so a combination can show an extra style inherited from a capture painted underneath it (listed per theme); a missing chosen style would be a mapping error',
     '- uncovered: a combination the statistics samples never contained, so nothing was chosen for it',

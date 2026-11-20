@@ -253,12 +253,18 @@ local function apply(name, options)
   apply_plugins(ui, tokens)
 end
 
+-- Options given to setup() stay in effect for every Woodfish colorscheme loaded afterwards.
+local settings = {}
+
 function M.load(name)
-  apply(name, {})
+  apply(name, settings)
 end
 
 function M.setup(options)
-  apply(vim.g.colors_name or "woodfish-dark", options or {})
+  settings = options or {}
+  if palettes[vim.g.colors_name or ""] then
+    apply(vim.g.colors_name, settings)
+  end
 end
 
 function M.palette()

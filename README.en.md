@@ -158,6 +158,7 @@ Pick any color theme, then click **重新加载窗口** (Reload Window) when pro
 | Windsurf / Devin | 1.126 | Open VSX | Package layout verified |
 | Trae / Trae CN | 1.107 | Open VSX | Package layout verified |
 | Ghostty, Windows Terminal, bat, Yazi, Starship, lsd, zsh-syntax-highlighting | Independent of VS Code | [Terminal colors and setup](./apps/terminal/README.md) | Color schemes only |
+| Neovim 0.12 | Independent of VS Code | [woodfish.nvim](https://github.com/woodfishhhh/woodfish.nvim) ([notes](./apps/neovim/README.md)) | 15 color schemes, loaded headless and compared with VS Code character by character |
 
 "Package layout verified" means the workbench path, CSP, checksums and main-process format in the editor's installer were checked and match the editors that were tested end to end. Remote SSH, WSL and dev containers work too, because Woodfish always runs on the local UI side.
 

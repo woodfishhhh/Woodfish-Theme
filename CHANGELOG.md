@@ -8,6 +8,12 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [Unreleased]
+
+### 新增
+
+- [Neovim 配色](./apps/neovim/README.md)：15 套主题作为 Neovim 配色方案提供，仓库是 [woodfish.nvim](https://github.com/woodfishhhh/woodfish.nvim)。语法颜色和字体样式按 VS Code 给 TypeScript / JavaScript / TSX / Python / Lua / Go / Rust / JSON / Markdown 的实际结果量出来，只定义带语言后缀的高亮组；另含 Treesitter、LSP、诊断、diff / git、telescope、nvim-cmp、blink.cmp、gitsigns、neo-tree、nvim-tree、which-key、indent-blankline 和 lualine。
+
 ## [8.1.5] - 2026-11-21
 
 ### 新增
