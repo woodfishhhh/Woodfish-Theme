@@ -218,7 +218,7 @@ async function main() {
     const page = path.join(OUT, `compare-${palette.slug}.html`);
     fs.writeFileSync(page, pictureHtml({ palette, theme, rendered, highlighter, meta, summary }));
     if (SCREENSHOTS) {
-      const height = 140 + COMPARE_SAMPLES.reduce((sum, sample) => sum + excerptLines(sample) * LINE_HEIGHT + 100, 0);
+      const height = 140 + COMPARE_SAMPLES.length * (EXCERPT * LINE_HEIGHT + 100);
       screenshot(browser, page, path.join(OUT, `compare-${palette.slug}.png`), 1800, height);
     }
     console.log(
