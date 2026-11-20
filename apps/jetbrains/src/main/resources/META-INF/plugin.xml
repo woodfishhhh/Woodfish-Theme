@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+    <id>com.github.yyyyolo7a79.woodfishtheme</id>
+    <name>Woodfish Theme</name>
+    <vendor url="https://github.com/yyyyolo7a79-sketch">yyyyolo7a79</vendor>
+
+    <description><![CDATA[
+    <p>The gradient and glow core of the <a href="https://github.com/woodfishhhh/Woodfish-Theme">Woodfish Theme</a>
+    JetBrains port: a universal overlay that adds OKLCH gradients and a soft glow to code text on top of
+    <b>any</b> editor color scheme. This module does not bundle a color scheme.</p>
+    <ul>
+      <li><b>Gradient syntax</b>: every token gets a gradient centred on its own color.</li>
+      <li><b>Glow</b>: adjustable layered glow under the text.</li>
+      <li><b>CJK included</b>: Chinese, Japanese and Korean text gets the same treatment without ghosting.</li>
+      <li><b>Presets</b>: built-in looks and your own saved combinations.</li>
+    </ul>
+    <p>Woodfish Theme 的 JetBrains 移植版（渐变与发光核心）：为任意配色方案的代码文字叠加
+    OKLCH 渐变与发光，不内置配色方案。参数位于 Settings | Tools | Woodfish Theme。</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 通用叠层主入口：为每个编辑器挂载渐变与发光渲染 -->
+        <editorFactoryListener implementation="com.github.yyyyolo7a79.woodfish.editor.WoodfishEditorManager"/>
+
+        <!-- 设置页：Settings | Tools | Woodfish Theme -->
+        <applicationConfigurable parentId="tools"
+                                 id="com.github.yyyyolo7a79.woodfish.settings"
+                                 displayName="Woodfish Theme"
+                                 instance="com.github.yyyyolo7a79.woodfish.ui.WoodfishConfigurable"/>
+
+        <!-- 状态栏：显示 on / off 与正在生效的效果层，点击打开功能菜单 -->
+        <statusBarWidgetFactory id="com.github.yyyyolo7a79.woodfish.status"
+                                implementation="com.github.yyyyolo7a79.woodfish.ui.WoodfishStatusWidgetFactory"
+                                order="last"/>
+
+        <notificationGroup id="Woodfish Theme" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <group id="Woodfish.Menu" text="Woodfish Theme" popup="true"
+               description="Woodfish 渐变与发光效果层">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+
+            <action id="Woodfish.ToggleOverlay"
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleOverlayAction"
+                    text="Woodfish 通用叠层"
+                    description="整体开关渐变与发光；关闭后保留全部参数"/>
+            <action id="Woodfish.ToggleSyntaxGradient"
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleSyntaxGradientAction"
+                    text="Woodfish 彩色字体（渐变）"
+                    description="为代码文字叠加以原色为中点的 OKLCH 渐变"/>
+            <action id="Woodfish.ToggleGlow"
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleGlowAction"
+                    text="Woodfish 发光字体"
+                    description="在代码文字下方绘制分层发光"/>
+            <separator/>
+            <action id="Woodfish.ApplyPreset"
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ApplyPresetAction"
+                    text="选择效果预设…"
+                    description="一键切换柔和护眼、霓虹全开等效果组合"/>
+            <action id="Woodfish.SavePreset"
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.SavePresetAction"
+                    text="将当前效果保存为预设…"
+                    description="把当前的渐变与发光参数保存为自定义预设"/>
+            <separator/>
+            <action id="Woodfish.OpenSettings"
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.OpenSettingsAction"
+                    text="打开 Woodfish 设置"
+                    description="打开 Settings | Tools | Woodfish Theme"/>
+            <action id="Woodfish.CopyDiagnostics"
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.CopyDiagnosticsAction"
+                    text="生成 Woodfish 诊断信息"
+                    description="把 IDE、配色方案与 Woodfish 设置复制到剪贴板，方便提 issue"/>
+        </group>
+
+        <!-- 不进菜单：状态栏点击时弹出，也可用 Find Action（Ctrl+Shift+A）搜到 -->
+        <action id="Woodfish.ShowFeatureMenu"
+                class="com.github.yyyyolo7a79.woodfish.ui.actions.ShowFeatureMenuAction"
+                text="打开 Woodfish 功能菜单"
+                description="按分组列出 Woodfish 的全部开关与预设"/>
+    </actions>
+</idea-plugin>

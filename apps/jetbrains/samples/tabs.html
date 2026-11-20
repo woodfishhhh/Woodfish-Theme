@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- 与原版 README 截图 images/img2.png 相同的代码片段，用于并排对比渐变与发光效果 -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>Woodfish tabs demo</title>
+</head>
+<body>
+  <div class="tab">
+    <div class="tab-nav">
+      <ul>
+        <li><a class="active" href="javascript:;" data-id="0">tab00</a></li>
+        <li><a href="javascript:;" data-id="1">tab01</a></li>
+      </ul>
+    </div>
+    <div class="tab-content">
+      <div class="item active"><img src="./images/tab00.png" alt="" /></div>
+      <div class="item"><img src="./images/tab01.png" alt="" /></div>
+      <div class="item"><img src="./images/tab02.png" alt="" /></div>
+      <div class="item"><img src="./images/tab03.png" alt="" /></div>
+      <div class="item"><img src="./images/tab04.png" alt="" /></div>
+    </div>
+  </div>
+  <script>
+    let ul = document.querySelector(".tab-nav ul");
+    let item = document.querySelectorAll(".tab-content .item");
+
+    ul.addEventListener("click", function fn(e) {
+      if (e.target.tagName === "A") {
+        document.querySelector(".tab-nav .active").classList.remove("active");
+        e.target.classList.add("active");
+
+        document.querySelector(".item.active").classList.remove("active");
+        let index = +e.target.dataset.id;
+        document
+          .querySelector(`.tab-content .item:nth-child(${index + 1})`)
+          .classList.add("active");
+      }
+    });
+  </script>
+</body>
+</html>

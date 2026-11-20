@@ -1,0 +1,15 @@
+{
+  "woodfishTheme.overlay.hueShift": 24,
+  "woodfishTheme.overlay.lightnessDelta": 0.06,
+  "woodfishTheme.overlay.neutralChroma": 0.06,
+  "woodfishTheme.overlay.angle": 90,
+  "woodfishTheme.glow.intensity": 0.8,
+  "woodfishTheme.syntaxGradient.enabled": true,
+  "woodfishTheme.glow.enabled": true,
+  "themes": ["Woodfish Dark", "Woodfish Dracula", "Woodfish Black", "Woodfish Neon", "Woodfish Light"],
+  "nested": {
+    "nullValue": null,
+    "flag": false,
+    "ratio": 1.5e3
+  }
+}

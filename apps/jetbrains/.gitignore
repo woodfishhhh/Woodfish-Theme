@@ -1,0 +1,24 @@
+# ===== 构建产物 =====
+build/
+.gradle/
+.intellijPlatform/
+*.class
+out/
+bin/
+
+# ===== IDE 配置 =====
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ===== Node（主题生成脚本，后续主题变更使用）=====
+node_modules/
+
+# ===== 调试截图等临时文件 =====
+/screenshots/
+*.log
+
+# ===== 本机专属路径（IDE 安装位置），不提交 =====
+gradle.local.properties
