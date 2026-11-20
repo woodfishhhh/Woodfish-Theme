@@ -135,4 +135,31 @@
 <dict><key>scope</key><string>text.xml meta.tag.preprocessor entity.name.tag</string><key>settings</key><dict><key>foreground</key><string>#5E81AC</string></dict></dict>
 <dict><key>scope</key><string>text.xml string.unquoted.cdata, text.xml string.unquoted.cdata punctuation.definition.string</string><key>settings</key><dict><key>foreground</key><string>#D08770</string><key>fontStyle</key><string>italic</string></dict></dict>
 <dict><key>scope</key><string>source.yaml entity.name.tag</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>meta.annotation.python punctuation.definition.annotation.python</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>variable.annotation.python meta.generic-name.python</string><key>settings</key><dict><key>foreground</key><string>#D08770</string></dict></dict>
+<dict><key>scope</key><string>entity.name.class.python meta.generic-name.python</string><key>settings</key><dict><key>foreground</key><string>#8FBCBB</string></dict></dict>
+<dict><key>scope</key><string>meta.interpolation.python punctuation.section.interpolation.begin.python, meta.interpolation.python punctuation.section.interpolation.end.python</string><key>settings</key><dict><key>foreground</key><string>#EBCB8B</string></dict></dict>
+<dict><key>scope</key><string>meta.interpolation.python variable.language.python</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>meta.interpolation.python punctuation.accessor.dot.python</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>meta.string.interpolated.python punctuation.definition.string.begin.python</string><key>settings</key><dict><key>foreground</key><string>#A3BE8C</string></dict></dict>
+<dict><key>scope</key><string>meta.string.interpolated.python punctuation.definition.string.end.python</string><key>settings</key><dict><key>foreground</key><string>#A3BE8C</string></dict></dict>
+<dict><key>scope</key><string>meta.template.expression.ts support.variable.property.dom.ts</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>storage.type.keyword.type.go</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>storage.type.keyword.struct.go</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>storage.type.keyword.function.go</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>keyword.other.package.go</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>source.go storage.type.go</string><key>settings</key><dict><key>foreground</key><string>#d8dee9ff</string></dict></dict>
+<dict><key>scope</key><string>storage.type.go support.type.builtin.go</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>variable.other.member.declaration.go</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>meta.block.go variable.other.member.go</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
+<dict><key>scope</key><string>punctuation.accessor.dot.go</string><key>settings</key><dict><key>foreground</key><string>#ECEFF4</string></dict></dict>
+<dict><key>scope</key><string>entity.name.struct.rust</string><key>settings</key><dict><key>foreground</key><string>#d8dee9ff</string></dict></dict>
+<dict><key>scope</key><string>entity.name.impl.rust</string><key>settings</key><dict><key>foreground</key><string>#d8dee9ff</string></dict></dict>
+<dict><key>scope</key><string>storage.type.impl.rust</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>storage.type.function.rust</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>punctuation.separator.type.rust</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>meta.function.return-type.rust punctuation.separator.rust</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>meta.function.return-type.rust storage.type.rust</string><key>settings</key><dict><key>foreground</key><string>#d8dee9ff</string></dict></dict>
+<dict><key>scope</key><string>punctuation.accessor.dot.rust</string><key>settings</key><dict><key>foreground</key><string>#81A1C1</string></dict></dict>
+<dict><key>scope</key><string>meta.struct.rust variable.other.member.rust</string><key>settings</key><dict><key>foreground</key><string>#D8DEE9</string></dict></dict>
 </array></dict></plist>

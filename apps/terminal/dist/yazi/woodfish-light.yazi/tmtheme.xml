@@ -50,4 +50,31 @@
 <dict><key>scope</key><string>variable.other.normal.shell, punctuation.definition.variable.shell, variable.other.special.shell</string><key>settings</key><dict><key>foreground</key><string>#8A6200</string></dict></dict>
 <dict><key>scope</key><string>invalid, invalid.illegal</string><key>settings</key><dict><key>foreground</key><string>#CF222E</string></dict></dict>
 <dict><key>scope</key><string>invalid.deprecated</string><key>settings</key><dict><key>foreground</key><string>#CF222E</string><key>fontStyle</key><string>strikethrough</string></dict></dict>
+<dict><key>scope</key><string>meta.annotation.python punctuation.definition.annotation.python</string><key>settings</key><dict><key>foreground</key><string>#5B6370</string></dict></dict>
+<dict><key>scope</key><string>variable.annotation.python meta.generic-name.python</string><key>settings</key><dict><key>foreground</key><string>#9B2F94</string></dict></dict>
+<dict><key>scope</key><string>entity.name.class.python meta.generic-name.python</string><key>settings</key><dict><key>foreground</key><string>#0B7568</string></dict></dict>
+<dict><key>scope</key><string>meta.interpolation.python punctuation.section.interpolation.begin.python, meta.interpolation.python punctuation.section.interpolation.end.python</string><key>settings</key><dict><key>foreground</key><string>#A04F00</string></dict></dict>
+<dict><key>scope</key><string>meta.interpolation.python variable.language.python</string><key>settings</key><dict><key>foreground</key><string>#7B3FC4</string></dict></dict>
+<dict><key>scope</key><string>meta.interpolation.python punctuation.accessor.dot.python</string><key>settings</key><dict><key>foreground</key><string>#5B6370</string></dict></dict>
+<dict><key>scope</key><string>meta.string.interpolated.python punctuation.definition.string.begin.python</string><key>settings</key><dict><key>foreground</key><string>#3B7A1C</string></dict></dict>
+<dict><key>scope</key><string>meta.string.interpolated.python punctuation.definition.string.end.python</string><key>settings</key><dict><key>foreground</key><string>#3B7A1C</string></dict></dict>
+<dict><key>scope</key><string>meta.template.expression.ts support.variable.property.dom.ts</string><key>settings</key><dict><key>foreground</key><string>#0A6A8A</string></dict></dict>
+<dict><key>scope</key><string>storage.type.keyword.type.go</string><key>settings</key><dict><key>foreground</key><string>#B4235A</string></dict></dict>
+<dict><key>scope</key><string>storage.type.keyword.struct.go</string><key>settings</key><dict><key>foreground</key><string>#B4235A</string></dict></dict>
+<dict><key>scope</key><string>storage.type.keyword.function.go</string><key>settings</key><dict><key>foreground</key><string>#B4235A</string></dict></dict>
+<dict><key>scope</key><string>keyword.other.package.go</string><key>settings</key><dict><key>foreground</key><string>#B4235A</string></dict></dict>
+<dict><key>scope</key><string>source.go storage.type.go</string><key>settings</key><dict><key>foreground</key><string>#0B7568</string></dict></dict>
+<dict><key>scope</key><string>storage.type.go support.type.builtin.go</string><key>settings</key><dict><key>foreground</key><string>#7B3FC4</string></dict></dict>
+<dict><key>scope</key><string>variable.other.member.declaration.go</string><key>settings</key><dict><key>foreground</key><string>#0A6A8A</string></dict></dict>
+<dict><key>scope</key><string>meta.block.go variable.other.member.go</string><key>settings</key><dict><key>foreground</key><string>#2B3A67</string></dict></dict>
+<dict><key>scope</key><string>punctuation.accessor.dot.go</string><key>settings</key><dict><key>foreground</key><string>#5B6370</string></dict></dict>
+<dict><key>scope</key><string>entity.name.struct.rust</string><key>settings</key><dict><key>foreground</key><string>#0B7568</string></dict></dict>
+<dict><key>scope</key><string>entity.name.impl.rust</string><key>settings</key><dict><key>foreground</key><string>#0B7568</string></dict></dict>
+<dict><key>scope</key><string>storage.type.impl.rust</string><key>settings</key><dict><key>foreground</key><string>#B4235A</string></dict></dict>
+<dict><key>scope</key><string>storage.type.function.rust</string><key>settings</key><dict><key>foreground</key><string>#B4235A</string></dict></dict>
+<dict><key>scope</key><string>punctuation.separator.type.rust</string><key>settings</key><dict><key>foreground</key><string>#8E3A55</string></dict></dict>
+<dict><key>scope</key><string>meta.function.return-type.rust punctuation.separator.rust</string><key>settings</key><dict><key>foreground</key><string>#8E3A55</string></dict></dict>
+<dict><key>scope</key><string>meta.function.return-type.rust storage.type.rust</string><key>settings</key><dict><key>foreground</key><string>#0B7568</string></dict></dict>
+<dict><key>scope</key><string>punctuation.accessor.dot.rust</string><key>settings</key><dict><key>foreground</key><string>#8E3A55</string></dict></dict>
+<dict><key>scope</key><string>meta.struct.rust variable.other.member.rust</string><key>settings</key><dict><key>foreground</key><string>#2B3A67</string></dict></dict>
 </array></dict></plist>

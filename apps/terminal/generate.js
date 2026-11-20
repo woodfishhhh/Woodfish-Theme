@@ -3,6 +3,7 @@ const path = require('node:path');
 const { WOODFISH_PALETTES, requireCssColor } = require('@woodfish/theme-core');
 const { parseJsonc } = require('../vscode-extension/scripts/lib/jsonc');
 const { contributes } = require('../vscode-extension/package.json');
+const { aliasColors } = require('./scopeAliases');
 
 const vscode = path.resolve(__dirname, '../vscode-extension');
 const dist = path.join(__dirname, 'dist');
@@ -39,7 +40,13 @@ function plistDict(values) {
 
 function tmTheme(label, theme, defaults) {
   const scopes = [];
-  for (const { scope, settings } of theme.tokenColors) {
+  const defaultInk =
+    theme.tokenColors.findLast((r) => !r.scope && r.settings.foreground)?.settings.foreground ??
+    defaults.foreground;
+  for (const { scope, settings } of [
+    ...theme.tokenColors,
+    ...aliasColors(theme.tokenColors, defaultInk),
+  ]) {
     const colors = Object.fromEntries(
       Object.entries(settings).filter(([key]) =>
         ['foreground', 'background', 'fontStyle'].includes(key)

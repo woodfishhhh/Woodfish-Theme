@@ -1,5 +1,28 @@
 const { WOODFISH_PALETTES } = require('@woodfish/theme-core');
 const { opaque, render, tmTheme } = require('./generate');
+const { aliasColors } = require('./scopeAliases');
+
+test('aliases inherit the winning VS Code foreground, without styling all parameters as self', () => {
+  const rule = (scope, foreground) => ({ scope, settings: { foreground } });
+  const result = aliasColors(
+    [
+      rule('entity.name', '#111111'),
+      rule('meta.class.python entity.name.type.class', '#222222'),
+      rule('meta.class.python entity.name.type.class', '#333333'),
+      rule('entity.name.type.class', '#444444'),
+      rule('meta.function.python entity.name.type.class', '#555555'),
+    ],
+    '#999999'
+  );
+  expect(
+    result.find((r) => r.scope.startsWith('entity.name.class.python')).settings.foreground
+  ).toBe('#333333');
+  expect(
+    result.find((r) => r.scope.includes('punctuation.section.interpolation.begin.python')).settings
+      .foreground
+  ).toBe('#999999');
+  expect(result.some((r) => r.scope.includes('variable.parameter.python'))).toBe(false);
+});
 
 test('composites translucent terminal colors over their actual background', () => {
   expect(opaque('#ffffff80', '#000000')).toBe('#808080');
