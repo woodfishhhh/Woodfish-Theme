@@ -35,6 +35,7 @@ const REPOSITORY_RAW_IMAGE =
 const OTHER_PROJECTS = new Set([
   'woodfishhhh/obituary',
   'woodfishhhh/scoop-bucket',
+  'woodfishhhh/woodfish.nvim',
   'yyyyolo7a79-sketch/woodfish-theme-for-jetbrains',
 ]);
 
