@@ -116,6 +116,8 @@ function screenshot(browser, htmlFile, png, width, height) {
     ],
     { stdio: 'ignore' }
   );
+  // Chrome / Edge can exit before the file is on disk.
+  for (let waited = 0; !fs.existsSync(png) && waited < 50; waited++) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
   if (!fs.existsSync(png)) throw new Error(`browser did not write ${png}`);
 }
 
