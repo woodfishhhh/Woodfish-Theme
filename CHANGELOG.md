@@ -8,15 +8,17 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
+## [Unreleased]
+
+### 新增
+
+- [终端配色包](./apps/terminal/README.md)：Ghostty、Windows Terminal、bat、Yazi、Starship、lsd 和 zsh-syntax-highlighting 可使用与编辑器对应的静态配色。
+
 ## [8.1.4] - 2026-11-20
 
 ### 改进
 
 - [文档索引](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.1.4/docs/README.md)按 VS Code、Codex 桌面端和 dsh 网页版整理了使用说明；安装包内容和安装方式不因目录调整而改变。
-
-### 新增
-
-- [终端配色包](./apps/terminal/README.md)：Ghostty、Windows Terminal、bat、Yazi、Starship、lsd 和 zsh-syntax-highlighting 可使用与编辑器对应的静态配色。
 
 ### 修复
 
