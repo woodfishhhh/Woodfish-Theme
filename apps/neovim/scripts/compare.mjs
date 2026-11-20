@@ -89,6 +89,7 @@ h2{font-size:14px;margin:12px 0 6px}h2 small{font-weight:400;color:#8691a7;margi
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pane{min-width:0;border:1px solid #2a3040;border-radius:4px;overflow:hidden}
 .cap{padding:4px 10px;background:#161a23;color:#8f9ab0;font-size:12px;font-weight:600}
 pre.nv,pre.shiki{height:var(--h);margin:0!important;padding:8px 12px!important;box-sizing:border-box;overflow:hidden;white-space:pre!important;font:12.5px/${LINE_HEIGHT}px "Cascadia Code","Cascadia Mono",Consolas,monospace!important;border-radius:0!important}
+pre.shiki code{font:inherit!important}
 </style>
 <h1>${escapeHtml(palette.label)}: Neovim / VS Code</h1>
 <p class="meta">commit ${meta.commit}${meta.dirty ? ' (dirty tree)' : ''} · generated ${meta.generatedAt} · ${escapeHtml(meta.neovim)} · Shiki ${meta.shiki}.
