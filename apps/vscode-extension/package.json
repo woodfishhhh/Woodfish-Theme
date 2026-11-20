@@ -1073,7 +1073,7 @@
     "publish": "node scripts/publish.js",
     "publish:pre-release": "node scripts/publish.js --pre-release",
     "package": "node scripts/package.js",
-    "clean": "rimraf *.vsix",
+    "clean": "rimraf ../../dist",
     "themes:generate": "tsc -b ../../packages/theme-core && node scripts/generate-themes.js && node scripts/port-palettes.js",
     "themes:check": "tsc -b ../../packages/theme-core && node scripts/generate-themes.js --check && node scripts/port-palettes.js --check",
     "runtime:build": "node scripts/build-browser-runtime.js",

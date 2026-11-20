@@ -3,10 +3,10 @@
   "references": [
     { "path": "./packages/theme-core" },
     { "path": "./packages/renderer-runtime" },
-    { "path": "./packages/adapter-codex" },
-    { "path": "./packages/adapter-dsh" },
+    { "path": "./apps/chatgpt-app" },
+    { "path": "./apps/dsh-web" },
     { "path": "./packages/effects" },
     { "path": "./apps/vscode-extension" },
-    { "path": "./apps/desktop-cli" }
+    { "path": "./apps/cli" }
   ]
 }

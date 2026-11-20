@@ -1,7 +1,7 @@
 'use strict';
 /*
  * The 8.0 promo storyboard. Times are seconds of the BGM ("no more fires" by Sleepy Fish,
- * see docs/promo.md): measured at 57.5 BPM with triplet hi-hats, one bar = 4.174 s starting
+ * see docs/internal/promo.md): measured at 57.5 BPM with triplet hi-hats, one bar = 4.174 s starting
  * at 0. The track is quiet for bar 0–1, full from bar 2, drops to a breakdown at bar 22; the
  * video runs from bar 1 (START) to bar 25 (END). Every shot changes on a beat.
  *

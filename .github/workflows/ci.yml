@@ -92,11 +92,11 @@ jobs:
         run: |
           pnpm --filter @woodfish/theme-core run compile
           pnpm --filter @woodfish/renderer-runtime run compile
-          pnpm --filter @woodfish/adapter-codex run compile
-          pnpm --filter @woodfish/desktop-cli run compile
+          pnpm --filter @woodfish/chatgpt-app run compile
+          pnpm --filter @woodfish/cli run compile
           pnpm codex:check
-          pnpm --filter @woodfish/adapter-codex run test --runInBand
-          pnpm --filter @woodfish/desktop-cli run test --runInBand
+          pnpm --filter @woodfish/chatgpt-app run test --runInBand
+          pnpm --filter @woodfish/cli run test --runInBand
 
       - name: Smoke-test the bundled CLI
-        run: node apps/desktop-cli/out/woodfish.js help
+        run: node apps/cli/out/woodfish.js help

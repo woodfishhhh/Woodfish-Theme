@@ -47,7 +47,7 @@
 - 你运行在沙箱里的话：下载、写入 %LOCALAPPDATA%、注册登录任务都要沙箱外的权限，照你平时的规矩向我申请。
 ```
 
-装好以后长什么样，见 README 的[效果一览](../README.md#效果一览)；全部命令见 [Woodfish 桌面工具](../apps/desktop-cli/README.md)。
+装好以后长什么样，见 README 的[效果一览](../README.md#效果一览)；全部命令见 [Woodfish 桌面工具](../apps/cli/README.md)。
 
 ## In English
 
@@ -94,4 +94,4 @@ Rules:
 - If you run in a sandbox: downloading, writing to %LOCALAPPDATA% and registering the logon task need permissions outside it; ask me the way you normally do.
 ```
 
-What it looks like once installed: [Effects at a glance](../README.en.md#effects-at-a-glance); every command: [the desktop tool's README](../apps/desktop-cli/README.md) (Chinese).
+What it looks like once installed: [Effects at a glance](../README.en.md#effects-at-a-glance); every command: [the desktop tool's README](../apps/cli/README.md) (Chinese).

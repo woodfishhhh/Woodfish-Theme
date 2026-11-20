@@ -71,6 +71,7 @@ describe('withStagedRepoFiles', () => {
     fakeExtension = path.join(fakeRepo, 'apps', 'ext');
     fs.mkdirSync(fakeExtension, { recursive: true });
     fs.writeFileSync(path.join(fakeRepo, 'README.md'), '# readme');
+    fs.writeFileSync(path.join(fakeRepo, 'CHANGELOG.md'), '# changelog');
     fs.writeFileSync(path.join(fakeRepo, 'LICENSE'), 'MIT');
     const assets = path.join(fakeRepo, 'packages', 'renderer-runtime', 'assets');
     fs.mkdirSync(assets, { recursive: true });

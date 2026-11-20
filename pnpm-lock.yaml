@@ -57,7 +57,16 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  apps/desktop-cli:
+  apps/chatgpt-app:
+    dependencies:
+      '@woodfish/renderer-runtime':
+        specifier: workspace:*
+        version: link:../../packages/renderer-runtime
+      '@woodfish/theme-core':
+        specifier: workspace:*
+        version: link:../../packages/theme-core
+
+  apps/cli:
     dependencies:
       smol-toml:
         specifier: ^1.9.1
@@ -69,12 +78,12 @@ importers:
       '@types/ws':
         specifier: ^8.5.13
         version: 8.18.2
-      '@woodfish/adapter-codex':
+      '@woodfish/chatgpt-app':
         specifier: workspace:*
-        version: link:../../packages/adapter-codex
-      '@woodfish/adapter-dsh':
+        version: link:../chatgpt-app
+      '@woodfish/dsh-web':
         specifier: workspace:*
-        version: link:../../packages/adapter-dsh
+        version: link:../dsh-web
       '@woodfish/effects':
         specifier: workspace:*
         version: link:../../packages/effects
@@ -90,6 +99,15 @@ importers:
       ws:
         specifier: ^8.18.0
         version: 8.22.0
+
+  apps/dsh-web:
+    dependencies:
+      '@woodfish/renderer-runtime':
+        specifier: workspace:*
+        version: link:../../packages/renderer-runtime
+      '@woodfish/theme-core':
+        specifier: workspace:*
+        version: link:../../packages/theme-core
 
   apps/vscode-extension:
     devDependencies:
@@ -111,24 +129,6 @@ importers:
       '@woodfish/theme-core':
         specifier: workspace:*
         version: link:../../packages/theme-core
-
-  packages/adapter-codex:
-    dependencies:
-      '@woodfish/renderer-runtime':
-        specifier: workspace:*
-        version: link:../renderer-runtime
-      '@woodfish/theme-core':
-        specifier: workspace:*
-        version: link:../theme-core
-
-  packages/adapter-dsh:
-    dependencies:
-      '@woodfish/renderer-runtime':
-        specifier: workspace:*
-        version: link:../renderer-runtime
-      '@woodfish/theme-core':
-        specifier: workspace:*
-        version: link:../theme-core
 
   packages/effects:
     dependencies:
@@ -721,6 +721,7 @@ packages:
   '@secretlint/secretlint-rule-preset-recommend@10.2.2':
     resolution: {integrity: sha512-K3jPqjva8bQndDKJqctnGfwuAxU2n9XNCPtbXVI5JvC7FnQiNg/yWlQPbMUlBXtBoBGFYp08A94m6fvtc9v+zA==}
     engines: {node: '>=20.0.0'}
+    deprecated: Built into secretlint v14 and later. Remove this package; the rule id still works. https://github.com/secretlint/secretlint/blob/HEAD/docs/rules/preset-recommend.md
 
   '@secretlint/source-creator@10.2.2':
     resolution: {integrity: sha512-h6I87xJfwfUTgQ7irWq7UTdq/Bm1RuQ/fYhA3dtTIAop5BwSFmZyrchph4WcoEvbN460BWKmk4RYSvPElIIvxw==}

@@ -444,11 +444,11 @@ AI 打不开 GitHub 的话，把地址换成 `https://cdn.jsdelivr.net/gh/woodfi
 - **停用和卸载**：VS Code 里运行 **为 Codex 停用 Woodfish** 或 **从 Codex 卸载 Woodfish**。用 exe 的话，在 `woodfish.exe` 所在的文件夹打开终端：停用是 `.\woodfish.exe codex autostart off` 再 `.\woodfish.exe codex stop-inject`，全部撤销是 `.\woodfish.exe codex uninstall`。之后重启一次 Codex，调试端口就关了。
 - **不碰你的 Codex**：Woodfish 不修改 Codex 的安装文件，也不修改、替换或删除你开始菜单、桌面、任务栏上的 Codex 快捷方式。用原来的快捷方式打开 Codex 时，它会在窗口出现前被带效果重启一次，所以比平时晚两三秒出窗口；想省掉这一步，`woodfish codex shortcut`（VS Code 启用成功的提示上也有这个按钮）在开始菜单另加一个直接带效果启动的“Woodfish Codex”。
 
-只换配色、不开调试端口的原生配色，Codex++ 用户脚本，全部命令和效果插件的细节，见 [Woodfish 桌面工具](./apps/desktop-cli/README.md)。
+只换配色、不开调试端口的原生配色，Codex++ 用户脚本，全部命令和效果插件的细节，见 [Woodfish 桌面工具](./apps/cli/README.md)。
 
 ## DeepSeek Harness（dsh）Web 版
 
-dsh 的 Web 版（`dsh web`，本机 `127.0.0.1:3080`）可以通过油猴用户脚本换上同样的主题和效果：`woodfish dsh userscript` 输出脚本路径，装进 Tampermonkey / Violentmonkey 即可。详见 [dsh 适配说明](./docs/hosts/dsh.md)。
+dsh 的 Web 版（`dsh web`，本机 `127.0.0.1:3080`）可以通过油猴用户脚本换上同样的主题和效果：`woodfish dsh userscript` 输出脚本路径，装进 Tampermonkey / Violentmonkey 即可。详见 [dsh 适配说明](./docs/hosts/dsh-web.md)。
 
 ## 本地开发
 
@@ -465,6 +465,15 @@ pnpm package
 
 仓库是 pnpm workspace monorepo，以上命令都在根目录运行。VS Code 扩展位于 `apps/vscode-extension/`，与宿主无关的颜色算法、渐变计算、特调表和调色板位于 `packages/theme-core/`，结构与边界见 [仓库结构](./docs/ARCHITECTURE.md)。
 
+### 项目结构
+
+- `apps/vscode-extension/`：VS Code 扩展。
+- `apps/chatgpt-app/`：ChatGPT/Codex 桌面端适配。
+- `apps/dsh-web/`：DeepSeek Harness Web 版适配。
+- `apps/cli/`：`woodfish` 命令行、渲染脚本构建和发布产物。
+- `packages/theme-core/`、`packages/renderer-runtime/`、`packages/effects/`：与具体宿主无关的共享代码。
+- 新宿主放在 `apps/<宿主>/`，适配器与宿主入口保持在同一个目录。
+
 `pnpm test:integration` 会启动隔离的 VS Code 扩展宿主，验证开启、关闭和工作台恢复。扩展入口是 `apps/vscode-extension/src/extension.ts`；主题由 `apps/vscode-extension/scripts/generate-themes.js` 生成（`pnpm themes:generate`），渲染端脚本源码在 `apps/vscode-extension/browser/`（`pnpm runtime:build`），注入用 CSS 在 `apps/vscode-extension/themes/shared/`。README 里的图片由 `apps/vscode-extension/scripts/render-readme-images.js` 生成，改了渐变或效果后重跑一次。发布到 Open VSX 需要先设置环境变量 `OVSX_PAT`。
 
 ## 参与共建
@@ -477,7 +486,7 @@ pnpm package
 
 ## 项目信息
 
-- [更新日志](./apps/vscode-extension/CHANGELOG.md)
+- [更新日志](./CHANGELOG.md)
 - [参与贡献](./docs/CONTRIBUTING.md)
 - [提交问题](https://github.com/woodfishhhh/Woodfish-Theme/issues)
 - [许可与第三方主题声明](./apps/vscode-extension/THIRD_PARTY_NOTICES.md)

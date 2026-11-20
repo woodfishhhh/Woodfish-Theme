@@ -23,7 +23,7 @@ function resolveVsceEntry() {
  * Repository files the Marketplace listing needs inside the extension folder. vsce only
  * collects files below its working directory, so they are copied in while packaging.
  */
-const STAGED_REPO_FILES = ['README.md', 'LICENSE'];
+const STAGED_REPO_FILES = ['README.md', 'CHANGELOG.md', 'LICENSE'];
 
 /**
  * Shared assets the extension ships, staged the same way: the default window background

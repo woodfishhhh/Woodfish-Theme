@@ -32,7 +32,6 @@ const FORBIDDEN_PACKAGE_PATHS = [
   /^\.superpowers\//i,
   /^\.worktrees\//i,
   /^assets\/readme\//i,
-  /^images\/(?:img1\.png|img2\.png|icon\.svg|head\.jpg)$/i,
   // 开发模式下扩展把安装记录写在扩展目录里，里面是本机路径，绝不能随包发布
   /(?:^|\/)\.woodfish-installations\.json$/i,
 ];
@@ -145,7 +144,7 @@ function checkProjectStructure() {
     [EXTENSION_ROOT, 'package.json', '扩展配置文件'],
     [REPO_ROOT, 'README.md', '项目说明文档'],
     [REPO_ROOT, 'LICENSE', '许可证文件'],
-    [EXTENSION_ROOT, 'CHANGELOG.md', '更新日志'],
+    [REPO_ROOT, 'CHANGELOG.md', '更新日志'],
     [EXTENSION_ROOT, 'THIRD_PARTY_NOTICES.md', '许可与第三方主题声明'],
     [EXTENSION_ROOT, 'out/extension.js', '扩展主文件(编译产物)'],
     [EXTENSION_ROOT, 'themes/', '主题文件夹'],
@@ -329,7 +328,7 @@ function checkPackageHygiene() {
   console.log('\n📦 检查 VSIX 打包清单...');
 
   try {
-    // README 与 LICENSE 只在打包期间复制进扩展目录，清单检查需要同样的条件
+    // README、CHANGELOG 与 LICENSE 只在打包期间复制进扩展目录，清单检查需要同样的条件
     const { tree, packageSourceBytes } = withStagedRepoFiles(() => {
       // `vsce ls` ignores the manifest's `vsce.dependencies`; without the flag it asks npm for
       // dependencies, which inside the workspace resolves to the repository root.

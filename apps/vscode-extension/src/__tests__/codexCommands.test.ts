@@ -148,11 +148,11 @@ describe('codexCli helpers', () => {
   it('finds the packaged CLI before the repository build', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'woodfish-ext-'));
     const extension = path.join(root, 'vscode-extension');
-    fs.mkdirSync(path.join(root, 'desktop-cli', 'out'), { recursive: true });
+    fs.mkdirSync(path.join(root, 'cli', 'out'), { recursive: true });
     fs.mkdirSync(path.join(extension, 'out'), { recursive: true });
     expect(locateCodexCli(extension)).toBeUndefined();
-    fs.writeFileSync(path.join(root, 'desktop-cli', 'out', 'woodfish.js'), '');
-    expect(locateCodexCli(extension)).toBe(path.join(root, 'desktop-cli', 'out', 'woodfish.js'));
+    fs.writeFileSync(path.join(root, 'cli', 'out', 'woodfish.js'), '');
+    expect(locateCodexCli(extension)).toBe(path.join(root, 'cli', 'out', 'woodfish.js'));
     fs.writeFileSync(path.join(extension, 'out', 'woodfish.js'), '');
     expect(locateCodexCli(extension)).toBe(path.join(extension, 'out', 'woodfish.js'));
     fs.rmSync(root, { recursive: true, force: true });

@@ -38,6 +38,15 @@ function zipDirectory(entries: Array<[string, number]>): Buffer {
 }
 
 describe('VSIX packaging', () => {
+  it('defaults package output to the repository dist directory', () => {
+    const invocation = buildPackageInvocation(
+      [],
+      { name: 'woodfish-theme', version: '5.2.0' },
+      '/repo'
+    );
+    expect(invocation.outputPath).toBe(path.resolve('/repo', 'dist', 'woodfish-theme-5.2.0.vsix'));
+  });
+
   it('reports the size and the biggest entries without any limit', () => {
     const entries = readZipEntries(
       zipDirectory([
@@ -79,7 +88,7 @@ describe('VSIX packaging', () => {
     );
 
     expect(invocation.outputPath).toBe(
-      path.resolve('package-test', 'woodfish-theme-win32-x64-5.2.0.vsix')
+      path.resolve('package-test', 'dist', 'woodfish-theme-win32-x64-5.2.0.vsix')
     );
     expect(invocation.vsceArgs).toEqual([
       'package',
@@ -96,7 +105,7 @@ describe('VSIX packaging', () => {
         path.resolve('package-test'),
         () => false
       ).outputPath
-    ).toBe(path.resolve('package-test', 'woodfish-theme-linux-x64-5.2.0.vsix'));
+    ).toBe(path.resolve('package-test', 'dist', 'woodfish-theme-linux-x64-5.2.0.vsix'));
   });
 
   it('writes into an output directory and honors a positional package version', () => {

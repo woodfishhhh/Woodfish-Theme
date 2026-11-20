@@ -4,12 +4,12 @@ import * as os from 'os';
 import * as path from 'path';
 
 /**
- * The Woodfish CLI for the Codex desktop app (apps/desktop-cli), shipped inside the VSIX as
+ * The Woodfish CLI for the Codex desktop app (apps/cli), shipped inside the VSIX as
  * out/woodfish.js (scripts/bundle.js). It runs on the editor's own Electron as Node, so
  * nobody needs to install Node.js; the GitHub Release (and later npm) carries the same file.
  */
 
-/** The CLI's exit codes the commands react to (apps/desktop-cli/src/commands/context.ts). */
+/** The CLI's exit codes the commands react to (apps/cli/src/commands/context.ts). */
 export const CODEX_CLI_EXIT = { ok: 0, consentRequired: 3, confirmRequired: 4 } as const;
 
 export interface CodexCliResult {
@@ -22,7 +22,7 @@ export interface CodexCliResult {
 export function locateCodexCli(extensionPath: string): string | undefined {
   return [
     path.join(extensionPath, 'out', 'woodfish.js'),
-    path.resolve(extensionPath, '..', 'desktop-cli', 'out', 'woodfish.js'),
+    path.resolve(extensionPath, '..', 'cli', 'out', 'woodfish.js'),
   ].find((candidate) => fs.existsSync(candidate));
 }
 

@@ -52,7 +52,7 @@ function buildVsceArgs(command, { isPreRelease = false, packagePath } = {}) {
 
 function getPackageOutputPath(version) {
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  return path.resolve(`${packageJson.name}-${version}.vsix`);
+  return path.resolve(REPO_ROOT, 'dist', `${packageJson.name}-${version}.vsix`);
 }
 
 // 运行测试

@@ -1,8 +1,8 @@
 'use strict';
 /*
  * The Codex half of the promo: a page laid out like the Codex desktop app (the same data-*
- * hooks the adapter targets, see packages/adapter-codex/src/selectors.ts and
- * docs/hosts/codex.md), running the real Woodfish overlay for Codex and the shipped effect
+ * hooks the adapter targets, see apps/chatgpt-app/src/selectors.ts and
+ * docs/hosts/chatgpt-app.md), running the real Woodfish overlay for Codex and the shipped effect
  * plugins. Only the host DOM is a stand-in; every color, ring, caret, trail and particle on
  * screen is drawn by Woodfish's own code. `codex-stage.js` drives it frame by frame.
  */
@@ -24,9 +24,9 @@ async function buildOverlayBundle() {
   const result = await esbuild.build({
     stdin: {
       contents:
-        "import { startCodexOverlay } from '@woodfish/adapter-codex/renderer';\n(globalThis as Record<string, unknown>).__promoStartCodex = startCodexOverlay;\n",
+        "import { startCodexOverlay } from '@woodfish/chatgpt-app/renderer';\n(globalThis as Record<string, unknown>).__promoStartCodex = startCodexOverlay;\n",
       loader: 'ts',
-      resolveDir: path.join(REPO_ROOT, 'apps/desktop-cli'),
+      resolveDir: path.join(REPO_ROOT, 'apps/cli'),
       sourcefile: 'promo-codex-entry.ts',
     },
     bundle: true,

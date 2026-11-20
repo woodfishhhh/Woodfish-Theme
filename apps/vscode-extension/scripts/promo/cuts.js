@@ -1,6 +1,6 @@
 'use strict';
 /*
- * The three cuts of the promo (titles show the version in the stores when it goes out: 8.1), all on the same BGM ("no more fires", see docs/promo.md)
+ * The three cuts of the promo (titles show the version in the stores when it goes out: 8.1), all on the same BGM ("no more fires", see docs/internal/promo.md)
  * and beat grid (storyboard.js):
  *
  * - `full`: the original Codex + VS Code film (storyboard.js), bars 1–25.

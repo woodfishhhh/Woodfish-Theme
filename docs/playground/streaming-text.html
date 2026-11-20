@@ -872,7 +872,7 @@ function applyTheme(name) {
   const set = (key, value) => root.style.setProperty(key, value);
   set('--bg', theme.bg); set('--fg', theme.fg); set('--muted', theme.muted);
   set('--accent', theme.accent); set('--accent2', theme.accent2); set('--on-accent', theme.on);
-  // 回复正文渐变：主题光标色向正文色收 58%（adapter-codex 的 bodyGradient 同一做法）
+  // 回复正文渐变：主题光标色向正文色收 58%（chatgpt-app 的 bodyGradient 同一做法）
   set('--body-gradient', `linear-gradient(135deg, ${theme.stops.map((color) => `color-mix(in oklab, ${color} 42%, ${theme.fg})`).join(', ')})`);
   root.style.colorScheme = theme.mode;
   if (theme.mode === 'dark') lastDark = name; else lastLight = name;

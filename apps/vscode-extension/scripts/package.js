@@ -122,7 +122,7 @@ function buildPackageInvocation(
 ) {
   const { forwardedArgs, outputArgument } = extractOutputArgument(args);
   const defaultFileName = buildDefaultVsixName(forwardedArgs, packageMetadata);
-  let outputPath = path.resolve(cwd, defaultFileName);
+  let outputPath = path.resolve(cwd, 'dist', defaultFileName);
 
   if (outputArgument !== undefined) {
     const requestedPath = path.resolve(cwd, outputArgument);

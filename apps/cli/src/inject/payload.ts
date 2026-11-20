@@ -1,0 +1,108 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { CODEX_CONFIG_KEY, CodexSettings, normalizeCodexSettings } from '@woodfish/chatgpt-app';
+import { loadDefaultBackground } from '../codex/backgrounds';
+
+declare const __WOODFISH_CODEX_OVERLAY__: string | undefined;
+declare const __WOODFISH_CODEX_USERSCRIPT__: string | undefined;
+/** Where the release build took 《彩云》 out of the user script (scripts/build.js). */
+declare const __WOODFISH_BACKGROUND_TOKEN__: string | undefined;
+
+/** Global the Codex++ user script reads its baked-in settings from. */
+export const USERSCRIPT_CONFIG_KEY = '__woodfishCodexUserScriptConfig';
+/** Global the Codex++ user script reads its baked-in effects from. */
+export const USERSCRIPT_EFFECTS_KEY = '__woodfishCodexUserScriptEffects';
+/** Global the Codex++ user script reads its baked-in `user.css` from. */
+export const USERSCRIPT_USER_CSS_KEY = '__woodfishCodexUserScriptUserCss';
+
+export function readAsset(name: string): string {
+  const candidates = [
+    path.resolve(__dirname, '..', 'assets', name),
+    path.resolve(__dirname, '..', '..', 'assets', name),
+    path.resolve(__dirname, '..', '..', '..', 'assets', name),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return fs.readFileSync(candidate, 'utf8');
+    }
+  }
+  throw new Error(`找不到渲染端脚本 ${name}，请先运行 pnpm codex:build`);
+}
+
+/** The in-page overlay for CDP injection (inlined in release builds). */
+export function loadOverlayBundle(): string {
+  return typeof __WOODFISH_CODEX_OVERLAY__ === 'string'
+    ? __WOODFISH_CODEX_OVERLAY__
+    : readAsset('codex-overlay.js');
+}
+
+/** The in-page overlay built for Codex++ (inlined in release builds). */
+export function loadUserScriptBundle(): string {
+  if (
+    typeof __WOODFISH_CODEX_USERSCRIPT__ === 'string' &&
+    typeof __WOODFISH_BACKGROUND_TOKEN__ === 'string'
+  ) {
+    const picture = loadDefaultBackground().toString('base64');
+    return __WOODFISH_CODEX_USERSCRIPT__.replace(__WOODFISH_BACKGROUND_TOKEN__, () => picture);
+  }
+  return readAsset('codex-userscript.js');
+}
+
+/**
+ * JSON that is safe to embed in a JavaScript source: line/paragraph separators and `<`
+ * are escaped, so the literal cannot end early or be mistaken for markup.
+ */
+export function toScriptLiteral(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029')
+    .replace(/</g, '\\u003c');
+}
+
+/** Script evaluated in the Codex page: settings first, then the overlay bundle. */
+export function buildInjectionScript(
+  settings: CodexSettings,
+  bundle: string,
+  effects = ''
+): string {
+  const safe = normalizeCodexSettings(settings);
+  return [
+    `globalThis[${toScriptLiteral(CODEX_CONFIG_KEY)}] = ${toScriptLiteral(safe)};`,
+    // The effect plugins (see codex/effects.ts), stored before the overlay starts.
+    effects,
+    bundle,
+    '//# sourceURL=woodfish-codex-overlay.js',
+  ].join('\n');
+}
+
+/** Expression returning the overlay state of a page, for verification and `doctor`. */
+export const OVERLAY_STATE_EXPRESSION = `(() => {
+  const controller = globalThis.__woodfishCodexController;
+  const root = document.documentElement;
+  const style = getComputedStyle(root);
+  return {
+    url: location.href,
+    controller: controller ? { version: controller.version, build: controller.build, source: controller.source } : null,
+    active: root.dataset.woodfishCodex || null,
+    degraded: controller && typeof controller.degraded === 'function' ? controller.degraded() : [],
+    probe: controller && typeof controller.probe === 'function' ? controller.probe() : null,
+    theme: root.getAttribute('data-theme'),
+    accent: style.getPropertyValue('--app-color-text-accent').trim(),
+    surface: style.getPropertyValue('--app-color-background-surface').trim(),
+    styles: document.querySelectorAll('style[id^="woodfish-codex-"], style[id^="codex-plus-ext-woodfish-"]').length,
+    painted: document.querySelectorAll('[data-woodfish-overlay-token]').length,
+    effects: controller && typeof controller.effects === 'function'
+      ? controller.effects().map((effect) => ({ id: effect.id, name: effect.manifest.name, enabled: effect.values.enabled, state: effect.state, error: effect.error || null }))
+      : [],
+  };
+})()`;
+
+/** Expression that disposes the CDP overlay (never a user-script one). */
+export const DISPOSE_EXPRESSION = `(() => {
+  const controller = globalThis.__woodfishCodexController;
+  if (controller && controller.source === 'cdp' && typeof controller.dispose === 'function') {
+    controller.dispose();
+    return true;
+  }
+  return false;
+})()`;

@@ -21,7 +21,7 @@ describe('pre-publish package hygiene', () => {
     const packagePaths = [
       'AGENTS.md',
       'docs/CONTRIBUTING.md',
-      'docs/superpowers/specs/design.md',
+      'docs/internal/superpowers/specs/design.md',
       'out/integration/smoke.js',
       'coverage/lcov-report/index.html',
       '.nyc_output/processinfo/index.json',
@@ -32,7 +32,7 @@ describe('pre-publish package hygiene', () => {
     expect(findForbiddenPackagePaths(packagePaths)).toEqual([
       'AGENTS.md',
       'docs/CONTRIBUTING.md',
-      'docs/superpowers/specs/design.md',
+      'docs/internal/superpowers/specs/design.md',
       'out/integration/smoke.js',
       'coverage/lcov-report/index.html',
       '.nyc_output/processinfo/index.json',
@@ -66,12 +66,8 @@ describe('pre-publish package hygiene', () => {
       'assets/readme/hero.png',
       'assets/readme/hero.svg',
       'assets/readme/dracula-preview.png',
-      'images/img1.png',
-      'images/img2.png',
-      'images/icon.svg',
-      'images/head.jpg',
       'images/icon.jpg',
-      'docs/feedback/2026-10-27-refactor-input.md',
+      'docs/internal/feedback/2026-10-27-refactor-input.md',
       'docs/walkthrough/enable.md',
     ].join('\n');
 
@@ -79,11 +75,7 @@ describe('pre-publish package hygiene', () => {
       'assets/readme/hero.png',
       'assets/readme/hero.svg',
       'assets/readme/dracula-preview.png',
-      'images/img1.png',
-      'images/img2.png',
-      'images/icon.svg',
-      'images/head.jpg',
-      'docs/feedback/2026-10-27-refactor-input.md',
+      'docs/internal/feedback/2026-10-27-refactor-input.md',
     ]);
   });
 
@@ -154,7 +146,7 @@ describe('pre-publish package hygiene', () => {
   it('calculates a deterministic source-size budget from the package manifest', () => {
     const sizes = new Map([
       ['out/extension.js', 120],
-      ['images/head.jpg', 80],
+      ['themes/shared/cursor-core.css', 80],
       ['themes/shared/tab-bar.css', 40],
     ]);
     const packagePaths = [...sizes.keys()].join('\n');

@@ -58,7 +58,7 @@ export default [
   },
   {
     // The desktop CLI is a Node.js 22 program.
-    files: ['apps/desktop-cli/src/**/*.ts'],
+    files: ['apps/cli/src/**/*.ts'],
     ignores: TEST_FILES,
     languageOptions: {
       globals: globals.node,
@@ -69,8 +69,8 @@ export default [
     files: [
       'apps/*/browser/**/*.ts',
       'packages/renderer-runtime/src/**/*.ts',
-      'packages/adapter-codex/src/renderer/**/*.ts',
-      'packages/adapter-dsh/src/renderer/**/*.ts',
+      'apps/chatgpt-app/src/renderer/**/*.ts',
+      'apps/dsh-web/src/renderer/**/*.ts',
     ],
     languageOptions: {
       globals: globals.browser,
@@ -81,8 +81,8 @@ export default [
     files: [
       'packages/theme-core/src/**/*.ts',
       'packages/renderer-runtime/src/**/*.ts',
-      'packages/adapter-codex/src/**/*.ts',
-      'packages/adapter-dsh/src/**/*.ts',
+      'apps/chatgpt-app/src/**/*.ts',
+      'apps/dsh-web/src/**/*.ts',
     ],
     ignores: TEST_FILES,
     rules: {

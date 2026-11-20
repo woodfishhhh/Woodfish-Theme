@@ -88,7 +88,7 @@ describe('legacy Custom CSS cleanup', () => {
   });
 
   it('updates changelog and release guidance for the integrated runtime era', () => {
-    const changelog = readRepo('docs/CHANGELOG.md');
+    const changelog = readRepo('CHANGELOG.md');
     const prePublishScript = read('scripts/pre-publish-check.js');
     const publishScript = read('scripts/publish.js');
 

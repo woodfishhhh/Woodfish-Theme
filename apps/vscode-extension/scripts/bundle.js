@@ -43,12 +43,12 @@ async function main() {
 }
 
 /**
- * The Codex desktop CLI (apps/desktop-cli), built the same way as for npm and the GitHub
+ * The Codex desktop CLI (apps/cli), built the same way as for npm and the GitHub
  * Release and shipped as out/woodfish.js. 「为 Codex 启用 Woodfish」 runs it on the editor's
  * own Electron (src/services/codexCli.ts).
  */
 function bundleCodexCli() {
-  const cliRoot = path.resolve(ROOT, '..', 'desktop-cli');
+  const cliRoot = path.resolve(ROOT, '..', 'cli');
   execFileSync(process.execPath, [path.join(cliRoot, 'scripts', 'build.js')], { stdio: 'inherit' });
   fs.copyFileSync(path.join(cliRoot, 'out', 'woodfish.js'), path.join(ROOT, 'out', 'woodfish.js'));
 }
