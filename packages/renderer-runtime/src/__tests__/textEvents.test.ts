@@ -55,6 +55,7 @@ beforeEach(() => {
     return frames.length;
   });
   jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+  jest.spyOn(document, 'hasFocus').mockReturnValue(true);
   Object.defineProperty(Range.prototype, 'getClientRects', {
     configurable: true,
     value(this: Range) {
@@ -228,6 +229,56 @@ describe('watchStream', () => {
 });
 
 describe('watchEditableTyping', () => {
+  it('re-measures after the window regains focus without changing the selection', () => {
+    document.body.innerHTML = '<div id="editor" contenteditable="true"><p>草稿</p></div>';
+    const editor = document.getElementById('editor') as HTMLElement;
+    const text = (editor.firstElementChild as HTMLElement).firstChild as Text;
+    place(editor, { left: 100, top: 200, right: 700, bottom: 300 });
+    editor.focus();
+    const selection = document.getSelection() as Selection;
+    selection.collapse(text, text.length);
+    rangeBox = () => ({ left: 400, top: 240, right: 400, bottom: 260 });
+    const events = sink();
+    const stop = watchEditableTyping('[contenteditable="true"]', events);
+
+    runFrames();
+    expect(events.carets.at(-1)).toEqual(expect.objectContaining({ visible: true, y: 240 }));
+    const selectedNode = selection.anchorNode;
+
+    (document.hasFocus as jest.Mock).mockReturnValue(false);
+    window.dispatchEvent(new Event('blur'));
+    runFrames();
+    expect(events.carets.at(-1)).toEqual(expect.objectContaining({ visible: false }));
+
+    (document.hasFocus as jest.Mock).mockReturnValue(true);
+    window.dispatchEvent(new Event('focus'));
+    runFrames();
+    expect(events.carets.at(-1)).toEqual(expect.objectContaining({ visible: true, y: 240 }));
+    expect(selection.anchorNode).toBe(selectedNode);
+    stop();
+  });
+
+  it('uses the placeholder line box for an empty paragraph', () => {
+    document.body.innerHTML =
+      '<div id="editor" contenteditable="true"><p style="line-height: 22px"><br></p></div>';
+    const editor = document.getElementById('editor') as HTMLElement;
+    const line = editor.firstElementChild as HTMLElement;
+    place(editor, { left: 100, top: 200, right: 700, bottom: 300 });
+    place(line, { left: 120, top: 220, right: 680, bottom: 242 });
+    editor.focus();
+    const selection = document.getSelection() as Selection;
+    selection.collapse(line, 0);
+    rangeBox = () => null;
+    const events = sink();
+    const stop = watchEditableTyping('[contenteditable="true"]', events);
+
+    runFrames();
+    expect(events.carets).toEqual([
+      expect.objectContaining({ visible: true, x: 120, y: 220, height: 22 }),
+    ]);
+    stop();
+  });
+
   it('hides the caret once a long draft scrolls it out of the editor', () => {
     document.body.innerHTML =
       '<div id="box" style="overflow-x: auto; overflow-y: auto"><div id="editor" contenteditable="true" style="overflow: visible"><p style="overflow: visible">草稿</p></div></div>';

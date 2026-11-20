@@ -45,7 +45,7 @@ module.exports = function caret(ctx) {
         ? `box-shadow: 0 0 ${4 + p.glow * 8}px color-mix(in oklab, ${stops[0]} ${Math.round(p.glow * 80)}%, transparent);`
         : '';
     ctx.style(`
-${ctx.selectors.composerEditor} {
+:root[data-woodfish-caret-visible="true"] ${ctx.selectors.composerEditor} {
   caret-color: transparent !important;
 }
 [data-woodfish-caret-clip] {
@@ -114,7 +114,8 @@ ${blink || ''}
 
   ctx.onCaret((caret) => {
     if (caret.source !== 'user') return;
-    if (!caret.visible) {
+    if (!caret.visible || caret.height <= 0) {
+      document.documentElement.removeAttribute('data-woodfish-caret-visible');
       bar.hidden = true;
       last = null;
       return;
@@ -124,6 +125,7 @@ ${blink || ''}
     const glide =
       last !== null && !ctx.simplified() && (mode === 'on' || (mode === 'explicit' && !typing));
     bar.toggleAttribute('data-glide', glide);
+    document.documentElement.setAttribute('data-woodfish-caret-visible', 'true');
     clip.style.clipPath = clipPath(caret.clip);
     bar.style.height = `${caret.height}px`;
     bar.style.transform = `translate(${caret.x}px, ${caret.y}px)`;
@@ -140,6 +142,9 @@ ${blink || ''}
 
   return {
     update: restyle,
-    dispose: () => clip.remove(),
+    dispose: () => {
+      document.documentElement.removeAttribute('data-woodfish-caret-visible');
+      clip.remove();
+    },
   };
 };

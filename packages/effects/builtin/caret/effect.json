@@ -1,7 +1,7 @@
 {
   "name": "输入框光标",
   "description": "Codex 输入框里的光标换成一根 6px 宽、不闪烁、平滑移动、Woodfish 彩虹慢慢流动的光标，和 VS Code 里 Woodfish 的光标一样。",
-  "version": 4,
+  "version": 5,
   "hosts": ["codex"],
   "enabled": true,
   "order": 5,

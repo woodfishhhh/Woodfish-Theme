@@ -260,14 +260,16 @@ export function selectionCaretRect(
   if (rect && rect.height > 0) {
     return { x: rect.left, y: rect.top, height: rect.height };
   }
-  // An empty line has no text box: use the line element and its line height.
+  // An empty line has no text box: use the placeholder <br>'s line box and line height.
   const node = range.startContainer;
   const line = node instanceof Element ? node : node.parentElement;
   if (!line) {
     return null;
   }
-  const box = line.getBoundingClientRect();
-  const style = getComputedStyle(line);
+  const placeholder = line.matches('br') ? line : line.querySelector('br');
+  const lineBox = placeholder?.parentElement ?? line;
+  const box = lineBox.getBoundingClientRect();
+  const style = getComputedStyle(lineBox);
   const lineHeight = Number.parseFloat(style.lineHeight) || Number.parseFloat(style.fontSize) * 1.4;
   return {
     x: box.left + Number.parseFloat(style.paddingLeft || '0'),
@@ -311,6 +313,11 @@ export function watchEditableTyping(selector: string, sink: TextEventSink): Disp
 
   function flush(): void {
     frame = 0;
+    if (!document.hasFocus() || document.visibilityState === 'hidden') {
+      hide();
+      typed = '';
+      return;
+    }
     const editor = document.activeElement?.closest(selector) ?? null;
     const rect = editor ? selectionCaretRect(editor) : null;
     if (!editor || !rect) {
@@ -403,6 +410,9 @@ export function watchEditableTyping(selector: string, sink: TextEventSink): Disp
     [document, 'selectionchange', schedule],
     [document, 'focusin', schedule],
     [document, 'focusout', schedule],
+    [window, 'focus', schedule],
+    [window, 'blur', schedule],
+    [document, 'visibilitychange', schedule],
     [document, 'scroll', schedule],
     [window, 'resize', schedule],
   ];
