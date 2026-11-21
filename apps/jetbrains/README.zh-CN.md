@@ -30,9 +30,15 @@
 
 ## 安装
 
+**从 JetBrains 插件市场安装**（要等 JetBrains 审核通过后才能用，通过之前[插件页](https://plugins.jetbrains.com/plugin/36347-woodfish-theme)不公开）：
+在 IDE 里打开 设置 → 插件 → 市场，搜索 `Woodfish Theme`，点安装。
+
+**从 zip 安装**（现在就能用，审核通过之前用这个）：
+
 1. 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.0) 下载 `woodfish-theme-jetbrains-8.2.0.zip`。
 2. 在 IDE 里打开 设置 → 插件 → 齿轮 → 从磁盘安装插件，选这个 zip。
-3. 如果 IDE 提示重启就重启，然后在 设置 → 外观与行为 → 外观 里选一套 Woodfish 主题。
+
+两种方式装好后，如果 IDE 提示重启就重启，然后在 设置 → 外观与行为 → 外观 里选一套 Woodfish 主题。
 
 ## 构建
 

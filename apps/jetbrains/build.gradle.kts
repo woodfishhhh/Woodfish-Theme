@@ -78,6 +78,13 @@ intellijPlatform {
         }
     }
 
+    // ./gradlew publishPlugin：上传到 JetBrains 插件市场 stable 渠道。令牌只从 Windows 用户环境变量
+    // JETBRAINS_MARKETPLACE_TOKEN 读取，绝不写进仓库；未设置时 publishPlugin 会直接失败。
+    // 市场不接受重复版本号，发版前先改 gradle.properties 的 pluginVersion。
+    publishing {
+        token = providers.environmentVariable("JETBRAINS_MARKETPLACE_TOKEN")
+    }
+
     // 不构建 searchable options 索引，大幅缩短构建时间
     buildSearchableOptions = false
     // 不做 @NotNull 字节码插桩：省去下载与目标平台匹配的编译器插件

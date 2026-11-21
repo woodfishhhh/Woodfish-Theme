@@ -19,6 +19,13 @@
 | VS Code 默认值 | 主题没写的颜色取 VS Code 1.147 自己的默认值，规则读自它的 workbench 包，写在 `scripts/editorMap.js`。 |
 | 嵌入语言背景 | Darcula 和 Default 给 Markdown 围栏、字符串里的嵌入代码铺了底色（`INJECTED_LANGUAGE_FRAGMENT`），VS Code 没有，覆盖为编辑器背景色。 |
 
+## 安装与上架
+
+- 插件市场页：<https://plugins.jetbrains.com/plugin/36347-woodfish-theme>（编号 36347，vendor `Woodfish`，stable 渠道，许可 MIT）。8.2.0 的 zip 于 2026-11-21 首次上传，页面状态是「已提交审核」，JetBrains 人工审核通过前页面不公开，在 IDE 的插件市场里也搜不到。
+- 安装有两种：审核通过后在 设置 → 插件 → 市场 搜索 `Woodfish Theme`；审核通过前只能从 GitHub Release 下载 `woodfish-theme-jetbrains-<版本>.zip`，用 设置 → 插件 → 齿轮 → 从磁盘安装插件。
+- 后续版本用 `./gradlew publishPlugin`（在 `apps/jetbrains` 下，JDK 21）上传，令牌从环境变量 `JETBRAINS_MARKETPLACE_TOKEN` 读（插件市场「My Tokens」里建的 Permanent Token，只放在 Windows 用户环境变量里，不进仓库、不打印）。每个新版本也要过一次审核；市场不接受重复版本号。
+- 首次上传必须在网页上手动做（接受 Marketplace Agreement 与 Developer Agreement、建 vendor、传 zip、选许可和标签），之后不用再做。插件页的截图、许可链接、文档和问题反馈链接在页面上维护，不在 `plugin.xml` 里。
+
 ## 验收方法
 
 - 所有窗口只在 WSL 里私有的 Xvfb 上打开：`DISPLAY=:77`（IDE）、`:78`（VS Code）、`:79`（PyCharm），并且 `unset WAYLAND_DISPLAY`，否则 WSLg 会把窗口画到 Windows 桌面上。

@@ -34,10 +34,17 @@ close they are to VS Code, is written down in
 
 ## Install
 
+**From JetBrains Marketplace** (only once the listing has passed JetBrains' review; until then the
+[plugin page](https://plugins.jetbrains.com/plugin/36347-woodfish-theme) is not public): in the IDE open
+`Settings | Plugins | Marketplace`, search for `Woodfish Theme` and click Install.
+
+**From the zip** (works now, and is the way to install before the Marketplace listing is approved):
+
 1. Download `woodfish-theme-jetbrains-8.2.0.zip` from the
    [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.0).
 2. In the IDE open `Settings | Plugins | ⚙ | Install Plugin from Disk…` and pick the zip.
-3. Restart if the IDE asks, then choose a Woodfish theme in `Settings | Appearance & Behavior | Appearance`.
+
+Either way, restart if the IDE asks, then choose a Woodfish theme in `Settings | Appearance & Behavior | Appearance`.
 
 ## Build
 
