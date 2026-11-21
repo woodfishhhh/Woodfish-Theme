@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Tokyo Night",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-tokyonight.xml",
+  "ui": {
+    "*": {
+      "background": "#16161E",
+      "foreground": "#A9B1D6",
+      "borderColor": "#101014",
+      "separatorColor": "#101014",
+      "disabledForeground": "#5E637A",
+      "infoForeground": "#7E84A2",
+      "selectionBackground": "#282B3B",
+      "selectionForeground": "#A9B1D6",
+      "selectionInactiveBackground": "#282B3B",
+      "hoverBackground": "#1E202E",
+      "focusColor": "#7AA2F7",
+      "underlineColor": "#7AA2F7"
+    },
+    "Panel": {
+      "background": "#16161E"
+    },
+    "Tree": {
+      "background": "#16161E"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#1A1B26",
+      "underlineColor": "#7AA2F7"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#16161E"
+      }
+    },
+    "StatusBar": {
+      "background": "#16161E"
+    },
+    "PopupMenu": {
+      "background": "#252734"
+    }
+  }
+}

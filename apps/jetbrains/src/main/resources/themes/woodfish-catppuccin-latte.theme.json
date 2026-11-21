@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Catppuccin Latte",
+  "dark": false,
+  "editorScheme": "/themes/woodfish-catppuccin-latte.xml",
+  "ui": {
+    "*": {
+      "background": "#E6E9EF",
+      "foreground": "#4C4F69",
+      "borderColor": "#E6E9EF",
+      "separatorColor": "#E6E9EF",
+      "disabledForeground": "#A1A3B2",
+      "infoForeground": "#7D7F93",
+      "selectionBackground": "#C6C9D3",
+      "selectionForeground": "#4C4F69",
+      "selectionInactiveBackground": "#C6C9D3",
+      "hoverBackground": "#DBDEE6",
+      "focusColor": "#8839EF",
+      "underlineColor": "#8839EF"
+    },
+    "Panel": {
+      "background": "#E6E9EF"
+    },
+    "Tree": {
+      "background": "#E6E9EF"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#EFF1F5",
+      "underlineColor": "#8839EF"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#DCE0E8"
+      }
+    },
+    "StatusBar": {
+      "background": "#DCE0E8"
+    },
+    "PopupMenu": {
+      "background": "#FFFFFF"
+    }
+  }
+}

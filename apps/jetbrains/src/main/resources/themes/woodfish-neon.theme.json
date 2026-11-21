@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Neon",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-neon.xml",
+  "ui": {
+    "*": {
+      "background": "#110E27",
+      "foreground": "#E8E3FF",
+      "borderColor": "#2A2356",
+      "separatorColor": "#2A2356",
+      "disabledForeground": "#6C6A99",
+      "infoForeground": "#A9A3D9",
+      "selectionBackground": "#3A2A6E",
+      "selectionForeground": "#E8E3FF",
+      "selectionInactiveBackground": "#3A2A6E",
+      "hoverBackground": "#151232",
+      "focusColor": "#FF2E97",
+      "underlineColor": "#FF2E97"
+    },
+    "Panel": {
+      "background": "#110E27"
+    },
+    "Tree": {
+      "background": "#110E27"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#0D0B1E",
+      "underlineColor": "#FF2E97"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#090716"
+      }
+    },
+    "StatusBar": {
+      "background": "#090716"
+    },
+    "PopupMenu": {
+      "background": "#17133A"
+    }
+  }
+}

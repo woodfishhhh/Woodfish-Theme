@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Light",
+  "dark": false,
+  "editorScheme": "/themes/woodfish-light.xml",
+  "ui": {
+    "*": {
+      "background": "#F3F1EC",
+      "foreground": "#24292F",
+      "borderColor": "#DDD8CE",
+      "separatorColor": "#DDD8CE",
+      "disabledForeground": "#8C959F",
+      "infoForeground": "#57606A",
+      "selectionBackground": "#C9DCF7",
+      "selectionForeground": "#24292F",
+      "selectionInactiveBackground": "#C9DCF7",
+      "hoverBackground": "#F1EEE6",
+      "focusColor": "#1F5FBF",
+      "underlineColor": "#1F5FBF"
+    },
+    "Panel": {
+      "background": "#F3F1EC"
+    },
+    "Tree": {
+      "background": "#F3F1EC"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#FBFAF7",
+      "underlineColor": "#1F5FBF"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#ECE9E2"
+      }
+    },
+    "StatusBar": {
+      "background": "#ECE9E2"
+    },
+    "PopupMenu": {
+      "background": "#FFFFFF"
+    }
+  }
+}

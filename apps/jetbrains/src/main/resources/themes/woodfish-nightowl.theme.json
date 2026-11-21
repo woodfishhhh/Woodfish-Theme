@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Night Owl",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-nightowl.xml",
+  "ui": {
+    "*": {
+      "background": "#011627",
+      "foreground": "#D6DEEB",
+      "borderColor": "#011627",
+      "separatorColor": "#011627",
+      "disabledForeground": "#677685",
+      "infoForeground": "#97A2B1",
+      "selectionBackground": "#1D3B53",
+      "selectionForeground": "#D6DEEB",
+      "selectionInactiveBackground": "#1D3B53",
+      "hoverBackground": "#072435",
+      "focusColor": "#82AAFF",
+      "underlineColor": "#82AAFF"
+    },
+    "Panel": {
+      "background": "#011627"
+    },
+    "Tree": {
+      "background": "#011627"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#011627",
+      "underlineColor": "#82AAFF"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#011627"
+      }
+    },
+    "StatusBar": {
+      "background": "#011627"
+    },
+    "PopupMenu": {
+      "background": "#0B253A"
+    }
+  }
+}

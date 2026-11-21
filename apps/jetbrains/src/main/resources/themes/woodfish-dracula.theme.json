@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Dracula",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-dracula.xml",
+  "ui": {
+    "*": {
+      "background": "#21222C",
+      "foreground": "#F8F8F2",
+      "borderColor": "#191A21",
+      "separatorColor": "#191A21",
+      "disabledForeground": "#8C8D90",
+      "infoForeground": "#BABBBA",
+      "selectionBackground": "#44475A",
+      "selectionForeground": "#F8F8F2",
+      "selectionInactiveBackground": "#44475A",
+      "hoverBackground": "#333540",
+      "focusColor": "#FF79C6",
+      "underlineColor": "#FF79C6"
+    },
+    "Panel": {
+      "background": "#21222C"
+    },
+    "Tree": {
+      "background": "#21222C"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#282A36",
+      "underlineColor": "#FF79C6"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#191A21"
+      }
+    },
+    "StatusBar": {
+      "background": "#191A21"
+    },
+    "PopupMenu": {
+      "background": "#343746"
+    }
+  }
+}

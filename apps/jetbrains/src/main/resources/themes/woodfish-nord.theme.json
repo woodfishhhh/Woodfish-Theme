@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Nord",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-nord.xml",
+  "ui": {
+    "*": {
+      "background": "#2E3440",
+      "foreground": "#D8DEE9",
+      "borderColor": "#3B4252",
+      "separatorColor": "#3B4252",
+      "disabledForeground": "#7F8591",
+      "infoForeground": "#A5ABB7",
+      "selectionBackground": "#3F4758",
+      "selectionForeground": "#D8DEE9",
+      "selectionInactiveBackground": "#3F4758",
+      "hoverBackground": "#3B4252",
+      "focusColor": "#88C0D0",
+      "underlineColor": "#88C0D0"
+    },
+    "Panel": {
+      "background": "#2E3440"
+    },
+    "Tree": {
+      "background": "#2E3440"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#2E3440",
+      "underlineColor": "#88C0D0"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#2E3440"
+      }
+    },
+    "StatusBar": {
+      "background": "#2E3440"
+    },
+    "PopupMenu": {
+      "background": "#3B4252"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Gruvbox Dark",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-gruvbox-dark.xml",
+  "ui": {
+    "*": {
+      "background": "#282828",
+      "foreground": "#EBDBB2",
+      "borderColor": "#3C3836",
+      "separatorColor": "#3C3836",
+      "disabledForeground": "#857E6A",
+      "infoForeground": "#B1A689",
+      "selectionBackground": "#384539",
+      "selectionForeground": "#EBDBB2",
+      "selectionInactiveBackground": "#384539",
+      "hoverBackground": "#302E2D",
+      "focusColor": "#FABD2F",
+      "underlineColor": "#FABD2F"
+    },
+    "Panel": {
+      "background": "#282828"
+    },
+    "Tree": {
+      "background": "#282828"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#282828",
+      "underlineColor": "#FABD2F"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#282828"
+      }
+    },
+    "StatusBar": {
+      "background": "#282828"
+    },
+    "PopupMenu": {
+      "background": "#373633"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Catppuccin Mocha",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-catppuccin-mocha.xml",
+  "ui": {
+    "*": {
+      "background": "#181825",
+      "foreground": "#CDD6F4",
+      "borderColor": "#181825",
+      "separatorColor": "#181825",
+      "disabledForeground": "#72768D",
+      "infoForeground": "#999FB9",
+      "selectionBackground": "#373848",
+      "selectionForeground": "#CDD6F4",
+      "selectionInactiveBackground": "#373848",
+      "hoverBackground": "#252534",
+      "focusColor": "#CBA6F7",
+      "underlineColor": "#CBA6F7"
+    },
+    "Panel": {
+      "background": "#181825"
+    },
+    "Tree": {
+      "background": "#181825"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#1E1E2E",
+      "underlineColor": "#CBA6F7"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#11111B"
+      }
+    },
+    "StatusBar": {
+      "background": "#11111B"
+    },
+    "PopupMenu": {
+      "background": "#313244"
+    }
+  }
+}

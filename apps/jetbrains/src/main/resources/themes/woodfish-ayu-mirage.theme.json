@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish Ayu Mirage",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-ayu-mirage.xml",
+  "ui": {
+    "*": {
+      "background": "#1F2430",
+      "foreground": "#CCCAC2",
+      "borderColor": "#171B24",
+      "separatorColor": "#171B24",
+      "disabledForeground": "#747679",
+      "infoForeground": "#9A9A98",
+      "selectionBackground": "#274364",
+      "selectionForeground": "#CCCAC2",
+      "selectionInactiveBackground": "#274364",
+      "hoverBackground": "#1A1F29",
+      "focusColor": "#FFCC66",
+      "underlineColor": "#FFCC66"
+    },
+    "Panel": {
+      "background": "#1F2430"
+    },
+    "Tree": {
+      "background": "#1F2430"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#242936",
+      "underlineColor": "#FFCC66"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#181C26"
+      }
+    },
+    "StatusBar": {
+      "background": "#181C26"
+    },
+    "PopupMenu": {
+      "background": "#282E3B"
+    }
+  }
+}

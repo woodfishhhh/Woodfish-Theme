@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish One Dark Pro",
+  "dark": true,
+  "editorScheme": "/themes/woodfish-onedark.xml",
+  "ui": {
+    "*": {
+      "background": "#21252B",
+      "foreground": "#ABB2BF",
+      "borderColor": "#3E4452",
+      "separatorColor": "#3E4452",
+      "disabledForeground": "#676C77",
+      "infoForeground": "#848A96",
+      "selectionBackground": "#3B4353",
+      "selectionForeground": "#ABB2BF",
+      "selectionInactiveBackground": "#3B4353",
+      "hoverBackground": "#2C313C",
+      "focusColor": "#61AFEF",
+      "underlineColor": "#61AFEF"
+    },
+    "Panel": {
+      "background": "#21252B"
+    },
+    "Tree": {
+      "background": "#21252B"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#282C34",
+      "underlineColor": "#61AFEF"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#21252B"
+      }
+    },
+    "StatusBar": {
+      "background": "#21252B"
+    },
+    "PopupMenu": {
+      "background": "#32373F"
+    }
+  }
+}

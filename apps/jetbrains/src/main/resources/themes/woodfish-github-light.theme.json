@@ -1,0 +1,42 @@
+{
+  "name": "Woodfish GitHub Light",
+  "dark": false,
+  "editorScheme": "/themes/woodfish-github-light.xml",
+  "ui": {
+    "*": {
+      "background": "#F6F8FA",
+      "foreground": "#1F2328",
+      "borderColor": "#D0D7DE",
+      "separatorColor": "#D0D7DE",
+      "disabledForeground": "#949698",
+      "infoForeground": "#626568",
+      "selectionBackground": "#B5D2F4",
+      "selectionForeground": "#1F2328",
+      "selectionInactiveBackground": "#B5D2F4",
+      "hoverBackground": "#F0F3F6",
+      "focusColor": "#0969DA",
+      "underlineColor": "#0969DA"
+    },
+    "Panel": {
+      "background": "#F6F8FA"
+    },
+    "Tree": {
+      "background": "#F6F8FA"
+    },
+    "EditorTabs": {
+      "underlinedTabBackground": "#FFFFFF",
+      "underlineColor": "#0969DA"
+    },
+    "ToolWindow": {
+      "Header": {
+        "background": "#F6F8FA"
+      }
+    },
+    "StatusBar": {
+      "background": "#F6F8FA"
+    },
+    "PopupMenu": {
+      "background": "#FFFFFF"
+    }
+  }
+}

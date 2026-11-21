@@ -109,6 +109,12 @@ importers:
         specifier: workspace:*
         version: link:../../packages/theme-core
 
+  apps/jetbrains:
+    dependencies:
+      '@woodfish/theme-core':
+        specifier: workspace:*
+        version: link:../../packages/theme-core
+
   apps/neovim:
     dependencies:
       '@woodfish/theme-core':

@@ -1,0 +1,3095 @@
+{
+  "ABSTRACT_CLASS_NAME_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "ANNOTATION_NAME_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "CLASS_NAME_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "CONSTRUCTOR_CALL_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ]
+  },
+  "CONSTRUCTOR_DECLARATION_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ]
+  },
+  "DEFAULT_ATTRIBUTE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_BLOCK_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_BRACES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_BRACKETS": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_CLASS_NAME": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "DEFAULT_CLASS_REFERENCE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_COMMA": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_CONSTANT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_DOC_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_DOC_COMMENT_TAG": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_DOC_COMMENT_TAG_VALUE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_DOC_MARKUP": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_DOT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_ENTITY": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_FUNCTION_CALL": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_FUNCTION_DECLARATION": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_GLOBAL_VARIABLE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "DEFAULT_INSTANCE_FIELD": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_INSTANCE_METHOD": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!themes/islands/IslandSchemeDark.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ]
+  },
+  "DEFAULT_INTERFACE_NAME": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "DEFAULT_KEYWORD": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_LINE_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_LOCAL_VARIABLE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "DEFAULT_METADATA": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_NUMBER": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_OPERATION_SIGN": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_PARAMETER": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "DEFAULT_PARENTHS": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_PREDEFINED_SYMBOL": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_REASSIGNED_LOCAL_VARIABLE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_REASSIGNED_PARAMETER": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_SEMICOLON": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_STATIC_FIELD": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_STATIC_METHOD": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_STRING": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_TAG": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DEFAULT_VALID_STRING_ESCAPE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "ENUM_NAME_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ]
+  },
+  "GO_BLOCK_COMMENT": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml",
+      "plugins/color-scheme-github/lib/color-scheme-github.jar!colorSchemes/github.xml"
+    ]
+  },
+  "GO_BUILTIN_CONSTANT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/modules/intellij.go.impl.jar!colorscheme/GoDarcula.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "GO_BUILTIN_FUNCTION_CALL": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/modules/intellij.go.impl.jar!colorscheme/GoDarcula.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "GO_BUILTIN_TYPE_REFERENCE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/modules/intellij.go.impl.jar!colorscheme/GoDarcula.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "GO_EXPORTED_FUNCTION": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "GO_EXPORTED_FUNCTION_CALL": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/highContrastScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/modules/intellij.go.impl.jar!colorscheme/GoDarcula.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "GO_FUNCTION_PARAMETER": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_KEYWORD": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml",
+      "plugins/color-scheme-github/lib/color-scheme-github.jar!colorSchemes/github.xml"
+    ]
+  },
+  "GO_LINE_COMMENT": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml",
+      "plugins/color-scheme-github/lib/color-scheme-github.jar!colorSchemes/github.xml"
+    ]
+  },
+  "GO_LOCAL_CONSTANT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "GO_LOCAL_FUNCTION": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "GO_LOCAL_FUNCTION_CALL": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/highContrastScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/modules/intellij.go.impl.jar!colorscheme/GoDarcula.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "GO_LOCAL_VARIABLE": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_METHOD_RECEIVER": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/highContrastScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/modules/intellij.go.impl.jar!colorscheme/GoDarcula.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "GO_NUMBER": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_OPERATOR": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_PACKAGE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/highContrastScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/modules/intellij.go.impl.jar!colorscheme/GoDarcula.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "GO_PACKAGE_EXPORTED_CONSTANT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "GO_PACKAGE_EXPORTED_VARIABLE": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_PACKAGE_LOCAL_CONSTANT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "GO_PACKAGE_LOCAL_VARIABLE": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_STRING": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_STRUCT_EXPORTED_MEMBER": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_STRUCT_LOCAL_MEMBER": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_TYPE_REFERENCE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/highContrastScheme.xml"
+    ],
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/go-plugin.jar!colorscheme/GoDarcula.xml"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class",
+      "go-plugin/lib/modules/intellij.go.impl.jar!colorscheme/GoDarcula.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "GO_TYPE_SPECIFICATION": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "GO_VALID_STRING_ESCAPE": {
+    "Go plugin 243.28141": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 252.27397": [
+      "go-plugin/lib/go-frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ],
+    "Go plugin 263.8311": [
+      "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
+    ]
+  },
+  "HTML_ATTRIBUTE_NAME": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/highContrastScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "HTML_ATTRIBUTE_VALUE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "HTML_ENTITY_REFERENCE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "HTML_TAG": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "HTML_TAG_NAME": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "IMPLICIT_ANONYMOUS_CLASS_PARAMETER_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "INSTANCE_FIELD_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "INTERFACE_NAME_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "JAVA_BLOCK_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "JAVA_DOC_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "JAVA_DOC_TAG": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "JAVA_KEYWORD": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/highContrastScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/islands/highContrastScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "JAVA_LINE_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "JAVA_NUMBER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml",
+      "plugins/color-scheme-github/lib/color-scheme-github.jar!colorSchemes/github.xml"
+    ]
+  },
+  "JAVA_OPERATION_SIGN": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "JAVA_STRING": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "JAVA_VALID_STRING_ESCAPE": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "JSON.BRACES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "JSON.BRACKETS": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "JSON.COLON": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "JSON.COMMA": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "JSON.KEYWORD": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "JSON.NUMBER": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "JSON.PROPERTY_KEY": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "JSON.STRING": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "JSON.VALID_ESCAPE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/json/lib/intellij.json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/json/lib/json.jar!com/intellij/json/highlighting/JsonSyntaxHighlighterFactory.class"
+    ]
+  },
+  "KOTLIN_ABSTRACT_CLASS": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_ANNOTATION": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "KOTLIN_BLOCK_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_BUILTIN_ANNOTATION": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_CLASS": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_CONSTRUCTOR": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_DATA_CLASS": {
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_DOC_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_ENUM": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_EXTENSION_FUNCTION_CALL": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_FUNCTION_CALL": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_FUNCTION_DECLARATION": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_INSTANCE_PROPERTY": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_KEYWORD": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_LINE_COMMENT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_LOCAL_VARIABLE": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_MUTABLE_VARIABLE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!themes/islands/IslandSchemeDark.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/islands/IslandSchemeDark.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!themes/islands/IslandSchemeDark.xml"
+    ]
+  },
+  "KOTLIN_NUMBER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_OBJECT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_OPERATION_SIGN": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_PACKAGE_FUNCTION_CALL": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class",
+      "plugins/Kotlin/lib/kotlin-plugin.jar!colorScheme/Darcula_Kotlin.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class",
+      "plugins/Kotlin/lib/kotlin-plugin.jar!colorScheme/Darcula_Kotlin.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.base.resources.jar!colorScheme/Darcula_Kotlin.xml",
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_PACKAGE_PROPERTY": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_PARAMETER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_PROPERTY_WITH_BACKING_FIELD": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin.jar!colorScheme/Default_Kotlin.xml",
+      "plugins/Kotlin/lib/kotlin-plugin.jar!colorScheme/Darcula_Kotlin.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin.jar!colorScheme/Darcula_Kotlin.xml",
+      "plugins/Kotlin/lib/kotlin-plugin.jar!colorScheme/Default_Kotlin.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.base.resources.jar!colorScheme/Darcula_Kotlin.xml",
+      "plugins/Kotlin/lib/modules/intellij.kotlin.base.resources.jar!colorScheme/Default_Kotlin.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "KOTLIN_STRING": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_STRING_ESCAPE": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_TRAIT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_TYPE_ALIAS": {
+    "IC 2024.1.7 (241)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/Kotlin/lib/kotlin-plugin-shared.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/Kotlin/lib/modules/intellij.kotlin.highlighting.minimal.jar!org/jetbrains/kotlin/idea/highlighter/KotlinHighlightingColors.class"
+    ]
+  },
+  "KOTLIN_TYPE_PARAMETER": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/highContrastScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/highContrastScheme.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ]
+  },
+  "LAMBDA_PARAMETER_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ]
+  },
+  "LOCAL_VARIABLE_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ]
+  },
+  "MARKDOWN_AUTO_LINK": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!themes/islands/IslandSchemeDark.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/islands/IslandSchemeDark.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!themes/islands/IslandSchemeDark.xml"
+    ]
+  },
+  "MARKDOWN_BLOCK_QUOTE": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darculaContrastScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_BLOCK_QUOTE_MARKER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darculaContrastScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_BOLD": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_BOLD_MARKER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_CODE_BLOCK": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darculaContrastScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_CODE_FENCE": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darculaContrastScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_CODE_FENCE_LANGUAGE": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_CODE_FENCE_MARKER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_CODE_SPAN": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darculaContrastScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_CODE_SPAN_MARKER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_EXPLICIT_LINK": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_HEADER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!colorSchemes/MarkdownDefault.xml",
+      "plugins/markdown/lib/markdown.jar!colorSchemes/MarkdownDarcula.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/jupyter-plugin/lib/modules/intellij.jupyter.core.jar!com/intellij/jupyter/core/jupyter/structure/JupyterStructureTextAttributes.class",
+      "plugins/markdown/lib/markdown.jar!colorSchemes/MarkdownDarcula.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!colorSchemes/MarkdownDarcula.xml",
+      "plugins/markdown/lib/intellij.markdown.jar!colorSchemes/MarkdownDefault.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/jupyter-plugin/lib/modules/intellij.jupyter.core.jar!com/intellij/jupyter/core/jupyter/structure/JupyterStructureTextAttributes.class",
+      "plugins/markdown/lib/markdown.jar!colorSchemes/MarkdownDarcula.xml"
+    ]
+  },
+  "MARKDOWN_HEADER_LEVEL_1": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_HEADER_LEVEL_2": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_HEADER_LEVEL_3": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_HEADER_LEVEL_4": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_HEADER_LEVEL_5": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_HEADER_LEVEL_6": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_HEADER_MARKER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_ITALIC": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_ITALIC_MARKER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_LINK_DESTINATION": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_LINK_LABEL": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_LINK_TEXT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!themes/islands/IslandSchemeDark.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/intellij.platform.resources.jar!themes/islands/IslandSchemeDark.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml",
+      "lib/app-client.jar!themes/islands/IslandSchemeDark.xml"
+    ]
+  },
+  "MARKDOWN_LIST_MARKER": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_REFERENCE_LINK": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!colorSchemes/MarkdownDefault.xml",
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!colorSchemes/MarkdownDefault.xml",
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!colorSchemes/MarkdownDefault.xml",
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!colorSchemes/MarkdownDefault.xml",
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "MARKDOWN_TEXT": {
+    "IC 2024.1.7 (241)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/markdown/lib/intellij.markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
+    ]
+  },
+  "METHOD_CALL_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "METHOD_DECLARATION_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "PARAMETER_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ]
+  },
+  "PY.ANNOTATION": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/python-ce/lib/python-ce-frontend.jar!com/jetbrains/python/highlighting/PyHighlighter.class"
+    ]
+  },
+  "PY.BUILTIN_NAME": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.CLASS_DEFINITION": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.DECORATOR": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.DOC_COMMENT": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.FUNCTION_CALL": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/python-ce/lib/python-ce-frontend.jar!com/jetbrains/python/highlighting/PyHighlighter.class"
+    ]
+  },
+  "PY.FUNC_DEFINITION": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.KEYWORD": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.KEYWORD_ARGUMENT": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/python-ce/lib/python-ce.jar!colorSchemes/PythonDarcula.xml",
+      "plugins/python-ce/lib/python-ce.jar!colorSchemes/PythonDefault.xml"
+    ]
+  },
+  "PY.LINE_COMMENT": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.LOCAL_VARIABLE": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/python-ce/lib/python-ce-frontend.jar!com/jetbrains/python/highlighting/PyHighlighter.class"
+    ]
+  },
+  "PY.METHOD_CALL": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/python-ce/lib/python-ce-frontend.jar!com/jetbrains/python/highlighting/PyHighlighter.class"
+    ]
+  },
+  "PY.NESTED_FUNC_DEFINITION": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/python-ce/lib/python-ce-frontend.jar!com/jetbrains/python/highlighting/PyHighlighter.class"
+    ]
+  },
+  "PY.NUMBER": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml",
+      "plugins/python-ce/lib/python-ce-frontend.jar!com/jetbrains/python/highlighting/PyHighlighter.class"
+    ]
+  },
+  "PY.OPERATION_SIGN": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.PARAMETER": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/python-ce/lib/python-ce-frontend.jar!com/jetbrains/python/highlighting/PyHighlighter.class"
+    ]
+  },
+  "PY.PREDEFINED_DEFINITION": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/python-ce/lib/python-ce.jar!colorSchemes/PythonDarcula.xml"
+    ]
+  },
+  "PY.PREDEFINED_USAGE": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "PY.SELF_PARAMETER": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/python-ce/lib/python-ce.jar!colorSchemes/PythonDarcula.xml",
+      "plugins/python-ce/lib/python-ce.jar!colorSchemes/PythonDefault.xml"
+    ]
+  },
+  "PY.STRING": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml",
+      "plugins/color-scheme-github/lib/color-scheme-github.jar!colorSchemes/github.xml"
+    ]
+  },
+  "PY.STRING.B": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/python-ce/lib/python-ce.jar!colorSchemes/PythonDarcula.xml"
+    ]
+  },
+  "PY.STRING.U": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/python-ce/lib/python-ce-frontend.jar!com/jetbrains/python/highlighting/PyHighlighter.class"
+    ]
+  },
+  "PY.VALID_STRING_ESCAPE": {
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml",
+      "plugins/color-scheme-twilight/lib/color-scheme-twilight.jar!colorSchemes/twilight.xml"
+    ]
+  },
+  "REASSIGNED_LOCAL_VARIABLE_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "plugins/java/lib/java-impl-frontend.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "STATIC_FIELD_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "STATIC_FINAL_FIELD_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "STATIC_METHOD_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "TS.BLOCK_COMMENT": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.CLASS": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.DECORATOR": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.DOC_COMMENT": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.EXPORTED_CLASS": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.EXPORTED_FUNCTION": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.EXPORTED_VARIABLE": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.GLOBAL_FUNCTION": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.GLOBAL_VARIABLE": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.INSTANCE_MEMBER_FUNCTION": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.INSTANCE_MEMBER_VARIABLE": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.INTERFACE": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.KEYWORD": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.LINE_COMMENT": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.LOCAL_FUNCTION": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.LOCAL_VARIABLE": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.NUMBER": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.OPERATION_SIGN": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.PARAMETER": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.PRIMITIVE.TYPES": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.REGEXP": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.STATIC_MEMBER_FUNCTION": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.STATIC_MEMBER_VARIABLE": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.STRING": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TS.TYPE_PARAMETER": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.backend.jar!colorSchemes/Darcula.xml",
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.backend.jar!colorSchemes/Default.xml"
+    ]
+  },
+  "TS.VALID_STRING_ESCAPE": {
+    "IU 2026.3 (263)": [
+      "plugins/javascript-plugin/lib/modules/intellij.javascript.psi.impl.jar!com/intellij/lang/javascript/highlighting/TypeScriptHighlighter.class"
+    ]
+  },
+  "TYPE_PARAMETER_NAME_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "XML_ATTRIBUTE_NAME": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "XML_ENTITY_REFERENCE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "XML_PROLOGUE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ]
+  },
+  "XML_TAG": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ]
+  },
+  "XML_TAG_DATA": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app.jar!com/intellij/openapi/editor/XmlHighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/openapi/editor/XmlHighlighterColors.class"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "plugins/xml-plugin/lib/modules/intellij.xml.psi.impl.jar!com/intellij/openapi/editor/XmlHighlighterColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/openapi/editor/XmlHighlighterColors.class"
+    ]
+  },
+  "XML_TAG_NAME": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml",
+      "lib/intellij.platform.resources.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ]
+  },
+  "org.rust.ASSOC_FUNCTION": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDefault.xml"
+    ]
+  },
+  "org.rust.ASSOC_FUNCTION_CALL": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.BLOCK_COMMENT": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustHighContrast.xml"
+    ]
+  },
+  "org.rust.CRATE": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.ENUM": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.ENUM_VARIANT": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.EOL_COMMENT": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustHighContrast.xml"
+    ]
+  },
+  "org.rust.FUNCTION": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDefault.xml"
+    ]
+  },
+  "org.rust.FUNCTION_CALL": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ],
+    "Rust plugin (org.rust.lang) 233.15445": [
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDarcula.xml"
+    ]
+  },
+  "org.rust.KEYWORD": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustHighContrast.xml"
+    ]
+  },
+  "org.rust.LIFETIME": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula_legacy.xml"
+    ],
+    "Rust plugin (org.rust.lang) 233.15445": [
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDefault.xml"
+    ]
+  },
+  "org.rust.MACRO": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula_legacy.xml"
+    ],
+    "Rust plugin (org.rust.lang) 233.15445": [
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDefault.xml"
+    ]
+  },
+  "org.rust.METHOD": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDefault.xml"
+    ]
+  },
+  "org.rust.METHOD_CALL": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ],
+    "Rust plugin (org.rust.lang) 233.15445": [
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDarcula.xml"
+    ]
+  },
+  "org.rust.MUT_PARAMETER": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustHighContrast.xml"
+    ],
+    "Rust plugin (org.rust.lang) 233.15445": [
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDefault.xml"
+    ]
+  },
+  "org.rust.PARAMETER": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDefault.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustHighContrast.xml"
+    ]
+  },
+  "org.rust.SELF_EXPRESSION": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.SELF_PARAMETER": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.STRUCT": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.TRAIT": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.TYPE_ALIAS": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDark.xml"
+    ]
+  },
+  "org.rust.TYPE_PARAMETER": {
+    "Rust plugin (com.jetbrains.rust) 262.12573": [
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij.rustrover.common.jar!org/rust/ide/colors/RustDarcula_legacy.xml"
+    ],
+    "Rust plugin (org.rust.lang) 233.15445": [
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDarcula.xml",
+      "intellij-rust/lib/intellij-rust-233.15445.jar!org/rust/ide/colors/RustDefault.xml"
+    ]
+  }
+}
