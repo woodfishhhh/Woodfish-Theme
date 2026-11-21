@@ -16,6 +16,7 @@ import {
 import { EffectValues, findGradientPreset } from '@woodfish/theme-core';
 import { BODY_TEXT_SELECTOR, CODEX_SELECTORS, CodexSelectorGroup } from '../selectors';
 import { CodexSettings, findCodexPalette } from '../settings';
+import { placeCaretLayer } from './caretLayer';
 
 /*
  * Codex's side of the effect plugins: what `ctx.theme()`, `ctx.selectors` and `ctx.lib`
@@ -52,6 +53,7 @@ export const CODEX_EFFECT_SELECTORS: Readonly<Record<string, string>> = Object.f
 
 /** Shared helpers effects may call (`ctx.lib`). */
 export const CODEX_EFFECT_LIB: Readonly<Record<string, unknown>> = Object.freeze({
+  placeCaretLayer,
   startReveal,
   mountAcrylicFilter,
   acrylicFilterId: ACRYLIC_FILTER_ID,

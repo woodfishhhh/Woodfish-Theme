@@ -7,22 +7,13 @@
  * 光标只画在回复露出文字的范围里（事件里的 clip）：滚到输入框后面的那段字连同光标一起被遮住。
  */
 module.exports = function streamCursor(ctx) {
-  // 铺满窗口的一层，按 clip 裁剪；光标在里面移动，平滑动画不受裁剪范围变化影响。
   const clip = document.createElement('div');
   clip.setAttribute('data-woodfish-stream-cursor-clip', '');
   const bar = document.createElement('div');
   bar.setAttribute('data-woodfish-stream-cursor', '');
   bar.hidden = true;
   clip.append(bar);
-  ctx.layer.append(clip);
   let last = null;
-
-  /** The rectangle (viewport px) the cursor may show in; none means the whole window. */
-  function clipPath(r) {
-    return r
-      ? `polygon(${r.left}px ${r.top}px, ${r.right}px ${r.top}px, ${r.right}px ${r.bottom}px, ${r.left}px ${r.bottom}px)`
-      : '';
-  }
 
   function restyle() {
     const p = ctx.params;
@@ -69,6 +60,7 @@ module.exports = function streamCursor(ctx) {
   }
 
   function hide() {
+    clip.remove();
     bar.hidden = true;
     last = null;
   }
@@ -82,9 +74,9 @@ module.exports = function streamCursor(ctx) {
     // A new line (or a still frame) jumps; moving along the line glides.
     const jump = !last || Math.abs(caret.y - last.y) > caret.height / 2 || ctx.simplified();
     bar.toggleAttribute('data-jump', jump);
-    clip.style.clipPath = clipPath(caret.clip);
+    const { x, y } = ctx.lib.placeCaretLayer(clip, caret);
     bar.style.height = `${caret.height}px`;
-    bar.style.transform = `translate(${caret.x + ctx.params.gap}px, ${caret.y}px)`;
+    bar.style.transform = `translate(${x + ctx.params.gap}px, ${y}px)`;
     bar.hidden = false;
     last = caret;
   });

@@ -77,6 +77,17 @@ export function canSee(owner: Element, x: number, y: number, area: ClipRect): bo
 
 const BLOCKS = 'p, li, h1, h2, h3, h4, h5, h6, td, th, blockquote, pre, dd, dt';
 
+// Sibling decorations are occluded by the page itself, including a partially covered line.
+function lineInArea(x: number, y: number, height: number, area: ClipRect): boolean {
+  return (
+    area.bottom > area.top &&
+    x >= area.left &&
+    x < area.right &&
+    y < area.bottom &&
+    y + height > area.top
+  );
+}
+
 function lastTextNode(root: Node): Text | null {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode: (node) =>
@@ -163,6 +174,7 @@ export function watchStream(
     }
     const node = lastTextNode(root);
     if (!node) {
+      hide();
       return;
     }
     const start = last && last.node === node ? Math.min(last.offset, node.length) : 0;
@@ -188,11 +200,11 @@ export function watchStream(
     }
     const seen = visibleArea(clippers);
     const area = options.cover ? options.cover(seen) : seen;
-    const visible = canSee(root, end.right - 1, end.top + end.height / 2, area);
+    const visible = lineInArea(end.right - 1, end.top, end.height, area);
     if (appended) {
       const text = node.data.slice(start);
       const rate = measure(text.length);
-      if (visible) {
+      if (visible && canSee(root, end.right - 1, end.top + end.height / 2, area)) {
         sink.insert({
           x: end.right,
           y: end.top,
@@ -216,6 +228,7 @@ export function watchStream(
         height: end.height,
         source: 'ai',
         visible,
+        owner: root,
         clip: area,
       });
     }
@@ -326,6 +339,7 @@ export function watchEditableTyping(selector: string, sink: TextEventSink): Disp
       return;
     }
     if (clipped?.editor !== editor) {
+      lastKey = '';
       clipped = { editor, clippers: clippingAncestors(editor) };
       resizes?.disconnect();
       const box = clipped.clippers[0]?.element;
@@ -334,13 +348,13 @@ export function watchEditableTyping(selector: string, sink: TextEventSink): Disp
       }
     }
     const area = visibleArea(clipped.clippers);
-    const visible = canSee(editor, rect.x, rect.y + rect.height / 2, area);
+    const visible = lineInArea(rect.x, rect.y, rect.height, area);
     if (typed) {
       const text = typed;
       typed = '';
       const rate = measure(text.length);
       const node = document.getSelection()?.anchorNode ?? null;
-      if (visible) {
+      if (visible && canSee(editor, rect.x, rect.y + rect.height / 2, area)) {
         sink.insert({
           x: rect.x,
           y: rect.y,
@@ -371,6 +385,7 @@ export function watchEditableTyping(selector: string, sink: TextEventSink): Disp
         height: rect.height,
         source: 'user',
         visible: true,
+        owner: editor,
         clip: area,
       });
     }

@@ -62,6 +62,8 @@ export interface InsertEvent {
 
 /** A caret moved: the user's text caret, or the end of a streaming reply. */
 export interface CaretEvent {
+  /** For DOM text, mount caret decorations beside this editor or Markdown root. */
+  owner?: Element;
   x: number;
   y: number;
   width: number;
@@ -69,7 +71,7 @@ export interface CaretEvent {
   source: 'user' | 'ai';
   /**
    * False when the caret went away (editor blurred, reply finished) or cannot be seen
-   * (scrolled out of its editor, behind the composer, under a menu).
+   * (scrolled out of its editor or behind the composer). Floating UI occludes local layers.
    */
   visible: boolean;
   /**
@@ -131,8 +133,8 @@ export interface EffectContext {
   onCaret(handler: (event: CaretEvent) => void): void;
   onStreamEnd(handler: (event: StreamEndEvent) => void): void;
   onTheme(handler: () => void): void;
-  /** Draws on the shared canvas every frame until `fn` returns false; `wake()` restarts it. */
-  painter(fn: Painter): { wake(): void };
+  /** Draws on a local canvas or the shared viewport canvas until `fn` returns false. */
+  painter(fn: Painter, canvas?: HTMLCanvasElement): { wake(): void };
   /** Fixed, full-window container for overlay elements (no pointer events). */
   readonly layer: HTMLElement;
   /** This effect's stylesheet; each call replaces the previous CSS. */
@@ -225,6 +227,8 @@ interface Running {
 
 interface PainterEntry {
   fn: Painter;
+  canvas?: HTMLCanvasElement;
+  painted?: boolean;
   awake: boolean;
   owner: Running;
 }
@@ -311,6 +315,14 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
   }
 
   function clear(): void {
+    for (const entry of painters) {
+      if (entry.painted && entry.canvas) {
+        const g = entry.canvas.getContext('2d');
+        g?.setTransform(1, 0, 0, 1, 0, 0);
+        g?.clearRect(0, 0, entry.canvas.width, entry.canvas.height);
+        entry.painted = false;
+      }
+    }
     if (graphics && canvas && painted) {
       graphics.setTransform(1, 0, 0, 1, 0, 0);
       graphics.clearRect(0, 0, canvas.width, canvas.height);
@@ -326,8 +338,7 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
 
   function loop(): void {
     frame = 0;
-    const g = ensureCanvas();
-    if (!g || !active()) {
+    if (!active()) {
       clear();
       return;
     }
@@ -342,6 +353,10 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
       if (!entry.awake || entry.owner.stopped) {
         continue;
       }
+      const g = entry.canvas ? entry.canvas.getContext('2d') : ensureCanvas();
+      if (!g) {
+        continue;
+      }
       g.setTransform(ratio, 0, 0, ratio, 0, 0);
       g.save();
       let keep = false;
@@ -351,9 +366,13 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
         report(entry.owner, error);
       }
       g.restore();
-      painted = true;
+      if (entry.canvas) {
+        entry.painted = true;
+      } else {
+        painted = true;
+      }
       entry.awake = keep;
-      busy ||= keep;
+      busy = true;
     }
     // One more frame after the last painter stops, so its last drawing is cleared.
     if (busy || painted) {
@@ -461,8 +480,8 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
       onCaret: (handler) => owner.handlers.caret.push(guard(owner, handler)),
       onStreamEnd: (handler) => owner.handlers.streamEnd.push(guard(owner, handler)),
       onTheme: (handler) => owner.handlers.theme.push(guard(owner, handler)),
-      painter: (fn): { wake(): void } => {
-        const entry: PainterEntry = { fn, awake: false, owner };
+      painter: (fn, canvas): { wake(): void } => {
+        const entry: PainterEntry = { fn, canvas, awake: false, owner };
         painters.add(entry);
         owner.painters.add(entry);
         return {
@@ -471,7 +490,6 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
               return;
             }
             entry.awake = true;
-            ensureCanvas();
             schedule();
           },
         };

@@ -177,7 +177,7 @@ describe('watchStream', () => {
     watcher.dispose();
   });
 
-  it('hides the caret when the reply is under a menu', async () => {
+  it('leaves partial menu occlusion to native paint order but suppresses covered inserts', async () => {
     const { reply, node } = thread('回复');
     rangeBox = () => ({ left: 300, top: 600, right: 316, bottom: 620 });
     const menu = document.createElement('div');
@@ -191,9 +191,12 @@ describe('watchStream', () => {
     await mutations();
     runFrames();
     top = menu;
-    watcher.reposition();
+    node.appendData('二');
+    await mutations();
     runFrames();
-    expect(events.carets.map((event) => event.visible)).toEqual([true, false]);
+    expect(events.carets.map((event) => event.visible)).toEqual([true, true]);
+    expect(events.carets.at(-1)?.owner).toBe(reply);
+    expect(events.inserts.map((event) => event.text)).toEqual(['一']);
     watcher.dispose();
     Reflect.deleteProperty(document, 'elementFromPoint');
   });

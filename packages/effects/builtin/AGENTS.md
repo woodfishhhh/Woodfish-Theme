@@ -92,7 +92,7 @@ module.exports = function (ctx) {
 | `ctx.onCaret(fn)` | **光标动了**：你的光标，或 AI 吐字的末尾。`fn({ x, y, width, height, source, visible, clip })`，`visible` 为假表示光标没了或看不见（滚出输入框、被输入框或菜单挡住）；`clip` 是光标所在文字露出来的范围 `{ left, top, right, bottom }`（窗口坐标），画在光标处的东西只画在它里面，没有 `clip` 就是整个窗口 |
 | `ctx.onStreamEnd(fn)` | AI 这一段回复写完了 |
 | `ctx.onTheme(fn)` | 主题或深浅色变了 |
-| `ctx.painter(fn)` | 在全窗口共用的画布上逐帧画：`fn(g, now, dt)`，`g` 是 Canvas 2D，坐标就是窗口坐标；返回 `false` 表示画完了，停帧；之后 `painter.wake()` 再开始 |
+| `ctx.painter(fn, canvas?)` | 不传画布时在全窗共享画布上画，坐标是窗口坐标；传自己的画布时用画布局部坐标。`fn(g, now, dt)` 返回 `false` 时停帧，`painter.wake()` 恢复；宿主负责清帧和后台暂停 |
 | `ctx.layer` | 全窗口的覆盖层（不接收鼠标），自己的元素放这里 |
 | `ctx.style(css)` | 这个效果的样式（每次调用替换上一次的） |
 | `ctx.on(target, type, fn, options)` | 挂事件，停用时自动取消 |
@@ -107,7 +107,7 @@ module.exports = function (ctx) {
 ### 必须遵守
 
 - 只通过 `ctx` 挂事件、画布、样式、计时器，这样关掉效果时能清理干净。自己写 `addEventListener`、`setInterval`、`requestAnimationFrame` 的，必须在 `dispose` 里清掉。
-- 不改宿主（Codex、VS Code）自己的 DOM 结构：不拆字、不包 `span`、不移动节点。只读、只加样式、只往 `ctx.layer` 放自己的元素（给宿主元素加 `data-*` 属性或行内样式可以，用完要撤掉）。
+- 不拆字、不包 `span`、不移动宿主节点。全窗装饰放在 `ctx.layer`；Codex 文字光标和拖尾用 `ctx.lib.placeCaretLayer(layer, caret)` 将装饰放在 `caret.owner` 旁边，按返回的局部坐标绘制。不要把装饰写进可编辑区或 Markdown 正文，用完移除。
 - 只在需要时动：`painter` 没东西画就返回 `false`；`ctx.simplified()` 为真时不做动画。长回复、高速输出、打字都不能卡。
 - 不联网、不读写文件、不碰别人的 `localStorage`。
 - 按严格模式写：VS Code 把效果当 ES module 加载，未声明的变量会直接报错。

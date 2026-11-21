@@ -7,14 +7,12 @@
  * （事件里的 clip），草稿长到要滚动时，滚出去的那一行上的光标也跟着被遮住。
  */
 module.exports = function caret(ctx) {
-  // 铺满窗口的一层，按 clip 裁剪；光标在里面移动，平滑动画不受裁剪范围变化影响。
   const clip = document.createElement('div');
   clip.setAttribute('data-woodfish-caret-clip', '');
   const bar = document.createElement('div');
   bar.setAttribute('data-woodfish-caret', '');
   bar.hidden = true;
   clip.append(bar);
-  ctx.layer.append(clip);
   let last = null;
   let typedAt = 0;
   let cancelSettle = null;
@@ -101,13 +99,6 @@ ${blink || ''}
 
   bar.append(document.createElement('i'));
 
-  /** The rectangle (viewport px) the caret may show in; none means the whole window. */
-  function clipPath(r) {
-    return r
-      ? `polygon(${r.left}px ${r.top}px, ${r.right}px ${r.top}px, ${r.right}px ${r.bottom}px, ${r.left}px ${r.bottom}px)`
-      : '';
-  }
-
   ctx.onInsert((event) => {
     if (event.source === 'user') typedAt = performance.now();
   });
@@ -126,9 +117,9 @@ ${blink || ''}
       last !== null && !ctx.simplified() && (mode === 'on' || (mode === 'explicit' && !typing));
     bar.toggleAttribute('data-glide', glide);
     document.documentElement.setAttribute('data-woodfish-caret-visible', 'true');
-    clip.style.clipPath = clipPath(caret.clip);
+    const { x, y } = ctx.lib.placeCaretLayer(clip, caret);
     bar.style.height = `${caret.height}px`;
-    bar.style.transform = `translate(${caret.x}px, ${caret.y}px)`;
+    bar.style.transform = `translate(${x}px, ${y}px)`;
     bar.hidden = false;
     last = caret;
     // VS Code keeps the cursor lit while it moves and starts blinking again afterwards.

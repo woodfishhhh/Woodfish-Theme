@@ -57,7 +57,12 @@ test('restores the native caret whenever the custom caret is not drawable', () =
       glow: 0,
     },
     selectors: { composerEditor: '[contenteditable="true"]' },
-    layer,
+    lib: {
+      placeCaretLayer: (clip: TestElement, event: { x: number; y: number }) => {
+        layer.append(clip);
+        return event;
+      },
+    },
     rainbow: ['#ff0000', '#00ff00'],
     theme: () => ({ cursor: null, stops: ['#fff'], accent: '#fff' }),
     style: (css: string) => styles.push(css),

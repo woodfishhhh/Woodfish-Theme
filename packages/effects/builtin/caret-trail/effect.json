@@ -1,7 +1,7 @@
 {
   "name": "光标拖尾",
   "description": "文字光标移动时身后拖一条单色带子（照抄 VS Code Animations 插件的 CursorAnimation）；你打字和 AI 吐字时都跟着。",
-  "version": 3,
+  "version": 4,
   "hosts": ["codex", "vscode"],
   "enabled": true,
   "order": 20,

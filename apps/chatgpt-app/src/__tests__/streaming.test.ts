@@ -1,5 +1,6 @@
 import { CaretEvent, EffectHostApi, StreamEndEvent } from '@woodfish/renderer-runtime';
 import { findStreamingReply, trackStreaming } from '../renderer/effects';
+import { placeCaretLayer } from '../renderer/caretLayer';
 
 const ACTIVE = 'data-app-action-sidebar-thread-active';
 
@@ -36,6 +37,31 @@ afterEach(() => {
 });
 
 describe('Codex streaming reply', () => {
+  it('keeps the decoration beside its current text, ahead of the following host card', () => {
+    const first = document.createElement('article');
+    const next = document.createElement('article');
+    const card = document.createElement('button');
+    const layer = document.createElement('div');
+    document.body.append(first, next, card);
+    const caret: CaretEvent = {
+      owner: first,
+      x: 12,
+      y: 24,
+      height: 18,
+      width: 0,
+      source: 'ai',
+      visible: true,
+    };
+    placeCaretLayer(layer, caret);
+    expect(first.previousElementSibling).toBe(layer);
+    placeCaretLayer(layer, { ...caret, owner: next });
+    expect(next.previousElementSibling).toBe(layer);
+    next.after(card);
+    expect(next.nextElementSibling).toBe(card);
+    expect(next.innerHTML).toBe('');
+    expect(layer.hasAttribute('inert')).toBe(true);
+  });
+
   it('looks for the streaming reply only in the thread on screen', () => {
     twoThreads();
     expect(findStreamingReply()?.id).toBe('reply-a');

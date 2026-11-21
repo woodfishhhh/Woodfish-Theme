@@ -69,58 +69,107 @@ module.exports = function caretTrail(ctx) {
     g.stroke();
   }
 
-  const painter = ctx.painter((g) => {
-    let moving = false;
-    for (const trail of trails.values()) {
-      if (step(trail)) {
-        moving = true;
-        g.save();
-        const r = trail.clip;
-        if (r) {
-          g.beginPath();
-          g.rect(r.left, r.top, r.right - r.left, r.bottom - r.top);
-          g.clip();
-        }
-        draw(g, trail);
-        g.restore();
-      }
+  function channel(source) {
+    const layer = ctx.host === 'codex' ? document.createElement('div') : null;
+    const canvas = layer ? document.createElement('canvas') : undefined;
+    if (canvas) {
+      layer.dataset.woodfishTrail = source;
+      canvas.style.position = 'absolute';
+      layer.append(canvas);
     }
-    return moving;
-  });
+    const state = { layer, canvas, trail: null, left: 0, top: 0 };
+    state.painter = ctx.painter((g) => {
+      const trail = state.trail;
+      if (!trail || !step(trail)) return false;
+      g.translate(-state.left, -state.top);
+      if (!layer && trail.clip) {
+        const r = trail.clip;
+        g.beginPath();
+        g.rect(r.left, r.top, r.right - r.left, r.bottom - r.top);
+        g.clip();
+      }
+      draw(g, trail);
+      return true;
+    }, canvas);
+    trails.set(source, state);
+    return state;
+  }
+
+  function hide(source) {
+    const state = trails.get(source);
+    if (state) {
+      state.layer?.remove();
+      state.trail = null;
+    }
+  }
 
   ctx.onCaret((caret) => {
     const wanted = ctx.params.sources;
     if (wanted !== 'all' && wanted !== caret.source) return;
     if (!caret.visible || ctx.simplified()) {
-      trails.delete(caret.source);
-      painter.wake();
+      hide(caret.source);
       return;
     }
     const width = caret.width > 0 ? caret.width : ctx.params.width;
     const length = Math.round(ctx.params.length);
-    let trail = trails.get(caret.source);
-    const x = caret.x + width / 2;
+    const state = trails.get(caret.source) || channel(caret.source);
+    let trail = state.trail;
+    if (trail && trail.owner !== caret.owner) trail = null;
+    const pos = state.layer ? ctx.lib.placeCaretLayer(state.layer, caret) : caret;
+    const x = pos.x + width / 2;
+    const y = pos.y;
     // AI text wraps to the next line all the time; its caret jumps there instead of sweeping
     // a band back across the new line. Your own caret sweeps, as in VS Code.
     const wrapped =
-      trail && caret.source === 'ai' && Math.abs(caret.y - trail.head.y) > caret.height / 2;
+      trail && caret.source === 'ai' && Math.abs(caret.y - trail.lineY) > caret.height / 2;
     if (!trail || trail.points.length !== length || wrapped) {
-      trail = { head: { x, y: caret.y }, points: [], width, height: caret.height };
-      trail.points = Array.from({ length }, () => ({ x, y: caret.y }));
-      trails.set(caret.source, trail);
+      trail = { owner: caret.owner, head: { x, y }, points: [], width, height: caret.height };
+      trail.points = Array.from({ length }, () => ({ x, y }));
+      state.trail = trail;
     }
     trail.head.x = x;
-    trail.head.y = caret.y;
+    trail.lineY = caret.y;
+    trail.head.y = y;
     trail.width = width;
     trail.height = caret.height;
     trail.clip = caret.clip || null;
-    painter.wake();
+    if (state.canvas) {
+      // Only allocate pixels for the visible band swept out by this chain.
+      const r = caret.clip;
+      const dx = pos.x - caret.x,
+        dy = y - caret.y;
+      const xs = trail.points.map((p) => p.x),
+        ys = trail.points.map((p) => p.y);
+      const left = Math.floor(Math.max(r.left + dx, Math.min(x, ...xs) - width));
+      const top = Math.floor(Math.max(r.top + dy, Math.min(y, ...ys) - width));
+      const w = Math.max(1, Math.ceil(Math.min(r.right + dx, Math.max(x, ...xs) + width)) - left);
+      const h = Math.max(
+        1,
+        Math.ceil(Math.min(r.bottom + dy, Math.max(y, ...ys) + caret.height + width)) - top
+      );
+      const c = state.canvas,
+        ratio = window.devicePixelRatio || 1;
+      state.left = left;
+      state.top = top;
+      Object.assign(c.style, {
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${w}px`,
+        height: `${h}px`,
+      });
+      if (c.width !== Math.ceil(w * ratio)) c.width = Math.ceil(w * ratio);
+      if (c.height !== Math.ceil(h * ratio)) c.height = Math.ceil(h * ratio);
+    }
+    state.painter.wake();
   });
-  ctx.onStreamEnd(() => trails.delete('ai'));
+  ctx.onStreamEnd(() => hide('ai'));
 
   return {
     update() {
-      trails.clear();
+      trails.forEach((_, source) => hide(source));
+    },
+    dispose() {
+      trails.forEach((_, source) => hide(source));
     },
   };
 };

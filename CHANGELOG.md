@@ -10,6 +10,10 @@
 
 ## [Unreleased]
 
+### 修复
+
+- Codex 的提示框和「查看变更」卡片现在会像遮住文字一样遮住重叠的输入光标、吐字光标和拖尾；移开提示后不用重新打字。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#37](https://github.com/woodfishhhh/Woodfish-Theme/issues/37) 补充复现步骤和修法建议。
+
 ## [8.2.0] - 2026-11-21
 
 ### 新增
