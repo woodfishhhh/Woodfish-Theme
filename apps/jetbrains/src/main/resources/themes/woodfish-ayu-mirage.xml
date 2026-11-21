@@ -10,6 +10,10 @@
     <option name="SELECTED_INDENT_GUIDE" value="464D5D"/>
     <option name="WHITESPACES" value="4B5362"/>
     <option name="DOCUMENTATION_COLOR" value="282E3B"/>
+    <option name="CONSOLE_BACKGROUND_KEY" value="1F2430"/>
+    <option name="ADDED_LINES_COLOR" value="87D96C"/>
+    <option name="MODIFIED_LINES_COLOR" value="80BFFF"/>
+    <option name="DELETED_LINES_COLOR" value="F27983"/>
   </colors>
   <attributes>
     <option name="TEXT"><value><option name="FOREGROUND" value="CCCAC2"/><option name="BACKGROUND" value="242936"/></value></option>
@@ -23,6 +27,47 @@
     <option name="ERRORS_ATTRIBUTES"><value><option name="EFFECT_COLOR" value="FF6666"/><option name="EFFECT_TYPE" value="2"/></value></option>
     <option name="WARNING_ATTRIBUTES"><value><option name="EFFECT_COLOR" value="FFCC66"/><option name="EFFECT_TYPE" value="2"/></value></option>
     <option name="WRONG_REFERENCES_ATTRIBUTES"><value><option name="FOREGROUND" value="FF6666"/></value></option>
+    <option name="CONSOLE_NORMAL_OUTPUT"><value><option name="FOREGROUND" value="CAC8C1"/></value></option>
+    <option name="CONSOLE_ERROR_OUTPUT"><value><option name="FOREGROUND" value="F28273"/></value></option>
+    <option name="CONSOLE_BLACK_OUTPUT"><value><option name="FOREGROUND" value="171B24"/><option name="BACKGROUND" value="171B24"/></value></option>
+    <option name="BLOCK_TERMINAL_BLACK"><value><option name="FOREGROUND" value="171B24"/><option name="BACKGROUND" value="171B24"/></value></option>
+    <option name="CONSOLE_RED_OUTPUT"><value><option name="FOREGROUND" value="F28273"/><option name="BACKGROUND" value="F28273"/></value></option>
+    <option name="BLOCK_TERMINAL_RED"><value><option name="FOREGROUND" value="F28273"/><option name="BACKGROUND" value="F28273"/></value></option>
+    <option name="CONSOLE_GREEN_OUTPUT"><value><option name="FOREGROUND" value="87D96C"/><option name="BACKGROUND" value="87D96C"/></value></option>
+    <option name="BLOCK_TERMINAL_GREEN"><value><option name="FOREGROUND" value="87D96C"/><option name="BACKGROUND" value="87D96C"/></value></option>
+    <option name="CONSOLE_YELLOW_OUTPUT"><value><option name="FOREGROUND" value="FCCA60"/><option name="BACKGROUND" value="FCCA60"/></value></option>
+    <option name="BLOCK_TERMINAL_YELLOW"><value><option name="FOREGROUND" value="FCCA60"/><option name="BACKGROUND" value="FCCA60"/></value></option>
+    <option name="CONSOLE_BLUE_OUTPUT"><value><option name="FOREGROUND" value="6ACDFF"/><option name="BACKGROUND" value="6ACDFF"/></value></option>
+    <option name="BLOCK_TERMINAL_BLUE"><value><option name="FOREGROUND" value="6ACDFF"/><option name="BACKGROUND" value="6ACDFF"/></value></option>
+    <option name="CONSOLE_MAGENTA_OUTPUT"><value><option name="FOREGROUND" value="DDBBFF"/><option name="BACKGROUND" value="DDBBFF"/></value></option>
+    <option name="BLOCK_TERMINAL_MAGENTA"><value><option name="FOREGROUND" value="DDBBFF"/><option name="BACKGROUND" value="DDBBFF"/></value></option>
+    <option name="CONSOLE_CYAN_OUTPUT"><value><option name="FOREGROUND" value="93E2C8"/><option name="BACKGROUND" value="93E2C8"/></value></option>
+    <option name="BLOCK_TERMINAL_CYAN"><value><option name="FOREGROUND" value="93E2C8"/><option name="BACKGROUND" value="93E2C8"/></value></option>
+    <option name="CONSOLE_GRAY_OUTPUT"><value><option name="FOREGROUND" value="C7C7C7"/><option name="BACKGROUND" value="C7C7C7"/></value></option>
+    <option name="BLOCK_TERMINAL_WHITE"><value><option name="FOREGROUND" value="C7C7C7"/><option name="BACKGROUND" value="C7C7C7"/></value></option>
+    <option name="CONSOLE_DARKGRAY_OUTPUT"><value><option name="FOREGROUND" value="686868"/><option name="BACKGROUND" value="686868"/></value></option>
+    <option name="BLOCK_TERMINAL_BLACK_BRIGHT"><value><option name="FOREGROUND" value="686868"/><option name="BACKGROUND" value="686868"/></value></option>
+    <option name="CONSOLE_RED_BRIGHT_OUTPUT"><value><option name="FOREGROUND" value="F28779"/><option name="BACKGROUND" value="F28779"/></value></option>
+    <option name="BLOCK_TERMINAL_RED_BRIGHT"><value><option name="FOREGROUND" value="F28779"/><option name="BACKGROUND" value="F28779"/></value></option>
+    <option name="CONSOLE_GREEN_BRIGHT_OUTPUT"><value><option name="FOREGROUND" value="D5FF80"/><option name="BACKGROUND" value="D5FF80"/></value></option>
+    <option name="BLOCK_TERMINAL_GREEN_BRIGHT"><value><option name="FOREGROUND" value="D5FF80"/><option name="BACKGROUND" value="D5FF80"/></value></option>
+    <option name="CONSOLE_YELLOW_BRIGHT_OUTPUT"><value><option name="FOREGROUND" value="FFCD66"/><option name="BACKGROUND" value="FFCD66"/></value></option>
+    <option name="BLOCK_TERMINAL_YELLOW_BRIGHT"><value><option name="FOREGROUND" value="FFCD66"/><option name="BACKGROUND" value="FFCD66"/></value></option>
+    <option name="CONSOLE_BLUE_BRIGHT_OUTPUT"><value><option name="FOREGROUND" value="73D0FF"/><option name="BACKGROUND" value="73D0FF"/></value></option>
+    <option name="BLOCK_TERMINAL_BLUE_BRIGHT"><value><option name="FOREGROUND" value="73D0FF"/><option name="BACKGROUND" value="73D0FF"/></value></option>
+    <option name="CONSOLE_MAGENTA_BRIGHT_OUTPUT"><value><option name="FOREGROUND" value="DFBFFF"/><option name="BACKGROUND" value="DFBFFF"/></value></option>
+    <option name="BLOCK_TERMINAL_MAGENTA_BRIGHT"><value><option name="FOREGROUND" value="DFBFFF"/><option name="BACKGROUND" value="DFBFFF"/></value></option>
+    <option name="CONSOLE_CYAN_BRIGHT_OUTPUT"><value><option name="FOREGROUND" value="95E6CB"/><option name="BACKGROUND" value="95E6CB"/></value></option>
+    <option name="BLOCK_TERMINAL_CYAN_BRIGHT"><value><option name="FOREGROUND" value="95E6CB"/><option name="BACKGROUND" value="95E6CB"/></value></option>
+    <option name="CONSOLE_WHITE_OUTPUT"><value><option name="FOREGROUND" value="FFFFFF"/><option name="BACKGROUND" value="FFFFFF"/></value></option>
+    <option name="BLOCK_TERMINAL_WHITE_BRIGHT"><value><option name="FOREGROUND" value="FFFFFF"/><option name="BACKGROUND" value="FFFFFF"/></value></option>
+    <option name="DIFF_INSERTED"><value><option name="BACKGROUND" value="3C463C"/><option name="ERROR_STRIPE_COLOR" value="87D96C"/></value></option>
+    <option name="DIFF_DELETED"><value><option name="BACKGROUND" value="50212B"/><option name="ERROR_STRIPE_COLOR" value="F27983"/></value></option>
+    <option name="DIFF_MODIFIED"><value><option name="BACKGROUND" value="36475E"/><option name="ERROR_STRIPE_COLOR" value="80BFFF"/></value></option>
+    <option name="INLAY_DEFAULT"><value><option name="FOREGROUND" value="7A7B7D"/><option name="BACKGROUND" value="282C37"/></value></option>
+    <option name="INLINE_PARAMETER_HINT"><value><option name="FOREGROUND" value="7A7B7D"/><option name="BACKGROUND" value="282C37"/></value></option>
+    <option name="INLAY_TEXT_WITHOUT_BACKGROUND"><value><option name="FOREGROUND" value="7A7B7D"/></value></option>
+    <option name="FOLDED_TEXT_ATTRIBUTES"><value><option name="FOREGROUND" value="808080"/><option name="BACKGROUND" value="263245"/></value></option>
     <option name="DEFAULT_KEYWORD"><value><option name="FOREGROUND" value="FFA659"/><option name="FONT_TYPE" value="0"/></value></option>
     <option name="DEFAULT_STRING"><value><option name="FOREGROUND" value="D5FF80"/><option name="FONT_TYPE" value="0"/></value></option>
     <option name="DEFAULT_NUMBER"><value><option name="FOREGROUND" value="DFBFFF"/><option name="FONT_TYPE" value="0"/></value></option>

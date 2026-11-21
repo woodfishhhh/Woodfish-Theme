@@ -7,6 +7,7 @@ const { parseJsonc } = require('../../vscode-extension/scripts/lib/jsonc');
 const { contributes } = require('../../vscode-extension/package.json');
 const { createResolver, STYLE_BITS } = require('./themeMatch');
 const scopeMap = require('./scopeMap');
+const { VSCODE_DEFAULTS, EDITOR_COLORS, EDITOR_ATTRIBUTES, extraSettings } = require('./editorMap');
 const { keyTable } = require('./keyTable');
 
 const vscode = path.resolve(__dirname, '../../vscode-extension');
@@ -15,30 +16,17 @@ const KEY_DOC = path.resolve(__dirname, '../../../docs/hosts/jetbrains-keys.md')
 const THEME_ID_PREFIX = 'io.github.woodfishhhh.woodfishtheme';
 const SCHEME_VERSION = '142';
 
-// VS Code's own defaults for editor colors a theme leaves out (VS Code 1.147 export).
-const VSCODE_DEFAULTS = {
-  dark: {
-    'editorCursor.foreground': '#AEAFAD',
-    'editor.selectionBackground': '#264F78',
-    'editorError.foreground': '#F14C4C',
-    'editorWarning.foreground': '#CCA700',
-    'editorLineNumber.activeForeground': '#C6C6C6',
-  },
-  light: {
-    'editor.selectionBackground': '#ADD6FF',
-    'editorError.foreground': '#E51400',
-    'editorWarning.foreground': '#BF8803',
-    'editorLineNumber.activeForeground': '#0B216F',
-  },
-};
-
-/** Flattens an RGBA color over an opaque background into 6 hex digits (JetBrains colors carry no alpha). */
-function opaque(color, background) {
+/**
+ * Flattens an RGBA color over an opaque background into 6 hex digits (JetBrains colors carry no alpha).
+ * `factor` scales the color's own alpha.
+ */
+function opaque(color, background, factor = 1) {
   const ink = requireCssColor(color);
   const paper = requireCssColor(background);
+  const alpha = ink.alpha * factor;
   return ['r', 'g', 'b']
     .map((key) =>
-      Math.round(ink[key] * ink.alpha + paper[key] * (1 - ink.alpha))
+      Math.round(ink[key] * alpha + paper[key] * (1 - alpha))
         .toString(16)
         .padStart(2, '0')
     )
@@ -64,55 +52,6 @@ function sourceTheme(palette) {
   return parseJsonc(fs.readFileSync(path.join(vscode, entry.path), 'utf8'));
 }
 
-/** Editor colors: [VS Code color, JetBrains name, palette fallback]. Each channel is flattened over the editor background. */
-const EDITOR_COLORS = [
-  // VS Code draws no current-line fill when the theme sets none; JetBrains needs an explicit color to match
-  ['editor.lineHighlightBackground', 'CARET_ROW_COLOR', 'bg'],
-  ['editor.selectionBackground', 'SELECTION_BACKGROUND', 'selection'],
-  ['editorCursor.foreground', 'CARET_COLOR', 'fg'],
-  ['editorLineNumber.foreground', 'LINE_NUMBERS_COLOR', 'fgSubtle'],
-  ['editorLineNumber.activeForeground', 'LINE_NUMBER_ON_CARET_ROW_COLOR', 'fg'],
-  ['editorGutter.background', 'GUTTER_BACKGROUND', 'bg'],
-  ['editorIndentGuide.background1', 'INDENT_GUIDE', 'border'],
-  ['editorIndentGuide.activeBackground1', 'SELECTED_INDENT_GUIDE', 'fgSubtle'],
-  ['editorWhitespace.foreground', 'WHITESPACES', 'fgSubtle'],
-  ['editorHoverWidget.background', 'DOCUMENTATION_COLOR', 'bgWidget'],
-];
-
-/** Editor attributes made of one color: [VS Code color, JetBrains name, channel, palette fallback, extra]. */
-const EDITOR_ATTRIBUTES = [
-  ['editor.findMatchBackground', 'SEARCH_RESULT_ATTRIBUTES', 'BACKGROUND', 'findMatch'],
-  ['editor.findMatchBackground', 'WRITE_SEARCH_RESULT_ATTRIBUTES', 'BACKGROUND', 'findMatch'],
-  [
-    'editor.findMatchHighlightBackground',
-    'TEXT_SEARCH_RESULT_ATTRIBUTES',
-    'BACKGROUND',
-    'findMatch',
-  ],
-  [
-    'editor.wordHighlightBackground',
-    'IDENTIFIER_UNDER_CARET_ATTRIBUTES',
-    'BACKGROUND',
-    'selection',
-  ],
-  [
-    'editor.wordHighlightStrongBackground',
-    'WRITE_IDENTIFIER_UNDER_CARET_ATTRIBUTES',
-    'BACKGROUND',
-    'selection',
-  ],
-  ['editorBracketMatch.background', 'MATCHED_BRACE_ATTRIBUTES', 'BACKGROUND', 'selection'],
-  ['editorError.foreground', 'ERRORS_ATTRIBUTES', 'EFFECT_COLOR', 'error', { EFFECT_TYPE: '2' }],
-  [
-    'editorWarning.foreground',
-    'WARNING_ATTRIBUTES',
-    'EFFECT_COLOR',
-    'warning',
-    { EFFECT_TYPE: '2' },
-  ],
-  ['editorError.foreground', 'WRONG_REFERENCES_ATTRIBUTES', 'FOREGROUND', 'error'],
-];
-
 function editorChrome(theme, palette, resolve) {
   const type = palette.type;
   const lookup = (name) => theme.colors[name] ?? VSCODE_DEFAULTS[type][name];
@@ -136,6 +75,16 @@ function editorChrome(theme, palette, resolve) {
   for (const [name, key, channel, fallback, extra] of EDITOR_ATTRIBUTES) {
     attributes[key] = { [channel]: flat(name, fallback), ...extra };
   }
+  const more = extraSettings({
+    lookup,
+    paint: opaque,
+    alpha: (color) => requireCssColor(color).alpha,
+    palette,
+    background,
+    gutterBackground: theme.colors['editorGutter.background'] ?? background,
+  });
+  Object.assign(colors, more.colors);
+  Object.assign(attributes, more.attributes);
   return { colors, attributes, background, foreground };
 }
 

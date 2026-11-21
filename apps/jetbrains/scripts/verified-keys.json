@@ -13,6 +13,24 @@
       "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
     ]
   },
+  "ADDED_LINES_COLOR": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
   "ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES": {
     "IC 2024.1.7 (241)": [
       "lib/app-client.jar!DefaultColorSchemesManager.xml",
@@ -49,6 +67,330 @@
       "lib/app-client.jar!themes/highContrastScheme.xml"
     ]
   },
+  "BLOCK_TERMINAL_BLACK": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_BLACK_BRIGHT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_BLUE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_BLUE_BRIGHT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_CYAN": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_CYAN_BRIGHT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_GREEN": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_GREEN_BRIGHT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_MAGENTA": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_MAGENTA_BRIGHT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_RED": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_RED_BRIGHT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_WHITE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_WHITE_BRIGHT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_YELLOW": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "BLOCK_TERMINAL_YELLOW_BRIGHT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.execution.impl.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/terminal/BlockTerminalColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CARET_COLOR": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CARET_ROW_COLOR": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
   "CLASS_NAME_ATTRIBUTES": {
     "IC 2024.1.7 (241)": [
       "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
@@ -61,6 +403,348 @@
     ],
     "PyCharm CE 2025.2.6.3 (252)": [
       "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "CONSOLE_BACKGROUND_KEY": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.core.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_BLACK_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_BLUE_BRIGHT_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_BLUE_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_CYAN_BRIGHT_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_CYAN_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_DARKGRAY_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_ERROR_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.core.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_GRAY_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_GREEN_BRIGHT_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_GREEN_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_MAGENTA_BRIGHT_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_MAGENTA_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_NORMAL_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.core.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/ui/ConsoleViewContentType.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_RED_BRIGHT_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_RED_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_WHITE_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_YELLOW_BRIGHT_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "CONSOLE_YELLOW_OUTPUT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.ide.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/execution/process/ConsoleHighlighter.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
     ]
   },
   "CONSTRUCTOR_CALL_ATTRIBUTES": {
@@ -736,6 +1420,96 @@
       "lib/app-client.jar!DefaultColorSchemesManager.xml"
     ]
   },
+  "DELETED_LINES_COLOR": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DIFF_DELETED": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.diff.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DIFF_INSERTED": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.diff.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DIFF_MODIFIED": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.diff.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/diff/DiffColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "DOCUMENTATION_COLOR": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
   "ENUM_NAME_ATTRIBUTES": {
     "IC 2024.1.7 (241)": [
       "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
@@ -745,6 +1519,42 @@
     ],
     "IU 2026.3 (263)": [
       "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
+    ]
+  },
+  "ERRORS_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/codeHighlighting/HighlightDisplayLevel.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.analysis.jar!com/intellij/codeHighlighting/HighlightDisplayLevel.class",
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/colors/CodeInsightColors.class"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/colors/CodeInsightColors.class",
+      "lib/app-client.jar!com/intellij/codeHighlighting/HighlightDisplayLevel.class"
+    ]
+  },
+  "FOLDED_TEXT_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
     ]
   },
   "GO_BLOCK_COMMENT": {
@@ -1264,6 +2074,24 @@
       "go-plugin/lib/intellij.go.frontback.jar!com/goide/highlighting/GoSyntaxHighlightingColors.class"
     ]
   },
+  "GUTTER_BACKGROUND": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
   "HTML_ATTRIBUTE_NAME": {
     "IC 2024.1.7 (241)": [
       "lib/app-client.jar!DefaultColorSchemesManager.xml",
@@ -1354,6 +2182,24 @@
       "lib/app-client.jar!themes/highContrastScheme.xml"
     ]
   },
+  "IDENTIFIER_UNDER_CARET_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
   "IMPLICIT_ANONYMOUS_CLASS_PARAMETER_ATTRIBUTES": {
     "IC 2024.1.7 (241)": [
       "lib/app-client.jar!DefaultColorSchemesManager.xml",
@@ -1370,6 +2216,96 @@
     "PyCharm CE 2025.2.6.3 (252)": [
       "lib/app-client.jar!DefaultColorSchemesManager.xml",
       "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "INDENT_GUIDE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "INJECTED_LANGUAGE_FRAGMENT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "INLAY_DEFAULT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "INLAY_TEXT_WITHOUT_BACKGROUND": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "INLINE_PARAMETER_HINT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/DefaultLanguageHighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
     ]
   },
   "INSTANCE_FIELD_ATTRIBUTES": {
@@ -2021,6 +2957,42 @@
       "plugins/java/lib/intellij.java.frontback.psi.impl.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
     ]
   },
+  "LINE_NUMBERS_COLOR": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "LINE_NUMBER_ON_CARET_ROW_COLOR": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
   "LOCAL_VARIABLE_ATTRIBUTES": {
     "IC 2024.1.7 (241)": [
       "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
@@ -2445,6 +3417,24 @@
       "plugins/markdown/lib/markdown.jar!org/intellij/plugins/markdown/highlighting/MarkdownHighlighterColors.class"
     ]
   },
+  "MATCHED_BRACE_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/colors/CodeInsightColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/colors/CodeInsightColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
   "METHOD_CALL_ATTRIBUTES": {
     "IC 2024.1.7 (241)": [
       "plugins/java/lib/java-frontback.jar!com/intellij/ide/highlighter/JavaHighlightingColors.class"
@@ -2471,6 +3461,24 @@
     ],
     "PyCharm CE 2025.2.6.3 (252)": [
       "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
+    ]
+  },
+  "MODIFIED_LINES_COLOR": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
     ]
   },
   "PARAMETER_ATTRIBUTES": {
@@ -2630,6 +3638,60 @@
       "plugins/color-scheme-warmNeon/lib/color-scheme-warmNeon.jar!colorSchemes/WarmNeon.xml"
     ]
   },
+  "SEARCH_RESULT_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "SELECTED_INDENT_GUIDE": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "SELECTION_BACKGROUND": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
   "STATIC_FIELD_ATTRIBUTES": {
     "IC 2024.1.7 (241)": [
       "lib/app-client.jar!DefaultColorSchemesManager.xml",
@@ -2682,6 +3744,42 @@
     "PyCharm CE 2025.2.6.3 (252)": [
       "lib/app-client.jar!DefaultColorSchemesManager.xml",
       "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ]
+  },
+  "TEXT": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!com/intellij/openapi/editor/HighlighterColors.class"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/HighlighterColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/HighlighterColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "TEXT_SEARCH_RESULT_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
     ]
   },
   "TS.BLOCK_COMMENT": {
@@ -2831,6 +3929,96 @@
     "PyCharm CE 2025.2.6.3 (252)": [
       "lib/app-client.jar!DefaultColorSchemesManager.xml",
       "lib/app-client.jar!themes/highContrastScheme.xml"
+    ]
+  },
+  "WARNING_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/colors/CodeInsightColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/colors/CodeInsightColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "WHITESPACES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "WRITE_IDENTIFIER_UNDER_CARET_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "WRITE_SEARCH_RESULT_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_darkScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.editor.ui.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/app-client.jar!com/intellij/openapi/editor/colors/EditorColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
+    ]
+  },
+  "WRONG_REFERENCES_ATTRIBUTES": {
+    "IC 2024.1.7 (241)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/expUI/expUI_lightScheme.xml"
+    ],
+    "IC 2025.2.6.4 (252)": [
+      "lib/app-client.jar!DefaultColorSchemesManager.xml",
+      "lib/app-client.jar!themes/highContrastScheme.xml"
+    ],
+    "IU 2026.3 (263)": [
+      "lib/intellij.platform.core.jar!com/intellij/openapi/editor/colors/CodeInsightColors.class",
+      "lib/intellij.platform.resources.jar!DefaultColorSchemesManager.xml"
+    ],
+    "PyCharm CE 2025.2.6.3 (252)": [
+      "lib/util-8.jar!com/intellij/openapi/editor/colors/CodeInsightColors.class",
+      "lib/app-client.jar!DefaultColorSchemesManager.xml"
     ]
   },
   "XML_ATTRIBUTE_NAME": {

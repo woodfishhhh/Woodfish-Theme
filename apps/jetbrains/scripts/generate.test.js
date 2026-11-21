@@ -5,6 +5,7 @@ const { WOODFISH_PALETTES } = require('@woodfish/theme-core');
 const { main, opaque, render, themeIds, missingRegistrations } = require('./generate');
 const { createResolver } = require('./themeMatch');
 const scopeMap = require('./scopeMap');
+const { editorKeyNames } = require('./editorMap');
 const verified = require('./verified-keys.json');
 
 const resources = path.resolve(__dirname, '../src/main/resources');
@@ -31,6 +32,11 @@ describe('scope map', () => {
     const missing = scopeMap
       .map(({ key }) => key)
       .filter((key) => !Object.keys(verified[key] ?? {}).length);
+    expect(missing).toEqual([]);
+  });
+
+  it('also checks the editor, console, diff, inlay and fold names', () => {
+    const missing = editorKeyNames().filter((key) => !Object.keys(verified[key] ?? {}).length);
     expect(missing).toEqual([]);
   });
 });

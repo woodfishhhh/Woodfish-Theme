@@ -1,6 +1,7 @@
 // docs/hosts/jetbrains-keys.md: where every mapped attribute name was found, and which VS Code scope it follows.
 const scopeMap = require('./scopeMap');
 const verified = require('./verified-keys.json');
+const { editorKeyRows, extraKeyRows } = require('./editorMap');
 
 const GROUPS = [
   ['Java', (key) => /^(JAVA_|[A-Z_]+_ATTRIBUTES$)/.test(key) && !key.startsWith('KOTLIN_')],
@@ -46,8 +47,8 @@ function keyTable() {
     '',
     'Every token attribute the generated editor schemes set. “Found in” lists the IDE distributions or plugins whose',
     'classes or scheme files contain the name (`scripts/audit-keys.py`); “VS Code scope” is the TextMate scope',
-    'stack whose color the attribute gets. The editor colors (background, caret, selection, search, errors) come',
-    'from the theme’s own `editor.*` colors, see [jetbrains.md](./jetbrains.md).',
+    'stack whose color the attribute gets. The editor, console, diff, inlay-hint and fold settings follow at the end:',
+    'their colors come from the theme’s own VS Code colors.',
     '',
   ];
   for (const [group] of GROUPS) {
@@ -61,6 +62,22 @@ function keyTable() {
     );
     for (const { key, scopes } of rows)
       lines.push(`| \`${key}\` | ${products(key)} | \`${scopes}\` |`);
+    lines.push('');
+  }
+  const groups = new Map();
+  for (const row of [...editorKeyRows(), ...extraKeyRows()])
+    groups.set(row[0], [...(groups.get(row[0]) ?? []), row]);
+  for (const [group, rows] of groups) {
+    lines.push(
+      `## ${group}`,
+      '',
+      '| Attribute | Found in | Channels | VS Code source |',
+      '| --- | --- | --- | --- |'
+    );
+    for (const [, keys, channels, source] of rows) {
+      const names = keys.map((key) => `\`${key}\``).join(', ');
+      lines.push(`| ${names} | ${products(keys[0])} | ${channels} | ${source} |`);
+    }
     lines.push('');
   }
   return lines.join('\n');

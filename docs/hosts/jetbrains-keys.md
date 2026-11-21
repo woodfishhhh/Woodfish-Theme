@@ -4,8 +4,8 @@
 
 Every token attribute the generated editor schemes set. “Found in” lists the IDE distributions or plugins whose
 classes or scheme files contain the name (`scripts/audit-keys.py`); “VS Code scope” is the TextMate scope
-stack whose color the attribute gets. The editor colors (background, caret, selection, search, errors) come
-from the theme’s own `editor.*` colors, see [jetbrains.md](./jetbrains.md).
+stack whose color the attribute gets. The editor, console, diff, inlay-hint and fold settings follow at the end:
+their colors come from the theme’s own VS Code colors.
 
 ## Java
 
@@ -292,4 +292,96 @@ from the theme’s own `editor.*` colors, see [jetbrains.md](./jetbrains.md).
 | `INSTANCE_FIELD_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | `source.java meta.class.java meta.class.body.java meta.definition.variable.java variable.other.definition.java` |
 | `STATIC_FIELD_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | `source.java meta.class.java meta.class.body.java meta.definition.variable.java variable.other.definition.java` |
 | `STATIC_FINAL_FIELD_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | `source.java meta.class.java meta.class.body.java meta.definition.variable.java variable.other.definition.java` |
+
+## Editor
+
+| Attribute | Found in | Channels | VS Code source |
+| --- | --- | --- | --- |
+| `TEXT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | the `source` rule (plain code), else `editor.foreground`; `editor.background` |
+| `INJECTED_LANGUAGE_FRAGMENT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `editor.background` (VS Code tints nothing) |
+| `CARET_ROW_COLOR` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editor.lineHighlightBackground` |
+| `SELECTION_BACKGROUND` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editor.selectionBackground` |
+| `CARET_COLOR` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorCursor.foreground` |
+| `LINE_NUMBERS_COLOR` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorLineNumber.foreground` |
+| `LINE_NUMBER_ON_CARET_ROW_COLOR` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorLineNumber.activeForeground` |
+| `GUTTER_BACKGROUND` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorGutter.background` |
+| `INDENT_GUIDE` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorIndentGuide.background1` |
+| `SELECTED_INDENT_GUIDE` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorIndentGuide.activeBackground1` |
+| `WHITESPACES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorWhitespace.foreground` |
+| `DOCUMENTATION_COLOR` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorHoverWidget.background` |
+| `SEARCH_RESULT_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `editor.findMatchBackground` |
+| `WRITE_SEARCH_RESULT_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `editor.findMatchBackground` |
+| `TEXT_SEARCH_RESULT_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `editor.findMatchHighlightBackground` |
+| `IDENTIFIER_UNDER_CARET_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `editor.wordHighlightBackground` |
+| `WRITE_IDENTIFIER_UNDER_CARET_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `editor.wordHighlightStrongBackground` |
+| `MATCHED_BRACE_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `editorBracketMatch.background` |
+| `ERRORS_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | EFFECT_COLOR | `editorError.foreground` |
+| `WARNING_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | EFFECT_COLOR | `editorWarning.foreground` |
+| `WRONG_REFERENCES_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND | `editorError.foreground` |
+
+## Console and terminal
+
+| Attribute | Found in | Channels | VS Code source |
+| --- | --- | --- | --- |
+| `CONSOLE_BACKGROUND_KEY` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `terminal.background` |
+| `CONSOLE_NORMAL_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND | `terminal.foreground` |
+| `CONSOLE_ERROR_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND | ANSI red |
+| `CONSOLE_BLACK_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI black (`palette.ansi[0]`) |
+| `CONSOLE_RED_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI red (`palette.ansi[1]`) |
+| `CONSOLE_GREEN_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI green (`palette.ansi[2]`) |
+| `CONSOLE_YELLOW_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI yellow (`palette.ansi[3]`) |
+| `CONSOLE_BLUE_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI blue (`palette.ansi[4]`) |
+| `CONSOLE_MAGENTA_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI magenta (`palette.ansi[5]`) |
+| `CONSOLE_CYAN_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI cyan (`palette.ansi[6]`) |
+| `CONSOLE_GRAY_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI white (`palette.ansi[7]`) |
+| `CONSOLE_DARKGRAY_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright black (`palette.ansi[8]`) |
+| `CONSOLE_RED_BRIGHT_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright red (`palette.ansi[9]`) |
+| `CONSOLE_GREEN_BRIGHT_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright green (`palette.ansi[10]`) |
+| `CONSOLE_YELLOW_BRIGHT_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright yellow (`palette.ansi[11]`) |
+| `CONSOLE_BLUE_BRIGHT_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright blue (`palette.ansi[12]`) |
+| `CONSOLE_MAGENTA_BRIGHT_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright magenta (`palette.ansi[13]`) |
+| `CONSOLE_CYAN_BRIGHT_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright cyan (`palette.ansi[14]`) |
+| `CONSOLE_WHITE_OUTPUT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright white (`palette.ansi[15]`) |
+| `BLOCK_TERMINAL_BLACK` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI black (`palette.ansi[0]`) |
+| `BLOCK_TERMINAL_RED` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI red (`palette.ansi[1]`) |
+| `BLOCK_TERMINAL_GREEN` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI green (`palette.ansi[2]`) |
+| `BLOCK_TERMINAL_YELLOW` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI yellow (`palette.ansi[3]`) |
+| `BLOCK_TERMINAL_BLUE` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI blue (`palette.ansi[4]`) |
+| `BLOCK_TERMINAL_MAGENTA` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI magenta (`palette.ansi[5]`) |
+| `BLOCK_TERMINAL_CYAN` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI cyan (`palette.ansi[6]`) |
+| `BLOCK_TERMINAL_WHITE` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI white (`palette.ansi[7]`) |
+| `BLOCK_TERMINAL_BLACK_BRIGHT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright black (`palette.ansi[8]`) |
+| `BLOCK_TERMINAL_RED_BRIGHT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright red (`palette.ansi[9]`) |
+| `BLOCK_TERMINAL_GREEN_BRIGHT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright green (`palette.ansi[10]`) |
+| `BLOCK_TERMINAL_YELLOW_BRIGHT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright yellow (`palette.ansi[11]`) |
+| `BLOCK_TERMINAL_BLUE_BRIGHT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright blue (`palette.ansi[12]`) |
+| `BLOCK_TERMINAL_MAGENTA_BRIGHT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright magenta (`palette.ansi[13]`) |
+| `BLOCK_TERMINAL_CYAN_BRIGHT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright cyan (`palette.ansi[14]`) |
+| `BLOCK_TERMINAL_WHITE_BRIGHT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | ANSI bright white (`palette.ansi[15]`) |
+
+## Diff
+
+| Attribute | Found in | Channels | VS Code source |
+| --- | --- | --- | --- |
+| `DIFF_INSERTED` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `diffEditor.insertedLineBackground` |
+| `DIFF_DELETED` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `diffEditor.removedLineBackground` |
+| `DIFF_MODIFIED` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | BACKGROUND | `editorGutter.modifiedBackground` at the strength of the inserted-line background (VS Code has no modified color) |
+| `DIFF_INSERTED`, `DIFF_DELETED`, `DIFF_MODIFIED` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | ERROR_STRIPE_COLOR | `editorOverviewRuler.*Foreground`, else `editorGutter.*Background` |
+| `ADDED_LINES_COLOR` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorGutter.addedBackground` |
+| `MODIFIED_LINES_COLOR` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorGutter.modifiedBackground` |
+| `DELETED_LINES_COLOR` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | color | `editorGutter.deletedBackground`, else `editorError.foreground` |
+
+## Inlay hints
+
+| Attribute | Found in | Channels | VS Code source |
+| --- | --- | --- | --- |
+| `INLAY_DEFAULT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | `editorInlayHint.typeForeground` / `typeBackground`, else the base pair |
+| `INLINE_PARAMETER_HINT` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | `editorInlayHint.parameterForeground` / `parameterBackground`, else the base pair |
+| `INLAY_TEXT_WITHOUT_BACKGROUND` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND | `editorInlayHint.typeForeground` |
+
+## Folding
+
+| Attribute | Found in | Channels | VS Code source |
+| --- | --- | --- | --- |
+| `FOLDED_TEXT_ATTRIBUTES` | IC 2024.1.7 241, IC 2025.2.6.4 252, IU 2026.3 263, PyCharm CE 2025.2.6.3 252 | FOREGROUND, BACKGROUND | `editor.foldPlaceholderForeground` / `editor.foldBackground` |
 
