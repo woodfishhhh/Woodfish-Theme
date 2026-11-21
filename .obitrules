@@ -1,0 +1,5 @@
+# Temporary browser and performance diagnostics; shipped screenshots and output stay untouched.
+*.trace                  3d
+*.pprof                  3d
+*.har                    3d
+lighthouse-*.json        7d
