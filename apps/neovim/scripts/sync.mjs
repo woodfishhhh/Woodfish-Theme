@@ -5,7 +5,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT } from './lib/shared.mjs';
 
-const targetArg = process.argv[2] || process.env.WOODFISH_NVIM_REPO;
+// pnpm 11 passes the `--` of `pnpm nvim:sync -- <path>` through to the script (pnpm 10 dropped it).
+const targetArg = process.argv.slice(2).find((arg) => arg !== '--') || process.env.WOODFISH_NVIM_REPO;
 if (!targetArg) throw new Error('Usage: pnpm nvim:sync -- <woodfish.nvim checkout>');
 
 const target = path.resolve(targetArg);

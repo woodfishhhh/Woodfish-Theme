@@ -32,6 +32,13 @@ close they are to VS Code, is written down in
 - Pure Java 2D: no CSS injection, no patching of IDE files, nothing written outside the plugin's
   own config.
 
+## Install
+
+1. Download `woodfish-theme-jetbrains-8.2.0.zip` from the
+   [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.0).
+2. In the IDE open `Settings | Plugins | ⚙ | Install Plugin from Disk…` and pick the zip.
+3. Restart if the IDE asks, then choose a Woodfish theme in `Settings | Appearance & Behavior | Appearance`.
+
 ## Build
 
 Requirements: JDK 21. The Gradle wrapper is included.

@@ -28,6 +28,12 @@
 - JBR 21（2024.2 起平台使用的运行时）。
 - 纯 Java 2D：不注入 CSS、不修改 IDE 文件、不在插件自身配置之外写任何东西。
 
+## 安装
+
+1. 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.0) 下载 `woodfish-theme-jetbrains-8.2.0.zip`。
+2. 在 IDE 里打开 设置 → 插件 → 齿轮 → 从磁盘安装插件，选这个 zip。
+3. 如果 IDE 提示重启就重启，然后在 设置 → 外观与行为 → 外观 里选一套 Woodfish 主题。
+
 ## 构建
 
 要求 JDK 21，已包含 Gradle wrapper。
