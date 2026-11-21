@@ -4,16 +4,43 @@ on:
   push:
     paths:
       - apps/jetbrains/**
+      - packages/theme-core/**
+      - apps/vscode-extension/themes/**
       - .github/workflows/jetbrains.yml
   pull_request:
     paths:
       - apps/jetbrains/**
+      - packages/theme-core/**
+      - apps/vscode-extension/themes/**
       - .github/workflows/jetbrains.yml
 
 permissions:
   contents: read
 
 jobs:
+  colors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generated themes match the palettes and the VS Code themes
+        run: pnpm jetbrains:check
+
+      - name: Generator tests
+        run: pnpm --filter ./apps/jetbrains run test
+
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20

@@ -28,6 +28,7 @@ Woodfish-Theme/
 │   ├── chatgpt-app/           # Codex desktop selectors, CSS builders, native theme mapping and renderer overlay
 │   ├── claude-app/            # Reserved for the Claude app adapter; currently empty
 │   ├── dsh-web/               # dsh Web selectors, CSS builders and renderer overlay
+│   ├── jetbrains/             # JetBrains plugin: 15 generated color themes + gradient and glow overlay (Gradle, Java 21)
 │   └── cli/                   # `woodfish codex …` / `woodfish dsh …` commands and release artifacts
 ├── packages/
 │   ├── theme-core/            # Host-agnostic color math, gradients, palettes, effect params
@@ -69,6 +70,11 @@ Woodfish-Theme/
 | Neovim colorschemes (generated) | `apps/neovim/` (`colors/`, `lua/woodfish/` are generated; `scripts/generate.mjs`, `scripts/lib/targets.mjs`) |
 | Neovim capture / compare tools | `apps/neovim/scripts/capture.mjs`, `compare.mjs`, `smoke.mjs`, `scripts/nvim/*.lua`; samples in `apps/neovim/stats-samples/` (measured) and `samples/` (held out) |
 | Neovim measurements | `docs/hosts/neovim.md` |
+| JetBrains themes (generated) | `apps/jetbrains/src/main/resources/themes/` (`woodfish-<slug>.xml`, `.theme.json`) and `licenses/`; generator `apps/jetbrains/scripts/generate.js` |
+| JetBrains scope → attribute table, editor / console / diff / inlay / fold rules | `apps/jetbrains/scripts/scopeMap.js` (token attributes), `apps/jetbrains/scripts/editorMap.js` (everything else, with VS Code's own defaults) |
+| JetBrains attribute names found in real IDEs | `apps/jetbrains/scripts/verified-keys.json` (from `audit-keys.py`), shown in `docs/hosts/jetbrains-keys.md` |
+| JetBrains gradient and glow overlay | `apps/jetbrains/src/main/java/` |
+| JetBrains measurements | `docs/hosts/jetbrains.md`, color-by-color comparison with VS Code `docs/hosts/jetbrains-colors.md` |
 | Effect plugins (shipped) | `packages/effects/builtin/<id>/` (`effect.json`, `effect.js`, `README.md`), guide for AIs `packages/effects/builtin/AGENTS.md` |
 | Effects folder sync / load / payload | `packages/effects/src/index.ts` |
 | Effect manifest & value normalization | `packages/theme-core/src/effects/plugins.ts` |
@@ -140,6 +146,8 @@ pnpm terminal:check    # Check all terminal colors, syntax rules and licenses wi
 pnpm nvim:generate    # Regenerate apps/neovim/colors and lua/ (needs only Node); commit the result
 pnpm nvim:check       # Generated Neovim files, committed captures and the VS Code theme files agree
 pnpm nvim:smoke       # Every colorscheme loads in headless Neovim (WOODFISH_NVIM names the binary)
+pnpm jetbrains:generate # Regenerate apps/jetbrains themes, licenses and docs/hosts/jetbrains-keys.md; commit the result
+pnpm jetbrains:check    # Committed JetBrains themes agree with the palettes and the VS Code themes (needs only Node)
 pnpm runtime:check    # Built renderer scripts are current
 pnpm codex:check      # Built renderer bundles in apps/cli/assets (Codex + dsh) are current
 pnpm dsh:check        # Same check, named for the dsh user script
@@ -160,9 +168,11 @@ pnpm cli:dist         # CLI release artifacts: apps/cli/out/npm and out/release 
 
 ### JetBrains plugin maintenance
 
-- Build and test from apps/jetbrains with JDK 21: ./gradlew test buildPlugin verifyPlugin.
-- The plugin currently contains only the gradient and glow core; color schemes are a separate follow-up and it is not published yet.
-- Do not run runIde in CI or during this repository's non-visual checks; visual acceptance waits until the official color schemes are integrated.
+- The plugin (`io.github.woodfishhhh.woodfishtheme`, vendor Woodfish) has the 15 color themes and the gradient and glow overlay; it is not published yet (no Marketplace upload, no release, no tag for it). The Java side is a community contribution under its own `LICENSE`: change its behavior only deliberately, its tests must stay green.
+- Build, test and compatibility from `apps/jetbrains` with JDK 21: `./gradlew test buildPlugin verifyPlugin` (zip in `build/distributions/`). `verifyPlugin` checks IC 2024.2 and 2024.3 by default; newer IDEs through `-Pide252LocalPath=<dir> -Pide262LocalPath=<dir>` (see `gradle.local.properties`), run it against the newest IDE before a release.
+- Themes are generated, never hand-edited: `pnpm jetbrains:generate`, commit the result; `pnpm jetbrains:check` is the CI check (job `colors` in `.github/workflows/jetbrains.yml`, runs when `packages/theme-core`, `apps/vscode-extension/themes` or `apps/jetbrains` change). New token attributes go into `scripts/scopeMap.js` (row: attribute → VS Code scope stack); editor, console, diff, inlay and fold settings into `scripts/editorMap.js`. Every JetBrains name must be found in a real IDE: `python scripts/audit-keys.py --ide "<label>=<IDE dir>" … --keys <file> --out <tmp.json>` once per OS, then merge the new records into `scripts/verified-keys.json` by hand (`--keys` with `--merge` keeps only the listed keys, back the file up first); tests refuse unknown names.
+- Colors follow VS Code, including its own defaults for what a theme leaves out (read from the workbench bundle, kept in `editorMap.js`). Plain code uses the `source` rule's color as JetBrains' `TEXT` (Woodfish Dark differs from `editor.foreground`), probe with the root scope `source`, not a language scope (One Dark Pro has a Java rule).
+- Before a release, redo the screenshot comparison in `docs/hosts/jetbrains.md` ("验收方法") and rebuild `docs/hosts/jetbrains-colors.md`; only private X servers (WSL Xvfb, `unset WAYLAND_DISPLAY`) may open IDE windows, never the owner's desktop, and never `runIde` in CI. Pitfalls found while doing it: JetBrains' `options/*.xml` ignores unknown names silently (look names up in the IDE's class files), the Markdown plugin highlights a heading under the caret (park the caret on line 2), `pkill -f` kills the calling shell when the pattern is in its own command line (use `[x]` patterns), `( … ) &` inside `wsl.exe` dies with the call (use `nohup`), shell heredocs and tool arguments eat double backslashes (write regexes with the editor tools).
 
 ### Neovim colorscheme maintenance
 
@@ -174,7 +184,7 @@ pnpm cli:dist         # CLI release artifacts: apps/cli/out/npm and out/release 
 
 ## Finishing a Task
 
-- Do not push work in progress: every push mails the owner (CI result, automated PR review). Commit locally, run the full CI set locally (`pnpm compile`, `themes:check`, `runtime:check`, `codex:check`, `dsh:check`, `format:check`, `lint`, `test --runInBand`, `test:integration`, `pre-publish`, `package`), then push once to `feat/monorepo-theme-core` without a PR.
+- Do not push work in progress: every push mails the owner (CI result, automated PR review). Commit locally, run the full CI set locally (`pnpm compile`, `themes:check`, `runtime:check`, `codex:check`, `dsh:check`, `jetbrains:check`, `format:check`, `lint`, `test --runInBand`, `test:integration`, `pre-publish`, `package`; plus `./gradlew test buildPlugin verifyPlugin` in `apps/jetbrains` when that app or the themes it is generated from changed), then push once to `feat/monorepo-theme-core` without a PR.
 
 - **Releasing (extension + CLI together, ask the owner before each publish)**: bump `apps/vscode-extension/package.json` and `apps/cli/package.json` to the same version, write the CHANGELOG, `pnpm runtime:build`, run the full CI set, `pnpm cli:dist` and `pnpm package`, commit, tag `vX.Y.Z`, push the branch and the tag. Then (1) Marketplace and Open VSX (see the publish notes), (2) `npm publish apps/cli/out/npm` with the token only in the environment: a temporary `.npmrc` containing `//registry.npmjs.org/:_authToken=${NPM_TOKEN}` passed by `--userconfig` (npm/npx echo command-line arguments as `npm notice`; a token leaked that way on 2026-11-14), (3) `gh release create vX.Y.Z <vsix> apps/cli/out/release/* --latest` — every release must carry `woodfish.exe`, the READMEs link `releases/latest/download/woodfish.exe`, (4) fast-forward `main` to the release commit with `git push origin <commit>:main` (fast-forward only, never force), so the GitHub landing page shows the released README.
 - Scratch files: this repository recommends Obituary for temporary files (`obit mktemp 1d`, `obit mark <path> 2h`) and for deleting (`obit bury` keeps things restorable for seven days); it is a recommendation for contributors, not a requirement. README and CONTRIBUTING recommend it as “讣告 · AI 的回收站”.

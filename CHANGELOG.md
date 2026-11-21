@@ -12,6 +12,8 @@
 
 ### 新增
 
+- [JetBrains 插件](./apps/jetbrains/README.zh-CN.md)：15 套主题在 IntelliJ IDEA、PyCharm 等 JetBrains 系列 IDE（2024.2 起）里作为界面主题加编辑器配色方案提供，配色由 `pnpm jetbrains:generate` 从同一套调色板和 VS Code 主题生成，`pnpm jetbrains:check` 保证已提交的文件不过期。代码、控制台和终端的 16 色 ANSI、diff、行号区竖条、inlay 提示、折叠后的文字都按 VS Code 主题取色；在 IntelliJ IDEA 和 PyCharm 里与 VS Code 逐 token 比对，4156 个 token 中 3344 个颜色一致，其余 812 个是 JetBrains 对这类内容只有一个属性（比如关键字、类声明与引用），没有一处是映射错了，详见[对照表](./docs/hosts/jetbrains-colors.md)。插件里还带渐变与发光（可选，来自社区贡献 [#39](https://github.com/woodfishhhh/Woodfish-Theme/pull/39)，感谢 [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch)）。暂时需要从源码构建安装，尚未发布到 JetBrains Marketplace。
+
 - [Neovim 配色](./apps/neovim/README.md)：15 套主题作为 Neovim 配色方案提供，仓库是 [woodfish.nvim](https://github.com/woodfishhhh/woodfish.nvim)。语法颜色和字体样式按 VS Code 给 TypeScript / JavaScript / TSX / Python / Lua / Go / Rust / JSON / Markdown 的实际结果量出来，只定义带语言后缀的高亮组；另含 Treesitter、LSP、诊断、diff / git、telescope、nvim-cmp、blink.cmp、gitsigns、neo-tree、nvim-tree、which-key、indent-blankline 和 lualine。
 
 ### 改进

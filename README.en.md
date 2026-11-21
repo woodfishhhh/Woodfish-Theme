@@ -159,6 +159,7 @@ Pick any color theme, then click **重新加载窗口** (Reload Window) when pro
 | Trae / Trae CN | 1.107 | Open VSX | Package layout verified |
 | Ghostty, Windows Terminal, bat, Yazi, Starship, lsd, zsh-syntax-highlighting | Independent of VS Code | [Terminal colors and setup](./apps/terminal/README.md) | Color schemes only |
 | Neovim 0.12 | Independent of VS Code | [woodfish.nvim](https://github.com/woodfishhhh/woodfish.nvim) ([notes](./apps/neovim/README.md)) | 15 color schemes, loaded headless and compared with VS Code character by character |
+| JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, GoLand, CLion and others, 2024.2+) | Independent of VS Code | Build from source for now: run `./gradlew buildPlugin` in `apps/jetbrains` (JDK 21 required), then use the IDE's "Install Plugin from Disk…" on the zip in `build/distributions` ([notes](./apps/jetbrains/README.md); a JetBrains Marketplace link will be added here once it is listed) | 15 color schemes plus optional gradient and glow; compared with VS Code token by token in IntelliJ IDEA and PyCharm ([comparison](./docs/hosts/jetbrains-colors.md)) |
 
 "Package layout verified" means the workbench path, CSP, checksums and main-process format in the editor's installer were checked and match the editors that were tested end to end. Remote SSH, WSL and dev containers work too, because Woodfish always runs on the local UI side.
 
@@ -228,7 +229,7 @@ To restore everything, uninstall the extension and fully restart the editor, or 
 
 - The minimap is drawn on a canvas and cannot receive gradients.
 - Web editors and the remote server side cannot be patched.
-- **JetBrains IDEs (such as CLion)**: the [gradient and glow core](https://github.com/woodfishhhh/Woodfish-Theme/tree/v8.1.5/apps/jetbrains) is not part of the VSIX or published to JetBrains Marketplace in this release. See also [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains), the community project by [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch).
+- **JetBrains IDEs (such as CLion)**: the [JetBrains plugin](./apps/jetbrains/README.md) in this repository has 15 color themes and the gradient and glow overlay; build it from source (see the table above). It is not part of the VSIX and is not yet published to JetBrains Marketplace. See also [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains), the community project by [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch).
 - Visual Studio is not based on VS Code and is not supported.
 - Screenshot extensions such as CodeSnap do not capture Woodfish effects.
 

@@ -1,13 +1,15 @@
-# Woodfish Theme for JetBrains IDE — gradient & glow core
+# Woodfish Theme for JetBrains IDE — 15 color themes, gradient & glow
 
 The JetBrains port of [Woodfish Theme](https://github.com/woodfishhhh/Woodfish-Theme) for VS Code.
-This module contains the universal **gradient + glow overlay** that runs on top of any editor
-color scheme. This module does not include color schemes or a theme generator.
+It ships **15 color themes** (a UI theme and an editor color scheme each) that match the VS Code
+themes color for color, and the universal **gradient + glow overlay** that runs on top of any
+editor color scheme.
 
 ## What it does
 
-| Effect | What it does |
+| Feature | What it does |
 |---|---|
+| **15 color themes** | Woodfish Dark, Dracula, Light, Black, Neon, One Dark Pro, Tokyo Night, Catppuccin Mocha and Latte, Nord, GitHub Dark and Light, Night Owl, Ayu Mirage, Gruvbox Dark. Choose one in `Settings \| Appearance & Behavior \| Appearance`. Code, console and terminal (16 ANSI colors), diff, line-status bars, inlay hints and folded text follow the VS Code theme. |
 | **Gradient syntax** | Every token gets a three-stop OKLCH gradient centred on its own color. Hue shift, lightness delta, chroma boost for neutrals and gradient angle are all adjustable. |
 | **Glow** | Layered soft light beneath the glyphs, three blur radii, intensity scaled by a single multiplier. Weakened automatically on light backgrounds. |
 | **CJK included** | Chinese, Japanese and Korean text gets the same gradient and glow without ghosting. |
@@ -17,7 +19,11 @@ color scheme. This module does not include color schemes or a theme generator.
 | **Diagnostics** | One action copies the current state, scheme names and cache counters for bug reports. |
 
 The overlay is independent of every color scheme: it works on whatever scheme is active.
-No scheme is bundled in this module.
+The themes are generated from the same palettes and VS Code themes by `pnpm jetbrains:generate`;
+`pnpm jetbrains:check` fails when a committed file is out of date. How the colors are mapped, and how
+close they are to VS Code, is written down in
+[docs/hosts/jetbrains.md](../../docs/hosts/jetbrains.md) and
+[docs/hosts/jetbrains-colors.md](../../docs/hosts/jetbrains-colors.md).
 
 ## Compatibility
 
@@ -31,10 +37,19 @@ No scheme is bundled in this module.
 Requirements: JDK 21. The Gradle wrapper is included.
 
 ```bash
-./gradlew buildPlugin    # build the distributable zip
+./gradlew buildPlugin    # build the distributable zip (build/distributions/)
 ./gradlew test           # unit tests
 ./gradlew runIde         # sandbox IDE with samples/
 ./gradlew verifyPlugin   # binary compatibility check
+```
+
+To install the zip in your own IDE: `Settings | Plugins | ⚙ | Install Plugin from Disk…`.
+
+The color themes are regenerated from the repository root:
+
+```bash
+pnpm jetbrains:generate  # themes/*.xml, themes/*.theme.json, licenses/, docs/hosts/jetbrains-keys.md
+pnpm jetbrains:check     # the committed files match the palettes and the VS Code themes
 ```
 
 To build against a locally installed IDE instead of downloading the platform, create a
@@ -70,8 +85,9 @@ samples/      visual check files: English code, Chinese comments, ligatures, emo
 Plugin code: [MIT](LICENSE). Copyright (c) 2024 Woodfish (original theme) and Copyright (c) 2026
 yyyyolo7a79 (JetBrains port).
 
-This module does not bundle theme files. The gradient and glow implement the color math of the
-original MIT-licensed Woodfish Theme. See [third-party notices](THIRD_PARTY_NOTICES.md).
+The gradient and glow implement the color math of the original MIT-licensed Woodfish Theme.
+Several of the 15 themes are derived from third-party themes; each theme's license ships inside the
+plugin (`licenses/`). See [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Credits
 

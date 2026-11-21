@@ -18,6 +18,8 @@
     "themes:check": "pnpm --filter ./apps/vscode-extension run themes:check",
     "terminal:generate": "pnpm --filter ./apps/terminal run terminal:generate",
     "terminal:check": "pnpm --filter ./apps/terminal run terminal:check",
+    "jetbrains:generate": "pnpm --filter ./apps/jetbrains run jetbrains:generate",
+    "jetbrains:check": "pnpm --filter ./apps/jetbrains run jetbrains:check",
     "nvim:generate": "pnpm --filter ./apps/neovim run nvim:generate",
     "nvim:check": "pnpm --filter ./apps/neovim run nvim:check",
     "nvim:smoke": "pnpm --filter ./apps/neovim run nvim:smoke",

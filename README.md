@@ -237,6 +237,7 @@ code --install-extension woodfish-theme-8.1.5.vsix
 | Trae / Trae CN | 1.107 | 扩展面板（Open VSX） | 结构已核对 |
 | Ghostty、Windows Terminal、bat、Yazi、Starship、lsd、zsh-syntax-highlighting | 不依赖 VS Code | [终端配色与安装说明](./apps/terminal/README.md) | 静态配色 |
 | Neovim 0.12 | 不依赖 VS Code | [woodfish.nvim](https://github.com/woodfishhhh/woodfish.nvim)（[说明](./apps/neovim/README.md)） | 15 套配色，无头加载 + 与 VS Code 逐字符比对 |
+| JetBrains 系列 IDE（IntelliJ IDEA、PyCharm、WebStorm、GoLand、CLion 等，2024.2 起） | 不依赖 VS Code | 暂时从源码构建安装：在 `apps/jetbrains` 里运行 `./gradlew buildPlugin`（需要 JDK 21），再用 IDE 的“从磁盘安装插件”装 `build/distributions` 里的 zip（[说明](./apps/jetbrains/README.zh-CN.md)；上架 JetBrains Marketplace 后在这里补链接） | 15 套配色，加可选的渐变与发光；IntelliJ IDEA 和 PyCharm 里与 VS Code 逐 token 比对（[对照表](./docs/hosts/jetbrains-colors.md)） |
 
 “结构已核对”表示已逐项检查过该编辑器安装包里的 workbench 路径、安全策略（CSP）、校验和与主进程格式，与实测通过的编辑器一致。提示信息会显示你正在用的编辑器名字，比如“请重新加载 Cursor”。Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地界面这一侧。
 
@@ -411,7 +412,7 @@ code --install-extension woodfish-theme-8.1.5.vsix
 
 - **小地图（minimap）没有渐变**：小地图是 canvas 绘制的，CSS 改不了。
 - **网页版和 Remote 服务器端**：效果只能注入到桌面版编辑器的本地界面。
-- **JetBrains 系列（如 CLion）**：仓库内的[渐变与发光核心](https://github.com/woodfishhhh/Woodfish-Theme/tree/v8.1.5/apps/jetbrains)不包含在 VSIX 中，本版不发布到 JetBrains Marketplace。另见 [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch) 的社区项目 [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains)。
+- **JetBrains 系列（如 CLion）**：仓库里的 [JetBrains 插件](./apps/jetbrains/README.zh-CN.md)带 15 套配色和渐变与发光，需要从源码构建安装（见上面的表）；它不包含在 VSIX 中，也还没有发布到 JetBrains Marketplace。另见 [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch) 的社区项目 [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains)。
 - **Visual Studio**：不是基于 VS Code 的，Woodfish 无法支持。
 - **截图类扩展（如 CodeSnap）**：截图里不会带上 Woodfish 的效果。
 
