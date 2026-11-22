@@ -10,9 +10,11 @@
 
 ## [Unreleased]
 
+## [8.2.3] - 2026-11-22
+
 ### 修复
 
-- Codex 已有对话里的空多行输入框聚焦时，输入光标和拖尾覆盖层不再撑出纵向滚动条，长草稿仍可正常滚动。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#41](https://github.com/woodfishhhh/Woodfish-Theme/issues/41) 里细致定位并提供现成的修法。
+- Codex 已有对话里的空多行输入框聚焦时，输入光标和拖尾覆盖层不再撑出纵向滚动条，长草稿仍可滚到底，光标也照常跟随。之前为此在 `effects/user.css` 里加过的规则，更新后可以删掉。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#41](https://github.com/woodfishhhh/Woodfish-Theme/issues/41) 里定位问题并提供修法。
 
 ## [8.2.2] - 2026-11-22
 

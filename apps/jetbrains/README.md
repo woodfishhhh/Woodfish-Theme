@@ -40,8 +40,8 @@ close they are to VS Code, is written down in
 
 **From the zip** (works now, and is the way to install before the Marketplace listing is approved):
 
-1. Download `woodfish-theme-jetbrains-8.2.2.zip` from the
-   [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.2).
+1. Download `woodfish-theme-jetbrains-8.2.3.zip` from the
+   [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.3).
 2. In the IDE open `Settings | Plugins | ⚙ | Install Plugin from Disk…` and pick the zip.
 
 Either way, restart if the IDE asks, then choose a Woodfish theme in `Settings | Appearance & Behavior | Appearance`.
