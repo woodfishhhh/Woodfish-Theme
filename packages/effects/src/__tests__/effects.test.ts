@@ -293,6 +293,21 @@ describe('the shipped effects', () => {
     expect(readUserCss(dir)).toContain('--woodfish-caret-trail-color');
   });
 
+  it('puts the composer glow on the element Codex rounds, not on the square inner body', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const accent = require('../../builtin/accent/effect.js') as (ctx: unknown) => unknown;
+    let css = '';
+    accent({
+      params: { composerGlow: true, glow: 1, sendButton: false, tabBar: false },
+      selectors: { composerSurface: '.round-a, .round-b', composerPrimaryButton: '.send' },
+      style: (value: string) => {
+        css = value;
+      },
+    });
+    expect(css).toContain(':is(.round-a, .round-b):focus-within {');
+    expect(css).not.toContain('data-composer-body');
+  });
+
   it('list every parameter variable in README.md (node scripts/css-variables.js)', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { README, renderReadme } = require('../../scripts/css-variables.js') as {

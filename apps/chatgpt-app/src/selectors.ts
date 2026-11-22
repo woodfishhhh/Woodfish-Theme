@@ -15,6 +15,21 @@ export interface SelectorGroup {
   readonly description: string;
 }
 
+/*
+ * Codex paints and rounds the composer on one element, and which one depends on the page: in
+ * a thread it is the layout root (`[data-composer-surface-variant]`, carrying the radius, the
+ * background and, for long drafts, `overflow: auto`); on the new-chat page the root has no
+ * surface at all and the inner `[data-composer-body]` carries them. Anything Woodfish draws
+ * on the composer's shape (window background, focus glow) goes on that element, so Codex's
+ * own radius variables round it and nothing clips it.
+ */
+const COMPOSER_ROOT = '[data-codex-composer-root]';
+const NEW_CHAT = '[data-composer-utility-bar-variant="home"]';
+const composerSurfaceOf = (variant: string): readonly string[] => [
+  `${COMPOSER_ROOT} ${variant}:not(${NEW_CHAT})`,
+  `${COMPOSER_ROOT} ${variant}${NEW_CHAT} [data-composer-body]`,
+];
+
 const floatingSurfaces = [
   '[popover] > [data-anchor-positioning="native"]',
   '[popover][data-anchor-positioning="native"]',
@@ -68,9 +83,12 @@ export const CODEX_SELECTORS = {
     description: '输入框',
   },
   composerSurface: {
-    selectors: ['[data-codex-composer-root] [data-composer-body]'],
+    selectors: [
+      `${COMPOSER_ROOT} [data-composer-surface-variant]:not(${NEW_CHAT})`,
+      `${COMPOSER_ROOT} ${NEW_CHAT} [data-composer-body]`,
+    ],
     alwaysPresent: false,
-    description: '输入框外框',
+    description: '输入框外框（Codex 画背景和圆角的那一层）',
   },
   composerEditor: {
     selectors: ['[data-codex-composer-root] [contenteditable="true"]'],
@@ -153,11 +171,19 @@ export const CODEX_SELECTORS = {
   },
   composerLayout: {
     selectors: [
-      '[data-codex-composer-root] [data-composer-surface-variant="default"]',
-      '[data-codex-composer-root] [data-composer-surface-variant="opaque"]',
+      `${COMPOSER_ROOT} [data-composer-surface-variant="default"]`,
+      `${COMPOSER_ROOT} [data-composer-surface-variant="opaque"]`,
     ],
     alwaysPresent: false,
-    description: '输入框底板',
+    description: '输入框底板（Codex 的颜色变量所在的层）',
+  },
+  composerFill: {
+    selectors: [
+      ...composerSurfaceOf('[data-composer-surface-variant="default"]'),
+      ...composerSurfaceOf('[data-composer-surface-variant="opaque"]'),
+    ],
+    alwaysPresent: false,
+    description: '输入框底板上的窗口背景',
   },
   floatingLayer: {
     // Positioning wrappers can also carry a dialog role or popover slot.

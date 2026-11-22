@@ -36,6 +36,7 @@ export function buildBackgroundCss(settings: CodexCoreView): string {
   const footerFade = `${selectorOf('timeline')} .from-surface.pointer-events-none`;
   const footer = selectorOf('threadFooter');
   const composer = CODEX_SELECTORS.composerLayout.selectors.join(',\n');
+  const composerFill = CODEX_SELECTORS.composerFill.selectors.join(',\n');
   const composerSurface =
     'var(--color-background-composer-surface, var(--color-surface-elevated-secondary))';
 
@@ -69,13 +70,17 @@ export function buildBackgroundCss(settings: CodexCoreView): string {
     rule(composer, [
       '  --composer-layout-surface-background: transparent !important;',
       '  --composer-layout-surface-backdrop-filter: none !important;',
-      ...buildBackgroundCopyDeclarations(background, {
+    ]),
+    // The copy goes on the element Codex rounds, so it follows Codex's own radius.
+    rule(
+      composerFill,
+      buildBackgroundCopyDeclarations(background, {
         base: surface,
         image: fill,
         soft: true,
         tint: composerSurface,
-      }),
-    ]),
+      })
+    ),
   ].join('\n\n');
   return `@media not (prefers-reduced-transparency: reduce) {\n${css}\n}`;
 }

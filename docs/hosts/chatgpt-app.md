@@ -178,7 +178,7 @@ codex-theme-v1:{"codeThemeId":"codex","theme":{"accent":"#53b559","accentSource"
 - **窗口外框**：标题栏和左侧导航栏完全透明，直接露出 Mica；侧栏是 65% 的表面色叠在 Mica 上（`color-mix(var(--color-surface) 65%, transparent)`）。使用 Woodfish 配色时，`body` 叠一层 78% 的 `bgDeep`，让外框和页面同色，同时保留一点 Mica 的质感。
 - **设置页**：外观页的模式单选框是 `input[type=radio][name="appearance-theme"]`，`name` 不随语言变化，Woodfish 用它识别外观页，并把自己的设置区插在“视觉风格”一节之后。设置页的节、卡片、行都由 Tailwind 工具类组成，没有稳定的 `data-*`，所以设置区在挂载时复制现有元素的类名。原生开关开启时是 `bg-chart-blue`，关闭时是 `bg-text/10`。
 - **其他**：
-  - 输入框：`[data-codex-composer-root]`，内部是 ProseMirror（`[contenteditable=true]`）。带圆角和背景的输入框本体是 `[data-composer-body]`（圆角 22px），外层根节点是直角
+  - 输入框：`[data-codex-composer-root]`，内部是 ProseMirror（`[contenteditable=true]`）。输入框由外层根节点（带 `data-composer-surface-variant`、`data-composer-radius-variant`、`data-composer-utility-bar-variant` 的 `ComposerLayoutRoot`）和内层 `[data-composer-body]` 组成，半径变量 `--composer-border-radius` 定义在根节点上。画背景和圆角的是哪一层看页面：对话里是根节点（圆角、背景、阴影都在它身上，长草稿时还有 `overflow: auto`，内层是直角）；新对话（`data-composer-utility-bar-variant="home"`）里根节点是直角、没有底色，圆角和底色都在内层 `[data-composer-body]`（多行跟 `--composer-border-radius`，单行是 `--radius-full`）。Woodfish 的窗口背景和聚焦光晕都挂在画圆角的那一层（`CODEX_SELECTORS.composerSurface` / `composerFill`），圆角跟着 Codex 走；光晕画在内层会被对话里根节点的 `overflow` 裁掉（#40）
   - 纯文本代码块按行拆成多个不带类名的 `span`
   - 侧栏：`[data-app-action-sidebar-thread-row]`，当前会话带 `[data-app-action-sidebar-thread-active="true"]`
   - 整体框架：`nav[data-app-navigation-rail]`、`[data-app-shell-main-surface]`、`[data-app-shell-titlebar="true"]`、`[data-app-action-timeline-scroll]`

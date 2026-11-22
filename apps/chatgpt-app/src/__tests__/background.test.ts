@@ -85,6 +85,25 @@ describe('buildBackgroundCss', () => {
     expect(css).toContain('var(--woodfish-background-image, none)');
   });
 
+  it("paints the composer on the element Codex rounds, so the copy follows Codex's radius", () => {
+    const css = buildBackgroundCss(view());
+    const ruleOf = (selector: string): string => {
+      const start = css.indexOf(selector);
+      return css.slice(start, css.indexOf('}', start));
+    };
+    const root = '[data-codex-composer-root] [data-composer-surface-variant="default"]';
+    const newChat = '[data-composer-utility-bar-variant="home"]';
+    // Codex's color variables stay on the layout root, which is where Codex reads them.
+    expect(ruleOf(`${root},`)).toContain('--composer-layout-surface-background: transparent');
+    expect(ruleOf(`${root},`)).not.toContain('background-image');
+    // The copy goes where Codex sets the radius: the root in a thread, the inner body on the
+    // new-chat page (its root is square and has no surface). No radius is written here.
+    const fill = ruleOf(`${root}:not(${newChat}),`);
+    expect(fill).toContain(`${root}${newChat} [data-composer-body],`);
+    expect(fill).toContain('background-attachment: fixed !important;');
+    expect(fill).not.toContain('border-radius');
+  });
+
   it('paints the fill gradient instead of a picture', () => {
     const css = buildBackgroundCss(view(CODEX_GRADIENT_BACKGROUND_ID));
     expect(css).toContain('linear-gradient(180deg, #2990bd, #e2ab5b, #e384be)');

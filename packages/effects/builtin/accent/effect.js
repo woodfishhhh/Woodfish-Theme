@@ -14,7 +14,9 @@ module.exports = function accent(ctx) {
 }`,
     ];
     if (p.composerGlow) {
-      parts.push(`${ctx.selectors.composer}:focus-within [data-composer-body] {
+      // On the element Codex rounds, so the glow follows its radius and Codex's clipping
+      // (a long draft scrolls with `overflow: auto`) cannot cut it.
+      parts.push(`:is(${ctx.selectors.composerSurface}):focus-within {
   box-shadow:
     0 0 0 1px color-mix(in oklab, var(--woodfish-accent) 55%, transparent),
     0 0 ${Math.round(22 * p.glow)}px -8px var(--woodfish-accent),

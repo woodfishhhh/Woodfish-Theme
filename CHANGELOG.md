@@ -10,6 +10,11 @@
 
 ## [Unreleased]
 
+### 修复
+
+- Codex 新对话的输入框开着窗口背景时，四角不再露出一层矩形底色：背景现在画在 Codex 自己画圆角的那一层，单行、多行都沿 Codex 的圆角收边。
+- Codex 已有对话里点击输入框也能看到「输入框光晕」了：光晕原来画在直角的内层、被外层的圆角和滚动裁剪切掉，现在画在带圆角的外层，沿圆角完整显示，输入框原有的滚动和裁剪不变。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#40](https://github.com/woodfishhhh/Woodfish-Theme/issues/40) 的定位和修法建议。
+
 ## [8.2.1] - 2026-11-21
 
 ### 修复
