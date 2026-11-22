@@ -60,6 +60,7 @@ describe('Codex streaming reply', () => {
     expect(next.nextElementSibling).toBe(card);
     expect(next.innerHTML).toBe('');
     expect(layer.hasAttribute('inert')).toBe(true);
+    expect(layer.style.minHeight).toBe('0');
   });
 
   it('looks for the streaming reply only in the thread on screen', () => {

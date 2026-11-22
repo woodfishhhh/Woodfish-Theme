@@ -16,7 +16,7 @@ export function placeCaretLayer(layer: HTMLElement, caret: CaretEvent): { x: num
     layer.setAttribute('aria-hidden', 'true');
     layer.setAttribute('inert', '');
     layer.style.cssText =
-      'position:absolute;inset:auto;width:0;height:0;pointer-events:none;user-select:none;';
+      'position:absolute;inset:auto;width:0;height:0;min-height:0;pointer-events:none;user-select:none;';
   }
   const { left, top } = layer.getBoundingClientRect();
   const r = caret.clip;
