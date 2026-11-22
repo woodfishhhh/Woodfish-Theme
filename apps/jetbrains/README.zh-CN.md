@@ -35,7 +35,7 @@
 
 **从 zip 安装**（现在就能用，审核通过之前用这个）：
 
-1. 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.1) 下载 `woodfish-theme-jetbrains-8.2.1.zip`。
+1. 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.2) 下载 `woodfish-theme-jetbrains-8.2.2.zip`。
 2. 在 IDE 里打开 设置 → 插件 → 齿轮 → 从磁盘安装插件，选这个 zip。
 
 两种方式装好后，如果 IDE 提示重启就重启，然后在 设置 → 外观与行为 → 外观 里选一套 Woodfish 主题。
