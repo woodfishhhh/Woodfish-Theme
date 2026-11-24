@@ -10,6 +10,10 @@
 
 ## [Unreleased]
 
+### 修复
+
+- Codex「你的 Dot」的单行输入框里，Woodfish 输入光标不再被裁掉：Codex 给单行输入框的每个直接子元素都加了 `overflow: hidden`，把宽度为 0 的光标层连同里面的光标一起裁没了，而原生光标已设为透明，插入点处就什么都看不见。光标层现在自带 `overflow: visible`，仍由 `clip-path` 限制在输入框露出文字的范围内；吐字光标和拖尾用同一层，一并受益。之前为此在 `effects/user.css` 里加过规则的，更新以后可以删掉。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#42](https://github.com/woodfishhhh/Woodfish-Theme/issues/42) 里定位问题并提供修法。
+
 ## [8.2.3] - 2026-11-22
 
 ### 修复
