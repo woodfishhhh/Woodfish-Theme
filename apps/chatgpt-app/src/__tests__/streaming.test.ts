@@ -61,6 +61,8 @@ describe('Codex streaming reply', () => {
     expect(next.innerHTML).toBe('');
     expect(layer.hasAttribute('inert')).toBe(true);
     expect(layer.style.minHeight).toBe('0');
+    // The single-line composer styles its children with `*:overflow-hidden`; inline wins.
+    expect(layer.style.overflow).toBe('visible');
   });
 
   it('looks for the streaming reply only in the thread on screen', () => {

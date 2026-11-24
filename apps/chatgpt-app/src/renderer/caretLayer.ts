@@ -2,7 +2,11 @@ import type { CaretEvent } from '@woodfish/renderer-runtime';
 
 const owners = new WeakMap<HTMLElement, Element>();
 
-/** A zero-size sibling: no layout space, editable content, or change to host positioning. */
+/**
+ * A zero-size sibling: no layout space, editable content, or change to host positioning.
+ * `overflow:visible` is inline on purpose: the single-line composer (the Dot) gives every direct
+ * child `overflow: hidden` through a utility class, which would clip the bar inside this 0-wide layer.
+ */
 export function placeCaretLayer(layer: HTMLElement, caret: CaretEvent): { x: number; y: number } {
   const owner = caret.owner;
   if (owner && (owners.get(layer) !== owner || layer.parentNode !== owner.parentNode)) {
@@ -16,7 +20,7 @@ export function placeCaretLayer(layer: HTMLElement, caret: CaretEvent): { x: num
     layer.setAttribute('aria-hidden', 'true');
     layer.setAttribute('inert', '');
     layer.style.cssText =
-      'position:absolute;inset:auto;width:0;height:0;min-height:0;pointer-events:none;user-select:none;';
+      'position:absolute;inset:auto;width:0;height:0;min-height:0;overflow:visible;pointer-events:none;user-select:none;';
   }
   const { left, top } = layer.getBoundingClientRect();
   const r = caret.clip;
