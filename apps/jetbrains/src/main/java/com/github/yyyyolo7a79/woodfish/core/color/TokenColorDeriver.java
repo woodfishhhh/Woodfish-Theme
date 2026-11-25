@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 public final class TokenColorDeriver {
 
     /** 色度低于此值视为中性色（白、灰），与原版相同 */
-    public static final double NEUTRAL_CHROMA_THRESHOLD = 0.045;
+    public static final double NEUTRAL_CHROMA_THRESHOLD = com.github.yyyyolo7a79.woodfish.settings.SharedDefaults.number("neutralThreshold");
 
     // 缓存：4 路组相联，共 4096 条。不用 ConcurrentHashMap<Long, …>：Long 键装箱会让每次命中都分配对象。
     // 条目不可变，经 AtomicReferenceArray 的 release / acquire 发布，读到的条目总是完整的；
@@ -76,32 +76,9 @@ public final class TokenColorDeriver {
     }
 
     private TokenColors compute(int argb, boolean punctuation) {
-        int red = (argb >> 16) & 0xFF;
-        int green = (argb >> 8) & 0xFF;
-        int blue = argb & 0xFF;
-        double alpha = (argb >>> 24) / 255.0;
-        Oklch base = ColorMath.rgbToOklch(red, green, blue);
-        boolean neutral = base.c() < NEUTRAL_CHROMA_THRESHOLD;
-        double hue = neutral ? anchorHue : base.h();
-        double chroma = neutral ? Math.max(base.c(), neutralChroma) : base.c();
-        double[] light = ColorMath.gamutMap(new Oklch(
-                ColorMath.offsetLightness(base.l(), lightnessDelta), chroma, hue - hueShift));
-        double[] dark = ColorMath.gamutMap(new Oklch(
-                ColorMath.offsetLightness(base.l(), -lightnessDelta), chroma, hue + hueShift));
-        // 发光 alpha 系数（乘在原 alpha 上）：标点最淡，中性色次之
-        double nearOpacity = punctuation ? 0.28 : neutral ? 0.58 : 0.72;
-        double midOpacity = punctuation ? 0.12 : neutral ? 0.28 : 0.42;
-        double farOpacity = neutral ? 0.12 : 0.2;
-        double[] rgb = {red, green, blue};
-        return new TokenColors(
-                ColorMath.toColor(light, alpha),
-                new Color(argb, true),
-                ColorMath.toColor(dark, alpha),
-                ColorMath.toColor(rgb, alpha * nearOpacity),
-                ColorMath.toColor(rgb, alpha * midOpacity),
-                ColorMath.toColor(rgb, alpha * farOpacity),
-                neutral,
-                punctuation);
+        double[] c = SharedCore.numbers("symmetric", argb, punctuation, hueShift, lightnessDelta, neutralChroma, anchorHue);
+        return new TokenColors(new Color((int) c[0], true), new Color(argb, true), new Color((int) c[1], true),
+                new Color((int) c[2], true), new Color((int) c[3], true), new Color((int) c[4], true), c[5] != 0, punctuation);
     }
 
     /** murmur3 的 fmix32：让相近的颜色（同一主题的色板往往只差几个通道值）散到不同的组 */

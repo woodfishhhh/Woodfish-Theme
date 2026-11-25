@@ -86,14 +86,4 @@ samples/      视觉检查用样例：英文代码、中文注释、连字、emo
 
 ## 许可
 
-插件代码：[MIT](LICENSE)。版权行：Copyright (c) 2024 Woodfish（原版主题）与
-Copyright (c) 2026 yyyyolo7a79（JetBrains 移植）。
-
-渐变与发光实现的是原版 MIT 许可的 Woodfish Theme 的颜色算法。15 套配色里有几套源自第三方主题，
-每套主题的许可随插件分发（`licenses/`）。第三方许可见[模块清单](THIRD_PARTY_NOTICES.md)。
-
-## 致谢
-
-- 原项目：[Woodfish Theme](https://github.com/woodfishhhh/Woodfish-Theme)（VS Code 版），
-  作者 woodfishhhh —— 颜色算法、图层设计与命名均来自原项目。
-- JetBrains 移植：yyyyolo7a79 —— Java 2D 渲染管线、设置页与测试。
+插件代码采用 [MIT 许可](LICENSE)。每套主题的许可随插件放在 `licenses/` 中，详见[第三方许可](THIRD_PARTY_NOTICES.md)。

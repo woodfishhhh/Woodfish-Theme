@@ -331,21 +331,28 @@ export function deriveTokenGradient(
   const base = rgbToOklch(parsed);
   const neutral = base.c < NEUTRAL_CHROMA_THRESHOLD;
   const tuned = options.preset ? findPresetGradient(options.preset, parsed) : null;
-  const nearOpacity = options.punctuation ? 0.28 : neutral ? 0.58 : 0.72;
-  const midOpacity = options.punctuation ? 0.12 : neutral ? 0.28 : 0.42;
-  const farOpacity = neutral ? 0.12 : 0.2;
+  const { near, mid, far } = glowOpacities(neutral, options.punctuation);
   const glow = glowSource(parsed, base, neutral, options);
 
   return {
     stops: tuned ? [...tuned.stops] : deriveStops(parsed, base, neutral, options),
     angle: tuned ? tuned.angle : null,
     base: formatRgba(parsed, parsed.alpha),
-    glowNear: formatRgba(glow, parsed.alpha * nearOpacity),
-    glowMid: formatRgba(glow, parsed.alpha * midOpacity),
-    glowFar: formatRgba(glow, parsed.alpha * farOpacity),
+    glowNear: formatRgba(glow, parsed.alpha * near),
+    glowMid: formatRgba(glow, parsed.alpha * mid),
+    glowFar: formatRgba(glow, parsed.alpha * far),
     punctuationNear: formatRgba(glow, parsed.alpha * 0.28),
     punctuationFar: formatRgba(glow, parsed.alpha * 0.12),
     neutral,
     preset: tuned !== null,
+  };
+}
+
+/** Alpha of each token-shadow layer, before applying the source color's alpha. */
+export function glowOpacities(neutral: boolean, punctuation: boolean) {
+  return {
+    near: punctuation ? 0.28 : neutral ? 0.58 : 0.72,
+    mid: punctuation ? 0.12 : neutral ? 0.28 : 0.42,
+    far: neutral ? 0.12 : 0.2,
   };
 }

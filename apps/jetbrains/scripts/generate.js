@@ -9,6 +9,7 @@ const { createResolver, STYLE_BITS } = require('./themeMatch');
 const scopeMap = require('./scopeMap');
 const { VSCODE_DEFAULTS, EDITOR_COLORS, EDITOR_ATTRIBUTES, extraSettings } = require('./editorMap');
 const { keyTable } = require('./keyTable');
+const { runtimeAssets } = require('./runtimeAssets');
 
 const vscode = path.resolve(__dirname, '../../vscode-extension');
 const resources = path.resolve(__dirname, '../src/main/resources');
@@ -188,7 +189,7 @@ function render(palette, theme = sourceTheme(palette)) {
 }
 
 function outputs() {
-  return Object.assign({}, ...WOODFISH_PALETTES.map((palette) => render(palette)));
+  return Object.assign(runtimeAssets(), ...WOODFISH_PALETTES.map((palette) => render(palette)));
 }
 
 function themeIds() {
@@ -210,7 +211,7 @@ function missingRegistrations(root = resources) {
 
 function listGenerated(dir) {
   const found = [];
-  for (const sub of ['themes', 'licenses']) {
+  for (const sub of ['themes', 'licenses', 'woodfish']) {
     const root = path.join(dir, sub);
     if (!fs.existsSync(root)) continue;
     for (const name of fs.readdirSync(root)) found.push(`${sub}/${name}`);

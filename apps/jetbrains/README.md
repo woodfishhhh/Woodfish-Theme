@@ -96,15 +96,4 @@ samples/      visual check files: English code, Chinese comments, ligatures, emo
 
 ## License
 
-Plugin code: [MIT](LICENSE). Copyright (c) 2024 Woodfish (original theme) and Copyright (c) 2026
-yyyyolo7a79 (JetBrains port).
-
-The gradient and glow implement the color math of the original MIT-licensed Woodfish Theme.
-Several of the 15 themes are derived from third-party themes; each theme's license ships inside the
-plugin (`licenses/`). See [third-party notices](THIRD_PARTY_NOTICES.md).
-
-## Credits
-
-- Original project: [Woodfish Theme](https://github.com/woodfishhhh/Woodfish-Theme) for VS Code by
-  woodfishhhh — the color math, layer design and naming are theirs.
-- JetBrains port: yyyyolo7a79 — the Java 2D rendering pipeline, settings UI and tests.
+Plugin code uses the [MIT license](LICENSE). The plugin includes a license for each bundled theme under `licenses/`. See [third-party notices](THIRD_PARTY_NOTICES.md).

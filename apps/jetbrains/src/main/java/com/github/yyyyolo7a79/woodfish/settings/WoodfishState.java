@@ -18,11 +18,16 @@ public final class WoodfishState {
     public static final int CURRENT_MIGRATION_VERSION = 2;
 
     // ===== 范围常量：与 VS Code 版 normalizeRuntimeSettings 的上下限一致 =====
-    public static final double HUE_SHIFT_MIN = 0, HUE_SHIFT_MAX = 180;
-    public static final double LIGHTNESS_DELTA_MIN = 0, LIGHTNESS_DELTA_MAX = 0.5;
-    public static final double NEUTRAL_CHROMA_MIN = 0, NEUTRAL_CHROMA_MAX = 0.4;
-    public static final double ANGLE_MIN = 0, ANGLE_MAX = 360;
-    public static final double GLOW_INTENSITY_MIN = 0.1, GLOW_INTENSITY_MAX = 3;
+    public static final double HUE_SHIFT_MIN = SharedDefaults.number("overlay.hueShift.min"),
+            HUE_SHIFT_MAX = SharedDefaults.number("overlay.hueShift.max");
+    public static final double LIGHTNESS_DELTA_MIN = SharedDefaults.number("overlay.lightnessDelta.min"),
+            LIGHTNESS_DELTA_MAX = SharedDefaults.number("overlay.lightnessDelta.max");
+    public static final double NEUTRAL_CHROMA_MIN = SharedDefaults.number("overlay.neutralChroma.min"),
+            NEUTRAL_CHROMA_MAX = SharedDefaults.number("overlay.neutralChroma.max");
+    public static final double ANGLE_MIN = SharedDefaults.number("overlay.angle.min"),
+            ANGLE_MAX = SharedDefaults.number("overlay.angle.max");
+    public static final double GLOW_INTENSITY_MIN = SharedDefaults.number("glow.intensity.min"),
+            GLOW_INTENSITY_MAX = SharedDefaults.number("glow.intensity.max");
 
     // ===== 默认值 =====
     public static final double DEFAULT_HUE_SHIFT = 24;
