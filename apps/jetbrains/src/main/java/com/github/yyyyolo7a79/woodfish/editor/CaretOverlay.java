@@ -54,7 +54,10 @@ final class CaretOverlay extends AbstractPainter {
             @Override public void caretPositionChanged(@NotNull CaretEvent event) { emit("caret", event.getCaret()); }
             @Override public void caretRemoved(@NotNull CaretEvent event) {
                 Integer id = caretIds.remove(event.getCaret());
-                if (id != null && motion != null) motion.event("remove", id, 0, 0, 0, 0, now());
+                if (id != null && motion != null) {
+                    motion.event("remove", id, 0, 0, 0, 0, now());
+                    repaint(previous.union(motion.bounds()));
+                }
             }
         }, lifetime);
         IdeGlassPaneUtil.installPainter(content, this, lifetime);

@@ -212,4 +212,25 @@ class WoodfishPresetsTest {
         field.setText("#0000ff"); form.saveWhenValid(() -> WoodfishPresets.saveCurrent(state, "test"), e -> errors.add(e.getMessage()));
         assertEquals("#0000ff", state.customPresets.getFirst().options.get("typingParticles.color"));
     }
+
+    @Test void unversionedPresetMatchesOnlyTheOptionsItCanRestore() {
+        for (boolean main : new boolean[]{false, true}) {
+            var state = new WoodfishState();
+            var xml = new org.jdom.Element("CustomPreset");
+            xml.addContent(new org.jdom.Element("option").setAttribute("name", "name").setAttribute("value", "Legacy"));
+            var preset = com.intellij.util.xmlb.XmlSerializer.deserialize(xml, CustomPreset.class);
+            if (main) {
+                preset.hueShift = 55; // Keep this custom snapshot distinct from the built-ins.
+                preset.options.put("caretTrail.enabled", "true");
+            }
+            state.customPresets.add(preset);
+            state.normalize();
+            state.options.put("background.enabled", "true");
+            preset.applyTo(state);
+            assertEquals("Legacy", WoodfishPresets.matching(state).name());
+            state.options.put("typingParticles.enabled", "true");
+            if (main) assertNull(WoodfishPresets.matching(state));
+            else assertEquals("Legacy", WoodfishPresets.matching(state).name());
+        }
+    }
 }

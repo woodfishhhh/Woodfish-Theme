@@ -66,19 +66,23 @@ final class EditorBackdrop implements CustomHighlighterRenderer {
             };
             if (!scheduled) {
                 scheduled = true;
-                executor.execute(this::drain);
+                executor.execute(() -> runLatest(executor));
             }
         }
 
-        private void drain() {
-            while (true) {
-                Runnable next;
+        private void runLatest(java.util.concurrent.Executor executor) {
+            Runnable next;
+            synchronized (this) {
+                next = pending;
+                pending = null;
+            }
+            try {
+                if (next != null) next.run();
+            } finally {
                 synchronized (this) {
-                    next = pending;
-                    pending = null;
-                    if (next == null) { scheduled = false; return; }
+                    if (pending == null) scheduled = false;
+                    else executor.execute(() -> runLatest(executor));
                 }
-                next.run();
             }
         }
 

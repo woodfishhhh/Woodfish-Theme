@@ -65,7 +65,6 @@ final class FrameScanner {
     private final TokenRunCollector collector = new TokenRunCollector();
     private final RunMerger.Runs runs = new RunMerger.Runs();
     private final FontFallbackIterator fallback = new FontFallbackIterator();
-    private final CharSlice slice = new CharSlice();
     private final FontInfo[] primaryFonts = new FontInfo[4];
 
     // ===== 每帧临时状态 =====
@@ -89,6 +88,7 @@ final class FrameScanner {
     private int lineTop;
     private int windowStart;
     private int windowEnd;
+    private boolean longLine;
 
     FrameScanner(@NotNull EditorEx editor) {
         this.editor = editor;
@@ -255,7 +255,8 @@ final class FrameScanner {
         lineTop = top;
         windowStart = lineStart;
         windowEnd = lineEnd;
-        if (lineEnd - lineStart > LONG_LINE) {
+        longLine = lineEnd - lineStart > LONG_LINE;
+        if (longLine) {
             windowStart = Math.max(lineStart, offsetAtX(clip.x - padUser, top) - 1);
             windowEnd = Math.min(lineEnd, offsetAtX(clip.x + clip.width + padUser, top) + 2);
         }
@@ -263,9 +264,8 @@ final class FrameScanner {
         // 平台为软换行续行新建 IterationState 时从前一个码点开始查询高亮器，这里保持一致
         boolean softWrapped = lineStart > 0 && editor.getSoftWrapModel().getSoftWrap(lineStart) != null;
         int queryStart = softWrapped ? DocumentUtil.getPreviousCodePointOffset(editor.getDocument(), lineStart) : lineStart;
-        if (windowStart > lineStart) queryStart = windowStart;
-        while (foldCursor < foldCount && foldEnd[foldCursor] <= windowStart) foldCursor++;
-        visibleSpans(windowStart, windowEnd, queryStart, foldStart, foldEnd, foldCursor, foldCount, this::scanVisible);
+        while (foldCursor < foldCount && foldEnd[foldCursor] <= lineStart) foldCursor++;
+        visibleSpans(lineStart, lineEnd, queryStart, foldStart, foldEnd, foldCursor, foldCount, this::scanVisible);
     }
 
     interface Span { void accept(int start, int end, int queryStart); }
@@ -279,13 +279,13 @@ final class FrameScanner {
         if (start < end) visit.accept(start, end, queryStart);
     }
 
-    private void scanVisible(int start, int requestedEnd, int queryStart) {
-        if (frame.charCount == PaintFrame.MAX_CHARS) return;
-        int end = frame.appendVisible(editor.getDocument().getImmutableCharSequence(), start, requestedEnd);
+    private void scanVisible(int spanStart, int spanEnd, int queryStart) {
+        int start = Math.max(windowStart, spanStart), stop = Math.min(windowEnd, spanEnd);
+        if (start >= stop || frame.charCount == PaintFrame.MAX_CHARS) return;
+        int end = frame.appendVisible(editor.getDocument().getImmutableCharSequence(), start, stop);
         if (Bidi.requiresBidi(frame.chars, start - frame.textBase, end - frame.textBase)) return;
-        collectInlays(start, end);
-        collector.prepare(editor, queryStart, start, end);
-        collector.collect(queryStart, end, start, end, runs);
+        collector.collect(editor, queryStart, spanStart, spanEnd, start, end, longLine, runs);
+        collectInlays(runs.start[0], runs.end[runs.count - 1]);
         for (int r = 0; r < runs.count && frame.pieceCount < MAX_PIECES; r++) {
             splitAtInlays(runs.start[r], runs.end[r], runs.foreground[r], runs.font[r]);
         }
@@ -317,28 +317,23 @@ final class FrameScanner {
     private void addToken(int start, int end, java.awt.Color color, int fontType) {
         int base = frame.textBase;
         char[] chars = frame.chars;
-        int a = start;
-        int b = end;
-        while (a < b && !isDrawable(chars[a - base])) {
-            a++;
-        }
-        while (b > a && !isDrawable(chars[b - 1 - base])) {
-            b--;
-        }
-        if (a >= b || b <= windowStart || a >= windowEnd) {
-            return;
-        }
+        int from = Math.max(start, windowStart);
+        int to = Math.min(end, base + frame.charCount);
+        while (from < to && !isDrawable(chars[from - base])) from++;
+        while (to > from && !isDrawable(chars[to - 1 - base])) to--;
+        if (from >= to) return;
+        CharSequence document = editor.getDocument().getImmutableCharSequence();
+        while (start < from && !isDrawable(document.charAt(start))) start++;
+        while (end > to && !isDrawable(document.charAt(end - 1))) end--;
 
         FontInfo primary = primaryFont(fontType);
         FontMetrics metrics = primary.fontMetrics();
         float em = primary.getSize2D();
         float baseline = lineTop + frame.ascent;
-        boolean punctuation = TextClassifier.isPunctuationOnly(slice.set(chars, a - base, b - base));
+        boolean punctuation = TextClassifier.isPunctuationOnly(document, start, end);
         int token = frame.addToken(color, punctuation,
                 baseline - metrics.getAscent() - 0.08f * em, baseline + metrics.getDescent() + 0.08f * em, em);
 
-        int from = Math.max(a, windowStart);
-        int to = Math.min(b, windowEnd);
         int i = from;
         while (i < to && frame.pieceCount < MAX_PIECES) {
             while (i < to && !isDrawable(chars[i - base])) {
@@ -360,8 +355,8 @@ final class FrameScanner {
         }
         int lastPiece = frame.pieceCount - 1;
         // 被水平窗口截断的 token 用编辑器换算真实边界，渐变几何才不会随横向滚动漂移
-        float x0 = a < from ? xOf(a, true) : frame.pieceX[firstPiece];
-        float x1 = b > to ? xOf(b, false) : frame.pieceX[lastPiece] + frame.pieceWidth[lastPiece];
+        float x0 = start < from ? xOf(start, true) : frame.pieceX[firstPiece];
+        float x1 = end > to ? xOf(end, false) : frame.pieceX[lastPiece] + frame.pieceWidth[lastPiece];
         frame.endToken(token, x0, x1);
     }
 
@@ -479,37 +474,4 @@ final class FrameScanner {
         return Character.getType(c) != Character.FORMAT;
     }
 
-    /** 帧缓冲上的轻量 CharSequence 视图，给 TextClassifier 用，不分配对象 */
-    private static final class CharSlice implements CharSequence {
-        private char[] chars;
-        private int offset;
-        private int length;
-
-        CharSlice set(char[] chars, int from, int to) {
-            this.chars = chars;
-            this.offset = from;
-            this.length = to - from;
-            return this;
-        }
-
-        @Override
-        public int length() {
-            return length;
-        }
-
-        @Override
-        public char charAt(int index) {
-            return chars[offset + index];
-        }
-
-        @Override
-        public @NotNull CharSequence subSequence(int start, int end) {
-            return new String(chars, offset + start, end - start);
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return new String(chars, offset, length);
-        }
-    }
 }

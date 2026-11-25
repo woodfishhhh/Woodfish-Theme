@@ -43,6 +43,7 @@ final class InputMotion {
 
     void event(String kind, int id, double x, double y, double height, double width, double now) {
         moving = (Boolean) SharedCore.call("motionEvent", session, kind, id, x, y, height, width, now);
+        if (kind.equals("remove")) tick(now, 0);
     }
 
     boolean active() { return moving; }

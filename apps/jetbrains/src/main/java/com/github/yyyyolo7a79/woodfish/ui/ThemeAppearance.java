@@ -57,7 +57,6 @@ public final class ThemeAppearance {
             }
             if (radius > 0 && target.equals("notifications")) set("Notification.arc", diameter);
             if (radius > 0 && target.equals("hover")) set("GotItTooltip.arc", diameter);
-            if (radius > 0 && target.equals("breadcrumbPicker")) set("Popup.Selection.arc", diameter);
             for (String key : TINT_KEYS.getOrDefault(target, new String[0])) tint(key, alpha);
         }
         return changed || !changes.isEmpty();

@@ -62,4 +62,39 @@ class EditorBackdropTest {
         });
         javax.swing.SwingUtilities.invokeAndWait(() -> {}); assertEquals(java.util.List.of(2), applied);
     }
+
+    @Test void failedDecoderReleasesWorkerAndSchedulesLatestPng(@TempDir Path temp) throws Exception {
+        var path = temp.resolve("red.png");
+        writeColor(path, Color.RED);
+        var picture = new EditorBackdrop.Picture(path.toString(), 0);
+        var requests = new EditorBackdrop.Requests();
+        var queue = new java.util.ArrayDeque<Runnable>();
+        var applied = new java.util.ArrayList<Integer>();
+        Runnable submit = () -> requests.submit(queue::add, picture, image -> applied.add(image.getRGB(0, 0)));
+        var registry = javax.imageio.spi.IIORegistry.getDefaultInstance();
+        for (boolean waiting : new boolean[]{false, true}) {
+            EditorBackdrop.clearCache();
+            var broken = new javax.imageio.spi.ImageReaderSpi() {
+                @Override public boolean canDecodeInput(Object input) {
+                    if (waiting) submit.run();
+                    throw new IllegalStateException("failed decoder");
+                }
+                @Override public javax.imageio.ImageReader createReaderInstance(Object extension) { throw new AssertionError(); }
+                @Override public String getDescription(java.util.Locale locale) { return "test decoder"; }
+            };
+            var providers = registry.getServiceProviders(javax.imageio.spi.ImageReaderSpi.class, true);
+            registry.registerServiceProvider(broken);
+            try {
+                providers.forEachRemaining(spi -> registry.setOrdering(javax.imageio.spi.ImageReaderSpi.class, broken, spi));
+                submit.run();
+                assertThrows(IllegalStateException.class, () -> queue.remove().run());
+            } finally { registry.deregisterServiceProvider(broken); }
+            if (!waiting) submit.run();
+            assertEquals(1, queue.size());
+            queue.remove().run();
+            javax.swing.SwingUtilities.invokeAndWait(() -> {});
+            assertEquals(java.util.List.of(0xffff0000), applied);
+            applied.clear();
+        }
+    }
 }

@@ -109,4 +109,19 @@ class InputMotionTest {
         } finally { g.dispose(); }
         assertEquals(Color.MAGENTA.getRGB(), image.getRGB(1, 1));
     }
+
+    @Test void removingOnlyMovingSecondaryCaretErasesRecordedPixelsImmediately() {
+        var config = new WoodfishState();
+        config.options.put("caretTrail.enabled", "true");
+        var motion = new InputMotion(EffectSettings.from(config, 1), Color.CYAN, true);
+        motion.event("caret", 1, 8, 10, 18, 2, 1000);
+        motion.event("caret", 2, 20, 40, 18, 2, 1000);
+        motion.tick(1000, 16);
+        motion.event("caret", 2, 70, 40, 18, 2, 1016);
+        motion.tick(1016, 16);
+        assertTrue(painted(motion));
+        motion.event("remove", 2, 0, 0, 0, 0, 1020);
+        assertFalse(motion.active());
+        assertFalse(painted(motion));
+    }
 }

@@ -81,4 +81,13 @@ class ThemeAppearanceTest {
         assertTrue(overrides.apply(thirdParty, null, "third.party"));
         assertEquals(10, table.get("GotItTooltip.arc")); assertEquals(16, thirdParty.get("Button.arc"));
     }
+
+    @Test void breadcrumbGlassLeavesCompletionAndShowUsagesSelectionArcUntouched() {
+        var defaults = new UIDefaults();
+        defaults.put("Popup.Selection.arc", 8);
+        defaults.put("Popup.background", Color.WHITE);
+        new ThemeAppearance().apply(defaults, false, true, .5, "breadcrumbPicker", 12);
+        assertEquals(128, ((Color) defaults.get("Popup.background")).getAlpha());
+        assertEquals(8, defaults.getInt("Popup.Selection.arc"));
+    }
 }

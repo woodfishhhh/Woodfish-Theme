@@ -42,12 +42,10 @@ final class TokenRunCollector {
         return true;
     };
 
-    /**
-     * 为一帧准备数据：收集与 [gatherStart, rangeEnd] 相交的高亮器，以及覆盖 [rangeStart, rangeEnd) 的 lexer token。
-     *
-     * @param gatherStart 通常比 rangeStart 早一个码点：平台给软换行续行建 IterationState 时就是从前一个码点开始查询的
-     */
-    void prepare(@NotNull EditorEx editor, int gatherStart, int rangeStart, int rangeEnd) {
+    /** Markup uses the visual span; only lexer tokens touching the copied window are visited. */
+    void collect(EditorEx editor, int queryStart, int spanStart, int spanEnd, int visibleStart, int visibleEnd,
+                 boolean separateLexemes, RunMerger.Runs out) {
+        out.clear();
         merger.reset();
         document = editor.getDocument();
         scheme = editor.getColorsScheme();
@@ -56,26 +54,26 @@ final class TokenRunCollector {
         TextAttributes text = scheme.getAttributes(HighlighterColors.TEXT);
         defaultFont = text == null ? Font.PLAIN : text.getFontType();
 
-        editor.getFilteredDocumentMarkupModel().processRangeHighlightersOverlappingWith(gatherStart, rangeEnd, gatherer);
-        editor.getMarkupModel().processRangeHighlightersOverlappingWith(gatherStart, rangeEnd, gatherer);
+        editor.getFilteredDocumentMarkupModel().processRangeHighlightersOverlappingWith(queryStart, spanEnd, gatherer);
+        editor.getMarkupModel().processRangeHighlightersOverlappingWith(queryStart, spanEnd, gatherer);
         merger.finishGathering();
 
-        HighlighterIterator it = editor.getHighlighter().createIterator(rangeStart);
-        while (!it.atEnd() && it.getStart() < rangeEnd) {
-            int s = align(Math.max(it.getStart(), rangeStart));
-            int e = align(Math.min(it.getEnd(), rangeEnd));
+        int start = visibleStart, end = visibleEnd;
+        HighlighterIterator it = editor.getHighlighter().createIterator(visibleStart);
+        if (it.atEnd()) { start = spanStart; end = spanEnd; }
+        while (!it.atEnd() && it.getStart() < visibleEnd) {
+            int s = align(Math.max(it.getStart(), spanStart));
+            int e = align(Math.min(it.getEnd(), spanEnd));
+            start = Math.min(start, s);
+            end = Math.max(end, e);
             TextAttributes attributes = it.getTextAttributes();
             merger.addLexeme(s, e,
                     attributes == null ? null : attributes.getForegroundColor(),
                     attributes == null ? Font.PLAIN : attributes.getFontType());
             it.advance();
         }
-    }
-
-    /** 生成 [applyStart, applyEnd) 的颜色段；作用域必须按偏移递增调用 */
-    void collect(int queryStart, int queryEnd, int applyStart, int applyEnd, RunMerger.Runs out) {
-        out.clear();
-        merger.merge(queryStart, queryEnd, applyStart, applyEnd, defaultForeground, defaultFont, out);
+        // On long lines adjacent same-color lexer tokens must have the same boundaries on every repaint.
+        merger.merge(queryStart, spanEnd, start, end, defaultForeground, defaultFont, separateLexemes, out);
     }
 
     /** 释放对编辑器对象的引用（帧结束后调用） */

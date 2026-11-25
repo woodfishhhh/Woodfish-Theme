@@ -10,7 +10,10 @@ public final class TextClassifier {
     private TextClassifier() {}
 
     public static boolean isPunctuationOnly(CharSequence text) {
-        int start = 0, end = text.length();
+        return isPunctuationOnly(text, 0, text.length());
+    }
+
+    public static boolean isPunctuationOnly(CharSequence text, int start, int end) {
         while (start < end && TRIM.get(text.charAt(start))) start++;
         while (end > start && TRIM.get(text.charAt(end - 1))) end--;
         if (start == end) return false;

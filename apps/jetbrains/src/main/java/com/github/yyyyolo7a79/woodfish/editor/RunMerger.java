@@ -58,6 +58,7 @@ final class RunMerger {
     private int lexCursor;
 
     // ===== 扫描临时数组 =====
+    private long[] sorted = new long[64];
     private int[] candidates = new int[64];
     private int[] active = new int[16];
 
@@ -130,33 +131,8 @@ final class RunMerger {
 
     /** 收集完毕：高亮器按影响区起点排序（平台 HighlighterSweep 同样按影响区排序后扫描） */
     void finishGathering() {
-        if (count < 2) {
-            return;
-        }
-        long[] keys = new long[count];
-        for (int i = 0; i < count; i++) {
-            keys[i] = (long) start[i] << 32 | i;
-        }
-        Arrays.sort(keys);
-        int[] order = new int[count];
-        for (int i = 0; i < count; i++) {
-            order[i] = (int) keys[i];
-        }
-        queryStart = permute(queryStart, order);
-        queryEnd = permute(queryEnd, order);
-        start = permute(start, order);
-        end = permute(end, order);
-        length = permute(length, order);
-        layer = permute(layer, order);
-        font = permute(font, order);
-        byte[] f = new byte[flags.length];
-        Color[] fg = new Color[foreground.length];
-        for (int i = 0; i < count; i++) {
-            f[i] = flags[order[i]];
-            fg[i] = foreground[order[i]];
-        }
-        flags = f;
-        foreground = fg;
+        for (int i = 0; i < count; i++) sorted[i] = (long) start[i] << 32 | i;
+        Arrays.sort(sorted, 0, count);
     }
 
     /**
@@ -167,11 +143,9 @@ final class RunMerger {
      * 新建 IterationState 时的取舍一致。
      */
     void merge(int scopeQueryStart, int scopeQueryEnd, int applyStart, int applyEnd,
-               Color defaultForeground, int defaultFont, Runs out) {
+               Color defaultForeground, int defaultFont, boolean separateLexemes, Runs out) {
         int candidateCount = selectCandidates(scopeQueryStart, scopeQueryEnd, applyStart, applyEnd);
-        while (lexCursor < lexCount && lexEnd[lexCursor] <= applyStart) {
-            lexCursor++;
-        }
+        while (lexCursor < lexCount && lexEnd[lexCursor] <= applyStart) lexCursor++;
         int lexeme = lexCursor;
         int activeCount = 0;
         int nextCandidate = 0;
@@ -211,7 +185,8 @@ final class RunMerger {
 
             int syntax = lexeme < lexCount && lexStart[lexeme] <= pos ? lexeme : -1;
             resolve(activeCount, syntax, defaultForeground, defaultFont);
-            out.append(pos, next, resolvedForeground, resolvedFont);
+            out.append(pos, next, resolvedForeground, resolvedFont,
+                    separateLexemes && syntax >= 0 && pos == lexStart[syntax]);
             pos = next;
         }
         lexCursor = lexeme;
@@ -219,7 +194,9 @@ final class RunMerger {
 
     private int selectCandidates(int scopeQueryStart, int scopeQueryEnd, int applyStart, int applyEnd) {
         int candidateCount = 0;
-        for (int i = 0; i < count && start[i] < applyEnd; i++) {
+        for (int rank = 0; rank < count; rank++) {
+            int i = (int) sorted[rank];
+            if (start[i] >= applyEnd) break;
             if (end[i] > applyStart && queryStart[i] <= scopeQueryEnd && queryEnd[i] >= scopeQueryStart) {
                 if (candidateCount == candidates.length) {
                     candidates = Arrays.copyOf(candidates, candidateCount * 2);
@@ -249,6 +226,7 @@ final class RunMerger {
         boolean syntaxPending = syntax >= 0 && !erase;
         Color fg = null;
         int fontType = Font.PLAIN;
+        int extraFont = Font.PLAIN;
         for (int i = 0; i < activeCount; i++) {
             int h = active[i];
             if (syntaxPending && layer[h] < syntaxLayer) {
@@ -263,7 +241,7 @@ final class RunMerger {
                 fg = foreground[h];
             }
             if ((flags[h] & FLAG_CLASSIC_BOLD) != 0) {
-                fontType |= Font.BOLD;
+                extraFont = Font.BOLD;
             } else if (fontType == Font.PLAIN) {
                 fontType = font[h];
             }
@@ -277,7 +255,7 @@ final class RunMerger {
             }
         }
         resolvedForeground = fg != null ? fg : defaultForeground;
-        resolvedFont = fontType != Font.PLAIN ? fontType : defaultFont;
+        resolvedFont = (fontType != Font.PLAIN ? fontType : defaultFont) | extraFont;
     }
 
     /** 与 IterationState.createByLayerThenByAttributesComparator 相同的前四级比较 */
@@ -303,6 +281,7 @@ final class RunMerger {
 
     private void growHighlighters() {
         int n = Math.max(64, count * 2);
+        sorted = Arrays.copyOf(sorted, n);
         queryStart = Arrays.copyOf(queryStart, n);
         queryEnd = Arrays.copyOf(queryEnd, n);
         start = Arrays.copyOf(start, n);
@@ -312,14 +291,6 @@ final class RunMerger {
         font = Arrays.copyOf(font, n);
         flags = Arrays.copyOf(flags, n);
         foreground = Arrays.copyOf(foreground, n);
-    }
-
-    private int[] permute(int[] source, int[] order) {
-        int[] result = new int[source.length];
-        for (int i = 0; i < count; i++) {
-            result[i] = source[order[i]];
-        }
-        return result;
     }
 
     /**
@@ -338,8 +309,8 @@ final class RunMerger {
             count = 0;
         }
 
-        void append(int s, int e, Color fg, int fontType) {
-            if (count > 0) {
+        void append(int s, int e, Color fg, int fontType, boolean tokenBoundary) {
+            if (!tokenBoundary && count > 0) {
                 int last = count - 1;
                 if (end[last] == s && font[last] == fontType
                         && foreground[last].getRGB() == fg.getRGB()) {
