@@ -13,7 +13,11 @@ import java.util.Objects;
 
 /** Pure, bundled theme-core. Call only on a color cache miss. */
 public final class SharedCore {
-    private static final Scriptable API = load();
+    private static Scriptable api;
+
+    public static synchronized void warmUp() {
+        if (api == null) api = load();
+    }
 
     private SharedCore() {}
 
@@ -33,6 +37,7 @@ public final class SharedCore {
         try (Context cx = Context.enter();
              var reader = new InputStreamReader(Objects.requireNonNull(
                      SharedCore.class.getResourceAsStream("/woodfish/theme-core.js")), StandardCharsets.UTF_8)) {
+            cx.setInterpretedMode(true);
             cx.setLanguageVersion(Context.VERSION_ES6);
             var scope = cx.initSafeStandardObjects();
             cx.evaluateReader(scope, reader, "woodfish/theme-core.js", 1, null);
@@ -44,10 +49,12 @@ public final class SharedCore {
 
     // The shared JS gamut cache belongs to this realm. Calls may arrive from the glow worker or EDT.
     public static synchronized Object call(String name, Object... args) {
+        warmUp();
         try (Context cx = Context.enter()) {
+            cx.setInterpretedMode(true);
             cx.setLanguageVersion(Context.VERSION_ES6);
-            var fn = (Function) ScriptableObject.getProperty(API, name);
-            return fn.call(cx, ScriptableObject.getTopLevelScope(API), API, args);
+            var fn = (Function) ScriptableObject.getProperty(api, name);
+            return fn.call(cx, ScriptableObject.getTopLevelScope(api), api, args);
         }
     }
 

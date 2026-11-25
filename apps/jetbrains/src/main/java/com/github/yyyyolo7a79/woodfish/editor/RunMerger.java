@@ -31,6 +31,7 @@ final class RunMerger {
     static final int FLAG_FOREGROUND = 1;
     static final int FLAG_BACKGROUND = 2;
     static final int FLAG_ERASE = 4;
+    private static final int FLAG_CLASSIC_BOLD = 8;
 
     private final int syntaxLayer;
 
@@ -87,7 +88,7 @@ final class RunMerger {
      */
     void addHighlighter(int rangeStart, int rangeEnd, int affectedStart, int affectedEnd,
                         int affectedLength, int highlighterLayer, Color fg, int fontType,
-                        boolean hasBackground, boolean erase) {
+                        boolean hasBackground, boolean erase, boolean classicBold) {
         if (affectedEnd <= affectedStart) {
             return; // 空区间不覆盖任何字符
         }
@@ -105,7 +106,7 @@ final class RunMerger {
         font[i] = erase ? Font.PLAIN : fontType;
         flags[i] = (byte) ((fg != null && !erase ? FLAG_FOREGROUND : 0)
                 | (hasBackground ? FLAG_BACKGROUND : 0)
-                | (erase ? FLAG_ERASE : 0));
+                | (erase ? FLAG_ERASE : 0) | (classicBold ? FLAG_CLASSIC_BOLD : 0));
     }
 
     /** 登记一段 lexer token（必须按起点升序调用） */
@@ -251,8 +252,8 @@ final class RunMerger {
         for (int i = 0; i < activeCount; i++) {
             int h = active[i];
             if (syntaxPending && layer[h] < syntaxLayer) {
-                fg = lexForeground[syntax];
-                fontType = lexFont[syntax];
+                if (fg == null) fg = lexForeground[syntax];
+                if (fontType == Font.PLAIN) fontType = lexFont[syntax];
                 syntaxPending = false;
             }
             if ((flags[h] & FLAG_ERASE) != 0) {
@@ -261,7 +262,9 @@ final class RunMerger {
             if (fg == null) {
                 fg = foreground[h];
             }
-            if (fontType == Font.PLAIN) {
+            if ((flags[h] & FLAG_CLASSIC_BOLD) != 0) {
+                fontType |= Font.BOLD;
+            } else if (fontType == Font.PLAIN) {
                 fontType = font[h];
             }
         }

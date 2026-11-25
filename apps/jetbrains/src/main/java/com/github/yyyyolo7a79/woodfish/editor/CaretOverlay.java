@@ -4,6 +4,7 @@ import com.github.yyyyolo7a79.woodfish.settings.EffectSettings;
 import com.github.yyyyolo7a79.woodfish.settings.NativeOptions;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
@@ -33,6 +34,10 @@ final class CaretOverlay extends AbstractPainter {
     private float[] fractions;
     private Rectangle previous = new Rectangle();
     private double lastTick;
+    private final java.util.IdentityHashMap<Caret, Integer> caretIds = new java.util.IdentityHashMap<>();
+    private int nextId;
+    private Rectangle viewport = new Rectangle();
+    private int lineHeight;
 
     CaretOverlay(Editor editor, EffectSettings settings, Disposable lifetime) {
         this.editor = editor;
@@ -46,7 +51,11 @@ final class CaretOverlay extends AbstractPainter {
         content.addFocusListener(focus);
         Disposer.register(lifetime, () -> { stop(); content.removeFocusListener(focus); });
         editor.getCaretModel().addCaretListener(new CaretListener() {
-            @Override public void caretPositionChanged(@NotNull CaretEvent event) { emit("caret"); }
+            @Override public void caretPositionChanged(@NotNull CaretEvent event) { emit("caret", event.getCaret()); }
+            @Override public void caretRemoved(@NotNull CaretEvent event) {
+                Integer id = caretIds.remove(event.getCaret());
+                if (id != null && motion != null) motion.event("remove", id, 0, 0, 0, 0, now());
+            }
         }, lifetime);
         IdeGlassPaneUtil.installPainter(content, this, lifetime);
         configure(settings);
@@ -57,7 +66,7 @@ final class CaretOverlay extends AbstractPainter {
         stops = NativeOptions.colors(settings.value("cursor.gradientStops"));
         fractions = new float[stops.length];
         for (int i = 0; i < stops.length; i++) fractions[i] = (float) i / (stops.length - 1);
-        motion = null;
+        stop();
         wake();
     }
 
@@ -74,10 +83,10 @@ final class CaretOverlay extends AbstractPainter {
     void inserted() {
         if (!SwingUtilities.isEventDispatchThread()) return;
         AWTEvent event = EventQueue.getCurrentEvent();
-        if (event instanceof KeyEvent || event instanceof InputMethodEvent) emit("insert");
+        if (event instanceof KeyEvent || event instanceof InputMethodEvent) emit("insert", editor.getCaretModel().getCurrentCaret());
     }
 
-    private void emit(String kind) {
+    private void emit(String kind, Caret source) {
         if (!focused()) return;
         if (inputEffects()) {
             if (motion == null) {
@@ -86,8 +95,9 @@ final class CaretOverlay extends AbstractPainter {
                 motion = new InputMotion(settings, accent == null ? stops[0] : accent,
                         com.intellij.ui.ColorUtil.isDark(scheme.getDefaultBackground()));
             }
-            Point p = editor.visualPositionToXY(editor.getCaretModel().getVisualPosition());
-            motion.event(kind, p.x, p.y, editor.getLineHeight(), 0, now());
+            Caret caret = source == null ? editor.getCaretModel().getPrimaryCaret() : source;
+            Point p = editor.visualPositionToXY(caret.getVisualPosition());
+            motion.event(kind, caretIds.computeIfAbsent(caret, unused -> ++nextId), p.x, p.y, editor.getLineHeight(), 0, now());
         }
         wake();
     }
@@ -102,7 +112,7 @@ final class CaretOverlay extends AbstractPainter {
     private void stop() {
         timer.stop();
         motion = null;
-        repaint(previous);
+        if (!previous.isEmpty()) repaint(content.getVisibleRect());
         previous = new Rectangle();
     }
 
@@ -114,8 +124,13 @@ final class CaretOverlay extends AbstractPainter {
         boolean hadMotion = motion != null && motion.active();
         if (hadMotion) motion.tick(time, Math.min(64, time - lastTick));
         lastTick = time;
-        Rectangle dirty = hadMotion ? content.getVisibleRect() : caretBounds();
-        repaint(previous.isEmpty() ? dirty : previous.union(dirty));
+        Rectangle dirty = cursor() ? caretBounds() : new Rectangle(0, 0, -1, -1);
+        if (hadMotion) dirty.add(motion.bounds());
+        Rectangle visible = content.getVisibleRect();
+        boolean changedView = !viewport.equals(visible) || lineHeight != editor.getLineHeight();
+        repaint(changedView ? visible : previous.isEmpty() ? dirty : previous.union(dirty));
+        viewport = visible;
+        lineHeight = editor.getLineHeight();
         previous = dirty;
         if (!cursor() && (motion == null || !motion.active())) timer.stop();
     }
@@ -125,7 +140,7 @@ final class CaretOverlay extends AbstractPainter {
         int pad = 3 + (int) Math.ceil(settings.number("cursor.glowBlur"));
         for (var caret : editor.getCaretModel().getAllCarets()) {
             Point p = editor.visualPositionToXY(caret.getVisualPosition());
-            var box = new Rectangle(p.x - pad, p.y - pad, 4 + 2 * pad, editor.getLineHeight() + 2 * pad);
+            var box = new Rectangle(p.x - pad, p.y - pad, Math.max(2, editor.getSettings().getLineCursorWidth()) + 2 * pad, editor.getLineHeight() + 2 * pad);
             bounds = bounds == null ? box : bounds.union(box);
         }
         return bounds == null ? new Rectangle() : bounds;

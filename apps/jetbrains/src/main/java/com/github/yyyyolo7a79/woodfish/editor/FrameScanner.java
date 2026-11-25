@@ -12,7 +12,6 @@ import com.intellij.openapi.editor.impl.ComplementaryFontsRegistry;
 import com.intellij.openapi.editor.impl.FontFallbackIterator;
 import com.intellij.openapi.editor.impl.FontInfo;
 import com.intellij.util.DocumentUtil;
-import com.intellij.util.text.CharArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.FontMetrics;
@@ -158,17 +157,12 @@ final class FrameScanner {
             return;
         }
 
-        frame.setText(rangeStart, rangeEnd - rangeStart);
-        CharArrayUtil.getChars(document.getImmutableCharSequence(), frame.chars, rangeStart, 0, rangeEnd - rangeStart);
         frc = g.getFontRenderContext();
         // 取 FRC 里已解析的值：Graphics 上的提示可能是 DEFAULT（随 KEY_ANTIALIASING），FRC 给出实际生效的模式
         textAntialiasing = frc.getAntiAliasingHint();
         updateProbeContext();
         preferences = editor.getColorsScheme().getFontPreferences();
-        collector.prepare(editor, rangeStart > 0 ? DocumentUtil.getPreviousCodePointOffset(document, rangeStart) : 0,
-                rangeStart, rangeEnd);
         collectFolds(rangeStart, rangeEnd);
-        collectInlays(rangeStart, rangeEnd);
         if (selection) {
             collectSelection(rangeStart, rangeEnd);
         }
@@ -258,10 +252,6 @@ final class FrameScanner {
     // ==================== 行 ====================
 
     private void scanLine(int top, int lineStart, int lineEnd, Rectangle clip, int padUser) {
-        int base = frame.textBase;
-        if (Bidi.requiresBidi(frame.chars, lineStart - base, lineEnd - base)) {
-            return; // 从右到左文字的视觉顺序由编辑器的双向排版决定，逐段重画无法保证重合
-        }
         lineTop = top;
         windowStart = lineStart;
         windowEnd = lineEnd;
@@ -273,28 +263,31 @@ final class FrameScanner {
         // 平台为软换行续行新建 IterationState 时从前一个码点开始查询高亮器，这里保持一致
         boolean softWrapped = lineStart > 0 && editor.getSoftWrapModel().getSoftWrap(lineStart) != null;
         int queryStart = softWrapped ? DocumentUtil.getPreviousCodePointOffset(editor.getDocument(), lineStart) : lineStart;
-        int applyStart = lineStart;
+        if (windowStart > lineStart) queryStart = windowStart;
+        while (foldCursor < foldCount && foldEnd[foldCursor] <= windowStart) foldCursor++;
+        visibleSpans(windowStart, windowEnd, queryStart, foldStart, foldEnd, foldCursor, foldCount, this::scanVisible);
+    }
 
-        while (foldCursor < foldCount && foldEnd[foldCursor] <= lineStart) {
-            foldCursor++;
+    interface Span { void accept(int start, int end, int queryStart); }
+
+    static void visibleSpans(int start, int end, int queryStart, int[] starts, int[] ends, int fold, int count, Span visit) {
+        while (fold < count && starts[fold] < end) {
+            if (starts[fold] > start) visit.accept(start, starts[fold], queryStart);
+            start = Math.max(start, ends[fold++]);
+            queryStart = start;
         }
-        int fold = foldCursor;
-        while (applyStart < lineEnd) {
-            boolean hasFold = fold < foldCount && foldStart[fold] < lineEnd;
-            int applyEnd = hasFold ? Math.max(applyStart, foldStart[fold]) : lineEnd;
-            if (applyEnd > applyStart) {
-                collector.collect(queryStart, lineEnd, applyStart, applyEnd, runs);
-                for (int r = 0; r < runs.count && frame.pieceCount < MAX_PIECES; r++) {
-                    splitAtInlays(runs.start[r], runs.end[r], runs.foreground[r], runs.font[r]);
-                }
-            }
-            if (!hasFold) {
-                break;
-            }
-            // 折叠区之后平台新建 IterationState，从折叠终点开始查询
-            applyStart = Math.max(applyStart, foldEnd[fold]);
-            queryStart = applyStart;
-            fold++;
+        if (start < end) visit.accept(start, end, queryStart);
+    }
+
+    private void scanVisible(int start, int requestedEnd, int queryStart) {
+        if (frame.charCount == PaintFrame.MAX_CHARS) return;
+        int end = frame.appendVisible(editor.getDocument().getImmutableCharSequence(), start, requestedEnd);
+        if (Bidi.requiresBidi(frame.chars, start - frame.textBase, end - frame.textBase)) return;
+        collectInlays(start, end);
+        collector.prepare(editor, queryStart, start, end);
+        collector.collect(queryStart, end, start, end, runs);
+        for (int r = 0; r < runs.count && frame.pieceCount < MAX_PIECES; r++) {
+            splitAtInlays(runs.start[r], runs.end[r], runs.foreground[r], runs.font[r]);
         }
     }
 
@@ -404,15 +397,10 @@ final class FrameScanner {
         if (actualWidth <= 0) return;
         int base = frame.textBase;
         int from = start - base, to = end - base;
-        float naturalWidth = 0;
-        for (int i = from; i < to; i++) {
-            frame.charX[i] = x + naturalWidth;
-            frame.charCell[i] = font.charWidth2D(frame.chars[i]);
-            naturalWidth += frame.charCell[i];
-        }
-        boolean adjusted = Math.abs(actualWidth - naturalWidth) >= TextPieces.GRID_TOLERANCE;
-        if (adjusted && !EditorGrid.fit(from, to, x, frame.charX, frame.charCell,
-                index -> xOf(base + index, false))) return;
+        for (int i = from; i < to; i++) frame.charCell[i] = font.charWidth2D(frame.chars[i]);
+        int fit = EditorGrid.fit(from, to, x, frame.charX, frame.charCell, index -> xOf(base + index, false));
+        if (fit < 0) return;
+        boolean adjusted = fit > 0;
         int piece = frame.addPiece(from, to, x, actualWidth, frame.fontIndex(font.getFont()), frame.selectionState(start, end));
         frame.pieceNativeRisk[piece] = nativeRisk(frame.pieceCjk[piece], font.getFont());
         frame.pieceGridAligned[piece] = adjusted;

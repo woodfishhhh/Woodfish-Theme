@@ -195,4 +195,21 @@ class WoodfishPresetsTest {
         assertEquals("0", WoodfishPresets.number(0));
         assertEquals("1.6", WoodfishPresets.number(1.6));
     }
+
+    @Test void backgroundSurvivesDefaultPresetAndStillMatches() {
+        var s = new WoodfishState(); s.options.put("background.enabled", "true");
+        var preset = WoodfishPresets.builtIns().getFirst(); preset.applyTo(s);
+        assertEquals("true", s.options.get("background.enabled")); assertEquals(preset, WoodfishPresets.matching(s));
+    }
+
+    @Test void invalidVisibleColorBlocksSavingPreviousDraft() {
+        var state = new WoodfishState(); var form = new NativeSettingsForm(() -> state, () -> {});
+        var field = (javax.swing.JTextField) form.addField("typingParticles.color");
+        field.setText("#ff0000"); field.setText("not a color");
+        var errors = new java.util.ArrayList<String>();
+        form.saveWhenValid(() -> WoodfishPresets.saveCurrent(state, "test"), error -> errors.add(error.getMessage()));
+        assertEquals(1, errors.size()); assertTrue(state.customPresets.isEmpty());
+        field.setText("#0000ff"); form.saveWhenValid(() -> WoodfishPresets.saveCurrent(state, "test"), e -> errors.add(e.getMessage()));
+        assertEquals("#0000ff", state.customPresets.getFirst().options.get("typingParticles.color"));
+    }
 }

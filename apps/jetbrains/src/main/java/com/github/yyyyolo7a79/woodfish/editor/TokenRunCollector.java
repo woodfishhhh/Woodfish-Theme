@@ -105,7 +105,8 @@ final class TokenRunCollector {
         merger.addHighlighter(highlighter.getStartOffset(), highlighter.getEndOffset(),
                 align(affectedStart), align(affectedEnd), affectedEnd - affectedStart,
                 highlighter.getLayer(), fg, fontType,
-                !erase && attributes.getBackgroundColor() != null, erase);
+                !erase && attributes.getBackgroundColor() != null, erase,
+                highlighter.getCustomRenderer() instanceof GradientRenderer && fontType == Font.BOLD);
     }
 
     private int align(int offset) {

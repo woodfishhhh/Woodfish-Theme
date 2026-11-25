@@ -40,7 +40,18 @@ public final class WoodfishEditorManager implements EditorFactoryListener {
     private static final Map<Editor, SyntaxEffects> INSTALLED = new ConcurrentHashMap<>();
 
     /** 全局订阅只做一次；插件卸载时由应用级 Disposable 自动断开 */
-    private static volatile boolean subscribed = false;
+    private static final Startup STARTUP = new Startup();
+
+    static final class Startup {
+        private boolean subscribed;
+
+        synchronized void start(Runnable subscribe, Runnable appearance) {
+            if (subscribed) return;
+            subscribe.run();
+            subscribed = true;
+            appearance.run();
+        }
+    }
 
     /** 插件加载前就已打开的编辑器不会触发 editorCreated，借第一次回调补建 */
     private static volatile boolean initialScanDone = false;
@@ -130,16 +141,15 @@ public final class WoodfishEditorManager implements EditorFactoryListener {
 
     // ==================== 全局事件分发 ====================
 
-    private static synchronized void ensureSubscribed() {
-        if (subscribed) {
-            return;
-        }
-        subscribed = true;
+    private static void ensureSubscribed() {
+        STARTUP.start(WoodfishEditorManager::subscribe, () -> onEdt(WoodfishEditorManager::syncAppearance));
+    }
+
+    private static void subscribe() {
         var app = ApplicationManager.getApplication();
         // 绑定到插件级 Disposable：动态卸载插件时自动断开，见 WoodfishPluginDisposable
         var connection = app.getMessageBus().connect(WoodfishPluginDisposable.getInstance());
 
-        syncAppearance();
         connection.subscribe(LafManagerListener.TOPIC, manager -> onEdt(WoodfishEditorManager::syncAppearance));
         connection.subscribe(WoodfishSettingsListener.TOPIC, settings -> onEdt(() -> {
             syncAppearance();
@@ -152,7 +162,9 @@ public final class WoodfishEditorManager implements EditorFactoryListener {
     }
 
     private static void syncAppearance() {
-        if (APPEARANCE.apply(UIManager.getLookAndFeelDefaults(), WoodfishSettings.getInstance().effective())) {
+        var theme = LafManager.getInstance().getCurrentUIThemeLookAndFeel();
+        if (APPEARANCE.apply(UIManager.getLookAndFeelDefaults(), WoodfishSettings.getInstance().effective(),
+                theme == null ? null : theme.getId())) {
             LafManager.getInstance().repaintUI();
         }
     }

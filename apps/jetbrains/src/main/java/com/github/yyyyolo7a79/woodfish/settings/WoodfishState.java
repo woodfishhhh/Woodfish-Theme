@@ -89,11 +89,12 @@ public final class WoodfishState {
      * <p>同样要求 public 字段 + 无参构造，供 XmlSerializer 使用。
      */
     public static final class CustomPreset {
+        public int schemaVersion; // Missing in legacy XML, whose serializer omitted the old defaults below.
         public String name = "";
-        public double hueShift = DEFAULT_HUE_SHIFT;
-        public double lightnessDelta = DEFAULT_LIGHTNESS_DELTA;
-        public double neutralChroma = DEFAULT_NEUTRAL_CHROMA;
-        public double angle = DEFAULT_ANGLE;
+        public double hueShift = 24;
+        public double lightnessDelta = .06;
+        public double neutralChroma = .06;
+        public double angle = 90;
         public boolean syntaxGradientEnabled = true;
         public boolean cjkGradientEnabled = true;
         public boolean glowEnabled = true;
@@ -106,6 +107,7 @@ public final class WoodfishState {
         /** 从当前状态截取一份预设 */
         public static CustomPreset capture(String name, WoodfishState s) {
             CustomPreset p = new CustomPreset();
+            p.schemaVersion = 1;
             p.name = name;
             p.hueShift = s.hueShift;
             p.lightnessDelta = s.lightnessDelta;
@@ -129,11 +131,12 @@ public final class WoodfishState {
             s.cjkGradientEnabled = cjkGradientEnabled;
             s.glowEnabled = glowEnabled;
             s.glowIntensity = glowIntensity;
-            s.options = NativeOptions.normalize(options);
+            if (schemaVersion > 0) s.options = NativeOptions.normalize(options);
         }
 
         public CustomPreset copy() {
             CustomPreset p = new CustomPreset();
+            p.schemaVersion = schemaVersion;
             p.name = name;
             p.hueShift = hueShift;
             p.lightnessDelta = lightnessDelta;
@@ -155,7 +158,7 @@ public final class WoodfishState {
             if (!(o instanceof CustomPreset p)) {
                 return false;
             }
-            return Objects.equals(options, p.options) && Objects.equals(name, p.name)
+            return schemaVersion == p.schemaVersion && Objects.equals(options, p.options) && Objects.equals(name, p.name)
                     && Double.compare(hueShift, p.hueShift) == 0
                     && Double.compare(lightnessDelta, p.lightnessDelta) == 0
                     && Double.compare(neutralChroma, p.neutralChroma) == 0
@@ -168,7 +171,7 @@ public final class WoodfishState {
 
         @Override
         public int hashCode() {
-            return Objects.hash(options, name, hueShift, lightnessDelta, neutralChroma, angle,
+            return Objects.hash(schemaVersion, options, name, hueShift, lightnessDelta, neutralChroma, angle,
                     syntaxGradientEnabled, cjkGradientEnabled, glowEnabled, glowIntensity);
         }
     }

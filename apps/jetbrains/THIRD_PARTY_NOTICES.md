@@ -28,3 +28,35 @@ Night Owl、Ayu Mirage、Gruvbox 等），每套主题的许可以 `licenses/<�
 [apps/vscode-extension/THIRD_PARTY_NOTICES.md](../vscode-extension/THIRD_PARTY_NOTICES.md)。
 源码中附带的 Gradle 9.6.0 wrapper（启动脚本和 JAR）使用
 Apache-2.0 许可，完整条文见该 JAR 内的 `META-INF/LICENSE`；它不随可安装的 IDE 插件分发。
+
+## VS Code Animations (caret trail)
+
+The `caret-trail` effect plugin (`packages/effects/builtin/`, copied into the user's
+effects folder) reproduces the trail of the `CursorAnimation` in
+VS Code Animations 2.0.9 (`brandonkirbyson.vscode-animations`,
+https://github.com/BrandonKirbyson/VSCode-Animations): the chain of points that follows
+the cursor and its single-color band. Licensed under the MIT License:
+
+```text
+MIT License
+
+Copyright (c) 2023 Brandon Kirbyson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

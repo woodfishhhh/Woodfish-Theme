@@ -136,6 +136,9 @@ tasks {
     }
 
     test {
+        val distribution = buildPlugin.flatMap { it.archiveFile }
+        inputs.file(distribution)
+        doFirst { systemProperty("woodfish.distribution", distribution.get().asFile.absolutePath) }
         useJUnitPlatform()
     }
 

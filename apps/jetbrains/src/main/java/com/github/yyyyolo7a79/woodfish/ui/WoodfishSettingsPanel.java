@@ -116,6 +116,11 @@ final class WoodfishSettingsPanel implements Disposable {
     }
 
     private void savePreset() {
+        nativeForm.saveWhenValid(this::saveValidPreset, e ->
+                com.intellij.openapi.ui.Messages.showErrorDialog(root, e.getMessage(), text("preset.save")));
+    }
+
+    private void saveValidPreset() {
         String name = PresetUi.askName(null, root, edited);
         if (name == null) return;
         WoodfishPresets.saveCurrent(edited, name);

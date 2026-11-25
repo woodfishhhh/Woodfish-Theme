@@ -87,6 +87,12 @@ public final class SyntaxEffects implements Disposable {
         return effects;
     }
 
+    private static final class Runtime {
+        static final java.util.concurrent.CompletableFuture<Void> READY = java.util.concurrent.CompletableFuture.runAsync(
+                com.github.yyyyolo7a79.woodfish.core.SharedCore::warmUp,
+                com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+    }
+
     private void attach() {
         // 所有清理都挂在 lifetime 上：无论是管理器调用 dispose()、编辑器先被释放，还是插件卸载时
         // 插件级 Disposable 级联释放，都只走一遍 cleanup
@@ -97,6 +103,15 @@ public final class SyntaxEffects implements Disposable {
             LOG.debug("woodfish: 未能挂到插件生命周期（插件可能正在卸载）", t);
         }
 
+        Runtime.READY.whenComplete((unused, failure) -> ApplicationManager.getApplication().invokeLater(() -> {
+            if (disposed || editor.isDisposed()) return;
+            if (failure != null) { LOG.warn("woodfish: 无法加载动效运行时", failure); return; }
+            try { attachReady(); editor.getContentComponent().repaint(); }
+            catch (RuntimeException | LinkageError e) { dispose(); LOG.warn("woodfish: 无法挂载编辑器效果", e); }
+        }, ModalityState.any()));
+    }
+
+    private void attachReady() {
         anchorHue = AnchorHueResolver.resolve(editor.getColorsScheme());
         deriver = newDeriver(settings, anchorHue);
         backdrop.configure(settings);
@@ -132,7 +147,7 @@ public final class SyntaxEffects implements Disposable {
     public void settingsChanged(@NotNull EffectSettings newSettings) {
         EffectSettings old = settings;
         settings = newSettings;
-        if (disposed) {
+        if (disposed || deriver == null) {
             return;
         }
         if (Double.compare(old.hueShift(), newSettings.hueShift()) != 0
@@ -152,7 +167,7 @@ public final class SyntaxEffects implements Disposable {
     }
 
     public void schemeChanged() {
-        if (disposed) {
+        if (disposed || deriver == null) {
             return;
         }
         anchorHue = AnchorHueResolver.resolve(editor.getColorsScheme());
@@ -252,7 +267,7 @@ public final class SyntaxEffects implements Disposable {
 
     /**
      * 覆盖全文的 highlighter：LINES_IN_RANGE + 两端贪婪，文首文末的插入都会被包进来；
-     * 不带 TextAttributes，平台合并文字属性时会直接跳过它，不影响任何颜色、错误条或复制带格式文本。
+     * 经典样式仅在渐变层附加粗体，其他叠层不参与文字属性合并。
      */
     private RangeHighlighter addHighlighter(CustomHighlighterRenderer renderer) {
         MarkupModel markup = editor.getMarkupModel();

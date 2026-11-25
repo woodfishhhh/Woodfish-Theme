@@ -103,8 +103,7 @@ class GlowSpecTest {
         frame.lineHeight = 20;
         frame.ascent = 15;
         int line = frame.addLine(0, 0);
-        frame.setText(0, text.length());
-        text.getChars(0, text.length(), frame.chars, 0);
+        frame.appendVisible(text, 0, text.length());
         frame.fonts[0] = new Font(Font.MONOSPACED, Font.PLAIN, 14);
         frame.fontCount = 1;
         int token = frame.addToken(Color.GREEN, false, 0, 20, 14);
