@@ -1,3 +1,5 @@
+import { prepareCornerRadii } from '@woodfish/renderer-runtime';
+
 /**
  * Styles of the Woodfish section the overlay adds to Codex's Appearance settings. Layout
  * classes are copied from Codex's own rows at mount time; these rules style the parts
@@ -385,3 +387,5 @@ export const SETTINGS_PANEL_CSS = `
   }
 }
 `.trim();
+
+export const SMOOTH_SETTINGS_PANEL_CSS = prepareCornerRadii(SETTINGS_PANEL_CSS);

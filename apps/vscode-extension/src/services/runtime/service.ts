@@ -125,6 +125,7 @@ export function shouldInstallRuntime(settings: ThemeRuntimeSettings): boolean {
       settings.glow.enabled ||
       settings.cursor.enabled ||
       settings.glass.enabled ||
+      settings.squircleCorners.enabled ||
       settings.background.enabled ||
       settings.effects.enabled)
   );

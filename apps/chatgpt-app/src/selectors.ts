@@ -90,6 +90,15 @@ export const CODEX_SELECTORS = {
     alwaysPresent: false,
     description: '输入框外框（Codex 画背景和圆角的那一层）',
   },
+  roundedComposer: {
+    // The default single-line layout uses --radius-full; keep its circular ends.
+    selectors: [
+      `${COMPOSER_ROOT} [data-composer-surface-variant]:not(${NEW_CHAT}):is([data-composer-layout="multiline"], [data-composer-radius-variant="compact"], [data-composer-radius-variant="large"])`,
+      `${COMPOSER_ROOT} ${NEW_CHAT} [data-composer-body][data-composer-layout="multiline"]`,
+    ],
+    alwaysPresent: false,
+    description: '非胶囊形的输入框表面',
+  },
   composerEditor: {
     selectors: ['[data-codex-composer-root] [contenteditable="true"]'],
     alwaysPresent: false,

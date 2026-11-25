@@ -1,0 +1,10 @@
+{
+  "name": "苹果圆角（Squircle corners）",
+  "description": "面板、卡片和浮层使用平滑圆角，胶囊按钮保持圆弧。",
+  "version": 1,
+  "hosts": ["codex", "dsh"],
+  "enabled": true,
+  "order": 65,
+  "params": {},
+  "core": "squircle-corners"
+}

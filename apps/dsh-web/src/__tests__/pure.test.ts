@@ -188,6 +188,7 @@ describe('palette CSS', () => {
 
 describe('core CSS', () => {
   const view = composeDshCoreView(DEFAULT_DSH_SETTINGS, {
+    'squircle-corners': { enabled: true },
     'code-gradient': { enabled: true, angle: 45, glow: true, glowIntensity: 1 },
     background: { enabled: true, opacity: 0.2 },
   });
@@ -203,6 +204,7 @@ describe('core CSS', () => {
 
   it('turns a core feature off when its effect is off or missing', () => {
     const off = composeDshCoreView(DEFAULT_DSH_SETTINGS, {});
+    expect(buildDshCss(off).corners).toBe('');
     expect(off.codeGradient.enabled).toBe(false);
     expect(off.codeGlow.enabled).toBe(false);
     expect(buildCodeCss(off)).toBe('');

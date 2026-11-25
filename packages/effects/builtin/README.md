@@ -157,6 +157,11 @@
 | `--woodfish-thread-ring-running-halo` | 运行中光晕：没选中但在运行的会话用同一效果的弱化版，光晕更淡。范围 0–1 | `0.2` | `--woodfish-thread-ring-running-halo: 0.45;` |
 | `--woodfish-thread-ring-lift` | 悬停上浮：鼠标放到选中的会话上时上浮 1px。1 开，0 关 | `1` | `--woodfish-thread-ring-lift: 0;` |
 
+### 苹果圆角（Squircle corners）（`squircle-corners`，Codex、）
+
+| 变量 | 作用 | 默认值 | 示例 |
+| --- | --- | --- | --- |
+
 ### 回复正文彩虹（`rainbow-text`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |

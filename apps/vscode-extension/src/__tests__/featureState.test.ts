@@ -22,6 +22,7 @@ describe('FeatureStateController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockReadRuntimeSettings.mockReturnValue({
+      ...DEFAULT_RUNTIME_SETTINGS,
       overlay: { ...DEFAULT_RUNTIME_SETTINGS.overlay },
       glass: {
         ...DEFAULT_RUNTIME_SETTINGS.glass,
@@ -51,6 +52,7 @@ describe('FeatureStateController', () => {
     expect(mockReadRuntimeSettings).toHaveBeenCalledTimes(1);
     expect(controller.current()).toEqual({
       syntaxGradient: true,
+      squircleCorners: true,
       glow: true,
       cursor: true,
       glass: false,

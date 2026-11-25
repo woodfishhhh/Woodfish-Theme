@@ -24,7 +24,7 @@ import {
   uninstallController,
 } from '@woodfish/renderer-runtime';
 import { CODEX_STYLE_NAMES, buildCodexCss, buildDiffCss } from '../css';
-import { SETTINGS_PANEL_CSS } from '../css/settingsPanel';
+import { SETTINGS_PANEL_CSS, SMOOTH_SETTINGS_PANEL_CSS } from '../css/settingsPanel';
 import {
   CODEX_ADAPTER_VERSION,
   CODEX_BUILD_ID,
@@ -283,7 +283,8 @@ export function startCodexOverlay(
   const backgrounds = createBackgroundStore(source);
   const backgroundLayer = createBackgroundLayer(styles);
   /** Values of the core effects (null: off or missing), filled by the effect host. */
-  const core: { 'code-gradient': EffectValues | null; background: EffectValues | null } = {
+  const core: Record<'code-gradient' | 'background' | 'squircle-corners', EffectValues | null> = {
+    'squircle-corners': null,
     'code-gradient': null,
     background: null,
   };
@@ -358,6 +359,10 @@ export function startCodexOverlay(
   }
 
   function applyStyles(): void {
+    styles.upsert(
+      'settings',
+      view.squircleCorners ? SMOOTH_SETTINGS_PANEL_CSS : SETTINGS_PANEL_CSS
+    );
     const css = buildCodexCss(view);
     for (const name of CODEX_STYLE_NAMES) {
       styles.upsert(name, css[name]);
@@ -606,7 +611,7 @@ export function startCodexOverlay(
     nodeAttributes: ownership,
     idPrefix: `${source === 'userscript' ? CODEX_PLUS_STYLE_ID_PREFIX : CODEX_STYLE_ID_PREFIX}fx-`,
     core: (name: string, values: EffectValues | null): void => {
-      if (name === 'code-gradient' || name === 'background') {
+      if (name === 'code-gradient' || name === 'background' || name === 'squircle-corners') {
         core[name] = values;
         if (!applyingEffects) {
           applyCore();
@@ -621,7 +626,6 @@ export function startCodexOverlay(
   applyUserCss(userCssInput);
   applyEffects(readEffects(effectsInput) ?? []);
   applyCore();
-  styles.upsert('settings', SETTINGS_PANEL_CSS);
   panel = startSettingsPanel({
     settings: () => settings,
     change: changeSettings,

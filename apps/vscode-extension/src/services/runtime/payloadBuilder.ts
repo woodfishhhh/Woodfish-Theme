@@ -1,3 +1,4 @@
+import { buildSquircleCss, prepareCornerRadii } from '@woodfish/renderer-runtime';
 import {
   CursorSettings,
   CursorThemeDefaultKey,
@@ -130,11 +131,16 @@ function buildCursorVariables(settings: CursorSettings): string {
   ].join('\n');
 }
 
-function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): string {
+function buildCursorCss(
+  settings: CursorSettings,
+  assets: RuntimeCssAssets,
+  squircle: boolean
+): string {
   const parts: string[] = [buildCursorVariables(settings)];
   const gradient = buildCursorGradient(settings.gradientStops);
   const core = applyCursorSettings(assets.cursorCore, settings);
-  parts.push(core);
+  const smooth = squircle && settings.borderRadius >= 5;
+  parts.push(smooth ? prepareCornerRadii(core) : core);
 
   if (!hasGradientDeclaration(core)) {
     parts.push(['div.cursor {', `  background: ${gradient} !important;`, '}'].join('\n'));
@@ -151,7 +157,7 @@ function buildCursorCss(settings: CursorSettings, assets: RuntimeCssAssets): str
         `opacity: ${glowStrength} !important;`
       )
       .replace(/rgba\(255,\s*255,\s*255,\s*0\.7\)/gi, `rgba(255, 255, 255, ${glowStrength})`);
-    parts.push(glowLayer);
+    parts.push(smooth ? prepareCornerRadii(glowLayer) : glowLayer);
 
     if (!hasGradientDeclaration(glowLayer)) {
       parts.push(
@@ -217,12 +223,25 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
           assets.cursorDefaults,
           safeSettings.explicitSettings?.cursor
         ),
-        assets
+        assets,
+        safeSettings.squircleCorners.enabled
       )
     );
   }
 
-  parts.push(buildGlassCss(safeSettings.glass));
+  const glass = buildGlassCss(safeSettings.glass);
+  if (safeSettings.squircleCorners.enabled) {
+    parts.push(
+      buildSquircleCss(
+        prepareCornerRadii(
+          '.monaco-workbench .quick-input-widget { border-radius: var(--vscode-cornerRadius-xLarge); }\n.monaco-workbench .quick-input-widget::before { border-radius: inherit; }'
+        )
+      )
+    );
+    parts.push(prepareCornerRadii(glass));
+  } else {
+    parts.push(glass);
+  }
   parts.push(buildNativeWindowCss(safeSettings.glass));
   parts.push(buildBackgroundCss(safeSettings.background, assets.backgroundImage ?? null));
   if (safeSettings.effects.enabled && assets.effectsUrl) {

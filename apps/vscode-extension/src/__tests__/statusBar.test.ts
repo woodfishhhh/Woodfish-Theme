@@ -37,6 +37,7 @@ describe('status bar runtime snapshot rendering', () => {
     statusBar.update(
       {
         syntaxGradient: true,
+        squircleCorners: false,
         glow: true,
         cursor: true,
         glass: false,
@@ -64,6 +65,7 @@ describe('status bar runtime snapshot rendering', () => {
     statusBar.update(
       {
         syntaxGradient: true,
+        squircleCorners: false,
         glow: true,
         cursor: false,
         glass: false,
@@ -88,6 +90,7 @@ describe('status bar runtime snapshot rendering', () => {
     statusBar.update(
       {
         syntaxGradient: true,
+        squircleCorners: false,
         glow: true,
         cursor: true,
         glass: false,

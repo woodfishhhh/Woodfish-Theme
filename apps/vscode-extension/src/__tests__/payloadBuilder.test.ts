@@ -80,7 +80,7 @@ describe('runtime payload builder', () => {
     expect(css).toContain('0 0 2px var(--woodfish-overlay-glow-near)');
     expect(css).toContain('0 0 5px var(--woodfish-overlay-glow-mid)');
     expect(css).toContain('animation: 12s linear infinite alternate bp-animation !important;');
-    expect(css).toContain('border-radius: 6px !important;');
+    expect(css).toContain('border-radius: calc(6px * var(--squircle-k, 1)) !important;');
     expect(css).toContain('linear-gradient(180deg, #111111, #222222, #333333)');
     expect(css).not.toContain('box-shadow: 0 0 15px rgba(255, 255, 255, 0.7) !important;');
     expect(css).toContain('.mtk7 { letter-spacing: 0.02em; }');

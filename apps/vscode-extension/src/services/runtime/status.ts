@@ -9,7 +9,13 @@ type DeriveRuntimeStatusInput = {
 };
 
 function hasAnyVisibleEffect(features: FeatureFlags): boolean {
-  return features.syntaxGradient || features.glow || features.cursor || features.glass;
+  return (
+    features.syntaxGradient ||
+    features.glow ||
+    features.cursor ||
+    features.glass ||
+    features.squircleCorners
+  );
 }
 
 export function deriveRuntimeStatus({

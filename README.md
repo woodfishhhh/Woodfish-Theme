@@ -354,6 +354,7 @@ code --install-extension woodfish-theme-8.2.3.vsix
 
 | 设置 | 范围 | 默认 | 作用 |
 |---|---|---|---|
+| `squircleCorners.enabled` | `true` / `false` | `true` | 苹果圆角让直边平滑过渡到圆角，胶囊保持圆弧。Codex 在「外观」里切换，dsh 在用户脚本菜单切换。 |
 | `overlay.hueShift` | `0 - 180` 度 | `32` | 渐变从原色沿色环转到终点的角度 |
 | `overlay.lightnessDelta` | `0 - 0.5` | `0.12` | 渐变终点最多变亮或变暗多少 |
 | `overlay.neutralChroma` | `0 - 0.4` | `0.075` | 普通文字上那条彩虹的浓淡 |

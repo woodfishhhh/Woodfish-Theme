@@ -42,7 +42,8 @@ module.exports = function caret(ctx) {
       p.glow > 0
         ? `box-shadow: 0 0 ${4 + p.glow * 8}px color-mix(in oklab, ${stops[0]} ${Math.round(p.glow * 80)}%, transparent);`
         : '';
-    ctx.style(`
+    ctx.style(
+      `
 :root[data-woodfish-caret-visible="true"] ${ctx.selectors.composerEditor} {
   caret-color: transparent !important;
 }
@@ -94,7 +95,9 @@ ${blink || ''}
   [data-woodfish-caret] { transition: none !important; }
   [data-woodfish-caret] > i, [data-woodfish-caret] > i::before { animation: none; }
   [data-woodfish-caret] > i::before { height: 100%; }
-}`);
+}`,
+      true
+    );
   }
 
   bar.append(document.createElement('i'));

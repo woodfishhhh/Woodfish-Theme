@@ -163,7 +163,7 @@ describe('buildCodexCss', () => {
       palette: { dark: 'neon', light: 'light' },
       customCss: ['.x { color: red }'],
     }),
-    { 'code-gradient': CODE_ON, background: BACKGROUND_ON }
+    { 'squircle-corners': { enabled: true }, 'code-gradient': CODE_ON, background: BACKGROUND_ON }
   );
   const viewOf = (input: unknown): ReturnType<typeof composeCodexCoreView> =>
     composeCodexCoreView(normalizeCodexSettings(input), {});

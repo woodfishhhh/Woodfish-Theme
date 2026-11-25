@@ -283,6 +283,7 @@ describe('the shipped effects', () => {
       'code-gradient',
       'glass',
       'rainbow-text',
+      'squircle-corners',
       'stream-cursor',
       'text-reveal',
       'thread-ring',

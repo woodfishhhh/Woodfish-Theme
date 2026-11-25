@@ -213,3 +213,13 @@ semanticColors.{diffAdded,diffRemoved,skill}   必须是 #rrggbb，三项都必�
 - Codex++（AGPL-3.0）默认使用固定端口 9229，并通过 `Runtime.evaluate` 加载 `%APPDATA%\Codex++\user_scripts\*.js`。
 - Woodfish 不使用它的任何代码。
 - 两者同时启用时，用户脚本优先，CDP 注入会主动退让。
+
+## 苹果圆角
+
+在设置 → 外观 → Woodfish 外观切换「苹果圆角（Squircle corners）」。默认开启，CLI 使用效果目录 `squircle-corners/params.json` 的 `enabled`，胶囊按钮保持圆弧。
+
+Codex 26.1120.5083.0（Chromium 158）实测，多行输入框从普通圆角 22px 切换为 squircle 39.16px。
+
+| 开启 | 关闭 |
+| --- | --- |
+| ![开启苹果圆角](codex-screenshots/squircle-on.png) | ![关闭苹果圆角](codex-screenshots/squircle-off.png) |

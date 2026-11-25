@@ -99,7 +99,7 @@ module.exports = function glass(ctx) {
 
   function apply() {
     const p = ctx.params;
-    ctx.style(css());
+    ctx.style(css(), true);
     if (p.reveal && !reveal) reveal = lib.startReveal({ targets: [ctx.selectors.revealTarget] });
     if (!p.reveal && reveal) {
       reveal();

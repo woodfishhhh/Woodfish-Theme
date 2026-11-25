@@ -139,7 +139,8 @@ export function startDshOverlay(
       ? __WOODFISH_DSH_DEFAULT_BACKGROUND__
       : null;
   /** Values of the core effects (null: off or missing), filled by the effect host. */
-  const core: { 'code-gradient': EffectValues | null; background: EffectValues | null } = {
+  const core: Record<'code-gradient' | 'background' | 'squircle-corners', EffectValues | null> = {
+    'squircle-corners': null,
     'code-gradient': null,
     background: null,
   };
@@ -325,7 +326,7 @@ export function startDshOverlay(
     settings: () => settings,
     idPrefix: `${DSH_STYLE_ID_PREFIX}fx-`,
     core: (name: string, values: EffectValues | null): void => {
-      if (name === 'code-gradient' || name === 'background') {
+      if (name === 'code-gradient' || name === 'background' || name === 'squircle-corners') {
         core[name] = values;
         if (!applyingEffects) {
           applyCore();

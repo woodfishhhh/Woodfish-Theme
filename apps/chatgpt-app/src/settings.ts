@@ -192,6 +192,7 @@ export function legacyEffectValues(input: unknown): Record<string, Loose> {
  * off (or its folder is missing).
  */
 export interface CodexCoreView {
+  squircleCorners: boolean;
   palette: CodexSettings['palette'];
   codeGradient: { enabled: boolean } & TextGradientParams;
   codeGlow: { enabled: boolean } & GlowParams;
@@ -201,11 +202,16 @@ export interface CodexCoreView {
 
 export function composeCodexCoreView(
   settings: CodexSettings,
-  core: { 'code-gradient'?: EffectValues | null; background?: EffectValues | null }
+  core: {
+    'squircle-corners'?: EffectValues | null;
+    'code-gradient'?: EffectValues | null;
+    background?: EffectValues | null;
+  }
 ): CodexCoreView {
   const code = core['code-gradient'] ?? null;
   const background = core.background ?? null;
   return {
+    squircleCorners: core['squircle-corners'] != null,
     palette: settings.palette,
     codeGradient: {
       enabled: code !== null,
