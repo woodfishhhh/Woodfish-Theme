@@ -2,6 +2,8 @@
 
 [配色说明](./jetbrains.md) · [属性名核实表](./jetbrains-keys.md)
 
+本表记录关闭动态覆盖层时的语法与界面色。开启后，五套原创主题的多色标、正文彩虹的方向和浅色底的光晕另由共享算法与 JVM 绘制测试核对。可分别查看[深色实拍](./jetbrains-shots/dark.webp)、[浅色实拍](./jetbrains-shots/light.webp)和[验收方法](./jetbrains.md#验收方法)。
+
 15 套主题，同一份示例代码（Java、Kotlin、Python、JSON、Markdown 各一段，20 到 31 行），JetBrains Mono 15 px，两边都用灰度抗锯齿。
 JetBrains 一侧是 IntelliJ IDEA Community 2025.2.6.4（Python 用 PyCharm Community 2025.2.6.3），装的是只含主题的插件；
 VS Code 一侧是 1.147，只加载主题，没有背景图和任何特效。颜色不靠眼看：先用 VS Code 自己的分词器算出每个 token 应有的颜色，

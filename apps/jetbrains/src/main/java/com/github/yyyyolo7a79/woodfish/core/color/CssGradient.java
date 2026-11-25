@@ -77,6 +77,14 @@ public final class CssGradient {
         return t < 0.5 ? lerp(light, base, t * 2) : lerp(base, dark, t * 2 - 1);
     }
 
+    public static int colorAt(java.util.List<java.awt.Color> stops, double t) {
+        if (!(t > 0)) return stops.getFirst().getRGB();
+        if (t >= 1) return stops.getLast().getRGB();
+        double index = t * (stops.size() - 1);
+        int from = (int) index;
+        return lerp(stops.get(from).getRGB(), stops.get(from + 1).getRGB(), index - from);
+    }
+
     private static int lerp(int from, int to, double u) {
         int argb = 0;
         for (int shift = 24; shift >= 0; shift -= 8) {

@@ -27,6 +27,9 @@ export { findPresetGradient, matchGradientPreset } from './gradient/presets';
 export type { GradientPreset, PresetGradient } from './gradient/presets';
 
 export * from './effects/params';
+export { GLOW_RADII } from './effects/glow';
+export { BUILT_IN_PRESETS, PRESET_KEYS } from './effects/looks';
+export type { BuiltInPreset, PresetValues } from './effects/looks';
 export {
   EFFECT_INPUT_LIMITS,
   containsUnsafeCss,

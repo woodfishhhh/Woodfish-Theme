@@ -1,29 +1,20 @@
-# Woodfish Theme for JetBrains IDE — 15 color themes, gradient & glow
+# Woodfish Theme for JetBrains IDEs
 
-The JetBrains port of [Woodfish Theme](https://github.com/woodfishhhh/Woodfish-Theme) for VS Code.
-It ships **15 color themes** (a UI theme and an editor color scheme each) that match the VS Code
-themes color for color, and the universal **gradient + glow overlay** that runs on top of any
-editor color scheme.
+Choose one of 15 coordinated editor and UI themes in **Settings → Appearance & Behavior → Appearance**. Enable or tune editor effects in **Settings → Tools → Woodfish Theme**. The editor preview updates as you adjust a setting. Apply saves the changes for other editors.
 
-## What it does
+## Effects in the development build
 
-| Feature | What it does |
+| Effect | Controls and behavior |
 |---|---|
-| **15 color themes** | Woodfish Dark, Dracula, Light, Black, Neon, One Dark Pro, Tokyo Night, Catppuccin Mocha and Latte, Nord, GitHub Dark and Light, Night Owl, Ayu Mirage, Gruvbox Dark. Choose one in `Settings \| Appearance & Behavior \| Appearance`. Code, console and terminal (16 ANSI colors), diff, line-status bars, inlay hints and folded text follow the VS Code theme. |
-| **Gradient syntax** | Every token gets a three-stop OKLCH gradient centred on its own color. Hue shift, lightness delta, chroma boost for neutrals and gradient angle are all adjustable. |
-| **Glow** | Layered soft light beneath the glyphs, three blur radii, intensity scaled by a single multiplier. Weakened automatically on light backgrounds. |
-| **CJK included** | Chinese, Japanese and Korean text gets the same gradient and glow without ghosting. |
-| **Live settings page** | `Settings \| Tools \| Woodfish Theme`, with a syntax-highlighted preview that re-renders as you drag. |
-| **Presets** | Five built-in looks (Woodfish default, soft, neon, focus, performance) plus up to 32 of your own. |
-| **Status bar** | `Woodfish on · A/G` — click for the feature menu. |
-| **Diagnostics** | One action copies the current state, scheme names and cache counters for bug reports. |
+| Syntax gradients | The five original themes use their hand-tuned stops and angles. Other colors use the same OKLCH algorithm as VS Code. The full foreground rainbow and CJK glyphs use the editor's character positions. |
+| Text glow | Modern mode layers halos underneath glyphs. Light backgrounds use a bright tint. Classic (5.x) uses bold text and a wider halo. |
+| Caret | Set the rainbow stops, animation period, radius, glow opacity and blur. The overlay follows the native caret. |
+| Caret trail and typing particles | Enable either effect independently. The same built-in modules drive Java2D paths in the editor and canvas paths in VS Code. Both are off by default. |
+| Background | Enable Clouds or choose a local JPEG, PNG or WebP. The image covers the editor viewport. Adjust opacity, blur and theme tint. |
+| Rounded controls and popups | Apple-style corners are on by default. The switch restores the current look and feel's arc values when turned off. Popup tint and its opacity are separate controls. |
+| Presets | Apply Woodfish default, Soft, Neon, Classic (5.x), Frosted glass, Focus or Performance, or save up to 32 custom looks. |
 
-The overlay is independent of every color scheme: it works on whatever scheme is active.
-The themes are generated from the same palettes and VS Code themes by `pnpm jetbrains:generate`;
-`pnpm jetbrains:check` fails when a committed file is out of date. How the colors are mapped, and how
-close they are to VS Code, is written down in
-[docs/hosts/jetbrains.md](../../docs/hosts/jetbrains.md) and
-[docs/hosts/jetbrains-colors.md](../../docs/hosts/jetbrains-colors.md).
+The release zip listed below provides the version on its tag. Build this branch to try the development effects. See the [host notes](../../docs/hosts/jetbrains.md) and the [color comparison](../../docs/hosts/jetbrains-colors.md).
 
 ## Compatibility
 
@@ -34,11 +25,9 @@ close they are to VS Code, is written down in
 
 ## Install
 
-**From JetBrains Marketplace** (only once the listing has passed JetBrains' review; until then the
-[plugin page](https://plugins.jetbrains.com/plugin/36347-woodfish-theme) is not public): in the IDE open
-`Settings | Plugins | Marketplace`, search for `Woodfish Theme` and click Install.
+**Marketplace.** Open Settings → Plugins → Marketplace and search for Woodfish Theme. [Plugin page](https://plugins.jetbrains.com/plugin/36347-woodfish-theme)
 
-**From the zip** (works now, and is the way to install before the Marketplace listing is approved):
+**Release zip.**
 
 1. Download `woodfish-theme-jetbrains-8.2.3.zip` from the
    [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.3).
@@ -73,26 +62,9 @@ git-ignored `gradle.local.properties`:
 platformLocalPath=D:/path/to/IntelliJIDEA2024.3
 ```
 
-## Layout
+## Implementation
 
-```
-core/color/   OKLCH, gradient endpoints, blur kernel — pure Java, unit-tested
-editor/       highlighter mount, frame scan, gradient and glow renderers, caches
-settings/     persistent state, ranges, presets
-ui/           settings page, status bar, actions, diagnostics
-samples/      visual check files: English code, Chinese comments, ligatures, emoji, tables
-```
-
-## Implementation notes
-
-- **The mount point is a range highlighter, not a component.** The overlay attaches custom
-  renderers to the editor's markup model without replacing its syntax highlighter.
-- **Colors are resolved the way the editor resolves them**, not read from a theme file.
-- **Gradient vs. glow.** The gradient repaints the glyphs; the glow is rasterized into a cached
-  image off the EDT and drawn beneath them.
-- **The caret is deliberately untouched**, so the plugin coexists with cursor-animation plugins.
-- **CJK text is redrawn per character**, which avoids the ghosting that native glyph rasterization
-  produces when a gradient is layered on top.
+The generator packages the shared theme-core and built-in input effects with the plugin. Java2D paints glyphs, halo images and input paths through editor highlighters and the IDE glass pane. The plugin reads the active scheme and uses the editor's published coordinates for placement. Background pictures are decoded on a worker thread, and turning off a look-and-feel override restores the original UI value.
 
 ## License
 

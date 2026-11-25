@@ -1,3 +1,4 @@
+import { GLOW_RADII } from '@woodfish/theme-core';
 import {
   PAINTED_TOKEN_SELECTOR,
   buildGlowDeclarations,
@@ -13,7 +14,9 @@ const OVERLAY_TOKEN_SELECTOR = PAINTED_TOKEN_SELECTOR;
 
 /** The 5.x glow (#31): one wide halo in the token's own color, punctuation included. */
 function buildClassicGlowDeclarations(intensity: number): string[] {
-  return [`  text-shadow: 0 0 ${scaleGlowRadius(20, intensity)} currentColor !important;`];
+  return [
+    `  text-shadow: 0 0 ${scaleGlowRadius(GLOW_RADII.classic, intensity)} currentColor !important;`,
+  ];
 }
 
 function buildOverlayVariables(settings: ThemeRuntimeSettings): string {

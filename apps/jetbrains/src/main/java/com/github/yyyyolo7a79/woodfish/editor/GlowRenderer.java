@@ -128,101 +128,72 @@ final class GlowRenderer implements CustomHighlighterRenderer, GlowService.Clien
 
     private void paintGlow(Graphics2D g, EffectSettings settings) {
         AffineTransform tx = g.getTransform();
-        if (tx.getShearX() != 0 || tx.getShearY() != 0 || !(tx.getScaleX() > 0) || !(tx.getScaleY() > 0)) {
-            return; // 编辑器不会旋转；遇到奇怪的变换宁可不画
-        }
+        if (tx.getShearX() != 0 || tx.getShearY() != 0 || !(tx.getScaleX() > 0) || !(tx.getScaleY() > 0)) return;
         Rectangle clip = effects.clipOf(g);
-        if (clip == null) {
-            return;
-        }
+        if (clip == null) return;
         boolean light = !ColorUtil.isDark(effects.editor().getColorsScheme().getDefaultBackground());
-        boolean fractional = g.getRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS)
-                == RenderingHints.VALUE_FRACTIONALMETRICS_ON;
-        GlowParams params = new GlowParams(tx.getScaleX(), tx.getScaleY(), settings.glowIntensity(), light, fractional,
-                g.getFontRenderContext().getAntiAliasingHint());
+        boolean fractional = g.getRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS) == RenderingHints.VALUE_FRACTIONALMETRICS_ON;
+        var params = new GlowParams(tx.getScaleX(), tx.getScaleY(), settings.glowIntensity(), light, fractional,
+                g.getFontRenderContext().getAntiAliasingHint(), settings.value("overlay.style").equals("classic"));
         int pad = params.padUser();
-        PaintFrame f = effects.scanner().scan(g, clip, pad, settings.gradientActive() && effects.skipSelectedText());
-        GlowService service = GlowService.getInstance();
-        boolean includeCjk = settings.cjkGradientEnabled();
-
-        Graphics2D device = null;
-        List<GlowSpec> requests = null;
-        List<Rectangle> repaints = null;
-        // 编辑器组件绘制前已把平移对齐到整数设备像素（PaintUtil.alignTxToInt），这里取整只是保险
-        int originX = (int) Math.round(tx.getTranslateX());
+        var frame = effects.scanner().scan(g, clip, pad, settings.gradientActive() && effects.skipSelectedText());
+        var pass = new GlowPass(tx, clip, pad);
+        Graphics2D device = (Graphics2D) g.create();
         try {
-            for (int line = 0; line < f.lineCount; line++) {
-                int top = f.lineTop[line];
-                GlowSpec spec = GlowSpec.create(f, line, params, effects.deriver(), includeCjk);
-                Drawn previous = drawn.get(top);
-                if (spec != null && previous != null && spec.equals(previous.spec)) {
-                    spec = previous.spec; // 复用实例，后续比较走引用相等
-                }
-                GlowImage image = spec == null ? null : service.lookup(spec);
-                boolean pending = spec != null && image == null;
-                GlowImage show = image;
-                if (pending && previous != null && previous.startOffset == f.lineStart[line]) {
-                    show = previous.shown;
-                }
-                if (show != null && show.isEmpty()) {
-                    show = null;
-                }
-
-                if (show != null) {
-                    if (device == null) {
-                        device = (Graphics2D) g.create();
-                        device.setTransform(new AffineTransform()); // 设备空间：clip 保持不变，贴图走 1:1 快速路径
-                    }
-                    int deviceTop = (int) Math.round(tx.getScaleY() * top + tx.getTranslateY());
-                    device.drawImage(show.image(), originX + show.offsetX(), deviceTop + show.offsetY(), null);
-                }
-
-                Drawn state = previous;
-                if (state == null) {
-                    state = new Drawn();
-                    drawn.put(top, state);
-                } else if (state.shown != show && (state.shown != null || show != null)) {
-                    Rectangle changed = union(state.shownBounds, bounds(show, top, tx, new Rectangle()));
-                    if (!changed.isEmpty() && !clip.contains(changed)) {
-                        if (repaints == null) {
-                            repaints = new ArrayList<>();
-                        }
-                        repaints.add(changed);
-                    }
-                }
-                state.startOffset = f.lineStart[line];
-                state.spec = spec;
-                state.shown = show;
-                state.pending = pending;
-                bounds(show, top, tx, state.shownBounds);
-                specBounds(spec, top, pad, state.specBounds);
-                if (pending) {
-                    if (requests == null) {
-                        requests = new ArrayList<>();
-                    }
-                    requests.add(spec);
-                }
+            device.setTransform(new AffineTransform());
+            for (int line = 0; line < frame.lineCount; line++) {
+                GlowSpec spec = GlowSpec.create(frame, line, params, effects.deriver(), settings.cjkGradientEnabled());
+                paintLine(device, pass, frame.lineTop[line], frame.lineStart[line], spec);
             }
-        } finally {
-            if (device != null) {
-                device.dispose();
-            }
-        }
-
+        } finally { device.dispose(); }
         prune(pad);
-        // 先公布「正在等哪些图」再提交任务：后台线程开工前会据此判断是否还需要
         publishWanted();
-        if (requests != null) {
-            for (GlowSpec spec : requests) {
-                service.request(spec, this);
-            }
+        for (GlowSpec request : pass.requests) pass.service.request(request, this);
+        for (Rectangle r : pass.repaints) effects.editor().getContentComponent().repaint(r);
+    }
+
+    private static final class GlowPass {
+        final AffineTransform tx;
+        final Rectangle clip;
+        final int pad;
+        final int originX;
+        final GlowService service = GlowService.getInstance();
+        final List<GlowSpec> requests = new ArrayList<>();
+        final List<Rectangle> repaints = new ArrayList<>();
+        GlowPass(AffineTransform tx, Rectangle clip, int pad) {
+            this.tx = tx;
+            this.clip = clip;
+            this.pad = pad;
+            originX = (int) Math.round(tx.getTranslateX());
         }
-        if (repaints != null) {
-            JComponent component = effects.editor().getContentComponent();
-            for (Rectangle r : repaints) {
-                component.repaint(r);
-            }
+    }
+
+    private void paintLine(Graphics2D device, GlowPass pass, int top, int start, GlowSpec spec) {
+        Drawn previous = drawn.get(top);
+        if (spec != null && previous != null && spec.equals(previous.spec)) spec = previous.spec;
+        GlowImage fresh = spec == null ? null : pass.service.lookup(spec);
+        boolean pending = spec != null && fresh == null;
+        GlowImage show = pending && previous != null && start == previous.startOffset ? previous.shown : fresh;
+        if (show != null && show.isEmpty()) show = null;
+        if (show != null) {
+            int deviceTop = (int) Math.round(pass.tx.getScaleY() * top + pass.tx.getTranslateY());
+            device.drawImage(show.image(), pass.originX + show.offsetX(), deviceTop + show.offsetY(), null);
         }
+        Drawn state = previous;
+        if (state == null) {
+            state = new Drawn();
+            drawn.put(top, state);
+        } else if (state.shown != show) {
+            Rectangle changed = union(state.shownBounds, bounds(show, top, pass.tx, new Rectangle()));
+            if (!changed.isEmpty() && !pass.clip.contains(changed)) pass.repaints.add(changed);
+        }
+        state.startOffset = start;
+        state.spec = spec;
+        state.shown = show;
+        state.pending = pending;
+        bounds(show, top, pass.tx, state.shownBounds);
+        specBounds(spec, top, pass.pad, state.specBounds);
+        if (pending) pass.requests.add(spec);
     }
 
     /** 新图就绪：重绘仍在等这张图的行（连同旧图与新图可能覆盖的范围） */

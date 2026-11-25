@@ -73,8 +73,6 @@ final class FrameScanner {
     private FontRenderContext frc;
     private Object textAntialiasing;
     private FontPreferences preferences;
-    /** 编辑器的字符网格；null = 不在网格模式 */
-    private EditorGrid grid;
     private int foldCount;
     private int[] foldStart = new int[16];
     private int[] foldEnd = new int[16];
@@ -118,7 +116,6 @@ final class FrameScanner {
             frc = null;
             textAntialiasing = null;
             preferences = null;
-            grid = null;
         }
         return frame;
     }
@@ -168,8 +165,6 @@ final class FrameScanner {
         textAntialiasing = frc.getAntiAliasingHint();
         updateProbeContext();
         preferences = editor.getColorsScheme().getFontPreferences();
-        grid = EditorGrid.of(editor);
-        frame.gridUnit = grid != null ? grid.unit : 0;
         collector.prepare(editor, rangeStart > 0 ? DocumentUtil.getPreviousCodePointOffset(document, rangeStart) : 0,
                 rangeStart, rangeEnd);
         collectFolds(rangeStart, rangeEnd);
@@ -178,6 +173,10 @@ final class FrameScanner {
             collectSelection(rangeStart, rangeEnd);
         }
 
+        collectLines(first, last, rangeStart, rangeEnd, clip, padUser);
+    }
+
+    private void collectLines(int first, int last, int rangeStart, int rangeEnd, Rectangle clip, int padUser) {
         int lineStart = rangeStart;
         for (int visualLine = first; visualLine <= last; visualLine++) {
             int lineEnd = visualLine < last ? visualLineStart(visualLine + 1) : rangeEnd;
@@ -397,41 +396,27 @@ final class FrameScanner {
     }
 
     private void addPiece(int start, int end, FontInfo font) {
-        Point2D point = editor.offsetToPoint2D(start, true, false);
-        if ((int) point.getY() != lineTop) {
-            return; // 坐标换算落到了别的视觉行（不应发生），宁可不画
-        }
+        Point2D first = editor.offsetToPoint2D(start, true, false);
+        Point2D last = editor.offsetToPoint2D(end, false, true);
+        if ((int) first.getY() != lineTop || (int) last.getY() != lineTop) return;
+        float x = (float) first.getX();
+        float actualWidth = (float) last.getX() - x;
+        if (actualWidth <= 0) return;
         int base = frame.textBase;
-        float x = (float) point.getX();
-        float width = 0;
-        boolean aligned = false;
-        for (int i = start; i < end; i++) {
-            char c = frame.chars[i - base];
-            float advance = font.charWidth2D(c);
-            if (grid == null) {
-                // 与 SimpleTextFragment 的 myCharPositions 同样从片段起点累加：编辑器逐字的位置
-                frame.charX[i - base] = x + width;
-                width += advance;
-                continue;
-            }
-            // 字符网格：与 TextFragment.adjustedWidth 相同，字宽与格宽差得太多就占满格子，字形在格子里居中
-            float cell = grid.cellWidth(c);
-            frame.charCell[i - base] = cell;
-            if (Math.abs(advance - cell) < TextPieces.GRID_TOLERANCE) {
-                frame.charX[i - base] = x + width;
-                width += advance;
-            } else {
-                frame.charX[i - base] = x + width + (cell - advance) / 2;
-                width += cell;
-                aligned = true;
-            }
+        int from = start - base, to = end - base;
+        float naturalWidth = 0;
+        for (int i = from; i < to; i++) {
+            frame.charX[i] = x + naturalWidth;
+            frame.charCell[i] = font.charWidth2D(frame.chars[i]);
+            naturalWidth += frame.charCell[i];
         }
-        int piece = frame.addPiece(start - base, end - base, x, width,
-                frame.fontIndex(font.getFont()), frame.selectionState(start, end));
+        boolean adjusted = Math.abs(actualWidth - naturalWidth) >= TextPieces.GRID_TOLERANCE;
+        if (adjusted && !EditorGrid.fit(from, to, x, frame.charX, frame.charCell,
+                index -> xOf(base + index, false))) return;
+        int piece = frame.addPiece(from, to, x, actualWidth, frame.fontIndex(font.getFont()), frame.selectionState(start, end));
         frame.pieceNativeRisk[piece] = nativeRisk(frame.pieceCjk[piece], font.getFont());
-        // 需要复杂排版的 piece 由 TextPieces.alignToGrid 移动整段的字形位置，不逐字画
-        frame.pieceGridAligned[piece] = aligned
-                && !TextPieces.needsLayout(font.getFont(), frame.chars, start - base, end - base);
+        frame.pieceGridAligned[piece] = adjusted;
+        frame.hasMeasuredCells |= adjusted;
     }
 
     /**

@@ -50,6 +50,7 @@ dependencies {
 
     // 纯 Java 单元测试（颜色数学、设置规范化等），不依赖 IntelliJ 测试框架
     implementation("org.mozilla:rhino:1.9.2")
+    implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0")
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -140,6 +141,7 @@ tasks {
 
     // 许可证随插件 jar 分发
     processResources {
+        from(layout.projectDirectory.file("../../packages/renderer-runtime/assets/caiyun.webp")) { into("woodfish") }
         from(layout.projectDirectory) {
             include("LICENSE", "THIRD_PARTY_NOTICES.md")
             into("META-INF")

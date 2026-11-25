@@ -48,7 +48,6 @@ import java.util.Map;
  */
 final class GradientRenderer implements CustomHighlighterRenderer {
 
-    private static final float[] FRACTIONS = {0f, 0.5f, 1f};
     private static final int PAINT_CACHE_CAPACITY = 512;
 
     /**
@@ -57,7 +56,7 @@ final class GradientRenderer implements CustomHighlighterRenderer {
      * MultipleGradientPaint 把颜色查找表缓存在画笔实例里，软件渲染管线（Windows 上 IDE 默认关闭 D3D）
      * 每次新建画笔都要重算一遍。
      */
-    private record PaintKey(int light, int base, int dark, int width4, int height4) {
+    private record PaintKey(java.util.List<Color> stops, double angle, int width4, int height4) {
     }
 
     private final SyntaxEffects effects;
@@ -69,7 +68,6 @@ final class GradientRenderer implements CustomHighlighterRenderer {
             return size() > PAINT_CACHE_CAPACITY;
         }
     };
-    private double paintsAngle = Double.NaN;
 
     GradientRenderer(SyntaxEffects effects) {
         this.effects = effects;
@@ -103,99 +101,65 @@ final class GradientRenderer implements CustomHighlighterRenderer {
     void clearCaches() {
         paints.clear();
         glyphs.clear();
-        paintsAngle = Double.NaN;
     }
 
-    private void paintGradient(Graphics2D g, EffectSettings settings) {
-        Rectangle clip = effects.clipOf(g);
-        if (clip == null) {
-            return;
-        }
-        PaintFrame f = effects.scanner().scan(g, clip, 0, effects.skipSelectedText());
-        if (f.pieceCount == 0) {
-            return;
-        }
-        double angle = settings.angle();
-        if (Double.compare(angle, paintsAngle) != 0) {
-            paints.clear();
-            paintsAngle = angle;
-        }
-        TokenColorDeriver deriver = effects.deriver();
+    private record DrawPass(Graphics2D graphics, AffineTransform transform, FontRenderContext frc,
+                            Rectangle clip, PaintFrame frame, EffectSettings settings) {}
 
-        Graphics2D gg = (Graphics2D) g.create();
+    private void paintGradient(Graphics2D graphics, EffectSettings settings) {
+        Rectangle clip = effects.clipOf(graphics);
+        if (clip == null) return;
+        PaintFrame frame = effects.scanner().scan(graphics, clip, 0, effects.skipSelectedText());
+        if (frame.pieceCount == 0) return;
+        Graphics2D g = (Graphics2D) graphics.create();
         try {
-            FontRenderContext frc = gg.getFontRenderContext();
-            AffineTransform base = gg.getTransform();
-            // LcdGradientPainter 按「缩放 + 平移」换算设备像素；编辑器不会斜切或旋转，遇到时只是不画有风险的 piece
-            boolean axisAligned = base.getShearX() == 0 && base.getShearY() == 0;
-            int clipTop = clip.y;
-            int clipBottom = clip.y + clip.height;
-            for (int line = 0; line < f.lineCount; line++) {
-                int top = f.lineTop[line];
-                if (top >= clipBottom || top + f.lineHeight <= clipTop) {
-                    continue;
-                }
-                float baseline = top + f.ascent;
-                for (int t = f.lineTokenFrom[line]; t < f.lineTokenTo[line]; t++) {
-                    // 斜体、宽字形会伸出逻辑边界，按 1em 留余量判断是否落在 clip 里
-                    float margin = f.tokenEm[t];
-                    float clipLeft = clip.x - margin;
-                    float clipRight = clip.x + clip.width + margin;
-                    if (f.tokenX1[t] < clipLeft || f.tokenX0[t] > clipRight) {
-                        continue;
-                    }
-                    TokenColors colors = deriver.derive(f.tokenColor[t], f.tokenPunctuation[t]);
-                    if (colors.light().getRGB() == colors.base().getRGB()
-                            && colors.dark().getRGB() == colors.base().getRGB()) {
-                        continue; // 渐变退化成纯色：编辑器画的就是它，重画只会让字变粗
-                    }
-                    // 原版 padding-inline: 0.12em 让渐变盒子比文字略宽，两端的浅 / 深色不会被字形截掉一半
-                    float pad = 0.12f * f.tokenEm[t];
-                    int boxX = (int) Math.floor(f.tokenX0[t] - pad);
-                    int boxY = (int) Math.floor(f.tokenTop[t]);
-                    LinearGradientPaint paint = paint(colors, f.tokenX1[t] + pad - boxX, f.tokenBottom[t] - boxY, angle);
-                    if (paint == null) {
-                        continue;
-                    }
-                    // 只按整数平移：pieceX − boxX 是精确的浮点差，变换后的设备坐标与编辑器画字时完全相同
-                    gg.setTransform(base);
-                    gg.translate(boxX, boxY);
-                    gg.setPaint(paint);
-                    double[] ends = null;
-                    for (int p = f.tokenPieceFrom[t]; p < f.tokenPieceTo[t]; p++) {
-                        float x = f.pieceX[p];
-                        if (x > clipRight || x + f.pieceWidth[p] < clipLeft) {
-                            continue;
-                        }
-                        byte selection = f.pieceSelection[p];
-                        if (selection == PaintFrame.SELECTION_FULL) {
-                            continue; // 方案定义了选区前景色：选中文字保持编辑器的颜色
-                        }
-                        if (f.pieceCjk[p] && !settings.cjkGradientEnabled()) {
-                            continue; // 用户关闭了中日韩效果：保留 IDE 原生单次绘制
-                        }
-                        if (f.pieceNativeRisk[p]) {
-                            // 原生光栅化的字不能用渐变画笔（会退成灰度、逐字错位成重影）：改用逐字纯色、保留 LCD
-                            if (axisAligned) {
-                                if (ends == null) {
-                                    ends = endpoints(paint);
-                                }
-                                solid.paint(gg, f, t, p, ends, colors.light().getRGB(), colors.base().getRGB(),
-                                        colors.dark().getRGB(), boxX, boxY, baseline, frc, glyphs);
-                            }
-                            continue;
-                        }
-                        Font font = f.fonts[f.pieceFont[p]];
-                        if (selection == PaintFrame.SELECTION_NONE) {
-                            drawPiece(gg, f, p, font, boxX, boxY, baseline, frc);
-                        } else {
-                            drawUnselected(gg, f, p, 2 * margin, font, boxX, boxY, baseline, frc);
-                        }
-                    }
+            DrawPass pass = new DrawPass(g, g.getTransform(), g.getFontRenderContext(), clip, frame, settings);
+            for (int line = 0; line < frame.lineCount; line++) {
+                int top = frame.lineTop[line];
+                if (top >= clip.y + clip.height || top + frame.lineHeight <= clip.y) continue;
+                for (int token = frame.lineTokenFrom[line]; token < frame.lineTokenTo[line]; token++) {
+                    paintToken(pass, token, top + frame.ascent);
                 }
             }
         } finally {
-            gg.dispose();
+            g.dispose();
+        }
+    }
+
+    private void paintToken(DrawPass pass, int token, float baseline) {
+        PaintFrame f = pass.frame();
+        float margin = f.tokenEm[token];
+        float left = pass.clip().x - margin;
+        float right = pass.clip().x + pass.clip().width + margin;
+        if (f.tokenX1[token] < left || f.tokenX0[token] > right) return;
+        TokenColors colors = effects.deriver().derive(f.tokenColor[token], f.tokenPunctuation[token]);
+        if (colors.solidBase()) return;
+        float pad = 0.12f * margin;
+        int boxX = (int) Math.floor(f.tokenX0[token] - pad);
+        int boxY = (int) Math.floor(f.tokenTop[token]);
+        double angle = colors.angle() < 0 ? pass.settings().angle() : colors.angle();
+        LinearGradientPaint paint = paint(colors, f.tokenX1[token] + pad - boxX, f.tokenBottom[token] - boxY, angle);
+        if (paint == null) return;
+        Graphics2D g = pass.graphics();
+        g.setTransform(pass.transform());
+        g.translate(boxX, boxY);
+        g.setPaint(paint);
+        for (int piece = f.tokenPieceFrom[token]; piece < f.tokenPieceTo[token]; piece++) {
+            if (f.pieceX[piece] > right || f.pieceX[piece] + f.pieceWidth[piece] < left) continue;
+            if (f.pieceSelection[piece] == PaintFrame.SELECTION_FULL) continue;
+            if (f.pieceCjk[piece] && !pass.settings().cjkGradientEnabled()) continue;
+            if (f.pieceNativeRisk[piece]) {
+                if (pass.transform().getShearX() == 0 && pass.transform().getShearY() == 0) {
+                    solid.paint(g, f, token, piece, endpoints(paint), colors.stops(), boxX, boxY, baseline, pass.frc(), glyphs);
+                }
+                continue;
+            }
+            Font font = f.fonts[f.pieceFont[piece]];
+            if (f.pieceSelection[piece] == PaintFrame.SELECTION_NONE) {
+                drawPiece(g, f, piece, font, boxX, boxY, baseline, pass.frc());
+            } else {
+                drawUnselected(g, f, piece, 2 * margin, font, boxX, boxY, baseline, pass.frc());
+            }
         }
     }
 
@@ -249,7 +213,7 @@ final class GradientRenderer implements CustomHighlighterRenderer {
         int from = f.pieceFrom[piece];
         int to = f.pieceTo[piece];
         if (TextPieces.needsLayout(font, f.chars, from, to)) {
-            g.drawGlyphVector(glyphs.get(font, frc, f.chars, from, to, f.gridCells(), f.gridUnit),
+            g.drawGlyphVector(glyphs.get(font, frc, f.chars, from, to, f.pieceGridAligned[piece] ? f.charCell : null),
                     f.pieceX[piece] - boxX, baseline - boxY);
         } else if (f.pieceGridAligned[piece]) {
             TextPieces.drawEach(g, font, f.chars, f.charX, from, to, -boxX, baseline - boxY);
@@ -266,7 +230,7 @@ final class GradientRenderer implements CustomHighlighterRenderer {
 
     /** 盒子 (0, 0, width, height) 上的 CSS 线性渐变；两端点重合（盒子退化）时返回 null */
     private LinearGradientPaint paint(TokenColors colors, float width, float height, double angle) {
-        PaintKey key = new PaintKey(colors.light().getRGB(), colors.base().getRGB(), colors.dark().getRGB(),
+        PaintKey key = new PaintKey(colors.stops(), angle,
                 Math.round(width * 4), Math.round(height * 4));
         LinearGradientPaint cached = paints.get(key);
         if (cached != null || paints.containsKey(key)) {
@@ -276,8 +240,11 @@ final class GradientRenderer implements CustomHighlighterRenderer {
         LinearGradientPaint paint = null;
         double length = Math.hypot(e[2] - e[0], e[3] - e[1]);
         if (Double.isFinite(length) && length > 1e-3) {
-            paint = new LinearGradientPaint((float) e[0], (float) e[1], (float) e[2], (float) e[3], FRACTIONS,
-                    new Color[] {colors.light(), colors.base(), colors.dark()},
+            Color[] stops = colors.stops().toArray(Color[]::new);
+            float[] fractions = new float[stops.length];
+            for (int i = 0; i < stops.length; i++) fractions[i] = (float) i / (stops.length - 1);
+            paint = new LinearGradientPaint((float) e[0], (float) e[1], (float) e[2], (float) e[3], fractions,
+                    stops,
                     MultipleGradientPaint.CycleMethod.NO_CYCLE);
         }
         paints.put(key, paint);

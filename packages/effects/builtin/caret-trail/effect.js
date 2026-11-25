@@ -141,15 +141,20 @@ module.exports = function caretTrail(ctx) {
       const r = caret.clip;
       const dx = pos.x - caret.x,
         dy = y - caret.y;
-      const xs = trail.points.map((p) => p.x),
-        ys = trail.points.map((p) => p.y);
-      const left = Math.floor(Math.max(r.left + dx, Math.min(x, ...xs) - width));
-      const top = Math.floor(Math.max(r.top + dy, Math.min(y, ...ys) - width));
-      const w = Math.max(1, Math.ceil(Math.min(r.right + dx, Math.max(x, ...xs) + width)) - left);
-      const h = Math.max(
-        1,
-        Math.ceil(Math.min(r.bottom + dy, Math.max(y, ...ys) + caret.height + width)) - top
-      );
+      let minX = x,
+        maxX = x,
+        minY = y,
+        maxY = y;
+      for (const point of trail.points) {
+        minX = Math.min(minX, point.x);
+        maxX = Math.max(maxX, point.x);
+        minY = Math.min(minY, point.y);
+        maxY = Math.max(maxY, point.y);
+      }
+      const left = Math.floor(Math.max(r.left + dx, minX - width));
+      const top = Math.floor(Math.max(r.top + dy, minY - width));
+      const w = Math.max(1, Math.ceil(Math.min(r.right + dx, maxX + width)) - left);
+      const h = Math.max(1, Math.ceil(Math.min(r.bottom + dy, maxY + caret.height + width)) - top);
       const c = state.canvas,
         ratio = window.devicePixelRatio || 1;
       state.left = left;

@@ -1,5 +1,6 @@
 package com.github.yyyyolo7a79.woodfish.ui.actions;
 
+import com.github.yyyyolo7a79.woodfish.ui.WoodfishBundle;
 import com.github.yyyyolo7a79.woodfish.ui.WoodfishDiagnostics;
 import com.github.yyyyolo7a79.woodfish.ui.WoodfishNotifier;
 import com.intellij.notification.NotificationAction;
@@ -25,10 +26,10 @@ public final class CopyDiagnosticsAction extends DumbAwareAction {
         Project project = e.getProject();
         AnAction[] actions = project == null
                 ? new AnAction[0]
-                : new AnAction[]{NotificationAction.createSimpleExpiring("在编辑器中查看",
+                : new AnAction[]{NotificationAction.createSimpleExpiring(WoodfishBundle.text("diagnostics.open"),
                         () -> WoodfishDiagnostics.openInEditor(project, report))};
-        WoodfishNotifier.info(project, "诊断信息已复制到剪贴板",
-                "提交 GitHub issue 时直接粘贴即可。", actions);
+        WoodfishNotifier.info(project, WoodfishBundle.text("diagnostics.copied"),
+                WoodfishBundle.text("diagnostics.paste"), actions);
     }
 
     @Override

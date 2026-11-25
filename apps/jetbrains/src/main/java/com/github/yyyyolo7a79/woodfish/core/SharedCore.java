@@ -1,4 +1,4 @@
-package com.github.yyyyolo7a79.woodfish.core.color;
+package com.github.yyyyolo7a79.woodfish.core;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
@@ -12,12 +12,24 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /** Pure, bundled theme-core. Call only on a color cache miss. */
-final class SharedCore {
+public final class SharedCore {
     private static final Scriptable API = load();
 
     private SharedCore() {}
 
     private static Scriptable load() {
+        // Rhino discovers its regular-expression provider via ServiceLoader on first use.
+        Thread thread = Thread.currentThread();
+        ClassLoader previous = thread.getContextClassLoader();
+        try {
+            thread.setContextClassLoader(SharedCore.class.getClassLoader());
+            return loadBundle();
+        } finally {
+            thread.setContextClassLoader(previous);
+        }
+    }
+
+    private static Scriptable loadBundle() {
         try (Context cx = Context.enter();
              var reader = new InputStreamReader(Objects.requireNonNull(
                      SharedCore.class.getResourceAsStream("/woodfish/theme-core.js")), StandardCharsets.UTF_8)) {
@@ -31,7 +43,7 @@ final class SharedCore {
     }
 
     // The shared JS gamut cache belongs to this realm. Calls may arrive from the glow worker or EDT.
-    static synchronized Object call(String name, Object... args) {
+    public static synchronized Object call(String name, Object... args) {
         try (Context cx = Context.enter()) {
             cx.setLanguageVersion(Context.VERSION_ES6);
             var fn = (Function) ScriptableObject.getProperty(API, name);
@@ -39,7 +51,7 @@ final class SharedCore {
         }
     }
 
-    static double[] numbers(String name, Object... args) {
+    public static double[] numbers(String name, Object... args) {
         var array = (NativeArray) call(name, args);
         double[] values = new double[(int) array.getLength()];
         for (int i = 0; i < values.length; i++) values[i] = ((Number) array.get(i, array)).doubleValue();

@@ -16,6 +16,10 @@ import com.intellij.openapi.editor.event.EditorFactoryListener;
 import com.intellij.openapi.editor.ex.EditorEx;
 import org.jetbrains.annotations.NotNull;
 
+import com.github.yyyyolo7a79.woodfish.ui.ThemeAppearance;
+import com.intellij.ide.ui.LafManager;
+import com.intellij.ide.ui.LafManagerListener;
+import javax.swing.UIManager;
 import java.awt.Component;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class WoodfishEditorManager implements EditorFactoryListener {
 
+    private static final ThemeAppearance APPEARANCE = new ThemeAppearance();
     private static final Logger LOG = Logger.getInstance(WoodfishEditorManager.class);
 
     private static final Map<Editor, SyntaxEffects> INSTALLED = new ConcurrentHashMap<>();
@@ -71,6 +76,8 @@ public final class WoodfishEditorManager implements EditorFactoryListener {
             disposeQuietly(effects);
         }
         INSTALLED.clear();
+        EditorBackdrop.clearCache();
+        if (APPEARANCE.restore()) LafManager.getInstance().repaintUI();
     }
 
     // ==================== 挂载 ====================
@@ -132,12 +139,22 @@ public final class WoodfishEditorManager implements EditorFactoryListener {
         // 绑定到插件级 Disposable：动态卸载插件时自动断开，见 WoodfishPluginDisposable
         var connection = app.getMessageBus().connect(WoodfishPluginDisposable.getInstance());
 
-        connection.subscribe(WoodfishSettingsListener.TOPIC, settings ->
-                onEdt(() -> INSTALLED.values().forEach(e -> e.settingsChanged(settings))));
+        syncAppearance();
+        connection.subscribe(LafManagerListener.TOPIC, manager -> onEdt(WoodfishEditorManager::syncAppearance));
+        connection.subscribe(WoodfishSettingsListener.TOPIC, settings -> onEdt(() -> {
+            syncAppearance();
+            INSTALLED.values().forEach(e -> e.settingsChanged(settings));
+        }));
 
         // 配色方案切换（含切换 UI 主题时随之切换的编辑器配色）：派生颜色全部作废
         connection.subscribe(EditorColorsManager.TOPIC, (EditorColorsListener) scheme ->
                 onEdt(() -> INSTALLED.values().forEach(SyntaxEffects::schemeChanged)));
+    }
+
+    private static void syncAppearance() {
+        if (APPEARANCE.apply(UIManager.getLookAndFeelDefaults(), WoodfishSettings.getInstance().effective())) {
+            LafManager.getInstance().repaintUI();
+        }
     }
 
     private static void onEdt(Runnable task) {

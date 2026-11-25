@@ -6,19 +6,19 @@
 
     <description><![CDATA[
     <p><a href="https://github.com/woodfishhhh/Woodfish-Theme">Woodfish Theme</a> for JetBrains IDEs: 15 color themes
-    (UI theme and editor color scheme together) that match the VS Code themes color for color, plus an optional
-    gradient and glow overlay for code text.</p>
+    (UI theme and editor color scheme together) that match the VS Code themes color for color, with shared syntax gradients, glow and editor effects.</p>
     <ul>
       <li><b>15 themes</b>: Woodfish Dark, Dracula, Light, Black, Neon, One Dark Pro, Tokyo Night, Catppuccin Mocha,
       Catppuccin Latte, Nord, GitHub Dark, GitHub Light, Night Owl, Ayu Mirage and Gruvbox Dark. Choose one in
       Settings | Appearance &amp; Behavior | Appearance.</li>
-      <li><b>Gradient syntax</b>: every token gets a gradient centred on its own color.</li>
+      <li><b>Gradient syntax</b>: the five original themes use their designed stops. Other colors follow the shared OKLCH algorithm.</li>
       <li><b>Glow</b>: adjustable layered glow under the text.</li>
       <li><b>CJK included</b>: Chinese, Japanese and Korean text gets the same treatment without ghosting.</li>
-      <li><b>Presets</b>: built-in looks and your own saved combinations.</li>
+      <li><b>Editor effects</b>: a rainbow caret, caret trails, typing particles and image backgrounds.</li>
+      <li><b>Presets</b>: seven built-in looks and your own saved combinations.</li>
     </ul>
     <p>Woodfish Theme 的 JetBrains 版：15 套主题（界面主题加编辑器配色），颜色与 VS Code 版一一对应；
-    另有可选的渐变与发光效果，参数位于 Settings | Tools | Woodfish Theme。</p>
+    在“设置 → 工具 → Woodfish Theme”中调整渐变、光晕、彩虹光标、输入动效、背景和圆角。</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -58,47 +58,32 @@
         <notificationGroup id="Woodfish Theme" displayType="BALLOON"/>
     </extensions>
 
+    <resource-bundle>messages.WoodfishBundle</resource-bundle>
+
     <actions>
-        <group id="Woodfish.Menu" text="Woodfish Theme" popup="true"
-               description="Woodfish 渐变与发光效果层">
+        <group id="Woodfish.Menu" popup="true">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
 
             <action id="Woodfish.ToggleOverlay"
-                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleOverlayAction"
-                    text="Woodfish 通用叠层"
-                    description="整体开关渐变与发光；关闭后保留全部参数"/>
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleOverlayAction"/>
             <action id="Woodfish.ToggleSyntaxGradient"
-                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleSyntaxGradientAction"
-                    text="Woodfish 彩色字体（渐变）"
-                    description="为代码文字叠加以原色为中点的 OKLCH 渐变"/>
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleSyntaxGradientAction"/>
             <action id="Woodfish.ToggleGlow"
-                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleGlowAction"
-                    text="Woodfish 发光字体"
-                    description="在代码文字下方绘制分层发光"/>
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ToggleGlowAction"/>
             <separator/>
             <action id="Woodfish.ApplyPreset"
-                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ApplyPresetAction"
-                    text="选择效果预设…"
-                    description="一键切换柔和护眼、霓虹全开等效果组合"/>
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.ApplyPresetAction"/>
             <action id="Woodfish.SavePreset"
-                    class="com.github.yyyyolo7a79.woodfish.ui.actions.SavePresetAction"
-                    text="将当前效果保存为预设…"
-                    description="把当前的渐变与发光参数保存为自定义预设"/>
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.SavePresetAction"/>
             <separator/>
             <action id="Woodfish.OpenSettings"
-                    class="com.github.yyyyolo7a79.woodfish.ui.actions.OpenSettingsAction"
-                    text="打开 Woodfish 设置"
-                    description="打开 Settings | Tools | Woodfish Theme"/>
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.OpenSettingsAction"/>
             <action id="Woodfish.CopyDiagnostics"
-                    class="com.github.yyyyolo7a79.woodfish.ui.actions.CopyDiagnosticsAction"
-                    text="生成 Woodfish 诊断信息"
-                    description="把 IDE、配色方案与 Woodfish 设置复制到剪贴板，方便提 issue"/>
+                    class="com.github.yyyyolo7a79.woodfish.ui.actions.CopyDiagnosticsAction"/>
         </group>
 
         <!-- 不进菜单：状态栏点击时弹出，也可用 Find Action（Ctrl+Shift+A）搜到 -->
         <action id="Woodfish.ShowFeatureMenu"
-                class="com.github.yyyyolo7a79.woodfish.ui.actions.ShowFeatureMenuAction"
-                text="打开 Woodfish 功能菜单"
-                description="按分组列出 Woodfish 的全部开关与预设"/>
+                class="com.github.yyyyolo7a79.woodfish.ui.actions.ShowFeatureMenuAction"/>
     </actions>
 </idea-plugin>

@@ -20,6 +20,19 @@ public final class SharedDefaults {
         return values;
     }
 
+    public static java.awt.Color editorForeground(java.awt.Color background, java.awt.Color text) {
+        String key = String.format(java.util.Locale.ROOT, "foreground.%06X.%06X",
+                background.getRGB() & 0xffffff, text.getRGB() & 0xffffff);
+        String foreground = VALUES.getProperty(key);
+        return foreground == null ? text : java.awt.Color.decode(foreground);
+    }
+
+    public static java.util.BitSet characterSet(String name) {
+        var result = new java.util.BitSet();
+        for (String code : VALUES.getProperty(name).split(",")) result.set(Integer.parseInt(code));
+        return result;
+    }
+
     public static double number(String name) {
         return Double.parseDouble(Objects.requireNonNull(VALUES.getProperty(name), name));
     }

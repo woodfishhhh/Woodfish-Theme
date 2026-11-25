@@ -189,7 +189,23 @@ function render(palette, theme = sourceTheme(palette)) {
 }
 
 function outputs() {
-  return Object.assign(runtimeAssets(), ...WOODFISH_PALETTES.map((palette) => render(palette)));
+  const files = runtimeAssets();
+  for (const palette of WOODFISH_PALETTES) {
+    const theme = sourceTheme(palette);
+    Object.assign(files, render(palette, theme));
+    const { attributes, foreground, background } = editorChrome(
+      theme,
+      palette,
+      createResolver(theme.tokenColors)
+    );
+    const text = attributes.TEXT;
+    const editorForeground = opaque(foreground, background);
+    if (text.FOREGROUND !== editorForeground) {
+      files['woodfish/defaults.properties'] +=
+        'foreground.' + text.BACKGROUND + '.' + text.FOREGROUND + '=#' + editorForeground + '\n';
+    }
+  }
+  return files;
 }
 
 function themeIds() {

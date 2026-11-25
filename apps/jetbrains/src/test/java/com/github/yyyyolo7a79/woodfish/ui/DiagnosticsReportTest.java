@@ -16,14 +16,17 @@ class DiagnosticsReportTest {
     @Test
     void reportContainsEnvironmentAndAllParameters() {
         WoodfishState s = new WoodfishState();
+        s.hueShift = 24;
+        s.lightnessDelta = .06;
+        s.angle = 90;
         s.glowIntensity = 1.6;
         WoodfishPresets.saveCurrent(s, "夜间 \"引号\"");
         String report = DiagnosticsReport.format(facts("Demo"), s);
 
         for (String expected : new String[]{
-                "| Woodfish 版本 | 1.0.0 |",
+                UiLanguage.expected("| Woodfish 版本 | 1.0.0 |", "| Woodfish version | 1.0.0 |"),
                 "| Build | IU-243.28141.41 |",
-                "| 已挂载效果的编辑器 | 3 |",
+                UiLanguage.expected("| 已挂载效果的编辑器 | 3 |", "| Editors with effects | 3 |"),
                 "\"overlayEnabled\": true,",
                 "\"cjkGradientEnabled\": true,",
                 "\"hueShift\": 24,",
@@ -40,6 +43,6 @@ class DiagnosticsReportTest {
     @Test
     void pipesInValuesDoNotBreakTable() {
         String report = DiagnosticsReport.format(facts("A|B"), new WoodfishState());
-        assertTrue(report.contains("| 编辑器配色方案 | A\\|B |"), report);
+        assertTrue(report.contains(UiLanguage.expected("| 编辑器配色方案 | A\\|B |", "| Editor color scheme | A\\|B |")), report);
     }
 }

@@ -1,6 +1,9 @@
 package com.github.yyyyolo7a79.woodfish.core.color;
 
+import com.github.yyyyolo7a79.woodfish.core.SharedCore;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
@@ -24,6 +27,8 @@ public final class TokenColorDeriver {
     private final double lightnessDelta;
     private final double neutralChroma;
     private final double anchorHue;
+    private final Color background;
+    private final Color foreground;
     private final AtomicReferenceArray<Entry> cache = new AtomicReferenceArray<>(SETS * WAYS);
 
     /**
@@ -37,6 +42,13 @@ public final class TokenColorDeriver {
      */
     public TokenColorDeriver(double hueShift, double lightnessDelta, double neutralChroma,
                              double anchorHue) {
+        this(hueShift, lightnessDelta, neutralChroma, anchorHue, null, null);
+    }
+
+    public TokenColorDeriver(double hueShift, double lightnessDelta, double neutralChroma,
+                             double anchorHue, Color background, Color foreground) {
+        this.background = background;
+        this.foreground = foreground;
         this.hueShift = requireFinite(hueShift, "hueShift");
         this.lightnessDelta = requireFinite(lightnessDelta, "lightnessDelta");
         this.neutralChroma = requireFinite(neutralChroma, "neutralChroma");
@@ -76,9 +88,21 @@ public final class TokenColorDeriver {
     }
 
     private TokenColors compute(int argb, boolean punctuation) {
-        double[] c = SharedCore.numbers("symmetric", argb, punctuation, hueShift, lightnessDelta, neutralChroma, anchorHue);
-        return new TokenColors(new Color((int) c[0], true), new Color(argb, true), new Color((int) c[1], true),
-                new Color((int) c[2], true), new Color((int) c[3], true), new Color((int) c[4], true), c[5] != 0, punctuation);
+        Color base = new Color(argb, true);
+        if (background == null) {
+            double[] c = SharedCore.numbers("symmetric", argb, punctuation, hueShift, lightnessDelta, neutralChroma, anchorHue);
+            return new TokenColors(List.of(color(c[0]), base, color(c[1])), -1, base,
+                    color(c[2]), color(c[3]), color(c[4]), c[5] != 0, punctuation);
+        }
+        double[] c = SharedCore.numbers("token", argb, punctuation, hueShift, lightnessDelta, neutralChroma,
+                anchorHue, background.getRGB(), foreground.getRGB());
+        List<Color> stops = new ArrayList<>(c.length - 5);
+        for (int i = 5; i < c.length; i++) stops.add(color(c[i]));
+        return new TokenColors(stops, c[0], base, color(c[2]), color(c[3]), color(c[4]), c[1] != 0, punctuation);
+    }
+
+    private static Color color(double argb) {
+        return new Color((int) argb, true);
     }
 
     /** murmur3 的 fmix32：让相近的颜色（同一主题的色板往往只差几个通道值）散到不同的组 */

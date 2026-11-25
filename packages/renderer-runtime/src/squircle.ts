@@ -1,6 +1,11 @@
 // Obituary's fit for a continuous corner with Figma's 60% smoothing.
 export const SQUIRCLE_K = 1.78;
 
+/** Pixel radii below 5, circles and capsules retain the host shape. */
+export function scaleCornerRadius(px: number): number {
+  return px >= 5 && px < 100 ? px * SQUIRCLE_K : px;
+}
+
 /** Only Woodfish's own single-radius declarations pass through this builder. */
 export function prepareCornerRadii(css: string): string {
   return css.replace(
@@ -9,7 +14,7 @@ export function prepareCornerRadii(css: string): string {
       const priority = important ? ' !important' : '';
       const px = parseFloat(radius);
       const round = px >= 100 || radius.endsWith('%');
-      if (!round && px < 5) return original;
+      if (!round && Number.isFinite(px) && scaleCornerRadius(px) === px) return original;
       const shape =
         radius === 'inherit' ? 'inherit' : round ? 'round' : 'var(--squircle-shape, round)';
       const value =

@@ -1,3 +1,5 @@
+import { scaleCornerRadius } from '../../../../packages/renderer-runtime/src/squircle';
+import { motionCreate, motionEvent, motionFrame } from './inputMotion';
 // Java hands the bundled core plain numbers. No IDE objects enter the script.
 import {
   gamutMapOklch,
@@ -6,10 +8,18 @@ import {
   rgbToOklch,
 } from '../../../../packages/theme-core/src/color/oklch';
 import {
+  DEFAULT_ANCHOR_HUE,
+  deriveTokenGradient,
   offsetLightness,
   NEUTRAL_CHROMA_THRESHOLD,
   glowOpacities,
 } from '../../../../packages/theme-core/src/gradient/tokenGradient';
+import { requireCssColor } from '../../../../packages/theme-core/src/color/parse';
+import { detectGradientPreset } from '../../../../packages/theme-core/src/palettes/gradientPresets';
+import {
+  rankPaletteAnchorHue,
+  pickAccentHue,
+} from '../../../../packages/theme-core/src/gradient/anchorHue';
 import type { RgbColor } from '../../../../packages/theme-core/src/color/types';
 
 function oklch(r: number, g: number, b: number): number[] {
@@ -59,4 +69,73 @@ function symmetric(
   ];
 }
 
-Object.assign(globalThis, { WoodfishCore: { oklch, rgb, inGamut, offsetLightness, symmetric } });
+function css(argb: number): string {
+  return '#' + ((argb & 0xffffff) * 256 + (argb >>> 24)).toString(16).padStart(8, '0');
+}
+
+function packedCss(cssColor: string): number {
+  const color = requireCssColor(cssColor);
+  return packed(color, color.alpha);
+}
+
+function token(
+  argb: number,
+  punctuation: boolean,
+  hueShift: number,
+  lightnessDelta: number,
+  neutralChroma: number,
+  anchorHue: number,
+  background: number,
+  foreground: number
+): number[] {
+  const bg = css(background),
+    fg = css(foreground);
+  const colors = deriveTokenGradient(css(argb), {
+    punctuation,
+    hueShift,
+    lightnessDelta,
+    neutralChroma,
+    anchorHue,
+    background: bg,
+    foreground: fg,
+    preset: detectGradientPreset(bg, fg),
+  })!;
+  return [
+    colors.angle ?? -1,
+    Number(colors.neutral),
+    packedCss(colors.glowNear),
+    packedCss(colors.glowMid),
+    packedCss(colors.glowFar),
+    ...colors.stops.map(packedCss),
+  ];
+}
+
+function anchor(samplesJson: string, accentsJson: string): number {
+  const samples: [number, string][] = JSON.parse(samplesJson);
+  const accents: number[] = JSON.parse(accentsJson);
+  return (
+    rankPaletteAnchorHue(samples.map(([argb, weight]) => [css(argb), Number(weight)] as const)) ??
+    pickAccentHue(accents.map(css)) ??
+    DEFAULT_ANCHOR_HUE
+  );
+}
+
+function roundedArc(diameter: number): number {
+  return Math.round(2 * scaleCornerRadius(diameter / 2));
+}
+
+Object.assign(globalThis, {
+  WoodfishCore: {
+    roundedArc,
+    anchor,
+    oklch,
+    rgb,
+    inGamut,
+    offsetLightness,
+    symmetric,
+    token,
+    motionCreate,
+    motionEvent,
+    motionFrame,
+  },
+});

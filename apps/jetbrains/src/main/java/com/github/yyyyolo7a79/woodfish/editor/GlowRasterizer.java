@@ -48,7 +48,8 @@ final class GlowRasterizer {
             new Layer(GlowParams.NEAR, NEAR, NORMAL_ONLY),
             new Layer(GlowParams.PUNCTUATION_NEAR, NEAR, PUNCTUATION_ONLY),
     };
-    private static final Layer[] LIGHT = {new Layer(GlowParams.LIGHT, MID, ALL)};
+    private static final Layer[] LIGHT = {new Layer(GlowParams.LIGHT, MID, ALL), new Layer(GlowParams.LIGHT_NEAR, NEAR, ALL)};
+    private static final Layer[] CLASSIC = {new Layer(GlowParams.CLASSIC, FAR, ALL)};
 
     private GlowRasterizer() {
     }
@@ -72,7 +73,7 @@ final class GlowRasterizer {
         int[] accumulated = null;
         FontRenderContext editorFrc = params.editorContext();
 
-        for (Layer layer : params.light() ? LIGHT : DARK) {
+        for (Layer layer : params.light() ? LIGHT : params.classic() ? CLASSIC : DARK) {
             Arrays.fill(layerPixels, 0);
             if (!renderLayer(spec, layer, layerImage, originX, originY, width, height, editorFrc)) {
                 continue;
@@ -136,7 +137,7 @@ final class GlowRasterizer {
                 if (TextPieces.needsLayout(font, spec.text, from, to)) {
                     // 有风险的字体用编辑器的 FRC 排版，字形位置才与编辑器一致；网格模式下再照编辑器挪进格子
                     g.drawGlyphVector(TextPieces.layout(font, spec.nativeRisk[i] ? editorFrc : frc,
-                            spec.text, from, to, spec.cells), spec.x[i], spec.ascent);
+                            spec.text, from, to, spec.gridAligned[i] ? spec.cells : null), spec.x[i], spec.ascent);
                 } else if (spec.nativeRisk[i] || spec.gridAligned[i]) {
                     TextPieces.drawEach(g, font, spec.text, spec.glyphX, from, to, 0, spec.ascent);
                 } else {

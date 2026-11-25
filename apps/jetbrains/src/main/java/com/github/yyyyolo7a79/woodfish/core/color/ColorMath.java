@@ -1,5 +1,6 @@
 package com.github.yyyyolo7a79.woodfish.core.color;
 
+import com.github.yyyyolo7a79.woodfish.core.SharedCore;
 import java.awt.Color;
 
 /** Adapts Java2D colors to the shared sRGB, OKLCH and gamut functions. */
