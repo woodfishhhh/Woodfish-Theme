@@ -13,7 +13,8 @@ export type {
   ThemeSignatureHelpers,
 } from './textGradientEngine';
 export { RUN_VARIABLES, linkGradientRuns } from './gradientRuns';
-export { SQUIRCLE_K, buildSquircleCss, prepareCornerRadii } from './squircle';
+export { startNativeCorners } from './nativeCorners';
+export { SQUIRCLE_K, buildHostCornerCss, buildSquircleCss, prepareCornerRadii } from './squircle';
 export { createStyleManager } from './styleManager';
 export type { StyleManager, StyleManagerOptions } from './styleManager';
 export { createDisposerRegistry } from './disposers';

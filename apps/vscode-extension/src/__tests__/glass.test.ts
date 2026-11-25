@@ -96,6 +96,7 @@ describe('glass layer', () => {
     expect(buildRuntimeBootstrap(glassOnly, assets)).not.toBe('');
 
     const plainGlass = normalizeRuntimeSettings({
+      squircleCorners: { enabled: false },
       syntaxGradient: { enabled: false },
       glow: { enabled: false },
       glass: { enabled: true, reveal: false, mode: 'blur' },

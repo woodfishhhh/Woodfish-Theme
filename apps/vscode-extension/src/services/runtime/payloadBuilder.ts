@@ -1,4 +1,4 @@
-import { buildSquircleCss, prepareCornerRadii } from '@woodfish/renderer-runtime';
+import { buildHostCornerCss, prepareCornerRadii } from '@woodfish/renderer-runtime';
 import {
   CursorSettings,
   CursorThemeDefaultKey,
@@ -232,10 +232,10 @@ export function buildRuntimeCss(settings: ThemeRuntimeSettings, assets: RuntimeC
   const glass = buildGlassCss(safeSettings.glass);
   if (safeSettings.squircleCorners.enabled) {
     parts.push(
-      buildSquircleCss(
-        prepareCornerRadii(
-          '.monaco-workbench .quick-input-widget { border-radius: var(--vscode-cornerRadius-xLarge); }\n.monaco-workbench .quick-input-widget::before { border-radius: inherit; }'
-        )
+      buildHostCornerCss(
+        '.monaco-workbench',
+        ['medium', 'large', 'xLarge'].map((name) => '--vscode-cornerRadius-' + name),
+        ':where(.monaco-switch, .monaco-switch-thumb, [role="switch"], [role="radio"], .monaco-count-badge, .badge-content, .avatar, .accounts-avatar, .extension-badge, .chat-submit-button, input[type="radio"])'
       )
     );
     parts.push(prepareCornerRadii(glass));

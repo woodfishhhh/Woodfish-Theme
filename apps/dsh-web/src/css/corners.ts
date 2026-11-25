@@ -1,8 +1,8 @@
 import { buildSquircleCss } from '@woodfish/renderer-runtime';
 export { SQUIRCLE_K } from '@woodfish/renderer-runtime';
 
-/** dsh's radius tokens, declared on `:root`. */
-const RADIUS_TOKENS = ['xs', 'sm', 'md', 'lg', 'xl', 'panel'] as const;
+/** dsh declares these on :root. Its 4px xs token keeps its original size. */
+const RADIUS_TOKENS = ['sm', 'md', 'lg', 'xl', 'panel'] as const;
 
 /**
  * Continuous ("Apple") corners for dsh, the same system as Obituary's windows. dsh already

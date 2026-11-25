@@ -211,7 +211,7 @@ All settings live under `woodfishTheme.`. In the Settings UI they are grouped in
 }
 ```
 
-**Squircle corners** are on by default. To restore the original corners, turn off `woodfishTheme.squircleCorners.enabled` in VS Code, **Squircle corners** in Codex Appearance, or the corresponding switch in the dsh user script menu. Pill buttons keep their circular ends.
+**Squircle corners** are on by default. To restore the original corners, turn off `woodfishTheme.squircleCorners.enabled` in VS Code, **Squircle corners** in Codex Appearance, or the corresponding switch in the dsh user script menu. Buttons, cards, menus and dialogs use smooth corners. Avatars, pill buttons and corners below 5px keep their original geometry.
 
 ### Effect plugins
 

@@ -311,7 +311,7 @@
             "default": true,
             "scope": "application",
             "order": 5,
-            "markdownDescription": "**苹果圆角（Squircle corners）**：让浮层和快速选择框的直边平滑过渡到圆角。关闭后使用原来的圆角。"
+            "markdownDescription": "**苹果圆角（Squircle corners）**：让工作台的按钮、输入框、菜单和卡片使用平滑圆角。圆形、胶囊和小于 5px 的圆角保留原来的大小。"
           }
         }
       },

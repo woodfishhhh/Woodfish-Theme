@@ -90,6 +90,7 @@ export function shouldInstallOverlayBootstrap(settings: ThemeRuntimeSettings): b
     (safeSettings.syntaxGradient.enabled ||
       safeSettings.glow.enabled ||
       glassNeedsScript ||
+      safeSettings.squircleCorners.enabled ||
       safeSettings.effects.enabled)
   );
 }

@@ -175,6 +175,14 @@ describe('buildCodexCss', () => {
       expect(css[name].length).toBeGreaterThan(0);
     }
     expect(css.custom).toBe('.x { color: red }');
+    for (const exception of [
+      '.rounded-full',
+      '[role="switch"]',
+      '[data-slot="avatar"]',
+      '[data-slot="badge"]',
+      'input[type="radio"]',
+    ])
+      expect(css.corners).toContain(exception);
   });
 
   it('emits nothing for features that are off and no palette by default', () => {
@@ -193,6 +201,7 @@ describe('buildCodexCss', () => {
     for (const selector of attributeSelectors) {
       const allowed =
         registered.includes(selector) ||
+        selector.startsWith('[style*="border-radius:') ||
         selector.startsWith('[data-woodfish') ||
         selector.startsWith('[data-theme') ||
         selector === '[data-reduced-motion="true"]' ||

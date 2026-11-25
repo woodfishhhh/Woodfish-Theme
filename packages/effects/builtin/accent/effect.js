@@ -83,7 +83,7 @@ ${ctx.selectors.activeTab}::after {
   ${ctx.selectors.activeTab}::after { animation: none; background-size: 100% 100%; }
 }`);
     }
-    ctx.style(parts.join('\n\n'), true);
+    ctx.style(parts.join('\n\n'));
   }
 
   restyle();

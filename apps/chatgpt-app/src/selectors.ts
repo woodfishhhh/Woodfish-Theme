@@ -90,6 +90,21 @@ export const CODEX_SELECTORS = {
     alwaysPresent: false,
     description: '输入框外框（Codex 画背景和圆角的那一层）',
   },
+  circularControls: {
+    selectors: [
+      '.rounded-full',
+      '[role="switch"]',
+      '[role="radio"]',
+      '[data-slot="avatar"]',
+      '[data-slot="badge"]',
+      '[data-slot="switch-thumb"]',
+      '[data-avatar]',
+      '[data-codex-composer-root] [data-composer-utility-bar-variant="home"] [data-composer-body][data-composer-layout="single-line"]',
+      'input[type="radio"]',
+    ],
+    alwaysPresent: false,
+    description: '保留圆弧的头像、徽标、开关和胶囊',
+  },
   roundedComposer: {
     // The default single-line layout uses --radius-full; keep its circular ends.
     selectors: [

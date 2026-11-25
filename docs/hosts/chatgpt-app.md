@@ -223,3 +223,17 @@ Codex 26.1120.5083.0（Chromium 158）实测，多行输入框从普通圆角 22
 | 开启 | 关闭 |
 | --- | --- |
 | ![开启苹果圆角](codex-screenshots/squircle-on.png) | ![关闭苹果圆角](codex-screenshots/squircle-off.png) |
+
+桌面应用的原生圆角沿用 Tailwind 的 `--radius-*` 和组件本地别名（包括 `--button-radius`）。在 Codex 26.1120.5083.0 中，模式按钮从 8px 变为 14.24px，菜单从 16px 变为 28.48px，项目弹窗从 20px 变为 35.6px，外观卡片从 10px 变为 17.8px。发送按钮和通知开关轨道均保持 9999px 的圆弧。百分比、满圆令牌、头像、徽标、开关及小于 5px 的半径属于排除项。
+
+| 场景 | 开启 | 关闭 |
+| --- | --- | --- |
+| 首页模式按钮 | ![首页模式按钮开启](codex-screenshots/native-compose-button-on.png) | ![首页模式按钮关闭](codex-screenshots/native-compose-button-off.png) |
+| 模式菜单 | ![模式菜单开启](codex-screenshots/native-mode-menu-on.png) | ![模式菜单关闭](codex-screenshots/native-mode-menu-off.png) |
+| 工作位置菜单 | ![工作位置菜单开启](codex-screenshots/native-location-on.png) | ![工作位置菜单关闭](codex-screenshots/native-location-off.png) |
+| 权限菜单 | ![权限菜单开启](codex-screenshots/native-permission-on.png) | ![权限菜单关闭](codex-screenshots/native-permission-off.png) |
+| 项目弹窗 | ![项目弹窗开启](codex-screenshots/native-project-on.png) | ![项目弹窗关闭](codex-screenshots/native-project-off.png) |
+| 外观设置主题卡片 | ![外观设置主题卡片开启](codex-screenshots/native-appearance-card-on.png) | ![外观设置主题卡片关闭](codex-screenshots/native-appearance-card-off.png) |
+| 设置侧栏当前项 | ![设置侧栏当前项开启](codex-screenshots/native-settings-nav-on.png) | ![设置侧栏当前项关闭](codex-screenshots/native-settings-nav-off.png) |
+| 通知设置开关 | ![通知设置开关开启](codex-screenshots/native-notification-switch-on.png) | ![通知设置开关关闭](codex-screenshots/native-notification-switch-off.png) |
+| 圆形发送按钮 | ![圆形发送按钮开启](codex-screenshots/native-round-send-on.png) | ![圆形发送按钮关闭](codex-screenshots/native-round-send-off.png) |

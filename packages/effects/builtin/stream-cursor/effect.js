@@ -18,8 +18,7 @@ module.exports = function streamCursor(ctx) {
   function restyle() {
     const p = ctx.params;
     const stops = p.followTheme ? ctx.theme().stops : ctx.rainbow;
-    ctx.style(
-      `
+    ctx.style(`
 [data-woodfish-stream-cursor-clip] {
   position: absolute;
   inset: 0;
@@ -57,9 +56,7 @@ module.exports = function streamCursor(ctx) {
 @media (prefers-reduced-motion: reduce) {
   [data-woodfish-stream-cursor] { transition: none; }
   [data-woodfish-stream-cursor]::before { animation: none; height: 100%; }
-}`,
-      true
-    );
+}`);
   }
 
   function hide() {

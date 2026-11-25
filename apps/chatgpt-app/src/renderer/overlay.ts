@@ -6,6 +6,7 @@ import {
   patchEffectValues,
 } from '@woodfish/theme-core';
 import {
+  startNativeCorners,
   EffectSource,
   EffectStatus,
   GradientContext,
@@ -289,6 +290,7 @@ export function startCodexOverlay(
     background: null,
   };
   let view = composeCodexCoreView(settings, core);
+  let stopCorners: (() => void) | undefined;
   let applyingEffects = false;
   let reloadToken = reloadInput;
   let degradedTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
@@ -363,6 +365,11 @@ export function startCodexOverlay(
       'settings',
       view.squircleCorners ? SMOOTH_SETTINGS_PANEL_CSS : SETTINGS_PANEL_CSS
     );
+    if (view.squircleCorners && !stopCorners) stopCorners = startNativeCorners();
+    if (!view.squircleCorners && stopCorners) {
+      stopCorners();
+      stopCorners = undefined;
+    }
     const css = buildCodexCss(view);
     for (const name of CODEX_STYLE_NAMES) {
       styles.upsert(name, css[name]);
@@ -577,6 +584,7 @@ export function startCodexOverlay(
           }
         },
         (): void => document.removeEventListener('keydown', onKeyDown, true),
+        (): void => stopCorners?.(),
         (): void => panel?.dispose(),
         (): void => effects?.dispose(),
         (): void => backgroundLayer.dispose(),

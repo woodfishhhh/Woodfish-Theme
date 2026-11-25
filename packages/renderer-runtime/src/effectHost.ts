@@ -1,4 +1,3 @@
-import { prepareCornerRadii } from './squircle';
 import {
   EffectHost as EffectHostName,
   EffectManifest,
@@ -139,7 +138,7 @@ export interface EffectContext {
   /** Fixed, full-window container for overlay elements (no pointer events). */
   readonly layer: HTMLElement;
   /** This effect's stylesheet; each call replaces the previous CSS. */
-  style(css: string, smoothCorners?: boolean): void;
+  style(css: string): void;
   on(
     target: EventTarget,
     type: string,
@@ -498,8 +497,7 @@ export function startEffectHost(options: EffectHostOptions): EffectHostApi {
       get layer(): HTMLElement {
         return ensureLayer();
       },
-      style: (css, smoothCorners): void =>
-        styles.upsert(`${source.id}-js`, smoothCorners ? prepareCornerRadii(css) : css),
+      style: (css): void => styles.upsert(`${source.id}-js`, css),
       on: (target, type, listener, listenerOptions): void => {
         const wrapped = guard(owner, listener);
         target.addEventListener(type, wrapped, listenerOptions);

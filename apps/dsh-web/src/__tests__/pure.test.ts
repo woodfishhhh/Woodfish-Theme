@@ -244,6 +244,7 @@ describe('core CSS', () => {
     expect(css.startsWith('@supports (corner-shape: squircle) {')).toBe(true);
     expect(css).toContain(`--squircle-k: ${SQUIRCLE_K};`);
     expect(css).toContain('--dsw-corner-shape: squircle;');
+    expect(css).not.toContain('--dsw-radius-xs:');
     // Read on <body>, replaced below it: a custom property cannot refer to itself.
     expect(css).toContain('--woodfish-dsh-radius-md: var(--dsw-radius-md);');
     expect(css).toContain(

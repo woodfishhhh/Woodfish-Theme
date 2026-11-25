@@ -144,6 +144,7 @@ describe('runtime payload builder', () => {
   it('ships the bootstrap only while text gradient, glow or effect plugins need it', () => {
     const enabled = buildRuntimePayload(DEFAULT_RUNTIME_SETTINGS, realCursorAssets);
     const cursorOnlySettings = normalizeRuntimeSettings({
+      squircleCorners: { enabled: false },
       syntaxGradient: { enabled: false },
       glow: { enabled: false },
       cursor: { enabled: true },
@@ -151,6 +152,13 @@ describe('runtime payload builder', () => {
     });
 
     expect(enabled.bootstrap).toContain('MAX_TOKENS_PER_FRAME=600');
+    for (const exception of [
+      '.monaco-switch-thumb',
+      '.accounts-avatar',
+      '.monaco-count-badge',
+      '.chat-submit-button',
+    ])
+      expect(enabled.css).toContain(exception);
     expect(buildRuntimeBootstrap(cursorOnlySettings, realCursorAssets)).toBe('');
     expect(buildRuntimePayload(cursorOnlySettings, realCursorAssets).css).toContain('div.cursor');
   });
