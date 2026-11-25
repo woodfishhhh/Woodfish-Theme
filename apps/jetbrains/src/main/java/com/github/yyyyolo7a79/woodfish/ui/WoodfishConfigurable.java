@@ -51,12 +51,13 @@ public final class WoodfishConfigurable implements SearchableConfigurable, Confi
 
     @Override
     public boolean isModified() {
-        return panel != null && !pending().equals(WoodfishSettings.getInstance().snapshotState());
+        return panel != null && (panel.hasInvalidInput() || !pending().equals(WoodfishSettings.getInstance().snapshotState()));
     }
 
     @Override
-    public void apply() {
+    public void apply() throws com.intellij.openapi.options.ConfigurationException {
         if (panel != null) {
+            panel.validateInput();
             WoodfishSettings.getInstance().replace(pending());
         }
     }

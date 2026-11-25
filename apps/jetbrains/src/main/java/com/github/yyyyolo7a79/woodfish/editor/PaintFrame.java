@@ -43,10 +43,10 @@ final class PaintFrame {
      * 字宽与格宽不符的字再加上居中偏移（见 {@link EditorGrid}）
      */
     float[] charX = new float[4096];
-    /** 字符网格模式下 chars[i] 占的格宽（只在 {@link #gridUnit} > 0 时有效） */
+    /** 字符网格模式下 chars[i] 占的格宽（只在该片段按编辑器边界对齐时使用） */
     float[] charCell = new float[4096];
-    /** 本帧编辑器的字符网格单格宽；0 = 不在网格模式 */
-    float gridUnit;
+    /** 本帧含有按编辑器公开坐标测量的片段。 */
+    boolean hasMeasuredCells;
 
     // ===== 视觉行 =====
     int lineCount;
@@ -118,7 +118,7 @@ final class PaintFrame {
         fontCount = 0;
         selectionCount = 0;
         charCount = 0;
-        gridUnit = 0;
+        hasMeasuredCells = false;
     }
 
     /** 帧用完后放开对 Graphics 与颜色、字体对象的引用（它们可能属于已切换的配色方案） */
@@ -143,7 +143,7 @@ final class PaintFrame {
 
     /** 字符网格模式下逐字的格宽（下标同 chars）；不在网格模式时为 null */
     float[] gridCells() {
-        return gridUnit > 0 ? charCell : null;
+        return hasMeasuredCells ? charCell : null;
     }
 
     int addLine(int top, int startOffset) {

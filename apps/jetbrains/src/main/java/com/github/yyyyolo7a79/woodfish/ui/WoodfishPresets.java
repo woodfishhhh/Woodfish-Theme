@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Consumer;
+import com.github.yyyyolo7a79.woodfish.settings.NativeOptions;
 
 /**
  * 效果预设：内置预设的定义，以及自定义预设的命名、保存与删除规则。
@@ -31,47 +31,60 @@ public final class WoodfishPresets {
      * @param description 内置预设的一句话说明；自定义预设为空串
      */
     public record Preset(@NotNull String name, @NotNull String description, boolean builtIn,
-                         @NotNull CustomPreset values) {
+                         @NotNull CustomPreset values, String id) {
+        public Preset(String name, String description, boolean builtIn, CustomPreset values) {
+            this(name, description, builtIn, values, null);
+        }
 
         /** 把预设参数写进状态（不动总开关、预设列表和引导标记） */
         public void applyTo(@NotNull WoodfishState state) {
+            var previous = state.options;
             values.applyTo(state);
+            if (builtIn) previous.forEach((key, value) -> {
+                if (!NativeOptions.PRESET_KEYS.contains(key)) state.options.put(key, value);
+            });
         }
     }
 
-    /*
-     * 照 VS Code 版 src/config/presets.ts，只保留渐变 / 发光相关的键：
-     * 光标、毛玻璃相关的键在 JetBrains 版没有对应设置，原版「毛玻璃」预设去掉后与默认无差别，因此删除。
-     * 每个预设都以默认值为底（原版 resetAll()），再覆盖自己关心的几项。
-     */
-    private static final List<Preset> BUILT_IN = List.of(
-            builtIn("Woodfish 默认", "渐变 + 发光，所有效果参数恢复默认值", p -> {
-            }),
-            builtIn("柔和护眼", "更小的色相偏移与更弱的发光，适合长时间写代码", p -> {
-                p.hueShift = 12;
-                p.lightnessDelta = 0.04;
-                p.glowIntensity = 0.55;
-            }),
-            builtIn("霓虹全开", "更强的渐变与更亮的发光", p -> {
-                p.hueShift = 36;
-                p.lightnessDelta = 0.09;
-                p.glowIntensity = 1.6;
-            }),
-            // 原版专注模式「只保留彩色光标」；JetBrains 版没有光标层，于是变成两层全关、只看主题本色
-            builtIn("专注模式", "关闭渐变与发光，代码颜色完全交给当前主题", p -> {
-                p.syntaxGradientEnabled = false;
-                p.glowEnabled = false;
-            }),
-            builtIn("性能优先", "保留渐变、关闭发光，适合低配电脑或高刷屏", p -> p.glowEnabled = false));
+    private static final List<Preset> BUILT_IN = readBuiltIns();
 
-    private WoodfishPresets() {
+    private static List<Preset> readBuiltIns() {
+        try (var reader = new java.io.InputStreamReader(java.util.Objects.requireNonNull(
+                WoodfishPresets.class.getResourceAsStream("/woodfish/presets.json")), java.nio.charset.StandardCharsets.UTF_8)) {
+            var result = new ArrayList<Preset>();
+            for (var element : com.google.gson.JsonParser.parseReader(reader).getAsJsonArray()) {
+                var preset = element.getAsJsonObject();
+                String name = preset.get("label").getAsString();
+                var values = CustomPreset.capture(name, new WoodfishState());
+                preset.getAsJsonObject("values").entrySet().forEach(entry -> {
+                    if (!entry.getValue().isJsonNull()) setValue(values, entry.getKey(), entry.getValue().getAsString());
+                });
+                result.add(new Preset(name, preset.get("description").getAsString(), true, values, preset.get("id").getAsString()));
+            }
+            return List.copyOf(result);
+        } catch (java.io.IOException e) { throw new ExceptionInInitializerError(e); }
     }
 
-    private static Preset builtIn(String name, String description, Consumer<CustomPreset> overrides) {
-        CustomPreset values = CustomPreset.capture(name, new WoodfishState());
-        overrides.accept(values);
-        return new Preset(name, description, true, values);
+    private static void setValue(CustomPreset p, String key, String value) {
+        switch (key) {
+            case "overlay.hueShift" -> p.hueShift = Double.parseDouble(value);
+            case "overlay.lightnessDelta" -> p.lightnessDelta = Double.parseDouble(value);
+            case "overlay.neutralChroma" -> p.neutralChroma = Double.parseDouble(value);
+            case "overlay.angle" -> p.angle = Double.parseDouble(value);
+            case "glow.intensity" -> p.glowIntensity = Double.parseDouble(value);
+            case "syntaxGradient.enabled" -> p.syntaxGradientEnabled = Boolean.parseBoolean(value);
+            case "glow.enabled" -> p.glowEnabled = Boolean.parseBoolean(value);
+            default -> { if (NativeOptions.KEYS.contains(key)) NativeOptions.set(p.options, key, value); }
+        }
     }
+
+    static String displayName(Preset p) { return p.builtIn() ? WoodfishBundle.text("preset." + p.id()) : p.name(); }
+
+    static String displayDescription(Preset p) {
+        return p.builtIn() ? WoodfishBundle.text("preset." + p.id() + ".description") : WoodfishBundle.text("preset.custom");
+    }
+
+    private WoodfishPresets() { }
 
     // ==================== 查询 ====================
 
@@ -112,7 +125,7 @@ public final class WoodfishPresets {
 
     /** 只比较效果参数，不比较名称和总开关 */
     public static boolean sameEffects(@NotNull CustomPreset p, @NotNull WoodfishState s) {
-        return Double.compare(p.hueShift, s.hueShift) == 0
+        return p.options.equals(s.options) && Double.compare(p.hueShift, s.hueShift) == 0
                 && Double.compare(p.lightnessDelta, s.lightnessDelta) == 0
                 && Double.compare(p.neutralChroma, s.neutralChroma) == 0
                 && Double.compare(p.angle, s.angle) == 0
@@ -124,7 +137,7 @@ public final class WoodfishPresets {
 
     public static boolean isBuiltInName(@NotNull String name) {
         String stripped = name.strip();
-        return BUILT_IN.stream().anyMatch(p -> p.name().equals(stripped));
+        return BUILT_IN.stream().anyMatch(p -> p.name().equals(stripped) || displayName(p).equals(stripped));
     }
 
     /** 按名称找自定义预设（名称先去掉首尾空白，与 WoodfishState.normalize 的规则一致） */
@@ -144,14 +157,14 @@ public final class WoodfishPresets {
     public static @NotNull String summary(@NotNull CustomPreset p) {
         List<String> parts = new ArrayList<>();
         if (p.syntaxGradientEnabled) {
-            parts.add("渐变 ±" + number(p.hueShift) + "°");
+            parts.add(WoodfishBundle.text("state.gradient", number(p.hueShift)));
         } else {
-            parts.add("渐变关");
+            parts.add(WoodfishBundle.text("state.gradient.off"));
         }
         if (!p.cjkGradientEnabled && (p.syntaxGradientEnabled || p.glowEnabled)) {
-            parts.add("中日韩原生绘制");
+            parts.add(WoodfishBundle.text("state.cjk.native"));
         }
-        parts.add(p.glowEnabled ? "发光 " + String.format(Locale.ROOT, "%.2f×", p.glowIntensity) : "发光关");
+        parts.add(p.glowEnabled ? WoodfishBundle.text("state.glow", String.format(Locale.ROOT, "%.2f×", p.glowIntensity)) : WoodfishBundle.text("state.glow.off"));
         return String.join(" · ", parts);
     }
 
@@ -160,7 +173,7 @@ public final class WoodfishPresets {
     /** 「另存为」对话框的默认名：我的预设 1、我的预设 2 …… 取第一个没被占用的 */
     public static @NotNull String suggestName(@NotNull WoodfishState state) {
         for (int i = 1; ; i++) {
-            String candidate = "我的预设 " + i;
+            String candidate = WoodfishBundle.text("preset.unnamed", Integer.toString(i));
             if (findCustom(state, candidate) == null) {
                 return candidate;
             }
@@ -175,16 +188,16 @@ public final class WoodfishPresets {
     public static @Nullable String validateName(@Nullable String raw, @NotNull WoodfishState state) {
         String name = raw == null ? "" : raw.strip();
         if (name.isEmpty()) {
-            return "名称不能为空";
+            return WoodfishBundle.text("preset.name.empty");
         }
         if (name.codePointCount(0, name.length()) > MAX_NAME_LENGTH) {
-            return "名称不能超过 " + MAX_NAME_LENGTH + " 个字符";
+            return WoodfishBundle.text("preset.name.long", MAX_NAME_LENGTH);
         }
         if (isBuiltInName(name)) {
-            return "与内置预设重名，请换一个名字";
+            return WoodfishBundle.text("preset.name.reserved");
         }
         if (findCustom(state, name) == null && customCount(state) >= WoodfishState.MAX_CUSTOM_PRESETS) {
-            return "最多保存 " + WoodfishState.MAX_CUSTOM_PRESETS + " 个自定义预设，请先删除不用的预设";
+            return WoodfishBundle.text("preset.name.limit", WoodfishState.MAX_CUSTOM_PRESETS);
         }
         return null;
     }

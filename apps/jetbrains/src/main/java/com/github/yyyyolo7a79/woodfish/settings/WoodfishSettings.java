@@ -97,6 +97,7 @@ public final class WoodfishSettings implements PersistentStateComponent<Woodfish
             s.glowIntensity = copy.glowIntensity;
             s.welcomeShown = copy.welcomeShown;
             s.customPresets = copy.customPresets;
+            s.options = copy.options;
         });
     }
 

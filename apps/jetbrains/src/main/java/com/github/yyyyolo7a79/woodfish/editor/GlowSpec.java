@@ -45,127 +45,82 @@ final class GlowSpec {
     final float maxX;
     private final int hash;
 
-    private GlowSpec(GlowParams params, int lineHeight, int ascent, char[] text, int[] pieceEnd,
-                     float[] x, float[] width, Font[] fonts, int[] font,
-                     int[] near, int[] mid, int[] far, boolean[] punctuation, float[] glyphX, boolean[] nativeRisk,
-                     float[] cells, boolean[] gridAligned) {
+    private GlowSpec(PaintFrame frame, int line, GlowParams params, TokenColorDeriver deriver,
+                     boolean includeCjk, int pieces, int chars) {
         this.params = params;
-        this.lineHeight = lineHeight;
-        this.ascent = ascent;
-        this.text = text;
-        this.pieceEnd = pieceEnd;
-        this.x = x;
-        this.width = width;
-        this.fonts = fonts;
-        this.font = font;
-        this.near = near;
-        this.mid = mid;
-        this.far = far;
-        this.punctuation = punctuation;
-        this.glyphX = glyphX;
-        this.nativeRisk = nativeRisk;
-        this.cells = cells;
-        this.gridAligned = gridAligned;
+        lineHeight = frame.lineHeight;
+        ascent = frame.ascent;
+        text = new char[chars];
+        glyphX = new float[chars];
+        pieceEnd = new int[pieces];
+        x = new float[pieces];
+        width = new float[pieces];
+        font = new int[pieces];
+        near = new int[pieces];
+        mid = new int[pieces];
+        far = new int[pieces];
+        punctuation = new boolean[pieces];
+        nativeRisk = new boolean[pieces];
+        gridAligned = new boolean[pieces];
+        cells = frame.gridCells() == null ? null : new float[chars];
+        fonts = copyTokens(frame, line, deriver, includeCjk);
         float lo = Float.POSITIVE_INFINITY;
         float hi = Float.NEGATIVE_INFINITY;
         for (int i = 0; i < x.length; i++) {
             lo = Math.min(lo, x[i]);
             hi = Math.max(hi, x[i] + width[i]);
         }
-        this.minX = lo;
-        this.maxX = hi;
-        this.hash = computeHash();
+        minX = lo;
+        maxX = hi;
+        hash = computeHash();
     }
 
-    /**
-     * 从帧里截取第 {@code line} 个视觉行的快照；该行没有任何 piece 时返回 null。
-     *
-     * <p>颜色经 {@code deriver.derive} 取得（命中缓存时不分配），与渐变用的是同一份派生规则。
-     *
-     * @param includeCjk 是否给中日韩 piece 发光（用户可在设置页关闭中日韩效果）
-     */
     static GlowSpec create(PaintFrame f, int line, GlowParams params, TokenColorDeriver deriver, boolean includeCjk) {
-        int tokenFrom = f.lineTokenFrom[line];
-        int tokenTo = f.lineTokenTo[line];
-        if (tokenFrom >= tokenTo) {
-            return null;
+        int start = f.lineTokenFrom[line], end = f.lineTokenTo[line];
+        if (start == end) return null;
+        int pieces = 0, chars = 0;
+        for (int p = f.tokenPieceFrom[start]; p < f.tokenPieceTo[end - 1]; p++) {
+            if (!includeCjk && f.pieceCjk[p]) continue;
+            pieces++;
+            chars += f.pieceTo[p] - f.pieceFrom[p];
         }
-        int pieceFrom = f.tokenPieceFrom[tokenFrom];
-        int pieceTo = f.tokenPieceTo[tokenTo - 1];
-        int pieces = 0;
-        int chars = 0;
-        for (int p = pieceFrom; p < pieceTo; p++) {
-            if (includeCjk || !f.pieceCjk[p]) {
-                pieces++;
-                chars += f.pieceTo[p] - f.pieceFrom[p];
-            }
-        }
-        if (pieces <= 0) {
-            return null;
-        }
+        return pieces == 0 ? null : new GlowSpec(f, line, params, deriver, includeCjk, pieces, chars);
+    }
 
-        char[] text = new char[chars];
-        float[] glyphX = new float[chars];
-        int[] pieceEnd = new int[pieces];
-        float[] x = new float[pieces];
-        float[] width = new float[pieces];
-        int[] font = new int[pieces];
-        int[] near = new int[pieces];
-        int[] mid = new int[pieces];
-        int[] far = new int[pieces];
-        boolean[] punctuation = new boolean[pieces];
-        boolean[] nativeRisk = new boolean[pieces];
-        float[] frameCells = f.gridCells();
-        float[] cells = frameCells != null ? new float[chars] : null;
-        boolean[] gridAligned = new boolean[pieces];
-        Font[] fonts = new Font[Math.min(f.fontCount, 8)];
-        int fontCount = 0;
-
-        int cursor = 0;
-        int i = 0;
-        for (int t = tokenFrom; t < tokenTo; t++) {
+    private Font[] copyTokens(PaintFrame f, int line, TokenColorDeriver deriver, boolean includeCjk) {
+        Font[] table = new Font[Math.min(f.fontCount, pieceEnd.length)];
+        int used = 0, i = 0;
+        for (int t = f.lineTokenFrom[line]; t < f.lineTokenTo[line]; t++) {
             TokenColors colors = deriver.derive(f.tokenColor[t], f.tokenPunctuation[t]);
-            int n = colors.glowNear().getRGB();
-            int m = colors.glowMid().getRGB();
-            int r = colors.glowFar().getRGB();
+            int outer = params.classic() && !params.light() ? colors.base().getRGB() : colors.glowFar().getRGB();
             for (int p = f.tokenPieceFrom[t]; p < f.tokenPieceTo[t]; p++) {
-                if (!includeCjk && f.pieceCjk[p]) {
-                    continue;
-                }
-                int length = f.pieceTo[p] - f.pieceFrom[p];
-                System.arraycopy(f.chars, f.pieceFrom[p], text, cursor, length);
-                System.arraycopy(f.charX, f.pieceFrom[p], glyphX, cursor, length);
-                if (cells != null) {
-                    System.arraycopy(frameCells, f.pieceFrom[p], cells, cursor, length);
-                }
-                cursor += length;
-                pieceEnd[i] = cursor;
-                x[i] = f.pieceX[p];
-                width[i] = f.pieceWidth[p];
-                Font pieceFont = f.fonts[f.pieceFont[p]];
-                int index = 0;
-                while (index < fontCount && fonts[index] != pieceFont) {
-                    index++;
-                }
-                if (index == fontCount) {
-                    if (fontCount == fonts.length) {
-                        fonts = Arrays.copyOf(fonts, fontCount * 2);
-                    }
-                    fonts[fontCount++] = pieceFont;
-                }
-                font[i] = index;
-                near[i] = n;
-                mid[i] = m;
-                far[i] = r;
+                if (!includeCjk && f.pieceCjk[p]) continue;
+                Font typeface = f.fonts[f.pieceFont[p]];
+                int slot = 0;
+                while (slot < used && table[slot] != typeface) slot++;
+                if (slot == used) table[used++] = typeface;
+                font[i] = slot;
+                near[i] = colors.glowNear().getRGB();
+                mid[i] = colors.glowMid().getRGB();
+                far[i] = outer;
                 punctuation[i] = f.tokenPunctuation[t];
-                nativeRisk[i] = f.pieceNativeRisk[p];
-                gridAligned[i] = f.pieceGridAligned[p];
-                i++;
+                copyPiece(f, p, i++);
             }
         }
-        return new GlowSpec(params, f.lineHeight, f.ascent, text, pieceEnd, x, width,
-                Arrays.copyOf(fonts, fontCount), font, near, mid, far, punctuation, glyphX, nativeRisk,
-                cells, gridAligned);
+        return Arrays.copyOf(table, used);
+    }
+
+    private void copyPiece(PaintFrame f, int p, int i) {
+        int cursor = i == 0 ? 0 : pieceEnd[i - 1];
+        int from = f.pieceFrom[p], length = f.pieceTo[p] - from;
+        System.arraycopy(f.chars, from, text, cursor, length);
+        System.arraycopy(f.charX, from, glyphX, cursor, length);
+        if (cells != null) System.arraycopy(f.charCell, from, cells, cursor, length);
+        pieceEnd[i] = cursor + length;
+        x[i] = f.pieceX[p];
+        width[i] = f.pieceWidth[p];
+        nativeRisk[i] = f.pieceNativeRisk[p];
+        gridAligned[i] = f.pieceGridAligned[p];
     }
 
     int pieceCount() {

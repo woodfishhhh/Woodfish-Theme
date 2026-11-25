@@ -58,9 +58,9 @@ public final class WoodfishNotifier {
         if (WoodfishSettings.getInstance().effective().overlayEnabled()) {
             return;
         }
-        info(project, "Woodfish 通用叠层已关闭",
-                escape(what) + "，但总开关处于关闭状态，打开后才会显示效果。",
-                NotificationAction.createSimpleExpiring("打开总开关",
+        info(project, WoodfishBundle.text("tooltip.overlay.off.title"),
+                WoodfishBundle.text("tooltip.overlay.off.detail", escape(what)),
+                NotificationAction.createSimpleExpiring(WoodfishBundle.text("tooltip.overlay.enable"),
                         () -> WoodfishSettings.getInstance().update(s -> s.overlayEnabled = true)));
     }
 

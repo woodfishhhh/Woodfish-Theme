@@ -47,9 +47,7 @@ final class LcdGradientPainter {
     // ===== 逐 piece 状态 =====
     private Graphics2D g;
     private AffineTransform user;
-    private int light;
-    private int base;
-    private int dark;
+    private java.util.List<Color> stops;
     /** 渐变线两端（盒子局部坐标） */
     private double x0;
     private double y0;
@@ -86,7 +84,7 @@ final class LcdGradientPainter {
      * @param baseline 本行基线（内容区绝对坐标）
      * @param frc      编辑器画字用的 FontRenderContext（复杂排版时与编辑器一致地排字）
      */
-    void paint(Graphics2D g, PaintFrame f, int token, int piece, double[] ends, int light, int base, int dark,
+    void paint(Graphics2D g, PaintFrame f, int token, int piece, double[] ends, java.util.List<Color> stops,
                int boxX, int boxY, float baseline, FontRenderContext frc, TextPieces.GlyphCache glyphs) {
         double lengthSquared = (ends[2] - ends[0]) * (ends[2] - ends[0]) + (ends[3] - ends[1]) * (ends[3] - ends[1]);
         if (!(lengthSquared > 0)) {
@@ -94,9 +92,7 @@ final class LcdGradientPainter {
         }
         this.g = g;
         this.user = g.getTransform();
-        this.light = light;
-        this.base = base;
-        this.dark = dark;
+        this.stops = stops;
         x0 = ends[0];
         y0 = ends[1];
         x1 = ends[2];
@@ -113,39 +109,8 @@ final class LcdGradientPainter {
         font = f.fonts[f.pieceFont[piece]];
         chars = f.chars;
         drawY = baseline - boxY;
-        int start = f.pieceFrom[piece];
-        int end = f.pieceTo[piece];
-        double left = f.pieceX[piece] - boxX;
-        double right = left + f.pieceWidth[piece];
-        boolean partial = f.pieceSelection[piece] == PaintFrame.SELECTION_PARTIAL;
         try {
-            if (TextPieces.needsLayout(font, chars, start, end)) {
-                if (partial) {
-                    return; // 部分选中的复杂排版文字：宁可保留编辑器的原色，也不冒险画错
-                }
-                vector = glyphs.get(font, frc, chars, start, end, f.gridCells(), f.gridUnit);
-                drawX = (float) left;
-                int tiles = divisions(perX * (right - left), MAX_TILES);
-                paintColumns(left, right, tiles);
-                return;
-            }
-            vector = null;
-            if (!partial && !f.pieceGridAligned[piece] && divisions(perX * (right - left), 2) == 1) {
-                // 整段颜色几乎不变：一次画完，与编辑器画这段文字的调用完全相同（网格里挪过位置的字编辑器是逐字画的）
-                setChars(start, end, (float) left);
-                paintColumns(left, right, 1);
-                return;
-            }
-            int slices = divisions(perX * (right - left) / Math.max(1, end - start), MAX_GLYPH_SLICES);
-            for (int i = start; i < end; i++) {
-                if (partial && f.selectionState(f.textBase + i, f.textBase + i + 1) == PaintFrame.SELECTION_FULL) {
-                    continue; // 选中的字由编辑器用选区前景色画
-                }
-                double charLeft = f.charX[i] - boxX;
-                double charRight = i + 1 < end ? f.charX[i + 1] - boxX : right;
-                setChars(i, i + 1, (float) charLeft);
-                paintColumns(charLeft, charRight, slices);
-            }
+            paintGlyphs(f, piece, boxX, perX, frc, glyphs);
         } finally {
             g.setPaint(savedPaint); // 不裁剪的快速路径直接在 g 上换了颜色
             vector = null;
@@ -153,9 +118,46 @@ final class LcdGradientPainter {
             font = null;
             lastColor = null;
             this.g = null;
+            this.stops = null;
             user = null;
         }
     }
+    private void paintGlyphs(PaintFrame f, int piece, int boxX, double perX, FontRenderContext frc,
+                             TextPieces.GlyphCache glyphs) {
+        int start = f.pieceFrom[piece];
+        int end = f.pieceTo[piece];
+        double left = f.pieceX[piece] - boxX;
+        double right = left + f.pieceWidth[piece];
+        boolean partial = f.pieceSelection[piece] == PaintFrame.SELECTION_PARTIAL;
+        if (TextPieces.needsLayout(font, chars, start, end)) {
+            if (partial) {
+                return; // 部分选中的复杂排版文字：宁可保留编辑器的原色，也不冒险画错
+            }
+            vector = glyphs.get(font, frc, chars, start, end, f.pieceGridAligned[piece] ? f.charCell : null);
+            drawX = (float) left;
+            int tiles = divisions(perX * (right - left), MAX_TILES);
+            paintColumns(left, right, tiles);
+            return;
+        }
+        vector = null;
+        if (!partial && !f.pieceGridAligned[piece] && divisions(perX * (right - left), 2) == 1) {
+            // 整段颜色几乎不变：一次画完，与编辑器画这段文字的调用完全相同（网格里挪过位置的字编辑器是逐字画的）
+            setChars(start, end, (float) left);
+            paintColumns(left, right, 1);
+            return;
+        }
+        int slices = divisions(perX * (right - left) / Math.max(1, end - start), MAX_GLYPH_SLICES);
+        for (int i = start; i < end; i++) {
+            if (partial && f.selectionState(f.textBase + i, f.textBase + i + 1) == PaintFrame.SELECTION_FULL) {
+                continue; // 选中的字由编辑器用选区前景色画
+            }
+            double charLeft = f.charX[i] - boxX;
+            double charRight = i + 1 < end ? f.charX[i + 1] - boxX : right;
+            setChars(i, i + 1, (float) charLeft);
+            paintColumns(charLeft, charRight, slices);
+        }
+    }
+
     /**
      * 把 [left, right) 横向等分成 n 列、每列再纵向切成 {@link #bands} 条，逐块用纯色画当前内容。
      * 最左 / 最右一列与最上 / 最下一条延伸到无穷远；颜色取各块在实际范围内的中心。
@@ -178,7 +180,7 @@ final class LcdGradientPainter {
 
     /** 在盒子局部范围 [left, right) × [top, bottom) 内，用渐变在 (cx, cy) 处的颜色画当前内容 */
     private void cell(double left, double top, double right, double bottom, double cx, double cy) {
-        int argb = CssGradient.colorAt(light, base, dark, CssGradient.positionAt(x0, y0, x1, y1, cx, cy));
+        int argb = CssGradient.colorAt(stops, CssGradient.positionAt(x0, y0, x1, y1, cx, cy));
         if (lastColor == null || argb != lastArgb) {
             lastArgb = argb;
             lastColor = new Color(argb, true);

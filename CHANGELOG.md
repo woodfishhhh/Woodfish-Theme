@@ -12,6 +12,7 @@
 
 ### 新增
 
+- JetBrains 编辑器与 VS Code 共用渐变色标、浅色光晕、光标色带和七套效果预设。设置页可切换彩虹光标、拖尾、打字粒子、《彩云》或自选编辑器背景，以及与主题配合的苹果圆角。
 - DeepSeek Harness（dsh）网页版用上和 Codex 桌面端同一套效果插件：6px 彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、边写边上色的回复正文彩虹、侧栏当前会话的流光边框（运行中的会话是弱化版）、输入框光晕与渐变发送按钮、「对话 / 轨迹」和右侧面板标签下流动的渐变短条、《彩云》窗口背景和毛玻璃侧栏与输入框、带指针柔光的毛玻璃菜单，以及 OKLCH 代码渐变。效果参数和 `user.css` 与 Codex 共用效果文件夹，`woodfish dsh userscript` 生成脚本时一并写入；油猴菜单里每个效果一个开关，只影响 dsh。仓库里的 `woodfish-dsh.user.js` 自带出厂效果和《彩云》，直接导入也完整。
 - VS Code、Codex 和 dsh 新增默认开启的「苹果圆角」开关。宿主的按钮、卡片、菜单和弹窗采用平滑圆角，头像、徽标和胶囊保留圆弧，可分别关闭恢复原来的圆角。dsh 网页版的圆角换成连续曲率的“苹果圆角”（`corner-shape: squircle`，半径按 iOS 圆角的观感放大 1.78 倍）：输入框、卡片、代码块、菜单、按钮和侧栏的流光边框都是平滑过渡的曲线，胶囊形的按钮和开关保持正圆；不支持的浏览器保留原来的圆角。
 - 已在 dsh 0.2.2-rc.5 上实测，15 套主题的改前改后截图见仓库里的 `docs/hosts/dsh-web.md`。
@@ -49,7 +50,7 @@
 
 ### 新增
 
-- [JetBrains 插件](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.2.0/apps/jetbrains/README.zh-CN.md)：15 套主题在 IntelliJ IDEA、PyCharm、WebStorm、GoLand、CLion 等 2024.2 及以后的 JetBrains 系列 IDE 里作为界面主题加编辑器配色方案提供，另带可选的渐变与发光。代码、控制台和终端的 16 色 ANSI、diff、行号区竖条、inlay 提示、折叠后的文字都按 VS Code 主题取色；在 IntelliJ IDEA 和 PyCharm 里与 VS Code 逐 token 比对，4156 个 token 中 3344 个颜色一致，其余 812 个是 JetBrains 对这类内容只有一个属性（比如关键字、类声明与引用），详见[对照表](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.2.0/docs/hosts/jetbrains-colors.md)。渐变与发光来自社区贡献 [#39](https://github.com/woodfishhhh/Woodfish-Theme/pull/39)，感谢 [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch)。安装：从 GitHub Release 下载 `woodfish-theme-jetbrains-8.2.0.zip`，在 IDE 里打开设置 → 插件 → 齿轮 → 从磁盘安装插件，选这个 zip，再到设置 → 外观与行为 → 外观里选 Woodfish 主题。
+- [JetBrains 插件](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.2.0/apps/jetbrains/README.zh-CN.md)：15 套主题在 IntelliJ IDEA、PyCharm、WebStorm、GoLand、CLion 等 2024.2 及以后的 JetBrains 系列 IDE 里作为界面主题加编辑器配色方案提供，另带可选的渐变与发光。代码、控制台和终端的 16 色 ANSI、diff、行号区竖条、inlay 提示、折叠后的文字都按 VS Code 主题取色；在 IntelliJ IDEA 和 PyCharm 里与 VS Code 逐 token 比对，4156 个 token 中 3344 个颜色一致，其余 812 个是 JetBrains 对这类内容只有一个属性（比如关键字、类声明与引用），详见[对照表](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.2.0/docs/hosts/jetbrains-colors.md)。渐变与发光随插件一起安装。安装：从 GitHub Release 下载 `woodfish-theme-jetbrains-8.2.0.zip`，在 IDE 里打开设置 → 插件 → 齿轮 → 从磁盘安装插件，选这个 zip，再到设置 → 外观与行为 → 外观里选 Woodfish 主题。
 - [Neovim 配色](https://github.com/woodfishhhh/Woodfish-Theme/blob/v8.2.0/apps/neovim/README.md)：15 套主题作为 Neovim 配色方案提供，仓库是 [woodfish.nvim](https://github.com/woodfishhhh/woodfish.nvim)。语法颜色和字体样式按 VS Code 给 TypeScript / JavaScript / TSX / Python / Lua / Go / Rust / JSON / Markdown 的实际结果量出来，只定义带语言后缀的高亮组；另含 Treesitter、LSP、诊断、diff / git、telescope、nvim-cmp、blink.cmp、gitsigns、neo-tree、nvim-tree、which-key、indent-blankline 和 lualine。JavaScript、JSX、TSX 各有自己的统计样例（含组件、JSX 标签和属性），15 套主题在这三种语言上的颜色一致率平均达到 86.1%。
 
 ## [8.1.5] - 2026-11-21
@@ -82,7 +83,7 @@
 
 ### 文档
 
-- README 补充了社区版 [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains) 的入口。
+- README 补充了 JetBrains 版的安装入口。
 
 ## [8.1.2] - 2026-11-19
 

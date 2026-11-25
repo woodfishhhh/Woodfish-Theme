@@ -19,7 +19,22 @@ public record EffectSettings(
         boolean cjkGradientEnabled,
         boolean glow,
         double glowIntensity,
-        long version) {
+        long version, java.util.Map<String, String> options) {
+
+    public String value(String key) { return NativeOptions.get(options, key); }
+    public boolean on(String key) { return Boolean.parseBoolean(value(key)); }
+    public double number(String key) { return Double.parseDouble(value(key)); }
+
+    public EffectSettings forScheme(String name) {
+        var scoped = new java.util.HashMap<>(options);
+        String prefix = "theme." + name.replaceFirst("^_@user_", "").replace(' ', '_') + ".";
+        for (String key : NativeOptions.KEYS) {
+            String themed = NativeOptions.schema(prefix + key);
+            if (themed != null) scoped.putIfAbsent(key, themed);
+        }
+        return new EffectSettings(overlayEnabled, hueShift, lightnessDelta, neutralChroma, angle, syntaxGradient,
+                cjkGradientEnabled, glow, glowIntensity, version, java.util.Map.copyOf(scoped));
+    }
 
     /** 由（已规范化的）状态生成快照 */
     public static EffectSettings from(WoodfishState s, long version) {
@@ -33,7 +48,7 @@ public record EffectSettings(
                 s.cjkGradientEnabled,
                 s.glowEnabled,
                 s.glowIntensity,
-                version);
+                version, java.util.Map.copyOf(s.options));
     }
 
     /** A：渐变语法是否实际生效（总开关 && 分项开关） */

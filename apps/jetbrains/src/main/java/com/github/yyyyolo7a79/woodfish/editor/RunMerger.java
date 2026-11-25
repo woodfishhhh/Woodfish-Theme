@@ -167,16 +167,7 @@ final class RunMerger {
      */
     void merge(int scopeQueryStart, int scopeQueryEnd, int applyStart, int applyEnd,
                Color defaultForeground, int defaultFont, Runs out) {
-        int candidateCount = 0;
-        for (int i = 0; i < count && start[i] < applyEnd; i++) {
-            if (end[i] > applyStart && queryStart[i] <= scopeQueryEnd && queryEnd[i] >= scopeQueryStart) {
-                if (candidateCount == candidates.length) {
-                    candidates = Arrays.copyOf(candidates, candidateCount * 2);
-                }
-                candidates[candidateCount++] = i;
-            }
-        }
-
+        int candidateCount = selectCandidates(scopeQueryStart, scopeQueryEnd, applyStart, applyEnd);
         while (lexCursor < lexCount && lexEnd[lexCursor] <= applyStart) {
             lexCursor++;
         }
@@ -223,6 +214,19 @@ final class RunMerger {
             pos = next;
         }
         lexCursor = lexeme;
+    }
+
+    private int selectCandidates(int scopeQueryStart, int scopeQueryEnd, int applyStart, int applyEnd) {
+        int candidateCount = 0;
+        for (int i = 0; i < count && start[i] < applyEnd; i++) {
+            if (end[i] > applyStart && queryStart[i] <= scopeQueryEnd && queryEnd[i] >= scopeQueryStart) {
+                if (candidateCount == candidates.length) {
+                    candidates = Arrays.copyOf(candidates, candidateCount * 2);
+                }
+                candidates[candidateCount++] = i;
+            }
+        }
+        return candidateCount;
     }
 
     private void resolve(int activeCount, int syntax, Color defaultForeground, int defaultFont) {

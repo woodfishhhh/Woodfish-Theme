@@ -26,7 +26,7 @@ class WoodfishPresetsTest {
     @Test
     void builtInsFollowOriginalMinusCursorAndGlass() {
         List<String> names = WoodfishPresets.builtIns().stream().map(Preset::name).toList();
-        assertEquals(List.of("Woodfish 默认", "柔和护眼", "霓虹全开", "专注模式", "性能优先"), names);
+        assertEquals(List.of("Woodfish 默认", "柔和护眼", "霓虹全开", "怀旧（5.x）", "毛玻璃", "专注模式", "性能优先"), names);
         for (Preset p : WoodfishPresets.builtIns()) {
             assertTrue(p.builtIn());
             assertFalse(p.description().isBlank(), p.name() + " 缺少说明");
@@ -105,9 +105,9 @@ class WoodfishPresetsTest {
     @Test
     void validateNameRules() {
         WoodfishState s = new WoodfishState();
-        assertEquals("名称不能为空", WoodfishPresets.validateName("   ", s));
-        assertEquals("名称不能为空", WoodfishPresets.validateName(null, s));
-        assertEquals("与内置预设重名，请换一个名字", WoodfishPresets.validateName(" 柔和护眼 ", s));
+        assertEquals(UiLanguage.expected("名称不能为空", "Enter a name."), WoodfishPresets.validateName("   ", s));
+        assertEquals(UiLanguage.expected("名称不能为空", "Enter a name."), WoodfishPresets.validateName(null, s));
+        assertEquals(UiLanguage.expected("与内置预设重名，请换一个名字", "Choose a name different from the built-in presets."), WoodfishPresets.validateName(" 柔和护眼 ", s));
         assertNull(WoodfishPresets.validateName("夜间", s));
 
         String longest = "字".repeat(WoodfishPresets.MAX_NAME_LENGTH);
@@ -156,10 +156,10 @@ class WoodfishPresetsTest {
     @Test
     void suggestNameSkipsTakenNumbers() {
         WoodfishState s = new WoodfishState();
-        assertEquals("我的预设 1", WoodfishPresets.suggestName(s));
-        WoodfishPresets.saveCurrent(s, "我的预设 1");
-        WoodfishPresets.saveCurrent(s, "我的预设 2");
-        assertEquals("我的预设 3", WoodfishPresets.suggestName(s));
+        assertEquals(UiLanguage.expected("我的预设 1", "My preset 1"), WoodfishPresets.suggestName(s));
+        WoodfishPresets.saveCurrent(s, UiLanguage.expected("我的预设 1", "My preset 1"));
+        WoodfishPresets.saveCurrent(s, UiLanguage.expected("我的预设 2", "My preset 2"));
+        assertEquals(UiLanguage.expected("我的预设 3", "My preset 3"), WoodfishPresets.suggestName(s));
         assertNull(WoodfishPresets.validateName(WoodfishPresets.suggestName(s), s));
     }
 
@@ -180,12 +180,12 @@ class WoodfishPresetsTest {
     @Test
     void summaryDescribesLayers() {
         CustomPreset p = CustomPreset.capture("p", new WoodfishState());
-        assertEquals("渐变 ±24° · 发光 1.00×", WoodfishPresets.summary(p));
+        assertEquals(UiLanguage.expected("渐变 ±32° · 发光 1.00×", "Gradient ±32° · Glow 1.00×"), WoodfishPresets.summary(p));
         p.cjkGradientEnabled = false;
-        assertEquals("渐变 ±24° · 中日韩原生绘制 · 发光 1.00×", WoodfishPresets.summary(p));
+        assertEquals(UiLanguage.expected("渐变 ±32° · 中日韩原生绘制 · 发光 1.00×", "Gradient ±32° · Native CJK glyphs · Glow 1.00×"), WoodfishPresets.summary(p));
         p.syntaxGradientEnabled = false;
         p.glowEnabled = false;
-        assertEquals("渐变关 · 发光关", WoodfishPresets.summary(p));
+        assertEquals(UiLanguage.expected("渐变关 · 发光关", "Gradient off · Glow off"), WoodfishPresets.summary(p));
     }
 
     @Test

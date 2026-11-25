@@ -93,37 +93,34 @@ final class TextPieces {
     static GlyphVector layout(Font font, FontRenderContext frc, char[] chars, int from, int to, float[] cells) {
         GlyphVector vector = font.layoutGlyphVector(frc, chars, from, to, LAYOUT_FLAGS);
         if (cells != null) {
-            alignToGrid(vector, cells, from);
+            alignToGrid(vector, cells, from, to);
         }
         return vector;
     }
 
-    /**
-     * 字符网格模式下照 ComplexTextFragment 改写字形位置：每个字形的步进换成它首字符的格宽（与原步进差得太多时），
-     * 步进变宽的字形再在格子里居中。{@code cells[from + 字形的字符下标]} 是该字的格宽。
-     */
-    static void alignToGrid(GlyphVector vector, float[] cells, int from) {
-        int n = vector.getNumGlyphs();
-        float[] original = new float[n];
-        for (int i = 0; i < n; i++) {
-            original[i] = (float) (vector.getGlyphPosition(i + 1).getX() - vector.getGlyphPosition(i).getX());
-        }
-        double x = vector.getGlyphPosition(0).getX();
-        for (int i = 0; i < n; i++) {
-            float cell = cells[from + vector.getGlyphCharIndex(i)];
-            x += Math.abs(cell - original[i]) < GRID_TOLERANCE ? original[i] : cell;
-            Point2D next = vector.getGlyphPosition(i + 1);
-            next.setLocation(x, next.getY());
-            vector.setGlyphPosition(i + 1, next);
-        }
-        for (int i = 0; i < n; i++) {
-            Point2D position = vector.getGlyphPosition(i);
-            double width = vector.getGlyphPosition(i + 1).getX() - position.getX();
-            if (!(width < original[i] + GRID_TOLERANCE)) {
-                position.setLocation(position.getX() + (width - original[i]) / 2, position.getY());
-                vector.setGlyphPosition(i, position);
+    /** Keep glyph clusters intact: one ligature can cover several measured character cells. */
+    static void alignToGrid(GlyphVector vector, float[] cells, int from, int to) {
+        int count = vector.getNumGlyphs();
+        int[] indices = vector.getGlyphCharIndices(0, count, null);
+        for (int i = 1; i < count; i++) if (indices[i] < indices[i - 1]) return;
+        float[] xy = vector.getGlyphPositions(0, count + 1, null);
+        double x = xy[0];
+        for (int i = 0; i < count;) {
+            int next = i + 1;
+            while (next < count && indices[next] == indices[i]) next++;
+            int charEnd = next == count ? to : from + indices[next];
+            double measured = 0;
+            for (int c = from + indices[i]; c < charEnd; c++) measured += cells[c];
+            double natural = xy[2 * next] - xy[2 * i];
+            double advance = Math.abs(measured - natural) < GRID_TOLERANCE ? natural : measured;
+            double shift = x - xy[2 * i] + Math.max(0, (advance - natural) / 2);
+            for (int k = i; k < next; k++) {
+                vector.setGlyphPosition(k, new Point2D.Double(xy[2 * k] + shift, xy[2 * k + 1]));
             }
+            x += advance;
+            i = next;
         }
+        vector.setGlyphPosition(count, new Point2D.Double(x, xy[2 * count + 1]));
     }
 
     /**
@@ -143,17 +140,11 @@ final class TextPieces {
         }
     }
 
-    /**
-     * 开启连字时每个 piece 都要排版（HarfBuzz，单次数微秒）。编辑器自己在 LineLayout 里缓存了排版结果，
-     * 我们每帧重画，所以也缓存：键是字体、FontRenderContext、文字内容与网格单格宽，LRU 有上限。只在 EDT 使用。
-     *
-     * <p>格宽由单格宽与字符决定（编辑器的双宽字符规则在开启网格时设定一次），每个编辑器一个缓存，
-     * 所以键里放单格宽就够了。
-     */
+    /** Cache natural shaping; measured runs use this frame's public editor coordinates. */
     static final class GlyphCache {
         private static final int CAPACITY = 2048;
 
-        private record Key(Font font, FontRenderContext frc, String text, float gridUnit) {
+        private record Key(Font font, FontRenderContext frc, String text) {
         }
 
         private final Map<Key, GlyphVector> map = new LinkedHashMap<>(256, 0.75f, true) {
@@ -163,16 +154,13 @@ final class TextPieces {
             }
         };
 
-        /**
-         * @param cells    字符网格模式下逐字的格宽（下标同 chars）；null = 不在网格模式
-         * @param gridUnit 网格单格宽（cells 为 null 时忽略）
-         */
-        GlyphVector get(Font font, FontRenderContext frc, char[] chars, int from, int to,
-                        float[] cells, float gridUnit) {
-            Key key = new Key(font, frc, new String(chars, from, to - from), cells != null ? gridUnit : 0);
+        GlyphVector get(Font font, FontRenderContext frc, char[] chars, int from, int to, float[] cells) {
+            // Measured positions belong to this editor run and can differ even for identical text.
+            if (cells != null) return layout(font, frc, chars, from, to, cells);
+            Key key = new Key(font, frc, new String(chars, from, to - from));
             GlyphVector vector = map.get(key);
             if (vector == null) {
-                vector = layout(font, frc, chars, from, to, cells);
+                vector = layout(font, frc, chars, from, to, null);
                 map.put(key, vector);
             }
             return vector;

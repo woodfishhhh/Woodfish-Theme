@@ -1,9 +1,8 @@
 # Licensing
 
-The plugin code is licensed under the MIT License in `LICENSE`. It is a JetBrains port of
-[Woodfish Theme](https://github.com/woodfishhhh/Woodfish-Theme) for VS Code (MIT,
-Copyright (c) 2024 Woodfish); the gradient and glow color math is a Java port of that
-project's runtime overlay.
+The plugin uses the [MIT license](LICENSE). The bundled JavaScript runs on [Rhino 1.9.2](https://github.com/mozilla/rhino/releases/tag/Rhino1_9_2_Release), distributed under MPL-2.0. The unmodified Rhino JAR includes its license and notices.
+
+The WebP reader and its TwelveMonkeys ImageIO dependencies are distributed under the BSD 3-Clause license. The original JARs carry their notices and license text.
 
 The 15 color themes (`themes/*.theme.json` and `themes/*.xml` inside the plugin) are generated from
 the Woodfish themes by `pnpm jetbrains:generate`. Several of them are derived from third-party
@@ -19,9 +18,9 @@ not included in the installable IDE plugin.
 
 # 许可说明
 
-插件代码使用 `LICENSE` 中的 MIT 许可。它移植自 VS Code 扩展
-[Woodfish Theme](https://github.com/woodfishhhh/Woodfish-Theme)（MIT，Copyright (c) 2024 Woodfish），
-渐变与发光的颜色算法是原版运行时叠层的 Java 移植。
+插件采用 [MIT 许可](LICENSE)。随包分发的 Rhino 1.9.2 用于执行共享颜色计算，遵循 MPL-2.0，原始 JAR 包含许可和声明。
+
+WebP 解码器及其 TwelveMonkeys ImageIO 依赖遵循 BSD 三条款许可，版权与许可随原始 JAR 一同分发。
 
 15 套配色（插件内的 `themes/*.theme.json` 与 `themes/*.xml`）由 `pnpm jetbrains:generate` 从 Woodfish
 主题生成。其中几套源自第三方主题（Dracula、One Dark Pro、Tokyo Night、Catppuccin、Nord、GitHub、

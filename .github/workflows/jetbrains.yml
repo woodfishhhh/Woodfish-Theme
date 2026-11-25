@@ -5,12 +5,18 @@ on:
     paths:
       - apps/jetbrains/**
       - packages/theme-core/**
+      - packages/renderer-runtime/**
+      - packages/effects/builtin/**
+      - apps/vscode-extension/package.json
       - apps/vscode-extension/themes/**
       - .github/workflows/jetbrains.yml
   pull_request:
     paths:
       - apps/jetbrains/**
       - packages/theme-core/**
+      - packages/renderer-runtime/**
+      - packages/effects/builtin/**
+      - apps/vscode-extension/package.json
       - apps/vscode-extension/themes/**
       - .github/workflows/jetbrains.yml
 
@@ -57,6 +63,10 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      - name: Check Java method size and nesting
+        working-directory: apps/jetbrains
+        run: java scripts/CheckStructure.java src/main/java
 
       - name: Test, build and verify the plugin
         working-directory: apps/jetbrains

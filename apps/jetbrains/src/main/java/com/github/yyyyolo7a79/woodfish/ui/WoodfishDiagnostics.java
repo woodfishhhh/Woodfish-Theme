@@ -24,7 +24,7 @@ import java.util.Locale;
  */
 public final class WoodfishDiagnostics {
 
-    private static final String UNKNOWN = "未知";
+    private static final String UNKNOWN = WoodfishBundle.text("report.unknown");
 
     private WoodfishDiagnostics() {
     }
@@ -84,7 +84,7 @@ public final class WoodfishDiagnostics {
     private static String uiScale() {
         String ide = percent(JBUIScale.scale(1f));
         Double system = systemScale();
-        return system == null ? "IDE " + ide : "IDE " + ide + "，系统 " + percent(system.floatValue());
+        return system == null ? "IDE " + ide : WoodfishBundle.text("report.scale.both", ide, percent(system.floatValue()));
     }
 
     private static @Nullable Double systemScale() {

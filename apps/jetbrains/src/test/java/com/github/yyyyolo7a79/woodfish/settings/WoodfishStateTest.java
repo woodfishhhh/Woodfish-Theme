@@ -17,10 +17,10 @@ class WoodfishStateTest {
     void 默认值与原版一致() {
         WoodfishState s = new WoodfishState();
         assertTrue(s.overlayEnabled);
-        assertEquals(24, s.hueShift);
-        assertEquals(0.06, s.lightnessDelta);
-        assertEquals(0.06, s.neutralChroma);
-        assertEquals(90, s.angle);
+        assertEquals(32, s.hueShift);
+        assertEquals(0.12, s.lightnessDelta);
+        assertEquals(0.075, s.neutralChroma);
+        assertEquals(45, s.angle);
         assertTrue(s.syntaxGradientEnabled);
         assertTrue(s.cjkGradientEnabled, "1.0.7 起中日韩逐字纯色重画，默认参与效果");
         assertTrue(s.glowEnabled);
@@ -100,7 +100,7 @@ class WoodfishStateTest {
         c.cjkGradientEnabled = false;
         c.glowEnabled = false;
         assertNotEquals(s, c);
-        assertEquals(24, s.customPresets.get(0).hueShift);
+        assertEquals(32, s.customPresets.get(0).hueShift);
         assertTrue(s.glowEnabled);
     }
 
@@ -136,7 +136,7 @@ class WoodfishStateTest {
         s.glowEnabled = false;
         s.cjkGradientEnabled = false;
         s.resetEffects();
-        assertEquals(24, s.hueShift);
+        assertEquals(32, s.hueShift);
         assertTrue(s.cjkGradientEnabled);
         assertTrue(s.glowEnabled);
         assertFalse(s.overlayEnabled);

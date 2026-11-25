@@ -77,6 +77,32 @@ class TextPiecesTest {
         assertEquals(a0 + 3 * a1, grid.getGlyphPosition(2).getX(), EPS);
     }
 
+    @Test void oneGlyphMayCoverTwoMeasuredCharacters() {
+        var glyph = FONT.createGlyphVector(FRC, "f");
+        double width = advance(glyph, 0);
+        TextPieces.alignToGrid(glyph, new float[]{5, 25}, 0, 2);
+        assertEquals(30, glyph.getGlyphPosition(1).getX(), EPS);
+        assertEquals((30 - width) / 2, glyph.getGlyphPosition(0).getX(), EPS);
+    }
+
+    @Test void equalTextWithDifferentMeasuredCellsKeepsItsOwnGeometry() {
+        var cache = new TextPieces.GlyphCache();
+        char[] text = "ab".toCharArray();
+        var narrow = cache.get(FONT, FRC, text, 0, 2, new float[]{8, 8});
+        var wide = cache.get(FONT, FRC, text, 0, 2, new float[]{16, 8});
+        assertEquals(16, narrow.getGlyphPosition(2).getX(), EPS);
+        assertEquals(24, wide.getGlyphPosition(2).getX(), EPS);
+    }
+
+    @Test void publicBoundariesCenterCjkGlyphsAndRejectVisualDiscontinuities() {
+        float[] origins = new float[3], widths = {0, 12, 12};
+        double[] edges = {0, 10, 26, 42};
+        org.junit.jupiter.api.Assertions.assertTrue(EditorGrid.fit(1, 3, 10, origins, widths, i -> edges[i]));
+        org.junit.jupiter.api.Assertions.assertArrayEquals(new float[]{0, 12, 28}, origins);
+        org.junit.jupiter.api.Assertions.assertArrayEquals(new float[]{0, 16, 16}, widths);
+        org.junit.jupiter.api.Assertions.assertFalse(EditorGrid.fit(1, 3, 10, origins, widths, i -> 0));
+    }
+
     private static float advance(GlyphVector vector, int glyph) {
         return (float) (vector.getGlyphPosition(glyph + 1).getX() - vector.getGlyphPosition(glyph).getX());
     }

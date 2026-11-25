@@ -49,6 +49,8 @@ dependencies {
     }
 
     // 纯 Java 单元测试（颜色数学、设置规范化等），不依赖 IntelliJ 测试框架
+    implementation("org.mozilla:rhino:1.9.2")
+    implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0")
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -93,13 +95,11 @@ intellijPlatform {
     // ./gradlew verifyPlugin：用本机三个 IDE（2024.3 / 2025.2 / 2026.2）检查二进制兼容性与内部 API 使用
     pluginVerification {
         ides {
-            val localIdes = listOf("platformLocalPath", "ide252LocalPath", "ide262LocalPath")
-                .mapNotNull { localProperty(it)?.takeIf { p -> file(p).isDirectory } }
-            if (localIdes.isEmpty()) {
-                create("IC", "2024.2")
-                create("IC", providers.gradleProperty("platformVersion"))
-            } else {
-                localIdes.forEach { local(file(it)) }
+            create("IC", "2024.2")
+            create("IC", providers.gradleProperty("platformVersion"))
+            listOf("ide252LocalPath", "ide262LocalPath").mapNotNull(::localProperty).distinct().forEach { path ->
+                require(file(path).isDirectory) { "找不到待验证的 IDE 目录 $path" }
+                local(file(path))
             }
         }
     }
@@ -141,6 +141,7 @@ tasks {
 
     // 许可证随插件 jar 分发
     processResources {
+        from(layout.projectDirectory.file("../../packages/renderer-runtime/assets/caiyun.webp")) { into("woodfish") }
         from(layout.projectDirectory) {
             include("LICENSE", "THIRD_PARTY_NOTICES.md")
             into("META-INF")

@@ -3,6 +3,7 @@ package com.github.yyyyolo7a79.woodfish.editor;
 import com.github.yyyyolo7a79.woodfish.WoodfishPluginDisposable;
 import com.github.yyyyolo7a79.woodfish.core.color.TokenColorDeriver;
 import com.github.yyyyolo7a79.woodfish.settings.EffectSettings;
+import com.github.yyyyolo7a79.woodfish.settings.SharedDefaults;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -50,6 +51,8 @@ public final class SyntaxEffects implements Disposable {
     private final EditorEx editor;
     private final Disposable lifetime = Disposer.newDisposable("Woodfish syntax effects");
     private final FrameScanner scanner;
+    private final EditorBackdrop backdrop;
+    private RangeHighlighter backgroundHighlighter;
     private final GlowRenderer glowRenderer = new GlowRenderer(this);
     private final GradientRenderer gradientRenderer = new GradientRenderer(this);
     private final RenderGuard guard = new RenderGuard();
@@ -57,6 +60,7 @@ public final class SyntaxEffects implements Disposable {
     private volatile EffectSettings settings;
     private volatile TokenColorDeriver deriver;
     private double anchorHue;
+    private CaretOverlay caretOverlay;
 
     private RangeHighlighter glowHighlighter;
     private RangeHighlighter gradientHighlighter;
@@ -68,6 +72,7 @@ public final class SyntaxEffects implements Disposable {
         this.editor = editor;
         this.settings = settings;
         this.scanner = new FrameScanner(editor);
+        this.backdrop = new EditorBackdrop(editor);
     }
 
     public static @NotNull SyntaxEffects install(@NotNull EditorEx editor,
@@ -94,13 +99,16 @@ public final class SyntaxEffects implements Disposable {
 
         anchorHue = AnchorHueResolver.resolve(editor.getColorsScheme());
         deriver = newDeriver(settings, anchorHue);
+        backdrop.configure(settings);
         addHighlighters();
+        caretOverlay = new CaretOverlay(editor, settings, lifetime);
 
         editor.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void documentChanged(@NotNull DocumentEvent event) {
                 if (!event.getDocument().isInBulkUpdate()) {
                     checkHighlighters();
+                    if (event.getNewLength() > 0) caretOverlay.inserted();
                 }
             }
 
@@ -132,7 +140,15 @@ public final class SyntaxEffects implements Disposable {
                 || Double.compare(old.neutralChroma(), newSettings.neutralChroma()) != 0) {
             deriver = newDeriver(newSettings, anchorHue);
         }
+        if (classic(old) != classic(newSettings)) {
+            removeHighlighters();
+            addHighlighters();
+        }
         refresh();
+    }
+
+    private static boolean classic(EffectSettings value) {
+        return value.anyActive() && value.value("overlay.style").equals("classic");
     }
 
     public void schemeChanged() {
@@ -211,6 +227,8 @@ public final class SyntaxEffects implements Disposable {
     // ==================== 内部 ====================
 
     private void refresh() {
+        backdrop.configure(settings);
+        caretOverlay.configure(settings);
         scanner.endSession();
         glowRenderer.reset();
         gradientRenderer.clearCaches();
@@ -219,11 +237,15 @@ public final class SyntaxEffects implements Disposable {
         }
     }
 
-    private static TokenColorDeriver newDeriver(EffectSettings s, double anchorHue) {
-        return new TokenColorDeriver(s.hueShift(), s.lightnessDelta(), s.neutralChroma(), anchorHue);
+    private TokenColorDeriver newDeriver(EffectSettings s, double anchorHue) {
+        var scheme = editor.getColorsScheme();
+        var background = scheme.getDefaultBackground();
+        var foreground = SharedDefaults.editorForeground(background, scheme.getDefaultForeground());
+        return new TokenColorDeriver(s.hueShift(), s.lightnessDelta(), s.neutralChroma(), anchorHue, background, foreground);
     }
 
     private void addHighlighters() {
+        backgroundHighlighter = addHighlighter(backdrop);
         glowHighlighter = addHighlighter(glowRenderer);
         gradientHighlighter = addHighlighter(gradientRenderer);
     }
@@ -234,8 +256,10 @@ public final class SyntaxEffects implements Disposable {
      */
     private RangeHighlighter addHighlighter(CustomHighlighterRenderer renderer) {
         MarkupModel markup = editor.getMarkupModel();
+        var style = renderer == gradientRenderer && classic(settings)
+                ? new com.intellij.openapi.editor.markup.TextAttributes(null, null, null, null, java.awt.Font.BOLD) : null;
         RangeHighlighter highlighter = markup.addRangeHighlighter(0, editor.getDocument().getTextLength(),
-                HighlighterLayer.FIRST, null, HighlighterTargetArea.LINES_IN_RANGE);
+                HighlighterLayer.FIRST, style, HighlighterTargetArea.LINES_IN_RANGE);
         highlighter.setGreedyToLeft(true);
         highlighter.setGreedyToRight(true);
         highlighter.setCustomRenderer(renderer);
@@ -251,7 +275,7 @@ public final class SyntaxEffects implements Disposable {
             return;
         }
         int length = editor.getDocument().getTextLength();
-        if (covers(glowHighlighter, length) && covers(gradientHighlighter, length)) {
+        if (covers(backgroundHighlighter, length) && covers(glowHighlighter, length) && covers(gradientHighlighter, length)) {
             return;
         }
         repairScheduled = true;
@@ -261,7 +285,7 @@ public final class SyntaxEffects implements Disposable {
                 return;
             }
             int now = editor.getDocument().getTextLength();
-            if (!covers(glowHighlighter, now) || !covers(gradientHighlighter, now)) {
+            if (!covers(backgroundHighlighter, now) || !covers(glowHighlighter, now) || !covers(gradientHighlighter, now)) {
                 removeHighlighters();
                 addHighlighters();
             }
@@ -274,7 +298,7 @@ public final class SyntaxEffects implements Disposable {
     }
 
     private void removeHighlighters() {
-        for (RangeHighlighter highlighter : new RangeHighlighter[] {glowHighlighter, gradientHighlighter}) {
+        for (RangeHighlighter highlighter : new RangeHighlighter[] {backgroundHighlighter, glowHighlighter, gradientHighlighter}) {
             if (highlighter != null) {
                 try {
                     highlighter.dispose(); // 等价于 markupModel.removeHighlighter，编辑器已释放时为空操作
@@ -283,6 +307,7 @@ public final class SyntaxEffects implements Disposable {
                 }
             }
         }
+        backgroundHighlighter = null;
         glowHighlighter = null;
         gradientHighlighter = null;
     }
@@ -293,6 +318,7 @@ public final class SyntaxEffects implements Disposable {
             return;
         }
         disposed = true;
+        backdrop.clear();
         removeHighlighters();
         glowRenderer.dispose();
         gradientRenderer.clearCaches();

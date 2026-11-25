@@ -34,29 +34,24 @@ final class StatusBarText {
     static @NotNull String tooltip(@NotNull EffectSettings s) {
         String overlay;
         if (!s.overlayEnabled()) {
-            overlay = "已关闭（各项参数已保留）";
+            overlay = WoodfishBundle.text("status.master.off");
         } else if (!s.anyActive()) {
-            overlay = "已开启，但渐变与发光都已关闭";
+            overlay = WoodfishBundle.text("status.master.quiet");
         } else {
-            overlay = "已开启";
+            overlay = WoodfishBundle.text("status.master.on");
         }
         String glowState = layerState(s.overlayEnabled(), s.glow());
         if (s.glowActive()) {
-            glowState += String.format(Locale.ROOT, "（强度 %.2f×）", s.glowIntensity());
+            glowState += WoodfishBundle.text("status.intensity", String.format(Locale.ROOT, "%.2f×", s.glowIntensity()));
         }
-        return "<html>"
-                + "<b>Woodfish 通用叠层</b>：" + overlay + "<br>"
-                + "A 渐变语法（彩色字体）：" + layerState(s.overlayEnabled(), s.syntaxGradient()) + "<br>"
-                + "G 文字发光：" + glowState + "<br>"
-                + "点击打开功能菜单"
-                + "</html>";
+        return WoodfishBundle.text("status.tooltip", overlay, layerState(s.overlayEnabled(), s.syntaxGradient()), glowState);
     }
 
     /** 分项开关本身的状态；总开关关着时说明「开着但暂不生效」，免得用户以为开关失灵 */
     private static String layerState(boolean overlayEnabled, boolean layerEnabled) {
         if (!layerEnabled) {
-            return "关闭";
+            return WoodfishBundle.text("status.layer.off");
         }
-        return overlayEnabled ? "开启" : "开启（总开关关闭，暂不生效）";
+        return overlayEnabled ? WoodfishBundle.text("status.layer.on") : WoodfishBundle.text("status.layer.pending");
     }
 }

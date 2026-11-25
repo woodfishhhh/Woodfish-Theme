@@ -237,7 +237,7 @@ code --install-extension woodfish-theme-8.2.3.vsix
 | Trae / Trae CN | 1.107 | 扩展面板（Open VSX） | 结构已核对 |
 | Ghostty、Windows Terminal、bat、Yazi、Starship、lsd、zsh-syntax-highlighting | 不依赖 VS Code | [终端配色与安装说明](./apps/terminal/README.md) | 静态配色 |
 | Neovim 0.12 | 不依赖 VS Code | [woodfish.nvim](https://github.com/woodfishhhh/woodfish.nvim)（[说明](./apps/neovim/README.md)） | 15 套配色，无头加载 + 与 VS Code 逐字符比对 |
-| JetBrains 系列 IDE（IntelliJ IDEA、PyCharm、WebStorm、GoLand、CLion 等，2024.2 起） | 不依赖 VS Code | 审核通过后（[插件页](https://plugins.jetbrains.com/plugin/36347-woodfish-theme)，通过前不公开）：设置 → 插件 → 市场，搜索 `Woodfish Theme` 安装。现在可用：从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.3) 下载 `woodfish-theme-jetbrains-8.2.3.zip`，设置 → 插件 → 齿轮 → 从磁盘安装插件，选这个 zip。装好后到设置 → 外观与行为 → 外观里选 Woodfish 主题（[说明](./apps/jetbrains/README.zh-CN.md)） | 15 套配色，加可选的渐变与发光；IntelliJ IDEA 和 PyCharm 里与 VS Code 逐 token 比对（[对照表](./docs/hosts/jetbrains-colors.md)） |
+| JetBrains 系列 IDE（IntelliJ IDEA、PyCharm、WebStorm、GoLand、CLion 等，2024.2 起） | 不依赖 VS Code | [插件市场](https://plugins.jetbrains.com/plugin/36347-woodfish-theme)：设置 → 插件 → 市场，搜索 `Woodfish Theme` 安装。或从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.3) 下载 `woodfish-theme-jetbrains-8.2.3.zip`，设置 → 插件 → 齿轮 → 从磁盘安装插件，选这个 zip。装好后到设置 → 外观与行为 → 外观里选 Woodfish 主题（[说明](./apps/jetbrains/README.zh-CN.md)） | 15 套配色，加可选的渐变与发光；IntelliJ IDEA 和 PyCharm 里与 VS Code 逐 token 比对（[对照表](./docs/hosts/jetbrains-colors.md)） |
 
 “结构已核对”表示已逐项检查过该编辑器安装包里的 workbench 路径、安全策略（CSP）、校验和与主进程格式，与实测通过的编辑器一致。提示信息会显示你正在用的编辑器名字，比如“请重新加载 Cursor”。Remote SSH、WSL 和开发容器里同样有效：Woodfish 始终运行在本地界面这一侧。
 
@@ -413,7 +413,7 @@ code --install-extension woodfish-theme-8.2.3.vsix
 
 - **小地图（minimap）没有渐变**：小地图是 canvas 绘制的，CSS 改不了。
 - **网页版和 Remote 服务器端**：效果只能注入到桌面版编辑器的本地界面。
-- **JetBrains 系列（如 CLion）**：仓库里的 [JetBrains 插件](./apps/jetbrains/README.zh-CN.md)带 15 套配色和渐变与发光，审核通过后可在 IDE 的插件市场搜索 Woodfish Theme 安装，现在从 GitHub Release 下载 zip 安装（见上面的表）；它是单独的 zip，不包含在 VSIX 中。另见 [@yyyyolo7a79-sketch](https://github.com/yyyyolo7a79-sketch) 的社区项目 [Woodfish for JetBrains](https://github.com/yyyyolo7a79-sketch/woodfish-theme-for-jetbrains)。
+- **JetBrains 系列（如 CLion）**：插件提供 15 套配色。开发版加入与 VS Code 共用色标的渐变、彩虹光标、拖尾、打字粒子和编辑器背景。已发布版本可在插件市场或 GitHub Release 安装。[安装与设置](./apps/jetbrains/README.zh-CN.md)
 - **Visual Studio**：不是基于 VS Code 的，Woodfish 无法支持。
 - **截图类扩展（如 CodeSnap）**：截图里不会带上 Woodfish 的效果。
 

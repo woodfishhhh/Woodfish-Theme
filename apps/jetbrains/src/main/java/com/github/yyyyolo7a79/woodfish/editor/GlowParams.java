@@ -2,6 +2,7 @@ package com.github.yyyyolo7a79.woodfish.editor;
 
 import com.github.yyyyolo7a79.woodfish.core.color.GlowBlur;
 
+import com.github.yyyyolo7a79.woodfish.settings.SharedDefaults;
 import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
@@ -25,15 +26,21 @@ import java.awt.geom.AffineTransform;
  *                          重建编辑器的 FontRenderContext，让有风险的 piece 与编辑器一致地排字
  */
 record GlowParams(double scaleX, double scaleY, double intensity, boolean light, boolean fractionalMetrics,
-                  Object textAntialiasing) {
+                  Object textAntialiasing, boolean classic) {
+
+    GlowParams(double scaleX, double scaleY, double intensity, boolean light, boolean fractionalMetrics, Object aa) {
+        this(scaleX, scaleY, intensity, light, fractionalMetrics, aa, false);
+    }
 
     // 原版的模糊半径（CSS px），顺序即合成顺序：半径大的在下层
-    static final double FAR = 20;
-    static final double MID = 10;
-    static final double PUNCTUATION_FAR = 6;
-    static final double NEAR = 4;
-    static final double PUNCTUATION_NEAR = 2;
-    static final double LIGHT = 2;
+    static final double FAR = SharedDefaults.number("radius.far");
+    static final double MID = SharedDefaults.number("radius.mid");
+    static final double PUNCTUATION_FAR = SharedDefaults.number("radius.punctuationFar");
+    static final double NEAR = SharedDefaults.number("radius.near");
+    static final double PUNCTUATION_NEAR = SharedDefaults.number("radius.punctuationNear");
+    static final double LIGHT_NEAR = SharedDefaults.number("radius.lightNear");
+    static final double LIGHT = SharedDefaults.number("radius.lightMid");
+    static final double CLASSIC = SharedDefaults.number("radius.classic");
 
     /** 原版 scaleGlowRadius：半径乘强度，下限 0.5 px */
     double radius(double base) {
@@ -47,7 +54,7 @@ record GlowParams(double scaleX, double scaleY, double intensity, boolean light,
 
     /** 最大一层发光在设备像素下的扩散距离（含 2px 余量） */
     int padDevice() {
-        double largest = light ? LIGHT : FAR;
+        double largest = light ? LIGHT : classic ? CLASSIC : FAR;
         return GlowBlur.kernelRadius(sigma(largest)) + 2;
     }
 

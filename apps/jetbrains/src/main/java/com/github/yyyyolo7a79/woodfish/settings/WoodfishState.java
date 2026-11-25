@@ -2,6 +2,8 @@ package com.github.yyyyolo7a79.woodfish.settings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -18,18 +20,23 @@ public final class WoodfishState {
     public static final int CURRENT_MIGRATION_VERSION = 2;
 
     // ===== 范围常量：与 VS Code 版 normalizeRuntimeSettings 的上下限一致 =====
-    public static final double HUE_SHIFT_MIN = 0, HUE_SHIFT_MAX = 180;
-    public static final double LIGHTNESS_DELTA_MIN = 0, LIGHTNESS_DELTA_MAX = 0.5;
-    public static final double NEUTRAL_CHROMA_MIN = 0, NEUTRAL_CHROMA_MAX = 0.4;
-    public static final double ANGLE_MIN = 0, ANGLE_MAX = 360;
-    public static final double GLOW_INTENSITY_MIN = 0.1, GLOW_INTENSITY_MAX = 3;
+    public static final double HUE_SHIFT_MIN = SharedDefaults.number("overlay.hueShift.min"),
+            HUE_SHIFT_MAX = SharedDefaults.number("overlay.hueShift.max");
+    public static final double LIGHTNESS_DELTA_MIN = SharedDefaults.number("overlay.lightnessDelta.min"),
+            LIGHTNESS_DELTA_MAX = SharedDefaults.number("overlay.lightnessDelta.max");
+    public static final double NEUTRAL_CHROMA_MIN = SharedDefaults.number("overlay.neutralChroma.min"),
+            NEUTRAL_CHROMA_MAX = SharedDefaults.number("overlay.neutralChroma.max");
+    public static final double ANGLE_MIN = SharedDefaults.number("overlay.angle.min"),
+            ANGLE_MAX = SharedDefaults.number("overlay.angle.max");
+    public static final double GLOW_INTENSITY_MIN = SharedDefaults.number("glow.intensity.min"),
+            GLOW_INTENSITY_MAX = SharedDefaults.number("glow.intensity.max");
 
     // ===== 默认值 =====
-    public static final double DEFAULT_HUE_SHIFT = 24;
-    public static final double DEFAULT_LIGHTNESS_DELTA = 0.06;
-    public static final double DEFAULT_NEUTRAL_CHROMA = 0.06;
-    public static final double DEFAULT_ANGLE = 90;
-    public static final double DEFAULT_GLOW_INTENSITY = 1.0;
+    public static final double DEFAULT_HUE_SHIFT = SharedDefaults.number("overlay.hueShift");
+    public static final double DEFAULT_LIGHTNESS_DELTA = SharedDefaults.number("overlay.lightnessDelta");
+    public static final double DEFAULT_NEUTRAL_CHROMA = SharedDefaults.number("overlay.neutralChroma");
+    public static final double DEFAULT_ANGLE = SharedDefaults.number("overlay.angle");
+    public static final double DEFAULT_GLOW_INTENSITY = SharedDefaults.number("glow.intensity");
 
     /** 自定义预设数量上限，防止配置文件无限膨胀 */
     public static final int MAX_CUSTOM_PRESETS = 32;
@@ -68,6 +75,7 @@ public final class WoodfishState {
 
     /** 发光强度倍率 */
     public double glowIntensity = DEFAULT_GLOW_INTENSITY;
+    public Map<String, String> options = new LinkedHashMap<>();
 
     /** 用户保存的预设（名称唯一） */
     public List<CustomPreset> customPresets = new ArrayList<>();
@@ -90,6 +98,7 @@ public final class WoodfishState {
         public boolean cjkGradientEnabled = true;
         public boolean glowEnabled = true;
         public double glowIntensity = DEFAULT_GLOW_INTENSITY;
+        public Map<String, String> options = new LinkedHashMap<>();
 
         public CustomPreset() {
         }
@@ -106,6 +115,7 @@ public final class WoodfishState {
             p.cjkGradientEnabled = s.cjkGradientEnabled;
             p.glowEnabled = s.glowEnabled;
             p.glowIntensity = s.glowIntensity;
+            p.options = NativeOptions.normalize(s.options);
             return p;
         }
 
@@ -119,6 +129,7 @@ public final class WoodfishState {
             s.cjkGradientEnabled = cjkGradientEnabled;
             s.glowEnabled = glowEnabled;
             s.glowIntensity = glowIntensity;
+            s.options = NativeOptions.normalize(options);
         }
 
         public CustomPreset copy() {
@@ -132,6 +143,7 @@ public final class WoodfishState {
             p.cjkGradientEnabled = cjkGradientEnabled;
             p.glowEnabled = glowEnabled;
             p.glowIntensity = glowIntensity;
+            p.options = NativeOptions.normalize(options);
             return p;
         }
 
@@ -143,7 +155,7 @@ public final class WoodfishState {
             if (!(o instanceof CustomPreset p)) {
                 return false;
             }
-            return Objects.equals(name, p.name)
+            return Objects.equals(options, p.options) && Objects.equals(name, p.name)
                     && Double.compare(hueShift, p.hueShift) == 0
                     && Double.compare(lightnessDelta, p.lightnessDelta) == 0
                     && Double.compare(neutralChroma, p.neutralChroma) == 0
@@ -156,7 +168,7 @@ public final class WoodfishState {
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, hueShift, lightnessDelta, neutralChroma, angle,
+            return Objects.hash(options, name, hueShift, lightnessDelta, neutralChroma, angle,
                     syntaxGradientEnabled, cjkGradientEnabled, glowEnabled, glowIntensity);
         }
     }
@@ -174,6 +186,7 @@ public final class WoodfishState {
         s.migrationVersion = migrationVersion;
         s.glowEnabled = glowEnabled;
         s.glowIntensity = glowIntensity;
+        s.options = NativeOptions.normalize(options);
         s.welcomeShown = welcomeShown;
         s.customPresets = new ArrayList<>();
         if (customPresets != null) {
@@ -204,6 +217,7 @@ public final class WoodfishState {
      * NaN / 越界一律回到默认值或边界，与 VS Code 版 sanitizeNumber 的语义一致。
      */
     public WoodfishState normalize() {
+        options = NativeOptions.normalize(options);
         hueShift = clamp(hueShift, HUE_SHIFT_MIN, HUE_SHIFT_MAX, DEFAULT_HUE_SHIFT);
         lightnessDelta = clamp(lightnessDelta, LIGHTNESS_DELTA_MIN, LIGHTNESS_DELTA_MAX,
                 DEFAULT_LIGHTNESS_DELTA);
@@ -233,6 +247,7 @@ public final class WoodfishState {
                 p.angle = clamp(p.angle, ANGLE_MIN, ANGLE_MAX, DEFAULT_ANGLE);
                 p.glowIntensity = clamp(p.glowIntensity, GLOW_INTENSITY_MIN,
                         GLOW_INTENSITY_MAX, DEFAULT_GLOW_INTENSITY);
+                p.options = NativeOptions.normalize(p.options);
                 cleaned.add(p);
             }
         }
@@ -251,6 +266,7 @@ public final class WoodfishState {
         cjkGradientEnabled = d.cjkGradientEnabled;
         glowEnabled = d.glowEnabled;
         glowIntensity = d.glowIntensity;
+        options.clear();
     }
 
     private static double clamp(double value, double min, double max, double fallback) {
@@ -268,7 +284,7 @@ public final class WoodfishState {
         if (!(o instanceof WoodfishState s)) {
             return false;
         }
-        return overlayEnabled == s.overlayEnabled
+        return Objects.equals(options, s.options) && overlayEnabled == s.overlayEnabled
                 && Double.compare(hueShift, s.hueShift) == 0
                 && Double.compare(lightnessDelta, s.lightnessDelta) == 0
                 && Double.compare(neutralChroma, s.neutralChroma) == 0
@@ -284,7 +300,7 @@ public final class WoodfishState {
 
     @Override
     public int hashCode() {
-        return Objects.hash(overlayEnabled, hueShift, lightnessDelta, neutralChroma, angle,
+        return Objects.hash(options, overlayEnabled, hueShift, lightnessDelta, neutralChroma, angle,
                 syntaxGradientEnabled, cjkGradientEnabled, migrationVersion, glowEnabled, glowIntensity,
                 welcomeShown, customPresets);
     }

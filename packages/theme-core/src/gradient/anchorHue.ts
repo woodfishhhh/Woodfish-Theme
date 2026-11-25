@@ -20,9 +20,14 @@ export function isPunctuationOnly(value: string): boolean {
  * word (repeat colors to weight them); colors are ranked by `occurrences × chroma`.
  * Returns `null` when no color is colorful and bright enough.
  */
-export function rankPaletteAnchorHue(colors: Iterable<string>): number | null {
+export function rankPaletteAnchorHue(
+  colors: Iterable<string | readonly [string, number]>
+): number | null {
   const palette = new Map<string, OklchColor & { count: number }>();
-  for (const cssColor of colors) {
+  for (const sample of colors) {
+    const cssColor = typeof sample === 'string' ? sample : sample[0];
+    const weight = typeof sample === 'string' ? 1 : sample[1];
+    if (!(weight > 0)) continue;
     const parsed = parseCssColor(cssColor);
     if (!parsed) {
       continue;
@@ -32,7 +37,7 @@ export function rankPaletteAnchorHue(colors: Iterable<string>): number | null {
       continue;
     }
     const entry = palette.get(cssColor) ?? { ...color, count: 0 };
-    entry.count += 1;
+    entry.count += weight;
     palette.set(cssColor, entry);
   }
 

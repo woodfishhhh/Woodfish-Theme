@@ -1,3 +1,5 @@
+import { GLOW_RADII } from '@woodfish/theme-core';
+
 /*
  * CSS declarations that consume the per-token variables written by the text gradient
  * engine. Pure string builders (no DOM), so host-side code can assemble payloads too.
@@ -48,9 +50,9 @@ export function buildGradientDeclarations(angleVariable = '--woodfish-overlay-an
 export function buildGlowDeclarations(intensity: number): string[] {
   return [
     '  text-shadow:',
-    `    0 0 ${scaleGlowRadius(4, intensity)} var(--woodfish-overlay-glow-near),`,
-    `    0 0 ${scaleGlowRadius(10, intensity)} var(--woodfish-overlay-glow-mid),`,
-    `    0 0 ${scaleGlowRadius(20, intensity)} var(--woodfish-overlay-glow-far) !important;`,
+    `    0 0 ${scaleGlowRadius(GLOW_RADII.near, intensity)} var(--woodfish-overlay-glow-near),`,
+    `    0 0 ${scaleGlowRadius(GLOW_RADII.mid, intensity)} var(--woodfish-overlay-glow-mid),`,
+    `    0 0 ${scaleGlowRadius(GLOW_RADII.far, intensity)} var(--woodfish-overlay-glow-far) !important;`,
   ];
 }
 
@@ -62,8 +64,8 @@ export function buildGlowDeclarations(intensity: number): string[] {
 export function buildLightGlowDeclarations(intensity: number): string[] {
   return [
     '  text-shadow:',
-    `    0 0 ${scaleGlowRadius(3, intensity)} var(--woodfish-overlay-glow-near),`,
-    `    0 0 ${scaleGlowRadius(9, intensity)} var(--woodfish-overlay-glow-mid) !important;`,
+    `    0 0 ${scaleGlowRadius(GLOW_RADII.lightNear, intensity)} var(--woodfish-overlay-glow-near),`,
+    `    0 0 ${scaleGlowRadius(GLOW_RADII.lightMid, intensity)} var(--woodfish-overlay-glow-mid) !important;`,
   ];
 }
 
@@ -71,8 +73,8 @@ export function buildLightGlowDeclarations(intensity: number): string[] {
 export function buildPunctuationGlowDeclarations(intensity: number): string[] {
   return [
     '  text-shadow:',
-    `    0 0 ${scaleGlowRadius(2, intensity)} var(--woodfish-overlay-punctuation-glow-near),`,
-    `    0 0 ${scaleGlowRadius(6, intensity)} var(--woodfish-overlay-punctuation-glow-far) !important;`,
+    `    0 0 ${scaleGlowRadius(GLOW_RADII.punctuationNear, intensity)} var(--woodfish-overlay-punctuation-glow-near),`,
+    `    0 0 ${scaleGlowRadius(GLOW_RADII.punctuationFar, intensity)} var(--woodfish-overlay-punctuation-glow-far) !important;`,
   ];
 }
 

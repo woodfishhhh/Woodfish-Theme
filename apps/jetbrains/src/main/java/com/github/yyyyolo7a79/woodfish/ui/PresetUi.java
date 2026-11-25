@@ -55,7 +55,7 @@ public final class PresetUi {
     /** 应用到已生效的设置；总开关关着时提醒一句 */
     public static void apply(@Nullable Project project, @NotNull Preset preset) {
         WoodfishSettings.getInstance().update(preset::applyTo);
-        WoodfishNotifier.warnIfOverlayOff(project, "已应用预设「" + preset.name() + "」");
+        WoodfishNotifier.warnIfOverlayOff(project, WoodfishBundle.text("preset.applied", WoodfishPresets.displayName(preset)));
     }
 
     // ==================== 保存为预设 ====================
@@ -68,8 +68,8 @@ public final class PresetUi {
             return;
         }
         WoodfishSettings.getInstance().update(s -> WoodfishPresets.saveCurrent(s, name));
-        WoodfishNotifier.info(project, "已保存预设",
-                "「" + WoodfishNotifier.escape(name) + "」已加入「我的预设」，可以在「选择效果预设」里一键切换。");
+        WoodfishNotifier.info(project, WoodfishBundle.text("preset.saved"),
+                WoodfishBundle.text("preset.saved.detail", WoodfishNotifier.escape(name)));
     }
 
     /**
@@ -82,8 +82,8 @@ public final class PresetUi {
     public static @Nullable String askName(@Nullable Project project, @Nullable Component parent,
                                            @NotNull WoodfishState target) {
         InputValidatorEx validator = text -> WoodfishPresets.validateName(text, target);
-        String message = "为当前的渐变与发光参数起个名字，之后可以在「选择效果预设」里一键切换。";
-        String title = "保存 Woodfish 预设";
+        String message = WoodfishBundle.text("preset.name.prompt");
+        String title = WoodfishBundle.text("preset.name.title");
         String initial = WoodfishPresets.suggestName(target);
         String raw = parent != null
                 ? Messages.showInputDialog(parent, message, title, null, initial, validator)
@@ -94,9 +94,9 @@ public final class PresetUi {
         String name = raw.strip();
         if (WoodfishPresets.findCustom(target, name) != null) {
             MessageDialogBuilder.YesNo confirm = MessageDialogBuilder
-                    .yesNo("覆盖预设", "已经有名为「" + name + "」的预设，要用当前参数覆盖它吗？")
-                    .yesText("覆盖")
-                    .noText("取消");
+                    .yesNo(WoodfishBundle.text("preset.replace.title"), WoodfishBundle.text("preset.replace.detail", name))
+                    .yesText(WoodfishBundle.text("preset.replace"))
+                    .noText(WoodfishBundle.text("cancel"));
             boolean overwrite = parent != null ? confirm.ask(parent) : confirm.ask(project);
             if (!overwrite) {
                 return null;
@@ -108,8 +108,8 @@ public final class PresetUi {
     // ==================== 弹窗步骤 ====================
 
     private enum Command {
-        SAVE("将当前效果保存为预设…"),
-        MANAGE("管理预设…");
+        SAVE(WoodfishBundle.text("preset.save")),
+        MANAGE(WoodfishBundle.text("preset.manage"));
 
         final String text;
 
@@ -128,7 +128,7 @@ public final class PresetUi {
         private final @Nullable Preset matched;
 
         PresetStep(@Nullable Project project, List<Entry> entries, @Nullable Preset matched) {
-            super("Woodfish 效果预设", entries);
+            super(WoodfishBundle.text("preset.chooser"), entries);
             this.project = project;
             this.matched = matched;
             for (int i = 0; i < entries.size(); i++) {
@@ -146,21 +146,21 @@ public final class PresetUi {
 
         @Override
         public @NotNull String getTextFor(Entry value) {
-            return value.preset() != null ? value.preset().name() : value.command().text;
+            return value.preset() != null ? WoodfishPresets.displayName(value.preset()) : value.command().text;
         }
 
         @Override
         public @Nullable String getSecondaryTextFor(Entry value) {
             Preset p = value.preset();
             if (p == null) {
-                return value.command() == Command.MANAGE ? "在设置页中删除或另存" : null;
+                return value.command() == Command.MANAGE ? WoodfishBundle.text("preset.manage.hint") : null;
             }
-            return p.builtIn() ? p.description() : WoodfishPresets.summary(p.values());
+            return p.builtIn() ? WoodfishPresets.displayDescription(p) : WoodfishPresets.summary(p.values());
         }
 
         @Override
         public @Nullable String getTooltipTextFor(Entry value) {
-            return isMatched(value) ? "当前参数与这个预设一致" : null;
+            return isMatched(value) ? WoodfishBundle.text("preset.matches") : null;
         }
 
         @Override
@@ -185,11 +185,11 @@ public final class PresetUi {
             Entry previous = index > 0 ? values.get(index - 1) : null;
             Preset p = value.preset();
             if (p != null && p.builtIn() && previous == null) {
-                return new ListSeparator("内置预设");
+                return new ListSeparator(WoodfishBundle.text("preset.group.builtin"));
             }
             if (p != null && !p.builtIn() && (previous == null || previous.preset() == null
                     || previous.preset().builtIn())) {
-                return new ListSeparator("我的预设");
+                return new ListSeparator(WoodfishBundle.text("preset.group.custom"));
             }
             if (value.command() == Command.SAVE) {
                 return new ListSeparator();

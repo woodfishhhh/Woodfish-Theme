@@ -73,7 +73,7 @@ class GlowSpecTest {
     @Test
     void gridModeCopiesCellsAndAlignment() {
         PaintFrame frame = frame("ab中文", new int[][]{{0, 2}, {2, 4}});
-        frame.gridUnit = 8;
+        frame.hasMeasuredCells = true;
         frame.charCell[0] = 8;
         frame.charCell[1] = 8;
         frame.charCell[2] = 16;

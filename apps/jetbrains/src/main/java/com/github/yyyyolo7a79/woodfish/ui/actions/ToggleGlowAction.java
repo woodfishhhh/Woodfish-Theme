@@ -1,5 +1,6 @@
 package com.github.yyyyolo7a79.woodfish.ui.actions;
 
+import com.github.yyyyolo7a79.woodfish.ui.WoodfishBundle;
 import com.github.yyyyolo7a79.woodfish.settings.EffectSettings;
 import com.github.yyyyolo7a79.woodfish.settings.WoodfishState;
 import com.github.yyyyolo7a79.woodfish.ui.WoodfishNotifier;
@@ -25,7 +26,7 @@ public final class ToggleGlowAction extends EffectToggleAction {
     public void setSelected(@NotNull AnActionEvent e, boolean state) {
         super.setSelected(e, state);
         if (state) {
-            WoodfishNotifier.warnIfOverlayOff(e.getProject(), "已打开发光字体");
+            WoodfishNotifier.warnIfOverlayOff(e.getProject(), WoodfishBundle.text("action.glow.enabled"));
         }
     }
 }
