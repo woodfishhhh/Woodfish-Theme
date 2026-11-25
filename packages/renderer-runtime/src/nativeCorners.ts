@@ -29,10 +29,25 @@ export function nativeCorner(value: string): { radius: string; shape: string } {
 
 // Preserve the source of local aliases (e.g. --button-radius), including aliases of theme tokens.
 function originalRadii(value: string): string {
-  return value.replace(
-    /var\((--[\w-]*radius[\w-]*)\)/gi,
-    (whole: string, name: string) => 'var(--woodfish-original' + name + ', ' + whole + ')'
-  );
+  const variable = /var\(\s*(--[\w-]+)\s*/gi;
+  let out = '',
+    end = 0;
+  for (let match = variable.exec(value); match; match = variable.exec(value)) {
+    const name = match[1];
+    const args = variable.lastIndex;
+    let close = args,
+      depth = 1;
+    for (; close < value.length && depth; close++) {
+      if (value[close] === '(') depth++;
+      if (value[close] === ')') depth--;
+    }
+    const raw = 'var(' + name + originalRadii(value.slice(args, close - 1)) + ')';
+    out +=
+      value.slice(end, match.index) +
+      (/radius/i.test(name) ? 'var(--woodfish-original' + name + ', ' + raw + ')' : raw);
+    end = variable.lastIndex = close;
+  }
+  return out + value.slice(end);
 }
 
 function declarations(style: CSSStyleDeclaration): string {
@@ -50,7 +65,17 @@ function declarations(style: CSSStyleDeclaration): string {
     if (!RADIUS.test(prop)) continue;
     const v = style.getPropertyValue(prop).trim();
     // Split shorthand only outside functions, keeping var() fallbacks and calc() whole.
-    const words = v.match(/(?:[^\s()/]+|\((?:[^()]|\([^()]*\))*\))+/g) ?? [];
+    const words: string[] = [];
+    let start = 0,
+      depth = 0;
+    for (let i = 0; i <= v.length; i++) {
+      if (v[i] === '(') depth++;
+      if (v[i] === ')') depth--;
+      if (!depth && (i === v.length || /\s/.test(v[i]))) {
+        if (i > start) words.push(v.slice(start, i));
+        start = i + 1;
+      }
+    }
     if (!words.length || v.includes('/') || words.length > 4) continue;
     const corners = words.map(nativeCorner);
     const important = style.getPropertyPriority(prop) ? ' !important' : '';

@@ -77,3 +77,11 @@ it('adds and removes only companion sheets, including a menu stylesheet loaded a
     else Reflect.deleteProperty(globalThis, 'CSSStyleRule');
   }
 });
+
+it('preserves fallback values while reading the unscaled primary and fallback tokens', () => {
+  const input = 'var(--vscode-cornerRadius-large, var(--radius-md, 8px))';
+  const raw =
+    'var(--woodfish-original--vscode-cornerRadius-large, var(--vscode-cornerRadius-large, var(--woodfish-original--radius-md, var(--radius-md, 8px))))';
+  expect(nativeCorner(input).radius).toContain(raw);
+  expect(nativeCorner(input).shape).toContain(raw);
+});
