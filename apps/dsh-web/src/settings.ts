@@ -1,21 +1,26 @@
 import {
-  CursorParams,
-  GlassParams,
+  BackgroundParams,
+  EffectManifest,
+  EffectValues,
   GlowParams,
   PaletteTone,
   TextGradientParams,
   WOODFISH_PALETTES,
   WoodfishPalette,
-  normalizeCursor,
-  normalizeGlass,
+  normalizeBackground,
   normalizeGlow,
   normalizeTextGradient,
-  sanitizeBoolean,
+  patchEffectValues,
   sanitizeCustomCssRules,
 } from '@woodfish/theme-core';
 
 export type DshMode = PaletteTone;
 
+/**
+ * What `woodfish dsh userscript` bakes into the user script besides the effects. Every
+ * visual effect (caret, trails, glass, the window background, the code gradient…) is an
+ * effect plugin from the shared effects folder (`%APPDATA%\Woodfish\effects`), as in Codex.
+ */
 export interface DshSettings {
   /**
    * Woodfish palette slug per dsh appearance mode; `null` keeps dsh's own colors. Any
@@ -23,13 +28,6 @@ export interface DshSettings {
    * themes show up without changes here.
    */
   palette: { dark: string | null; light: string | null };
-  codeGradient: { enabled: boolean } & TextGradientParams;
-  codeGlow: { enabled: boolean } & GlowParams;
-  glass: { enabled: boolean } & GlassParams;
-  accent: { enabled: boolean };
-  caret: { enabled: boolean } & Pick<CursorParams, 'animationDuration' | 'gradientStops'>;
-  /** Gradient on assistant reply text. Off by default: most visible, most fragile. */
-  bodyText: { enabled: boolean };
   /** Extra CSS appended last, sanitized like the VS Code custom rules. */
   customCss: string[];
 }
@@ -72,84 +70,81 @@ function paletteFor(mode: DshMode, value: unknown, fallback: string | null): str
   return typeof value === 'string' && findDshPalette(value)?.type === mode ? value : fallback;
 }
 
-/** Turns untrusted settings (file, CLI flags, user script storage) into complete settings. */
+/**
+ * Turns untrusted settings (file, CLI flags, user script storage) into complete settings.
+ * Keys of the older format (`codeGradient`, `glass`, `caret`…) are dropped: those are
+ * effect plugins now.
+ */
 export function normalizeDshSettings(input: unknown = {}): DshSettings {
   const palette = section(input, 'palette');
-  const codeGradient = section(input, 'codeGradient');
-  const codeGlow = section(input, 'codeGlow');
-  const glass = section(input, 'glass');
-  const caret = section(input, 'caret');
-  const cursor = normalizeCursor(caret);
-
   return {
     palette: {
       dark: paletteFor('dark', palette.dark, defaultDshPalette('dark')),
       light: paletteFor('light', palette.light, defaultDshPalette('light')),
     },
-    codeGradient: {
-      enabled: sanitizeBoolean(codeGradient.enabled, true),
-      ...normalizeTextGradient(codeGradient),
-    },
-    codeGlow: { enabled: sanitizeBoolean(codeGlow.enabled, true), ...normalizeGlow(codeGlow) },
-    glass: { enabled: sanitizeBoolean(glass.enabled, true), ...normalizeGlass(glass) },
-    accent: { enabled: sanitizeBoolean(section(input, 'accent').enabled, true) },
-    caret: {
-      enabled: sanitizeBoolean(caret.enabled, true),
-      animationDuration: cursor.animationDuration,
-      gradientStops: cursor.gradientStops,
-    },
-    bodyText: { enabled: sanitizeBoolean(section(input, 'bodyText').enabled, false) },
     customCss: sanitizeCustomCssRules(isObject(input) ? input.customCss : undefined),
   };
 }
 
 export const DEFAULT_DSH_SETTINGS: Readonly<DshSettings> = Object.freeze(normalizeDshSettings());
 
-/** The on/off features the user script menu shows, in display order. */
-export const DSH_FEATURE_KEYS = Object.freeze([
-  'codeGradient',
-  'codeGlow',
-  'glass',
-  'accent',
-  'caret',
-  'bodyText',
-] as const);
-export type DshFeatureKey = (typeof DSH_FEATURE_KEYS)[number];
-
-/** What the page may change: the themes and the feature switches. */
+/** What the user script menu may change: the themes and each effect's switch. */
 export interface DshSettingsPatch {
   palette?: { dark?: string | null; light?: string | null };
-  codeGradient?: { enabled: boolean };
-  codeGlow?: { enabled: boolean };
-  glass?: { enabled: boolean };
-  accent?: { enabled: boolean };
-  caret?: { enabled: boolean };
-  bodyText?: { enabled: boolean };
+  effects?: Record<string, { enabled: boolean }>;
 }
 
 /**
- * Applies an untrusted patch kept by the page (the user script menu). Only the themes and
- * the feature switches can change; tunables and custom CSS always come from the settings
- * baked in by `woodfish dsh userscript`, so nothing in the page can inject CSS this way.
+ * Applies the theme part of an untrusted patch kept by the page (the user script menu).
+ * Custom CSS always comes from the settings baked in by `woodfish dsh userscript`, so
+ * nothing in the page can inject CSS this way.
  */
 export function applyDshSettingsPatch(settings: DshSettings, patch: unknown): DshSettings {
   const next = normalizeDshSettings(settings);
-  if (!isObject(patch)) {
-    return next;
-  }
   const palette = section(patch, 'palette');
   for (const mode of ['dark', 'light'] as const) {
     if (palette[mode] !== undefined) {
       next.palette[mode] = paletteFor(mode, palette[mode], next.palette[mode]);
     }
   }
-  for (const key of DSH_FEATURE_KEYS) {
-    const enabled = section(patch, key).enabled;
-    if (typeof enabled === 'boolean') {
-      next[key].enabled = enabled;
-    }
-  }
   return next;
+}
+
+/** An effect as the user script carries it; only what the menu needs is typed here. */
+interface StoredEffect {
+  id: string;
+  manifest: EffectManifest;
+  values: EffectValues;
+}
+
+function isStoredEffect(value: unknown): value is StoredEffect {
+  return (
+    isObject(value) &&
+    typeof value.id === 'string' &&
+    isObject(value.manifest) &&
+    isObject(value.values)
+  );
+}
+
+/**
+ * The baked-in effects with the menu's switches applied (untrusted page storage: only
+ * `enabled` of known effects can change). Anything that is not an effect list is returned
+ * as it is.
+ */
+export function applyStoredEffects(effects: unknown, patch: unknown): unknown {
+  if (!Array.isArray(effects)) {
+    return effects;
+  }
+  const switches = section(patch, 'effects');
+  return effects.map((entry: unknown) => {
+    if (!isStoredEffect(entry)) {
+      return entry;
+    }
+    const enabled = section(switches, entry.id).enabled;
+    return typeof enabled === 'boolean'
+      ? { ...entry, values: patchEffectValues(entry.manifest, entry.values, { enabled }) }
+      : entry;
+  });
 }
 
 /**
@@ -159,4 +154,53 @@ export function applyDshSettingsPatch(settings: DshSettings, patch: unknown): Ds
 export function nextDshPalette(mode: DshMode, current: string | null): string | null {
   const cycle: Array<string | null> = [...dshPalettes(mode).map((palette) => palette.slug), null];
   return cycle[(cycle.indexOf(current) + 1) % cycle.length];
+}
+
+/**
+ * What the core engines (code gradient, window background) need: the settings plus the
+ * values of their effect folders (`null`: the effect is off or missing).
+ */
+export interface DshCoreView {
+  palette: DshSettings['palette'];
+  codeGradient: { enabled: boolean } & TextGradientParams;
+  codeGlow: { enabled: boolean } & GlowParams;
+  background: { enabled: boolean } & BackgroundParams;
+  customCss: string[];
+}
+
+export function composeDshCoreView(
+  settings: DshSettings,
+  core: { 'code-gradient'?: EffectValues | null; background?: EffectValues | null }
+): DshCoreView {
+  const code = core['code-gradient'] ?? null;
+  const background = core.background ?? null;
+  return {
+    palette: settings.palette,
+    codeGradient: {
+      enabled: code !== null,
+      ...normalizeTextGradient({
+        angle: code?.angle,
+        hueShift: code?.hueShift,
+        lightnessDelta: code?.lightnessDelta,
+        neutralChroma: code?.neutralChroma,
+      }),
+    },
+    codeGlow: {
+      enabled: code !== null && code.glow === true,
+      ...normalizeGlow({ intensity: code?.glowIntensity }),
+    },
+    background: {
+      enabled: background !== null,
+      ...normalizeBackground({
+        opacity: background?.opacity,
+        blur: background?.blur,
+        mask: background?.mask,
+        saturate: background?.saturate,
+        luminosity: background?.luminosity,
+        size: background?.size,
+        position: background?.position,
+      }),
+    },
+    customCss: settings.customCss,
+  };
 }

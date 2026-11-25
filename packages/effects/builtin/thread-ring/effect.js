@@ -40,6 +40,11 @@ module.exports = function threadRing(ctx) {
     const ring = `conic-gradient(from var(--woodfish-ring-angle), var(--woodfish-thread-ring-stops, ${[...bands, bands[0]].join(', ')}))`;
     const lit = `${active}, ${running}`;
     const pseudo = (part) => `${active}::${part}, ${running}::${part}`;
+    // Continuous ("Apple") corners where the host asks for them (dsh): it sets --squircle-shape
+    // and --squircle-k, the radius scale that makes a squircle as round as the iOS corner.
+    // Elsewhere both fall back to the plain circular corner at the given radius.
+    const radius = `calc(${p.radius}px * var(--squircle-k, 1))`;
+    const shape = 'corner-shape: var(--squircle-shape, round);';
     ctx.style(`
 @property --woodfish-ring-angle {
   syntax: "<angle>";
@@ -50,7 +55,8 @@ module.exports = function threadRing(ctx) {
   to { --woodfish-ring-angle: 360deg; }
 }
 ${row} {
-  border-radius: ${p.radius}px !important;
+  border-radius: ${radius} !important;
+  ${shape}
 }
 ${lit} {
   --woodfish-ring: ${ring};
@@ -66,7 +72,9 @@ ${pseudo('after')} {
   position: absolute;
   z-index: -1;
   inset: 0;
-  border-radius: ${Math.max(0, p.radius - p.border)}px;
+  /* Concentric with the ring: the outer radius less the border. */
+  border-radius: max(0px, ${radius} - ${p.border}px);
+  ${shape}
   background: var(--woodfish-thread-ring-face, ${rest});
   transition: background 160ms ease;
   pointer-events: none;
@@ -77,6 +85,7 @@ ${pseudo('before')} {
   z-index: -1;
   inset: -5px;
   border-radius: inherit;
+  corner-shape: inherit;
   background: var(--woodfish-ring);
   filter: blur(14px);
   opacity: ${p.halo};

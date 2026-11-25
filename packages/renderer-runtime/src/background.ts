@@ -3,6 +3,7 @@ import {
   BackgroundParams,
   readBackgroundImageInfo,
 } from '@woodfish/theme-core';
+import type { StyleManager } from './styleManager';
 import { formatCssNumber } from './tokenCss';
 
 /*
@@ -259,4 +260,71 @@ export function blurBackgroundImage(
     const pad = radius * 2;
     context.drawImage(bitmap, -pad, -pad, width + pad * 2, height + pad * 2);
   });
+}
+
+/**
+ * Puts one picture on the layer through the CSS variables: the picture itself and the
+ * blurred copy frosted panels show (`soften`). Only the latest request wins, and the
+ * previous object URLs are released once the new ones are in place. A copy that cannot be
+ * made falls back to the sharp picture.
+ */
+export interface BackgroundLayer {
+  show: (
+    key: string | null,
+    load: () => Promise<Blob>,
+    soften: (picture: Blob) => Promise<Blob>
+  ) => Promise<void>;
+  dispose: () => void;
+}
+
+export function createBackgroundLayer(styles: StyleManager): BackgroundLayer {
+  let current: { key: string; urls: string[] } | null = null;
+  let wanted: string | null = null;
+
+  function release(entry: { urls: string[] } | null): void {
+    for (const url of entry?.urls ?? []) {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function clear(): void {
+    styles.remove('background-image');
+    release(current);
+    current = null;
+  }
+
+  return {
+    async show(
+      key: string | null,
+      load: () => Promise<Blob>,
+      soften: (picture: Blob) => Promise<Blob>
+    ): Promise<void> {
+      wanted = key;
+      if (key === null) {
+        clear();
+        return;
+      }
+      if (current?.key === key) {
+        return;
+      }
+      const picture = await load();
+      const soft = await soften(picture).catch(() => null);
+      if (wanted !== key) {
+        return;
+      }
+      const previous = current;
+      const url = URL.createObjectURL(picture);
+      const softUrl = soft ? URL.createObjectURL(soft) : url;
+      current = { key, urls: soft ? [url, softUrl] : [url] };
+      styles.upsert(
+        'background-image',
+        `:root { ${BACKGROUND_IMAGE_VARIABLE}: url("${url}"); ${BACKGROUND_SOFT_IMAGE_VARIABLE}: url("${softUrl}"); }`
+      );
+      release(previous);
+    },
+    dispose(): void {
+      wanted = null;
+      clear();
+    },
+  };
 }

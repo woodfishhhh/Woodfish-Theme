@@ -1,6 +1,6 @@
 # 新字淡入 `text-reveal`
 
-Codex 流式输出时，刚出现的字有一个很短的出场，写完就什么都不留。三种出场方式对应 playground（`docs/playground/streaming-text.html`）里的方案：
+Codex 和 dsh 流式输出时，刚出现的字有一个很短的出场，写完就什么都不留。三种出场方式对应 playground（`docs/playground/streaming-text.html`）里的方案：
 
 | `style` | 做法 | playground |
 | --- | --- | --- |

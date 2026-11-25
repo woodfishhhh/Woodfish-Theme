@@ -25,6 +25,10 @@ ${ctx.selectors.bodyText} {
 }
 ${ctx.selectors.assistantMarkdown} :is(a, code, pre, .katex, [data-code-block]) {
   -webkit-text-fill-color: currentColor !important;
+}
+${ctx.selectors.assistantMarkdown} li {
+  /* A marker outside the item is outside the painted text and would vanish with it. */
+  list-style-position: inside;
 }`);
   }
 

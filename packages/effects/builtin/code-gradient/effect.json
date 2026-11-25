@@ -1,8 +1,8 @@
 {
   "name": "代码渐变",
   "description": "代码块和 diff 里每个 token 按 OKLCH 渐变着色（Woodfish 主题用手调的渐变），可选再加一层柔和发光。",
-  "version": 2,
-  "hosts": ["codex"],
+  "version": 3,
+  "hosts": ["codex", "dsh"],
   "enabled": true,
   "order": 110,
   "core": "code-gradient",

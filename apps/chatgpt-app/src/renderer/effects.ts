@@ -8,6 +8,7 @@ import {
   buildNoiseDataUri,
   cutArea,
   mountAcrylicFilter,
+  placeCaretLayer,
   startEffectHost,
   startReveal,
   watchEditableTyping,
@@ -16,7 +17,6 @@ import {
 import { EffectValues, findGradientPreset } from '@woodfish/theme-core';
 import { BODY_TEXT_SELECTOR, CODEX_SELECTORS, CodexSelectorGroup } from '../selectors';
 import { CodexSettings, findCodexPalette } from '../settings';
-import { placeCaretLayer } from './caretLayer';
 
 /*
  * Codex's side of the effect plugins: what `ctx.theme()`, `ctx.selectors` and `ctx.lib`

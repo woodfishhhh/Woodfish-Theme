@@ -1,8 +1,8 @@
 {
   "name": "强调色点缀",
   "description": "输入框聚焦时的一圈光晕、双色渐变的发送按钮、右侧面板当前标签下一条慢慢流动的渐变短条。",
-  "version": 2,
-  "hosts": ["codex"],
+  "version": 3,
+  "hosts": ["codex", "dsh"],
   "enabled": true,
   "order": 80,
   "params": {

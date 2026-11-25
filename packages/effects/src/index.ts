@@ -378,16 +378,14 @@ export function checkEffectScript(script: string, filename = EFFECT_SCRIPT_FILE)
   }
 }
 
-/** Loads one effect folder; problems are reported in `error`, never thrown. */
-export function readEffect(dir: string, id: string): LoadedEffect | null {
-  const folder = path.join(dir, id);
-  const manifestFile = path.join(folder, EFFECT_MANIFEST_FILE);
-  if (!fs.existsSync(manifestFile)) {
-    return null;
-  }
+/** Reads one file of an effect folder (`null` when it is missing); may throw for the user. */
+type EffectFileReader = (name: string, limit: number) => string | null;
+
+/** Loads one effect from its files; problems are reported in `error`, never thrown. */
+function loadEffect(id: string, dir: string, read: EffectFileReader): LoadedEffect {
   const loaded: LoadedEffect = {
     id,
-    dir: folder,
+    dir,
     manifest: null,
     values: null,
     script: null,
@@ -395,24 +393,12 @@ export function readEffect(dir: string, id: string): LoadedEffect | null {
     hash: '',
   };
   try {
-    const manifestText = readOptional(manifestFile, MAX_JSON_BYTES, EFFECT_MANIFEST_FILE) ?? '';
-    const script = readOptional(
-      path.join(folder, EFFECT_SCRIPT_FILE),
-      MAX_SCRIPT_BYTES,
-      EFFECT_SCRIPT_FILE
-    );
-    const css = readOptional(
-      path.join(folder, EFFECT_STYLE_FILE),
-      MAX_STYLE_BYTES,
-      EFFECT_STYLE_FILE
-    );
+    const manifestText = read(EFFECT_MANIFEST_FILE, MAX_JSON_BYTES) ?? '';
+    const script = read(EFFECT_SCRIPT_FILE, MAX_SCRIPT_BYTES);
+    const css = read(EFFECT_STYLE_FILE, MAX_STYLE_BYTES);
     loaded.hash = sha256([manifestText, script ?? '', css ?? ''].join('\0')).slice(0, 16);
     loaded.manifest = normalizeEffectManifest(parseJson(manifestText, EFFECT_MANIFEST_FILE));
-    const valuesText = readOptional(
-      path.join(folder, EFFECT_VALUES_FILE),
-      MAX_JSON_BYTES,
-      EFFECT_VALUES_FILE
-    );
+    const valuesText = read(EFFECT_VALUES_FILE, MAX_JSON_BYTES);
     loaded.values = normalizeEffectValues(
       loaded.manifest,
       valuesText === null ? {} : parseJson(valuesText, EFFECT_VALUES_FILE)
@@ -431,6 +417,31 @@ export function readEffect(dir: string, id: string): LoadedEffect | null {
     loaded.error = (error as Error).message;
   }
   return loaded;
+}
+
+/** Loads one effect folder; problems are reported in `error`, never thrown. */
+export function readEffect(dir: string, id: string): LoadedEffect | null {
+  const folder = path.join(dir, id);
+  if (!fs.existsSync(path.join(folder, EFFECT_MANIFEST_FILE))) {
+    return null;
+  }
+  return loadEffect(id, folder, (name, limit) =>
+    readOptional(path.join(folder, name), limit, name)
+  );
+}
+
+/**
+ * The shipped effects with their default values, straight from the shipped files (no
+ * effects folder): what a user script built without one carries.
+ */
+export function builtinEffects(): LoadedEffect[] {
+  const files = builtinEffectFiles();
+  return Object.keys(files)
+    .filter((file) => file.endsWith(`/${EFFECT_MANIFEST_FILE}`))
+    .map((file) => file.slice(0, -EFFECT_MANIFEST_FILE.length - 1))
+    .filter((id) => isEffectId(id))
+    .sort()
+    .map((id) => loadEffect(id, id, (name) => files[`${id}/${name}`] ?? null));
 }
 
 /** The user's `user.css` ('' when there is none). */

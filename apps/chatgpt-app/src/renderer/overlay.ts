@@ -16,6 +16,7 @@ import {
   blobToBase64,
   blurBackgroundImage,
   clearTextGradientMarks,
+  createBackgroundLayer,
   createStyleManager,
   installController,
   resizeBackgroundImage,
@@ -55,7 +56,7 @@ import {
   findCodexPalette,
   normalizeCodexSettings,
 } from '../settings';
-import { createBackgroundLayer, createBackgroundStore } from './background';
+import { createBackgroundStore } from './background';
 import { DIFF_TOKEN_SELECTOR, isDiffToken, mapDiffColor, startDiffDecorator } from './diffs';
 import { CodexEffects, startCodexEffects } from './effects';
 import { startSettingsPanel } from './settingsPanel';

@@ -6,6 +6,8 @@ Codex 的菜单、弹窗、下拉和浮层用磨砂玻璃；弹出时轻轻落�
 
 亚克力滤镜（`ctx.lib.mountAcrylicFilter`）、噪点（`ctx.lib.noiseDataUri`）和指针柔光（`ctx.lib.startReveal`）是宿主提供的小工具，VS Code 里的毛玻璃也用同一套。
 
+dsh 的菜单和弹出框本来就是毛玻璃，自带弹出动画：在 dsh 里这个效果只改 dsh 画浮层用的三个变量（`--dsw-menu-surface-fill`、`--dsw-specific-menu`、`--dsw-menu-backdrop-filter`），加上菜单项的指针柔光；`animations` 不起作用。
+
 ## 参数
 
 | 参数 | 默认 | 作用 |

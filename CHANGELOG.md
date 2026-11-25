@@ -10,8 +10,20 @@
 
 ## [Unreleased]
 
+### 新增
+
+- DeepSeek Harness（dsh）网页版用上和 Codex 桌面端同一套效果插件：6px 彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、边写边上色的回复正文彩虹、侧栏当前会话的流光边框（运行中的会话是弱化版）、输入框光晕与渐变发送按钮、「对话 / 轨迹」和右侧面板标签下流动的渐变短条、《彩云》窗口背景和毛玻璃侧栏与输入框、带指针柔光的毛玻璃菜单，以及 OKLCH 代码渐变。效果参数和 `user.css` 与 Codex 共用效果文件夹，`woodfish dsh userscript` 生成脚本时一并写入；油猴菜单里每个效果一个开关，只影响 dsh。仓库里的 `woodfish-dsh.user.js` 自带出厂效果和《彩云》，直接导入也完整。
+- dsh 网页版的圆角换成连续曲率的“苹果圆角”（`corner-shape: squircle`，半径按 iOS 圆角的观感放大 1.78 倍）：输入框、卡片、代码块、菜单、按钮和侧栏的流光边框都是平滑过渡的曲线，胶囊形的按钮和开关保持正圆；不支持的浏览器保留原来的圆角。
+- 已在 dsh 0.2.2-rc.5 上实测，15 套主题的改前改后截图见仓库里的 `docs/hosts/dsh-web.md`。
+
+### 变更
+
+- `woodfish dsh userscript --set` 只接受 `palette.dark`、`palette.light` 和 `customCss`；毛玻璃模糊、渐变角度这类效果参数改在效果文件夹的 `params.json` 或 `user.css` 里。旧版 `dsh.json` 里的效果开关不再读取，dsh 的代码发光和 Codex 一样默认关闭。
+
 ### 修复
 
+- dsh 里还是自带颜色的地方换成主题色：回复末尾的改动文件卡片、悬浮卡片、toast 上的操作、开关滑块、轨迹视图和用量图表、工具结果的 JSON 树、空状态插图、引导页和思考块的渐隐；彩色按钮上的文字用主题的前景色，浅色强调色上也看得清。
+- 回复正文彩虹打开时，有序列表的序号不再随正文一起变透明（Codex 和 dsh）。
 - Codex「你的 Dot」的单行输入框里，Woodfish 输入光标不再被裁掉：Codex 给单行输入框的每个直接子元素都加了 `overflow: hidden`，把宽度为 0 的光标层连同里面的光标一起裁没了，而原生光标已设为透明，插入点处就什么都看不见。光标层现在自带 `overflow: visible`，仍由 `clip-path` 限制在输入框露出文字的范围内；吐字光标和拖尾用同一层，一并受益。之前为此在 `effects/user.css` 里加过规则的，更新以后可以删掉。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#42](https://github.com/woodfishhhh/Woodfish-Theme/issues/42) 里定位问题并提供修法。
 
 ## [8.2.3] - 2026-11-22

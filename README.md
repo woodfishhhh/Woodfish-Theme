@@ -451,7 +451,7 @@ AI 打不开 GitHub 的话，把地址换成 `https://cdn.jsdelivr.net/gh/woodfi
 
 ## DeepSeek Harness（dsh）Web 版
 
-dsh 的 Web 版（`dsh web`，本机 `127.0.0.1:3080`）可以通过油猴用户脚本换上同样的主题和效果：`woodfish dsh userscript` 输出脚本路径，装进 Tampermonkey / Violentmonkey 即可。详见 [dsh 适配说明](./docs/hosts/dsh-web.md)。
+dsh 的 Web 版（`dsh web`，本机 `127.0.0.1:3080`）可以通过油猴用户脚本换上 15 套主题和 Codex 同款的全部效果：彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、回复正文彩虹、侧栏流光边框、《彩云》窗口背景与毛玻璃、毛玻璃菜单、代码渐变。`woodfish dsh userscript` 输出脚本路径，装进 Tampermonkey / Violentmonkey 即可；效果参数和 Codex 共用效果文件夹。详见 [dsh 适配说明](./docs/hosts/dsh-web.md)。
 
 ## 本地开发
 

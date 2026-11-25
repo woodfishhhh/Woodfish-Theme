@@ -1,6 +1,6 @@
 # 怎么改 Woodfish 效果（写给 Codex、Claude 等 AI）
 
-这个文件夹是 Woodfish 的效果目录（Windows：`%APPDATA%\Woodfish\effects`）。Codex 和 VS Code 里的 Woodfish 效果都从这里加载。用户说“帮我改一下出字的粒子”“光标尾巴换个颜色”时，就在这里改，改完按最后一节验证。
+这个文件夹是 Woodfish 的效果目录（Windows：`%APPDATA%\Woodfish\effects`）。Codex、VS Code 和 dsh（DeepSeek Harness 网页版）里的 Woodfish 效果都从这里加载。用户说“帮我改一下出字的粒子”“光标尾巴换个颜色”时，就在这里改，改完按最后一节验证。
 
 **改法的先后**：
 
@@ -23,7 +23,7 @@
 - 值的写法：数字可带表里的单位（秒和毫秒可互换）；颜色写 `#rrggbb`、颜色名、`rgb()`、`hsl()`；开关写 `1`/`0`；选项写选项值。写错的值会被忽略。
 - 在 `user.css` 里追加或修改，别删用户已有的内容；改之前先读一遍。没有这个文件就新建。
 - 画布上的效果（光标拖尾、打字粒子）也读这些变量，不用改 `effect.js`。
-- 只想在深色或浅色时生效：Codex 用 `:root[data-theme="light"]` / `:root[data-theme="dark"]`。
+- 只想在深色或浅色时生效：Codex 用 `:root[data-theme="light"]` / `:root[data-theme="dark"]`；dsh 用 `:root:has(body:not([data-ds-dark-theme]))` / `:root:has(body[data-ds-dark-theme])`。
 - 用户想撤销：删掉对应几行即可；要整个回到模板，`woodfish codex effects restore user.css`（旧内容留在 `user.css.bak`）。
 
 ## 1. 先找到是哪个效果
@@ -48,7 +48,7 @@
 
 | 文件 | 内容 |
 | --- | --- |
-| `effect.json` | 名字、说明、在哪运行（`hosts`: `codex` / `vscode`）、默认开不开（`enabled`）、参数定义 |
+| `effect.json` | 名字、说明、在哪运行（`hosts`: `codex` / `vscode` / `dsh`）、默认开不开（`enabled`）、参数定义 |
 | `params.json` | **现在用的值**：`enabled` 加每个参数。Codex 设置 → 外观 → Woodfish 改的就是这个文件，你改了它设置页也会显示新值 |
 | `effect.js` | 实现（写法见第 4 节） |
 | `effect.css` | 可选：效果打开时挂上的固定 CSS |
@@ -85,7 +85,7 @@ module.exports = function (ctx) {
 | 成员 | 作用 |
 | --- | --- |
 | `ctx.params` | 当前参数值（每次变化是一个新对象，所以用的时候再读） |
-| `ctx.host` | `'codex'` 或 `'vscode'` |
+| `ctx.host` | `'codex'`、`'vscode'` 或 `'dsh'`。各宿主的颜色变量不同时，在效果里按它查一张小表（见 `accent`、`glass`） |
 | `ctx.theme()` | `{ mode: 'dark'/'light', stops: 主题渐变色数组, accent, accent2, background, foreground, cursor?: 主题自带的光标色, reply?: 回复正文渐变 }` |
 | `ctx.rainbow` | Woodfish 彩虹（VS Code 光标那套颜色） |
 | `ctx.onInsert(fn)` | **插入了文字**：VS Code 里你打字、Codex 里你打字或 AI 流式吐字都会触发。`fn({ x, y, height, text, source: 'user'/'ai', rate, rects, block, node, start })`，`x`/`y` 是插入末尾在窗口里的位置。看不见的字（滚出去了、在输入框后面）不发 |
@@ -97,7 +97,7 @@ module.exports = function (ctx) {
 | `ctx.style(css)` | 这个效果的样式（每次调用替换上一次的） |
 | `ctx.on(target, type, fn, options)` | 挂事件，停用时自动取消 |
 | `ctx.later(ms, fn)` | `setTimeout`，停用时自动取消 |
-| `ctx.selectors` | 宿主界面的选择器，例如 Codex 的 `composer`、`composerEditor`、`threadRow`、`activeThread`、`runningThread`、`assistantMarkdown`、`bodyText`、`activeTab`、`floatingLayer`；VS Code 的 `editorRoot` |
+| `ctx.selectors` | 宿主界面的选择器，例如 Codex 的 `composer`、`composerEditor`、`threadRow`、`activeThread`、`runningThread`、`assistantMarkdown`、`bodyText`、`activeTab`、`floatingLayer`（dsh 用同样的名字，每个都是一个选择器，后面可以直接接 `::after`、`:hover`）；VS Code 的 `editorRoot` |
 | `ctx.lib` | 宿主小工具（`startReveal`、`mountAcrylicFilter`、`noiseDataUri` 等，见 `glass`） |
 | `ctx.simplified()` | 窗口在后台或系统开了“减少动态”：只保留静态部分，别做动画 |
 | `ctx.log(text)` | 写进 Woodfish 的日志 |
@@ -107,7 +107,7 @@ module.exports = function (ctx) {
 ### 必须遵守
 
 - 只通过 `ctx` 挂事件、画布、样式、计时器，这样关掉效果时能清理干净。自己写 `addEventListener`、`setInterval`、`requestAnimationFrame` 的，必须在 `dispose` 里清掉。
-- 不拆字、不包 `span`、不移动宿主节点。全窗装饰放在 `ctx.layer`；Codex 文字光标和拖尾用 `ctx.lib.placeCaretLayer(layer, caret)` 将装饰放在 `caret.owner` 旁边，按返回的局部坐标绘制。不要把装饰写进可编辑区或 Markdown 正文，用完移除。
+- 不拆字、不包 `span`、不移动宿主节点。全窗装饰放在 `ctx.layer`；Codex 和 dsh 的文字光标和拖尾用 `ctx.lib.placeCaretLayer(layer, caret)` 将装饰放在 `caret.owner` 旁边，按返回的局部坐标绘制。不要把装饰写进可编辑区或 Markdown 正文，用完移除。
 - 只在需要时动：`painter` 没东西画就返回 `false`；`ctx.simplified()` 为真时不做动画。长回复、高速输出、打字都不能卡。
 - 不联网、不读写文件、不碰别人的 `localStorage`。
 - 按严格模式写：VS Code 把效果当 ES module 加载，未声明的变量会直接报错。
@@ -118,7 +118,7 @@ module.exports = function (ctx) {
 
 ## 6. 验证
 
-1. **刷新**：保存文件后，Codex 和 VS Code 会在一两秒内自动重新加载效果。也可以手动：
+1. **刷新**：保存文件后，Codex 和 VS Code 会在一两秒内自动重新加载效果（dsh 的油猴脚本要重新运行 `woodfish dsh userscript` 并导入）。也可以手动：
    - 命令行：`woodfish reload`（Codex 和 VS Code 一起刷新，并列出每个效果的状态）；
    - Codex 里按 `Ctrl+Alt+R`，或设置 → 外观 → Woodfish 的「刷新效果」；
    - VS Code 里运行命令「Woodfish: 刷新效果」（`Ctrl+Alt+R`）。

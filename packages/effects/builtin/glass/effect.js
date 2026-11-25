@@ -2,14 +2,56 @@
  * 浮层毛玻璃：菜单、弹窗、下拉和浮层用磨砂玻璃，弹出时淡入，列表项跟着指针微微发亮。
  * 只动浮层，主界面不动（Codex 自己的 Windows 11 Mica 照常）。亚克力滤镜和指针柔光用
  * 宿主提供的 ctx.lib 小工具（同一套代码也在 VS Code 里用）。
+ * dsh 的菜单和弹出框本来就是从三个变量画出来的毛玻璃（自带弹出动画），所以在 dsh 里只改
+ * 这三个变量，再加指针柔光。
  */
 module.exports = function glass(ctx) {
   const lib = ctx.lib;
+  const dsh = ctx.host === 'dsh';
   let reveal = null;
   let acrylic = null;
 
   function rule(selector, lines) {
     return `${selector} {\n${lines.map((line) => `  ${line}`).join('\n')}\n}`;
+  }
+
+  /* dsh: tint, noise and blur of every floating surface, set where dsh declares them. */
+  function dshGlass(filter) {
+    const p = ctx.params;
+    // :root:root lifts the rule above dsh's own blocks on <body> (up to 0,2,2).
+    const scope = ':root:root body';
+    const tint = `color-mix(in oklab, var(--dsw-alias-bg-layer-2) ${Math.round(p.opacity * 100)}%, transparent)`;
+    const surface =
+      p.noise > 0 ? `${lib.noiseDataUri(p.noise)}, linear-gradient(${tint}, ${tint})` : tint;
+    const opaque = [
+      '--dsw-menu-backdrop-filter: none;',
+      '--dsw-specific-menu: var(--dsw-alias-bg-layer-2);',
+    ];
+    return [
+      rule(scope, [
+        `--dsw-menu-surface-fill: ${tint};`,
+        `--dsw-specific-menu: ${surface};`,
+        `--dsw-menu-backdrop-filter: ${filter};`,
+      ]),
+      `@media (prefers-reduced-transparency: reduce) {\n${rule(scope, opaque)}\n}`,
+    ];
+  }
+
+  function revealCss() {
+    const revealed = '[data-woodfish-reveal="true"]';
+    const light = dsh ? 'body:not([data-ds-dark-theme])' : '[data-theme="light"]';
+    return [
+      rule(':root', [
+        '--woodfish-reveal-color: rgb(255 255 255 / 9%);',
+        '--woodfish-reveal-size: 120px;',
+      ]),
+      rule(light, ['--woodfish-reveal-color: rgb(0 0 0 / 6%);']),
+      rule(revealed, [
+        'background-image: radial-gradient(circle var(--woodfish-reveal-size) at var(--woodfish-reveal-x, 50%) var(--woodfish-reveal-y, 50%), var(--woodfish-reveal-color), transparent 100%) !important;',
+      ]),
+      `:root[data-reduced-motion="true"] ${revealed} { background-image: none !important; }`,
+      `@media (prefers-reduced-motion: reduce) { ${revealed} { background-image: none !important; } }`,
+    ];
   }
 
   function css() {
@@ -20,6 +62,7 @@ module.exports = function glass(ctx) {
       p.mode === 'acrylic'
         ? `url(#${lib.acrylicFilterId}) saturate(${p.saturate}%)`
         : `blur(${p.blur}px) saturate(${p.saturate}%)`;
+    if (dsh) return [...dshGlass(filter), ...(p.reveal ? revealCss() : [])].join('\n\n');
     const glassLines = [
       `background-color: color-mix(in oklab, ${surface} ${Math.round(p.opacity * 100)}%, transparent) !important;`,
       // A hairline and a soft shadow keep thin glass readable over busy backgrounds.
@@ -50,21 +93,7 @@ module.exports = function glass(ctx) {
         `@media (prefers-reduced-motion: reduce) { :is(${drop}, ${zoom}) { animation: none !important; } }`
       );
     }
-    if (p.reveal) {
-      const revealed = '[data-woodfish-reveal="true"]';
-      parts.push(
-        rule(':root', [
-          '--woodfish-reveal-color: rgb(255 255 255 / 9%);',
-          '--woodfish-reveal-size: 120px;',
-        ]),
-        rule('[data-theme="light"]', ['--woodfish-reveal-color: rgb(0 0 0 / 6%);']),
-        rule(revealed, [
-          'background-image: radial-gradient(circle var(--woodfish-reveal-size) at var(--woodfish-reveal-x, 50%) var(--woodfish-reveal-y, 50%), var(--woodfish-reveal-color), transparent 100%) !important;',
-        ]),
-        `:root[data-reduced-motion="true"] ${revealed} { background-image: none !important; }`,
-        `@media (prefers-reduced-motion: reduce) { ${revealed} { background-image: none !important; } }`
-      );
-    }
+    if (p.reveal) parts.push(...revealCss());
     return parts.join('\n\n');
   }
 
