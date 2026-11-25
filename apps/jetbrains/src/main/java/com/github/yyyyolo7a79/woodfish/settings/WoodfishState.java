@@ -89,11 +89,13 @@ public final class WoodfishState {
      * <p>同样要求 public 字段 + 无参构造，供 XmlSerializer 使用。
      */
     public static final class CustomPreset {
+        public int schemaVersion;
         public String name = "";
-        public double hueShift = DEFAULT_HUE_SHIFT;
-        public double lightnessDelta = DEFAULT_LIGHTNESS_DELTA;
-        public double neutralChroma = DEFAULT_NEUTRAL_CHROMA;
-        public double angle = DEFAULT_ANGLE;
+        // XML omitted different defaults in the two unversioned formats.
+        public double hueShift = Double.NaN;
+        public double lightnessDelta = Double.NaN;
+        public double neutralChroma = Double.NaN;
+        public double angle = Double.NaN;
         public boolean syntaxGradientEnabled = true;
         public boolean cjkGradientEnabled = true;
         public boolean glowEnabled = true;
@@ -106,6 +108,7 @@ public final class WoodfishState {
         /** 从当前状态截取一份预设 */
         public static CustomPreset capture(String name, WoodfishState s) {
             CustomPreset p = new CustomPreset();
+            p.schemaVersion = 1;
             p.name = name;
             p.hueShift = s.hueShift;
             p.lightnessDelta = s.lightnessDelta;
@@ -119,8 +122,18 @@ public final class WoodfishState {
             return p;
         }
 
+        private void restoreXmlDefaults(Map<String, String> storedOptions) {
+            boolean mainSnapshot = schemaVersion == 0 && storedOptions != null && !storedOptions.isEmpty();
+            if (Double.isNaN(hueShift)) hueShift = mainSnapshot ? 32 : 24;
+            if (Double.isNaN(lightnessDelta)) lightnessDelta = mainSnapshot ? .12 : .06;
+            if (Double.isNaN(neutralChroma)) neutralChroma = mainSnapshot ? .075 : .06;
+            if (Double.isNaN(angle)) angle = mainSnapshot ? 45 : 90;
+            if (mainSnapshot) schemaVersion = 1;
+        }
+
         /** 把预设写回状态（不动总开关和预设列表本身） */
         public void applyTo(WoodfishState s) {
+            restoreXmlDefaults(options);
             s.hueShift = hueShift;
             s.lightnessDelta = lightnessDelta;
             s.neutralChroma = neutralChroma;
@@ -129,11 +142,12 @@ public final class WoodfishState {
             s.cjkGradientEnabled = cjkGradientEnabled;
             s.glowEnabled = glowEnabled;
             s.glowIntensity = glowIntensity;
-            s.options = NativeOptions.normalize(options);
+            if (schemaVersion > 0) s.options = NativeOptions.normalize(options);
         }
 
         public CustomPreset copy() {
             CustomPreset p = new CustomPreset();
+            p.schemaVersion = schemaVersion;
             p.name = name;
             p.hueShift = hueShift;
             p.lightnessDelta = lightnessDelta;
@@ -143,6 +157,7 @@ public final class WoodfishState {
             p.cjkGradientEnabled = cjkGradientEnabled;
             p.glowEnabled = glowEnabled;
             p.glowIntensity = glowIntensity;
+            p.restoreXmlDefaults(options);
             p.options = NativeOptions.normalize(options);
             return p;
         }
@@ -155,7 +170,7 @@ public final class WoodfishState {
             if (!(o instanceof CustomPreset p)) {
                 return false;
             }
-            return Objects.equals(options, p.options) && Objects.equals(name, p.name)
+            return schemaVersion == p.schemaVersion && Objects.equals(options, p.options) && Objects.equals(name, p.name)
                     && Double.compare(hueShift, p.hueShift) == 0
                     && Double.compare(lightnessDelta, p.lightnessDelta) == 0
                     && Double.compare(neutralChroma, p.neutralChroma) == 0
@@ -168,7 +183,7 @@ public final class WoodfishState {
 
         @Override
         public int hashCode() {
-            return Objects.hash(options, name, hueShift, lightnessDelta, neutralChroma, angle,
+            return Objects.hash(schemaVersion, options, name, hueShift, lightnessDelta, neutralChroma, angle,
                     syntaxGradientEnabled, cjkGradientEnabled, glowEnabled, glowIntensity);
         }
     }
@@ -239,6 +254,7 @@ public final class WoodfishState {
                 if (!seen.add(p.name) || cleaned.size() >= MAX_CUSTOM_PRESETS) {
                     continue;
                 }
+                p.restoreXmlDefaults(p.options);
                 p.hueShift = clamp(p.hueShift, HUE_SHIFT_MIN, HUE_SHIFT_MAX, DEFAULT_HUE_SHIFT);
                 p.lightnessDelta = clamp(p.lightnessDelta, LIGHTNESS_DELTA_MIN,
                         LIGHTNESS_DELTA_MAX, DEFAULT_LIGHTNESS_DELTA);

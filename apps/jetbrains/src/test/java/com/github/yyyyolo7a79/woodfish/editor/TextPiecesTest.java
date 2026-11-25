@@ -97,13 +97,80 @@ class TextPiecesTest {
     @Test void publicBoundariesCenterCjkGlyphsAndRejectVisualDiscontinuities() {
         float[] origins = new float[3], widths = {0, 12, 12};
         double[] edges = {0, 10, 26, 42};
-        org.junit.jupiter.api.Assertions.assertTrue(EditorGrid.fit(1, 3, 10, origins, widths, i -> edges[i]));
+        assertEquals(1, EditorGrid.fit(1, 3, 10, origins, widths, i -> edges[i]));
         org.junit.jupiter.api.Assertions.assertArrayEquals(new float[]{0, 12, 28}, origins);
         org.junit.jupiter.api.Assertions.assertArrayEquals(new float[]{0, 16, 16}, widths);
-        org.junit.jupiter.api.Assertions.assertFalse(EditorGrid.fit(1, 3, 10, origins, widths, i -> 0));
+        assertEquals(-1, EditorGrid.fit(1, 3, 10, origins, widths, i -> 0));
     }
 
     private static float advance(GlyphVector vector, int glyph) {
         return (float) (vector.getGlyphPosition(glyph + 1).getX() - vector.getGlyphPosition(glyph).getX());
+    }
+
+    @Test void classicBoldPreservesSemanticRedItalicOverLexicalBlue() {
+        var merger = new RunMerger(100);
+        merger.addLexeme(0, 3, java.awt.Color.BLUE, Font.PLAIN);
+        merger.addHighlighter(0, 3, 0, 3, 3, 200, java.awt.Color.RED, Font.ITALIC, false, false, false);
+        merger.addHighlighter(0, 3, 0, 3, 3, 0, null, Font.BOLD, false, false, true);
+        merger.finishGathering(); var runs = new RunMerger.Runs();
+        merger.merge(0, 3, 0, 3, java.awt.Color.BLACK, Font.PLAIN, runs);
+        assertEquals(java.awt.Color.RED, runs.foreground[0]); assertEquals(Font.BOLD | Font.ITALIC, runs.font[0]);
+    }
+
+    @Test void equalTotalWidthsStillAlignInteriorCells() {
+        float[] origins = new float[2], widths = {7, 9};
+        assertEquals(1, EditorGrid.fit(0, 2, 0, origins, widths, i -> i * 8));
+        assertEquals(.5, origins[0]); assertEquals(7.5, origins[1]);
+    }
+
+    @Test void clippedLongLineAndFoldUsePackedVisibleBuffer() {
+        var frame = new PaintFrame(); String document = "hidden-left-ab" + "x".repeat(4_000_000) + "cd-hidden-right";
+        int left = document.indexOf("ab"), foldEnd = document.indexOf("cd");
+        FrameScanner.visibleSpans(left, foldEnd + 2, left, new int[]{left + 2}, new int[]{foldEnd}, 0, 1,
+                (start, end, queryStart) -> frame.appendVisible(document, start, end));
+        assertEquals("abcd", new String(frame.chars, 0, frame.charCount));
+        assertEquals(foldEnd + 1, frame.textBase + 3);
+        frame.appendVisible(document, 2, document.length());
+        assertEquals(PaintFrame.MAX_CHARS, frame.chars.length); assertEquals(frame.chars.length, frame.charCount);
+    }
+
+    @Test void subscribesBeforeAppearanceEvenWhenAppearanceFails() {
+        var startup = new WoodfishEditorManager.Startup(); var calls = new java.util.ArrayList<String>();
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> startup.start(
+                () -> calls.add("subscribed"), () -> { calls.add("appearance"); throw new IllegalStateException(); }));
+        startup.start(() -> calls.add("duplicate"), () -> calls.add("unexpected"));
+        assertEquals(java.util.List.of("subscribed", "appearance"), calls);
+    }
+
+    @Test void classicBoldAddsToInheritedItalicAfterSemanticForeground() {
+        var merger = new RunMerger(100);
+        merger.addLexeme(0, 3, java.awt.Color.BLUE, Font.PLAIN);
+        merger.addHighlighter(0, 3, 0, 3, 3, 120, java.awt.Color.RED, Font.PLAIN, false, false, false);
+        merger.addHighlighter(0, 3, 0, 3, 3, 80, null, Font.BOLD, false, false, true);
+        merger.finishGathering();
+        var runs = new RunMerger.Runs();
+        merger.merge(0, 3, 0, 3, java.awt.Color.BLACK, Font.ITALIC, runs);
+        assertEquals(java.awt.Color.RED, runs.foreground[0]);
+        assertEquals(Font.BOLD | Font.ITALIC, runs.font[0]);
+    }
+
+    @Test void warmedHighlighterSortReusesCapacityAcrossShorterLines() {
+        var merger = new RunMerger(100);
+        var runs = new RunMerger.Runs();
+        var bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
+        for (int n : new int[]{96, 72, 4, 1, 0, 4}) {
+            merger.reset();
+            runs.clear();
+            for (int i = n; i > 0; i--) merger.addHighlighter(i, i + 1, i, i + 1, 1, 150,
+                    (i & 1) == 0 ? java.awt.Color.RED : java.awt.Color.BLUE, Font.PLAIN, false, false, false);
+            long before = bean.getCurrentThreadAllocatedBytes();
+            merger.finishGathering();
+            long allocated = bean.getCurrentThreadAllocatedBytes() - before;
+            if (n == 4) assertEquals(0, allocated);
+            merger.merge(0, n + 1, 0, n + 1, java.awt.Color.BLACK, Font.PLAIN, runs);
+            assertEquals(n + 1, runs.count);
+            assertEquals(java.awt.Color.BLACK, runs.foreground[0]);
+            for (int i = 1; i <= n; i++) assertEquals((i & 1) == 0 ? java.awt.Color.RED : java.awt.Color.BLUE, runs.foreground[i]);
+        }
     }
 }

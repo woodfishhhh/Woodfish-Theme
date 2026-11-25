@@ -27,10 +27,10 @@ class ThemeAppearanceTest {
         var state = new com.github.yyyyolo7a79.woodfish.settings.WoodfishState();
         var initial = com.github.yyyyolo7a79.woodfish.settings.EffectSettings.from(state, 0);
         assertTrue(initial.on("squircleCorners.enabled"));
-        assertTrue(appearance.apply(table, initial));
+        assertTrue(appearance.apply(table, initial, "io.github.woodfishhhh.woodfishtheme.dark"));
         assertNotEquals(10, table.get("Menu.Selection.arc"));
         state.options.put("squircleCorners.enabled", "false");
-        appearance.apply(table, com.github.yyyyolo7a79.woodfish.settings.EffectSettings.from(state.normalize(), 1));
+        appearance.apply(table, com.github.yyyyolo7a79.woodfish.settings.EffectSettings.from(state.normalize(), 1), "io.github.woodfishhhh.woodfishtheme.dark");
         assertEquals(10, table.get("Menu.Selection.arc"));
     }
 
@@ -68,5 +68,26 @@ class ThemeAppearanceTest {
         overrides.apply(second, false, false, 1, "menu", 0);
         assertEquals(6, second.get("Menu.Selection.arc"));
         assertFalse(second.containsKey("Button.arc"));
+    }
+
+    @Test void hoverGlassAndThirdPartyLookAndFeelLeaveUnrelatedArcsAlone() {
+        var overrides = new ThemeAppearance();
+        var table = new UIDefaults();
+        table.put("Menu.Selection.arc", 8); table.put("Notification.arc", 6); table.put("GotItTooltip.arc", 10);
+        overrides.apply(table, false, true, .5, "hover", 12);
+        assertEquals(8, table.get("Menu.Selection.arc")); assertEquals(6, table.get("Notification.arc"));
+        assertEquals(24, table.get("GotItTooltip.arc"));
+        var thirdParty = new UIDefaults(); thirdParty.put("Button.arc", 16);
+        assertTrue(overrides.apply(thirdParty, null, "third.party"));
+        assertEquals(10, table.get("GotItTooltip.arc")); assertEquals(16, thirdParty.get("Button.arc"));
+    }
+
+    @Test void breadcrumbGlassLeavesCompletionAndShowUsagesSelectionArcUntouched() {
+        var defaults = new UIDefaults();
+        defaults.put("Popup.Selection.arc", 8);
+        defaults.put("Popup.background", Color.WHITE);
+        new ThemeAppearance().apply(defaults, false, true, .5, "breadcrumbPicker", 12);
+        assertEquals(128, ((Color) defaults.get("Popup.background")).getAlpha());
+        assertEquals(8, defaults.getInt("Popup.Selection.arc"));
     }
 }

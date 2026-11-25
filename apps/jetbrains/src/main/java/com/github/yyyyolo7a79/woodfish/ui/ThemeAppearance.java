@@ -31,7 +31,8 @@ public final class ThemeAppearance {
     private double opacity, popupRadius;
     private String targets = "";
 
-    public boolean apply(UIDefaults next, EffectSettings settings) {
+    public boolean apply(UIDefaults next, EffectSettings settings, String themeId) {
+        if (themeId == null || !themeId.startsWith("io.github.woodfishhhh.woodfishtheme.")) return restore();
         return apply(next, settings.on("squircleCorners.enabled"), settings.on("glass.enabled"), settings.number("glass.opacity"), settings.value("glass.targets"), settings.number("glass.borderRadius"));
     }
 
@@ -45,15 +46,18 @@ public final class ThemeAppearance {
         targets = requestedTargets;
         popupRadius = radius;
         if (round) for (String key : ARCS) {
-            if (table.get(key) instanceof Integer arc) set(key, ((Number) com.github.yyyyolo7a79.woodfish.core.SharedCore.call("roundedArc", arc)).intValue());
+            if (table.get(key) instanceof Integer arc) set(key, arc >= 10 && arc < 200 ? (int) Math.round(arc * 1.78) : arc);
         }
-        if (tint && radius > 0) {
-            for (String key : new String[]{"Menu.Selection.arc", "Popup.Selection.arc", "PopupMenu.Selection.arc", "Notification.arc"}) {
-                set(key, (int) Math.round(2 * radius));
+        if (tint) for (String item : targets.split(",")) {
+            String target = item.strip();
+            int diameter = (int) Math.round(2 * radius);
+            if (radius > 0 && target.equals("menu")) {
+                set("Menu.Selection.arc", diameter);
+                set("PopupMenu.Selection.arc", diameter);
             }
-        }
-        if (tint) for (String target : targets.split(",")) {
-            for (String key : TINT_KEYS.getOrDefault(target.strip(), new String[0])) tint(key, alpha);
+            if (radius > 0 && target.equals("notifications")) set("Notification.arc", diameter);
+            if (radius > 0 && target.equals("hover")) set("GotItTooltip.arc", diameter);
+            for (String key : TINT_KEYS.getOrDefault(target, new String[0])) tint(key, alpha);
         }
         return changed || !changes.isEmpty();
     }

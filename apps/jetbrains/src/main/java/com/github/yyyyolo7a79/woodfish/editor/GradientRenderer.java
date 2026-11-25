@@ -169,8 +169,8 @@ final class GradientRenderer implements CustomHighlighterRenderer {
      */
     private void drawUnselected(Graphics2D g, PaintFrame f, int piece, float margin, Font font, int boxX, int boxY,
                                 float baseline, FontRenderContext frc) {
-        int start = f.textBase + f.pieceFrom[piece];
-        int end = f.textBase + f.pieceTo[piece];
+        int start = f.pieceBase[piece] + f.pieceFrom[piece];
+        int end = f.pieceBase[piece] + f.pieceTo[piece];
         int cursor = start;
         for (int s = 0; s < f.selectionCount && cursor < end; s++) {
             int selStart = f.selectionStart[s];

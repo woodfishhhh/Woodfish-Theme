@@ -12,7 +12,6 @@ import com.intellij.openapi.editor.impl.ComplementaryFontsRegistry;
 import com.intellij.openapi.editor.impl.FontFallbackIterator;
 import com.intellij.openapi.editor.impl.FontInfo;
 import com.intellij.util.DocumentUtil;
-import com.intellij.util.text.CharArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.FontMetrics;
@@ -23,6 +22,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.text.Bidi;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +66,6 @@ final class FrameScanner {
     private final TokenRunCollector collector = new TokenRunCollector();
     private final RunMerger.Runs runs = new RunMerger.Runs();
     private final FontFallbackIterator fallback = new FontFallbackIterator();
-    private final CharSlice slice = new CharSlice();
     private final FontInfo[] primaryFonts = new FontInfo[4];
 
     // ===== 每帧临时状态 =====
@@ -90,6 +89,11 @@ final class FrameScanner {
     private int lineTop;
     private int windowStart;
     private int windowEnd;
+    private int queryEnd;
+
+    private record TokenRange(int start, int end) {}
+    private final Map<TokenRange, Boolean> longTokenPunctuation = new HashMap<>();
+    private long punctuationStamp;
 
     FrameScanner(@NotNull EditorEx editor) {
         this.editor = editor;
@@ -127,6 +131,7 @@ final class FrameScanner {
 
     void dispose() {
         frame.clearAll();
+        longTokenPunctuation.clear();
         collector.release();
         grayscaleSafe.clear();
         lastFrc = null;
@@ -135,6 +140,11 @@ final class FrameScanner {
 
     private void fill(Graphics2D g, Rectangle clip, int padUser, boolean selection) {
         Document document = editor.getDocument();
+        long stamp = document.getModificationStamp();
+        if (stamp != punctuationStamp) {
+            longTokenPunctuation.clear();
+            punctuationStamp = stamp;
+        }
         int length = document.getTextLength();
         frame.lineHeight = editor.getLineHeight();
         frame.ascent = editor.getAscent();
@@ -158,17 +168,12 @@ final class FrameScanner {
             return;
         }
 
-        frame.setText(rangeStart, rangeEnd - rangeStart);
-        CharArrayUtil.getChars(document.getImmutableCharSequence(), frame.chars, rangeStart, 0, rangeEnd - rangeStart);
         frc = g.getFontRenderContext();
         // 取 FRC 里已解析的值：Graphics 上的提示可能是 DEFAULT（随 KEY_ANTIALIASING），FRC 给出实际生效的模式
         textAntialiasing = frc.getAntiAliasingHint();
         updateProbeContext();
         preferences = editor.getColorsScheme().getFontPreferences();
-        collector.prepare(editor, rangeStart > 0 ? DocumentUtil.getPreviousCodePointOffset(document, rangeStart) : 0,
-                rangeStart, rangeEnd);
         collectFolds(rangeStart, rangeEnd);
-        collectInlays(rangeStart, rangeEnd);
         if (selection) {
             collectSelection(rangeStart, rangeEnd);
         }
@@ -258,13 +263,10 @@ final class FrameScanner {
     // ==================== 行 ====================
 
     private void scanLine(int top, int lineStart, int lineEnd, Rectangle clip, int padUser) {
-        int base = frame.textBase;
-        if (Bidi.requiresBidi(frame.chars, lineStart - base, lineEnd - base)) {
-            return; // 从右到左文字的视觉顺序由编辑器的双向排版决定，逐段重画无法保证重合
-        }
         lineTop = top;
         windowStart = lineStart;
         windowEnd = lineEnd;
+        queryEnd = lineEnd;
         if (lineEnd - lineStart > LONG_LINE) {
             windowStart = Math.max(lineStart, offsetAtX(clip.x - padUser, top) - 1);
             windowEnd = Math.min(lineEnd, offsetAtX(clip.x + clip.width + padUser, top) + 2);
@@ -273,28 +275,31 @@ final class FrameScanner {
         // 平台为软换行续行新建 IterationState 时从前一个码点开始查询高亮器，这里保持一致
         boolean softWrapped = lineStart > 0 && editor.getSoftWrapModel().getSoftWrap(lineStart) != null;
         int queryStart = softWrapped ? DocumentUtil.getPreviousCodePointOffset(editor.getDocument(), lineStart) : lineStart;
-        int applyStart = lineStart;
+        while (foldCursor < foldCount && foldEnd[foldCursor] <= lineStart) foldCursor++;
+        visibleSpans(lineStart, lineEnd, queryStart, foldStart, foldEnd, foldCursor, foldCount, this::scanVisible);
+    }
 
-        while (foldCursor < foldCount && foldEnd[foldCursor] <= lineStart) {
-            foldCursor++;
+    interface Span { void accept(int start, int end, int queryStart); }
+
+    static void visibleSpans(int start, int end, int queryStart, int[] starts, int[] ends, int fold, int count, Span visit) {
+        while (fold < count && starts[fold] < end) {
+            if (starts[fold] > start) visit.accept(start, starts[fold], queryStart);
+            start = Math.max(start, ends[fold++]);
+            queryStart = start;
         }
-        int fold = foldCursor;
-        while (applyStart < lineEnd) {
-            boolean hasFold = fold < foldCount && foldStart[fold] < lineEnd;
-            int applyEnd = hasFold ? Math.max(applyStart, foldStart[fold]) : lineEnd;
-            if (applyEnd > applyStart) {
-                collector.collect(queryStart, lineEnd, applyStart, applyEnd, runs);
-                for (int r = 0; r < runs.count && frame.pieceCount < MAX_PIECES; r++) {
-                    splitAtInlays(runs.start[r], runs.end[r], runs.foreground[r], runs.font[r]);
-                }
-            }
-            if (!hasFold) {
-                break;
-            }
-            // 折叠区之后平台新建 IterationState，从折叠终点开始查询
-            applyStart = Math.max(applyStart, foldEnd[fold]);
-            queryStart = applyStart;
-            fold++;
+        if (start < end) visit.accept(start, end, queryStart);
+    }
+
+    private void scanVisible(int spanStart, int spanEnd, int queryStart) {
+        int start = Math.max(windowStart, spanStart), stop = Math.min(windowEnd, spanEnd);
+        if (start >= stop || frame.charCount == PaintFrame.MAX_CHARS) return;
+        int end = frame.appendVisible(editor.getDocument().getImmutableCharSequence(), start, stop);
+        if (Bidi.requiresBidi(frame.chars, start - frame.textBase, end - frame.textBase)) return;
+        collector.collect(editor, queryStart, queryEnd, spanStart, spanEnd, start, end, runs);
+        collectInlays(runs.start[0], runs.end[runs.count - 1]);
+        for (int r = 0; r < runs.count && frame.pieceCount < MAX_PIECES; r++) {
+            if (runs.end[r] <= start || runs.start[r] >= end) continue;
+            splitAtInlays(runs.start[r], runs.end[r], runs.foreground[r], runs.font[r]);
         }
     }
 
@@ -324,28 +329,23 @@ final class FrameScanner {
     private void addToken(int start, int end, java.awt.Color color, int fontType) {
         int base = frame.textBase;
         char[] chars = frame.chars;
-        int a = start;
-        int b = end;
-        while (a < b && !isDrawable(chars[a - base])) {
-            a++;
-        }
-        while (b > a && !isDrawable(chars[b - 1 - base])) {
-            b--;
-        }
-        if (a >= b || b <= windowStart || a >= windowEnd) {
-            return;
-        }
+        int from = Math.max(start, windowStart);
+        int to = Math.min(end, base + frame.charCount);
+        while (from < to && !isDrawable(chars[from - base])) from++;
+        while (to > from && !isDrawable(chars[to - 1 - base])) to--;
+        if (from >= to) return;
+        CharSequence document = editor.getDocument().getImmutableCharSequence();
+        while (start < from && !isDrawable(document.charAt(start))) start++;
+        while (end > to && !isDrawable(document.charAt(end - 1))) end--;
 
         FontInfo primary = primaryFont(fontType);
         FontMetrics metrics = primary.fontMetrics();
         float em = primary.getSize2D();
         float baseline = lineTop + frame.ascent;
-        boolean punctuation = TextClassifier.isPunctuationOnly(slice.set(chars, a - base, b - base));
+        boolean punctuation = isPunctuationOnly(document, start, end);
         int token = frame.addToken(color, punctuation,
                 baseline - metrics.getAscent() - 0.08f * em, baseline + metrics.getDescent() + 0.08f * em, em);
 
-        int from = Math.max(a, windowStart);
-        int to = Math.min(b, windowEnd);
         int i = from;
         while (i < to && frame.pieceCount < MAX_PIECES) {
             while (i < to && !isDrawable(chars[i - base])) {
@@ -367,9 +367,20 @@ final class FrameScanner {
         }
         int lastPiece = frame.pieceCount - 1;
         // 被水平窗口截断的 token 用编辑器换算真实边界，渐变几何才不会随横向滚动漂移
-        float x0 = a < from ? xOf(a, true) : frame.pieceX[firstPiece];
-        float x1 = b > to ? xOf(b, false) : frame.pieceX[lastPiece] + frame.pieceWidth[lastPiece];
+        float x0 = start < from ? xOf(start, true) : frame.pieceX[firstPiece];
+        float x1 = end > to ? xOf(end, false) : frame.pieceX[lastPiece] + frame.pieceWidth[lastPiece];
         frame.endToken(token, x0, x1);
+    }
+
+    private boolean isPunctuationOnly(CharSequence text, int start, int end) {
+        if (end - start <= LONG_LINE) return TextClassifier.isPunctuationOnly(text, start, end);
+        var range = new TokenRange(start, end);
+        Boolean cached = longTokenPunctuation.get(range);
+        if (cached != null) return cached;
+        if (longTokenPunctuation.size() >= 64) longTokenPunctuation.clear();
+        boolean punctuation = TextClassifier.isPunctuationOnly(text, start, end);
+        longTokenPunctuation.put(range, punctuation);
+        return punctuation;
     }
 
     private void addWord(int start, int end, int fontType, FontInfo primary) {
@@ -404,15 +415,10 @@ final class FrameScanner {
         if (actualWidth <= 0) return;
         int base = frame.textBase;
         int from = start - base, to = end - base;
-        float naturalWidth = 0;
-        for (int i = from; i < to; i++) {
-            frame.charX[i] = x + naturalWidth;
-            frame.charCell[i] = font.charWidth2D(frame.chars[i]);
-            naturalWidth += frame.charCell[i];
-        }
-        boolean adjusted = Math.abs(actualWidth - naturalWidth) >= TextPieces.GRID_TOLERANCE;
-        if (adjusted && !EditorGrid.fit(from, to, x, frame.charX, frame.charCell,
-                index -> xOf(base + index, false))) return;
+        for (int i = from; i < to; i++) frame.charCell[i] = font.charWidth2D(frame.chars[i]);
+        int fit = EditorGrid.fit(from, to, x, frame.charX, frame.charCell, index -> xOf(base + index, false));
+        if (fit < 0) return;
+        boolean adjusted = fit > 0;
         int piece = frame.addPiece(from, to, x, actualWidth, frame.fontIndex(font.getFont()), frame.selectionState(start, end));
         frame.pieceNativeRisk[piece] = nativeRisk(frame.pieceCjk[piece], font.getFont());
         frame.pieceGridAligned[piece] = adjusted;
@@ -491,37 +497,4 @@ final class FrameScanner {
         return Character.getType(c) != Character.FORMAT;
     }
 
-    /** 帧缓冲上的轻量 CharSequence 视图，给 TextClassifier 用，不分配对象 */
-    private static final class CharSlice implements CharSequence {
-        private char[] chars;
-        private int offset;
-        private int length;
-
-        CharSlice set(char[] chars, int from, int to) {
-            this.chars = chars;
-            this.offset = from;
-            this.length = to - from;
-            return this;
-        }
-
-        @Override
-        public int length() {
-            return length;
-        }
-
-        @Override
-        public char charAt(int index) {
-            return chars[offset + index];
-        }
-
-        @Override
-        public @NotNull CharSequence subSequence(int start, int end) {
-            return new String(chars, offset + start, end - start);
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return new String(chars, offset, length);
-        }
-    }
 }

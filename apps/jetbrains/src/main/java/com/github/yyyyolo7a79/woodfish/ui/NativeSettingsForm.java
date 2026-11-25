@@ -36,8 +36,7 @@ final class NativeSettingsForm {
             String group = key.substring(0, key.indexOf('.'));
             if (!group.equals(previous)) form.addComponent(new TitledSeparator(text("section." + group)));
             previous = group;
-            JComponent field = field(key);
-            fields.put(key, field);
+            JComponent field = addField(key);
             field.getAccessibleContext().setAccessibleName(text(key));
             if (field instanceof JCheckBox) form.addComponent(field);
             else form.addLabeledComponent(text(key), key.equals("background.image") ? imageField((JTextField) field) : field);
@@ -56,6 +55,12 @@ final class NativeSettingsForm {
         var expand = new JToggleButton(text("platform.details"));
         expand.addActionListener(e -> { details.setVisible(expand.isSelected()); details.revalidate(); });
         form.addComponent(expand).addComponent(details);
+    }
+
+    JComponent addField(String key) {
+        JComponent field = field(key);
+        fields.put(key, field);
+        return field;
     }
 
     private JComponent field(String key) {
@@ -138,6 +143,11 @@ final class NativeSettingsForm {
                 return entry.getKey();
         }
         return null;
+    }
+
+    void saveWhenValid(Runnable save, java.util.function.Consumer<ConfigurationException> error) {
+        try { validate(); } catch (ConfigurationException e) { error.accept(e); return; }
+        save.run();
     }
 
     void validate() throws ConfigurationException {

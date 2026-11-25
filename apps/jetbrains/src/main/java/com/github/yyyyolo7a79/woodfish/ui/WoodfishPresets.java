@@ -116,7 +116,7 @@ public final class WoodfishPresets {
     /** 与当前效果参数完全一致的第一个预设（内置优先）；都不一致时返回 null */
     public static @Nullable Preset matching(@NotNull WoodfishState state) {
         for (Preset p : all(state)) {
-            if (sameEffects(p.values(), state)) {
+            if (sameEffects(p.values(), state, p.builtIn())) {
                 return p;
             }
         }
@@ -125,7 +125,13 @@ public final class WoodfishPresets {
 
     /** 只比较效果参数，不比较名称和总开关 */
     public static boolean sameEffects(@NotNull CustomPreset p, @NotNull WoodfishState s) {
-        return p.options.equals(s.options) && Double.compare(p.hueShift, s.hueShift) == 0
+        return sameEffects(p, s, false);
+    }
+
+    private static boolean sameEffects(CustomPreset p, WoodfishState s, boolean builtIn) {
+        boolean sameOptions = builtIn ? NativeOptions.PRESET_KEYS.stream().allMatch(key ->
+                java.util.Objects.equals(p.options.get(key), s.options.get(key))) : (p.schemaVersion == 0 && p.options.isEmpty()) || p.options.equals(s.options);
+        return sameOptions && Double.compare(p.hueShift, s.hueShift) == 0
                 && Double.compare(p.lightnessDelta, s.lightnessDelta) == 0
                 && Double.compare(p.neutralChroma, s.neutralChroma) == 0
                 && Double.compare(p.angle, s.angle) == 0

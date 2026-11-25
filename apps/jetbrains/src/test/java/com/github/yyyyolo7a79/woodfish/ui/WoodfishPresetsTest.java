@@ -195,4 +195,42 @@ class WoodfishPresetsTest {
         assertEquals("0", WoodfishPresets.number(0));
         assertEquals("1.6", WoodfishPresets.number(1.6));
     }
+
+    @Test void backgroundSurvivesDefaultPresetAndStillMatches() {
+        var s = new WoodfishState(); s.options.put("background.enabled", "true");
+        var preset = WoodfishPresets.builtIns().getFirst(); preset.applyTo(s);
+        assertEquals("true", s.options.get("background.enabled")); assertEquals(preset, WoodfishPresets.matching(s));
+    }
+
+    @Test void invalidVisibleColorBlocksSavingPreviousDraft() {
+        var state = new WoodfishState(); var form = new NativeSettingsForm(() -> state, () -> {});
+        var field = (javax.swing.JTextField) form.addField("typingParticles.color");
+        field.setText("#ff0000"); field.setText("not a color");
+        var errors = new java.util.ArrayList<String>();
+        form.saveWhenValid(() -> WoodfishPresets.saveCurrent(state, "test"), error -> errors.add(error.getMessage()));
+        assertEquals(1, errors.size()); assertTrue(state.customPresets.isEmpty());
+        field.setText("#0000ff"); form.saveWhenValid(() -> WoodfishPresets.saveCurrent(state, "test"), e -> errors.add(e.getMessage()));
+        assertEquals("#0000ff", state.customPresets.getFirst().options.get("typingParticles.color"));
+    }
+
+    @Test void unversionedPresetMatchesOnlyTheOptionsItCanRestore() {
+        for (boolean main : new boolean[]{false, true}) {
+            var state = new WoodfishState();
+            var xml = new org.jdom.Element("CustomPreset");
+            xml.addContent(new org.jdom.Element("option").setAttribute("name", "name").setAttribute("value", "Legacy"));
+            var preset = com.intellij.util.xmlb.XmlSerializer.deserialize(xml, CustomPreset.class);
+            if (main) {
+                preset.hueShift = 55; // Keep this custom snapshot distinct from the built-ins.
+                preset.options.put("caretTrail.enabled", "true");
+            }
+            state.customPresets.add(preset);
+            state.normalize();
+            state.options.put("background.enabled", "true");
+            preset.applyTo(state);
+            assertEquals("Legacy", WoodfishPresets.matching(state).name());
+            state.options.put("typingParticles.enabled", "true");
+            if (main) assertNull(WoodfishPresets.matching(state));
+            else assertEquals("Legacy", WoodfishPresets.matching(state).name());
+        }
+    }
 }

@@ -92,6 +92,7 @@ class WoodfishStateTest {
     void 深拷贝互不影响() {
         WoodfishState s = new WoodfishState();
         s.customPresets.add(preset("a"));
+        s.normalize();
         WoodfishState c = s.copy();
         assertEquals(s, c);
         assertNotSame(s.customPresets, c.customPresets);
@@ -100,7 +101,7 @@ class WoodfishStateTest {
         c.cjkGradientEnabled = false;
         c.glowEnabled = false;
         assertNotEquals(s, c);
-        assertEquals(32, s.customPresets.get(0).hueShift);
+        assertEquals(24, s.customPresets.get(0).hueShift);
         assertTrue(s.glowEnabled);
     }
 
@@ -167,5 +168,51 @@ class WoodfishStateTest {
         WoodfishState.CustomPreset p = new WoodfishState.CustomPreset();
         p.name = name;
         return p;
+    }
+
+    @Test void legacyXmlRetainsOmittedDefaultsAndModernOptions() {
+        var xml = new org.jdom.Element("CustomPreset");
+        xml.addContent(new org.jdom.Element("option").setAttribute("name", "name").setAttribute("value", "Old"));
+        var preset = com.intellij.util.xmlb.XmlSerializer.deserialize(xml, WoodfishState.CustomPreset.class);
+        var state = new WoodfishState();
+        state.options.put("background.enabled", "true"); state.options.put("caretTrail.enabled", "true");
+        preset.copy().applyTo(state);
+        assertEquals(24, state.hueShift); assertEquals(.06, state.lightnessDelta);
+        assertEquals(.06, state.neutralChroma); assertEquals(90, state.angle);
+        assertEquals(2, state.options.size());
+        var saved = WoodfishState.CustomPreset.capture("New", new WoodfishState());
+        assertEquals(1, saved.copy().schemaVersion); saved.applyTo(state); assertTrue(state.options.isEmpty());
+    }
+
+    // Fields written by the unversioned 690f52f6 serializer with its original defaults.
+    public static class MainPreset {
+        public String name = "";
+        public double hueShift = 32, lightnessDelta = .12, neutralChroma = .075, angle = 45;
+        public java.util.Map<String, String> options = new java.util.LinkedHashMap<>();
+    }
+
+    @Test void mainXmlWithOptionsRestoresOmittedDefaultsAndExplicitValues() {
+        var main = new MainPreset();
+        main.name = "Main";
+        main.options.put("background.enabled", "true");
+        main.options.put("caretTrail.enabled", "true");
+        var filter = new com.intellij.util.xmlb.SkipDefaultValuesSerializationFilters();
+        for (double hue : new double[]{32, 24}) {
+            main.hueShift = hue;
+            var xml = com.intellij.util.xmlb.XmlSerializer.serialize(main, filter).setName("CustomPreset");
+            assertEquals(hue == 32 ? java.util.Set.of("name", "options") : java.util.Set.of("name", "options", "hueShift"),
+                    xml.getChildren("option").stream().map(o -> o.getAttributeValue("name")).collect(java.util.stream.Collectors.toSet()));
+            var state = new WoodfishState();
+            state.customPresets.add(com.intellij.util.xmlb.XmlSerializer.deserialize(xml, WoodfishState.CustomPreset.class));
+            var settings = new WoodfishSettings();
+            settings.loadState(state);
+            var upgraded = settings.snapshotState();
+            upgraded.customPresets.getFirst().applyTo(upgraded);
+            assertEquals(main.options, upgraded.options);
+            assertEquals(hue, upgraded.hueShift);
+            assertEquals(.12, upgraded.lightnessDelta);
+            assertEquals(.075, upgraded.neutralChroma);
+            assertEquals(45, upgraded.angle);
+        }
     }
 }

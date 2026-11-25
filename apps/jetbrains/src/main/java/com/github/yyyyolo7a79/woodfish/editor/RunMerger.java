@@ -31,6 +31,7 @@ final class RunMerger {
     static final int FLAG_FOREGROUND = 1;
     static final int FLAG_BACKGROUND = 2;
     static final int FLAG_ERASE = 4;
+    private static final int FLAG_CLASSIC_BOLD = 8;
 
     private final int syntaxLayer;
 
@@ -53,10 +54,8 @@ final class RunMerger {
     private int[] lexFont = new int[128];
     private Color[] lexForeground = new Color[128];
 
-    /** 作用域按偏移单调递增，lexer 游标只前进不回退 */
-    private int lexCursor;
-
     // ===== 扫描临时数组 =====
+    private long[] sorted = new long[64];
     private int[] candidates = new int[64];
     private int[] active = new int[16];
 
@@ -70,10 +69,13 @@ final class RunMerger {
 
     void reset() {
         Arrays.fill(foreground, 0, count, null);
-        Arrays.fill(lexForeground, 0, lexCount, null);
         count = 0;
+        resetLexemes();
+    }
+
+    void resetLexemes() {
+        Arrays.fill(lexForeground, 0, lexCount, null);
         lexCount = 0;
-        lexCursor = 0;
     }
 
     /**
@@ -87,7 +89,7 @@ final class RunMerger {
      */
     void addHighlighter(int rangeStart, int rangeEnd, int affectedStart, int affectedEnd,
                         int affectedLength, int highlighterLayer, Color fg, int fontType,
-                        boolean hasBackground, boolean erase) {
+                        boolean hasBackground, boolean erase, boolean classicBold) {
         if (affectedEnd <= affectedStart) {
             return; // 空区间不覆盖任何字符
         }
@@ -105,7 +107,7 @@ final class RunMerger {
         font[i] = erase ? Font.PLAIN : fontType;
         flags[i] = (byte) ((fg != null && !erase ? FLAG_FOREGROUND : 0)
                 | (hasBackground ? FLAG_BACKGROUND : 0)
-                | (erase ? FLAG_ERASE : 0));
+                | (erase ? FLAG_ERASE : 0) | (classicBold ? FLAG_CLASSIC_BOLD : 0));
     }
 
     /** 登记一段 lexer token（必须按起点升序调用） */
@@ -129,33 +131,8 @@ final class RunMerger {
 
     /** 收集完毕：高亮器按影响区起点排序（平台 HighlighterSweep 同样按影响区排序后扫描） */
     void finishGathering() {
-        if (count < 2) {
-            return;
-        }
-        long[] keys = new long[count];
-        for (int i = 0; i < count; i++) {
-            keys[i] = (long) start[i] << 32 | i;
-        }
-        Arrays.sort(keys);
-        int[] order = new int[count];
-        for (int i = 0; i < count; i++) {
-            order[i] = (int) keys[i];
-        }
-        queryStart = permute(queryStart, order);
-        queryEnd = permute(queryEnd, order);
-        start = permute(start, order);
-        end = permute(end, order);
-        length = permute(length, order);
-        layer = permute(layer, order);
-        font = permute(font, order);
-        byte[] f = new byte[flags.length];
-        Color[] fg = new Color[foreground.length];
-        for (int i = 0; i < count; i++) {
-            f[i] = flags[order[i]];
-            fg[i] = foreground[order[i]];
-        }
-        flags = f;
-        foreground = fg;
+        for (int i = 0; i < count; i++) sorted[i] = (long) start[i] << 32 | i;
+        Arrays.sort(sorted, 0, count);
     }
 
     /**
@@ -168,10 +145,7 @@ final class RunMerger {
     void merge(int scopeQueryStart, int scopeQueryEnd, int applyStart, int applyEnd,
                Color defaultForeground, int defaultFont, Runs out) {
         int candidateCount = selectCandidates(scopeQueryStart, scopeQueryEnd, applyStart, applyEnd);
-        while (lexCursor < lexCount && lexEnd[lexCursor] <= applyStart) {
-            lexCursor++;
-        }
-        int lexeme = lexCursor;
+        int lexeme = 0;
         int activeCount = 0;
         int nextCandidate = 0;
         int pos = applyStart;
@@ -213,12 +187,13 @@ final class RunMerger {
             out.append(pos, next, resolvedForeground, resolvedFont);
             pos = next;
         }
-        lexCursor = lexeme;
     }
 
     private int selectCandidates(int scopeQueryStart, int scopeQueryEnd, int applyStart, int applyEnd) {
         int candidateCount = 0;
-        for (int i = 0; i < count && start[i] < applyEnd; i++) {
+        for (int rank = 0; rank < count; rank++) {
+            int i = (int) sorted[rank];
+            if (start[i] >= applyEnd) break;
             if (end[i] > applyStart && queryStart[i] <= scopeQueryEnd && queryEnd[i] >= scopeQueryStart) {
                 if (candidateCount == candidates.length) {
                     candidates = Arrays.copyOf(candidates, candidateCount * 2);
@@ -248,11 +223,12 @@ final class RunMerger {
         boolean syntaxPending = syntax >= 0 && !erase;
         Color fg = null;
         int fontType = Font.PLAIN;
+        int extraFont = Font.PLAIN;
         for (int i = 0; i < activeCount; i++) {
             int h = active[i];
             if (syntaxPending && layer[h] < syntaxLayer) {
-                fg = lexForeground[syntax];
-                fontType = lexFont[syntax];
+                if (fg == null) fg = lexForeground[syntax];
+                if (fontType == Font.PLAIN) fontType = lexFont[syntax];
                 syntaxPending = false;
             }
             if ((flags[h] & FLAG_ERASE) != 0) {
@@ -261,7 +237,9 @@ final class RunMerger {
             if (fg == null) {
                 fg = foreground[h];
             }
-            if (fontType == Font.PLAIN) {
+            if ((flags[h] & FLAG_CLASSIC_BOLD) != 0) {
+                extraFont = Font.BOLD;
+            } else if (fontType == Font.PLAIN) {
                 fontType = font[h];
             }
         }
@@ -274,7 +252,7 @@ final class RunMerger {
             }
         }
         resolvedForeground = fg != null ? fg : defaultForeground;
-        resolvedFont = fontType != Font.PLAIN ? fontType : defaultFont;
+        resolvedFont = (fontType != Font.PLAIN ? fontType : defaultFont) | extraFont;
     }
 
     /** 与 IterationState.createByLayerThenByAttributesComparator 相同的前四级比较 */
@@ -300,6 +278,7 @@ final class RunMerger {
 
     private void growHighlighters() {
         int n = Math.max(64, count * 2);
+        sorted = Arrays.copyOf(sorted, n);
         queryStart = Arrays.copyOf(queryStart, n);
         queryEnd = Arrays.copyOf(queryEnd, n);
         start = Arrays.copyOf(start, n);
@@ -309,14 +288,6 @@ final class RunMerger {
         font = Arrays.copyOf(font, n);
         flags = Arrays.copyOf(flags, n);
         foreground = Arrays.copyOf(foreground, n);
-    }
-
-    private int[] permute(int[] source, int[] order) {
-        int[] result = new int[source.length];
-        for (int i = 0; i < count; i++) {
-            result[i] = source[order[i]];
-        }
-        return result;
     }
 
     /**

@@ -5,46 +5,16 @@ import { DEFAULT_CURSOR_GRADIENT_STOPS } from '../../../../packages/theme-core/s
 let now = 0;
 Object.assign(globalThis, { performance: { now: () => now } });
 
-// The two packaged canvas plugins emit a small list of Java2D paths. No editor text crosses this boundary.
-function recorder(out) {
-  function ink(css, alpha) {
-    return (Math.round(255 * alpha) << 24) | Number.parseInt(css.slice(1), 16);
-  }
-  return {
-    globalAlpha: 1,
-    lineWidth: 1,
-    beginPath() {
-      out.push(0);
-    },
-    moveTo(x, y) {
-      out.push(1, x, y);
-    },
-    lineTo(x, y) {
-      out.push(2, x, y);
-    },
-    closePath() {
-      out.push(3);
-    },
-    arc(x, y, radius) {
-      out.push(4, x, y, radius);
-    },
-    fill() {
-      out.push(5, ink(this.fillStyle, this.globalAlpha));
-    },
-    stroke() {
-      out.push(6, ink(this.strokeStyle, this.globalAlpha), this.lineWidth);
-    },
-    // The shared-canvas path has no DOM layer and both offsets are zero.
-    translate() {},
-  };
-}
-
 export function motionCreate(encoded, accent, stops, dark) {
   const options = JSON.parse(encoded);
   const renderers = [];
   const input = {};
-  const theme = { accent, stops: stops.split(','), mode: dark ? 'dark' : 'light' };
-  function mount(effect, group) {
+  const theme = {
+    accent,
+    stops: stops.split(',').map((color) => color.trim()),
+    mode: dark ? 'dark' : 'light',
+  };
+  function mount(effect, group, handlers, owner) {
     const params = options[group];
     if (!params.enabled) return;
     effect({
@@ -55,15 +25,15 @@ export function motionCreate(encoded, accent, stops, dark) {
       simplified: () => false,
       theme: () => theme,
       onCaret: (fn) => {
-        input.caret = fn;
+        handlers.caret = fn;
       },
       onInsert: (fn) => {
-        input.insert = fn;
+        handlers.insert = fn;
       },
       onStreamEnd() {},
       painter(fn) {
-        const layer = { fn, active: false };
-        renderers.push(layer);
+        const layer = { fn, active: false, owner };
+        state.renderers.push(layer);
         return {
           wake() {
             layer.active = true;
@@ -72,9 +42,16 @@ export function motionCreate(encoded, accent, stops, dark) {
       },
     });
   }
-  mount(trail, 'caretTrail');
-  mount(particles, 'typingParticles');
-  const state = { renderers, input, shake: null };
+  const state = { renderers, input, shake: null, carets: new Map() };
+  mount(particles, 'typingParticles', input, null);
+  state.caret = (id) => {
+    if (!state.carets.has(id)) {
+      const handlers = {};
+      mount(trail, 'caretTrail', handlers, id);
+      state.carets.set(id, handlers);
+    }
+    return state.carets.get(id).caret;
+  };
   state.block = {
     closest: () => ({
       animate(frames, options) {
@@ -92,29 +69,38 @@ export function motionCreate(encoded, accent, stops, dark) {
   return state;
 }
 
-export function motionEvent(state, kind, x, y, height, width, time) {
+export function motionEvent(state, kind, id, x, y, height, width, time) {
   now = time;
-  const callback = state.input[kind];
+  if (kind === 'remove') {
+    state.carets.delete(id);
+    state.renderers = state.renderers.filter((layer) => layer.owner !== id);
+  }
+  const callback = kind === 'caret' ? state.caret(id) : state.input[kind];
   if (callback)
     callback({ x, y, height, width, visible: true, source: 'user', text: ' ', block: state.block });
   return state.renderers.some((layer) => layer.active);
 }
 
-export function motionFrame(state, time, elapsed) {
+export function motionFrame(state, time, elapsed, pen) {
   now = time;
-  const out = [0, 0, 0];
+  let active = false;
+  pen.shiftX = pen.shiftY = 0;
   if (state.shake) {
     const phase = (time - state.shake.start) / state.shake.duration;
     if (phase < 1) {
       const offset = Math.sin(Math.PI * Math.max(0, phase));
-      out[0] = 1;
-      out[1] = offset * state.shake.x;
-      out[2] = offset * state.shake.y;
+      active = true;
+      pen.shiftX = offset * state.shake.x;
+      pen.shiftY = offset * state.shake.y;
     } else state.shake = null;
   }
   for (const layer of state.renderers) {
-    if (layer.active) layer.active = layer.fn(recorder(out), now, elapsed);
-    if (layer.active) out[0] = 1;
+    if (layer.active) {
+      pen.globalAlpha = pen.lineWidth = 1;
+      pen.globalCompositeOperation = 'source-over';
+      layer.active = layer.fn(pen, now, elapsed);
+    }
+    if (layer.active) active = true;
   }
-  return out;
+  return active;
 }

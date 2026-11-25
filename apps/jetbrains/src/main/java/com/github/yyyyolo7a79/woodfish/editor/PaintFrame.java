@@ -34,6 +34,7 @@ final class PaintFrame {
     int ascent;
 
     // ===== 文本：chars[i] 对应文档偏移 textBase + i =====
+    static final int MAX_CHARS = 65536;
     int textBase;
     char[] chars = new char[4096];
     int charCount;
@@ -72,6 +73,7 @@ final class PaintFrame {
     // ===== piece =====
     int pieceCount;
     /** chars 下标 [from, to) */
+    int[] pieceBase = new int[512];
     int[] pieceFrom = new int[512];
     int[] pieceTo = new int[512];
     float[] pieceX = new float[512];
@@ -131,14 +133,19 @@ final class PaintFrame {
         session = null;
     }
 
-    void setText(int base, int length) {
-        textBase = base;
-        if (chars.length < length) {
-            chars = new char[Math.max(length, chars.length * 2)];
-            charX = new float[chars.length];
-            charCell = new float[chars.length];
+    int appendVisible(CharSequence document, int start, int end) {
+        int length = Math.min(end - start, MAX_CHARS - charCount);
+        textBase = start - charCount;
+        int needed = charCount + length;
+        if (chars.length < needed) {
+            int capacity = Math.min(MAX_CHARS, Math.max(needed, chars.length * 2));
+            chars = Arrays.copyOf(chars, capacity);
+            charX = Arrays.copyOf(charX, capacity);
+            charCell = Arrays.copyOf(charCell, capacity);
         }
-        charCount = length;
+        com.intellij.util.text.CharArrayUtil.getChars(document, chars, start, charCount, length);
+        charCount = needed;
+        return start + length;
     }
 
     /** 字符网格模式下逐字的格宽（下标同 chars）；不在网格模式时为 null */
@@ -206,6 +213,7 @@ final class PaintFrame {
     int addPiece(int from, int to, float x, float width, int font, byte selection) {
         if (pieceCount == pieceFrom.length) {
             int n = pieceCount * 2;
+            pieceBase = Arrays.copyOf(pieceBase, n);
             pieceFrom = Arrays.copyOf(pieceFrom, n);
             pieceTo = Arrays.copyOf(pieceTo, n);
             pieceX = Arrays.copyOf(pieceX, n);
@@ -217,6 +225,7 @@ final class PaintFrame {
             pieceGridAligned = Arrays.copyOf(pieceGridAligned, n);
         }
         int piece = pieceCount++;
+        pieceBase[piece] = textBase;
         pieceFrom[piece] = from;
         pieceTo[piece] = to;
         pieceX[piece] = x;

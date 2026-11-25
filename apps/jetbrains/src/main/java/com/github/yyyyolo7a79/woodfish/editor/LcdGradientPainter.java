@@ -148,7 +148,7 @@ final class LcdGradientPainter {
         }
         int slices = divisions(perX * (right - left) / Math.max(1, end - start), MAX_GLYPH_SLICES);
         for (int i = start; i < end; i++) {
-            if (partial && f.selectionState(f.textBase + i, f.textBase + i + 1) == PaintFrame.SELECTION_FULL) {
+            if (partial && f.selectionState(f.pieceBase[piece] + i, f.pieceBase[piece] + i + 1) == PaintFrame.SELECTION_FULL) {
                 continue; // 选中的字由编辑器用选区前景色画
             }
             double charLeft = f.charX[i] - boxX;

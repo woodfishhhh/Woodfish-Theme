@@ -5,8 +5,8 @@
     "jetbrains:generate": "tsc -b ../../packages/theme-core && node scripts/generate.js",
     "jetbrains:check": "tsc -b ../../packages/theme-core && node scripts/generate.js --check",
     "test": "tsc -b ../../packages/theme-core && jest --testEnvironment=node",
-    "lint": "eslint --no-ignore --config eslint.config.mjs scripts/*.js",
-    "format:check": "prettier --check scripts/*.js eslint.config.mjs"
+    "lint": "eslint --max-warnings 0 --no-ignore --config eslint.config.mjs scripts/*.js scripts/runtime/*.{js,ts}",
+    "format:check": "prettier --check scripts/*.js scripts/runtime/*.{js,ts} eslint.config.mjs"
   },
   "dependencies": {
     "@woodfish/theme-core": "workspace:*"

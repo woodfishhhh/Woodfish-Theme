@@ -82,3 +82,33 @@ test('every VS Code setting is either editable with its source default or docume
   expect(keys('_zh')).toEqual(keys(''));
   expect(keys('')).toEqual(expect.arrayContaining(native));
 });
+
+test('spaced palette selects red and dark particles request additive fill', () => {
+  const scope = { Math: Object.create(Math) };
+  scope.Math.random = () => 0.9;
+  runInNewContext(runtimeAssets()['woodfish/theme-core.js'], scope);
+  const api = scope.WoodfishCore;
+  const options = {
+    caretTrail: { enabled: false },
+    typingParticles: {
+      enabled: true,
+      sources: 'user',
+      colors: 'theme',
+      count: 1,
+      spread: 0,
+      speed: 0,
+      gravity: 0,
+      size: 3,
+      life: 500,
+    },
+  };
+  for (const dark of [true, false]) {
+    const state = api.motionCreate(JSON.stringify(options), '#aaaaaa', '#0000ff, #ff0000', dark);
+    api.motionEvent(state, 'insert', 1, 25, 25, 10, 4, 1000);
+    const pen = { beginPath() {}, arc() {}, fill: jest.fn() };
+    api.motionFrame(state, 1000, 16, pen);
+    expect(pen.fill).toHaveBeenCalled();
+    expect(pen.fillStyle).toBe('#ff0000');
+    expect(pen.globalCompositeOperation).toBe(dark ? 'lighter' : 'source-over');
+  }
+});

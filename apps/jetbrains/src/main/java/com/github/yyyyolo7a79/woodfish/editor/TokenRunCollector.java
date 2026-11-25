@@ -10,7 +10,6 @@ import com.intellij.openapi.editor.markup.HighlighterLayer;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.util.DocumentUtil;
 import com.intellij.util.Processor;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -42,12 +41,9 @@ final class TokenRunCollector {
         return true;
     };
 
-    /**
-     * 为一帧准备数据：收集与 [gatherStart, rangeEnd] 相交的高亮器，以及覆盖 [rangeStart, rangeEnd) 的 lexer token。
-     *
-     * @param gatherStart 通常比 rangeStart 早一个码点：平台给软换行续行建 IterationState 时就是从前一个码点开始查询的
-     */
-    void prepare(@NotNull EditorEx editor, int gatherStart, int rangeStart, int rangeEnd) {
+    /** Markup extends to the visual line end even when a fold ends the painted span. */
+    void collect(EditorEx editor, int queryStart, int queryEnd, int spanStart, int spanEnd,
+                 int visibleStart, int visibleEnd, RunMerger.Runs out) {
         merger.reset();
         document = editor.getDocument();
         scheme = editor.getColorsScheme();
@@ -56,26 +52,44 @@ final class TokenRunCollector {
         TextAttributes text = scheme.getAttributes(HighlighterColors.TEXT);
         defaultFont = text == null ? Font.PLAIN : text.getFontType();
 
-        editor.getFilteredDocumentMarkupModel().processRangeHighlightersOverlappingWith(gatherStart, rangeEnd, gatherer);
-        editor.getMarkupModel().processRangeHighlightersOverlappingWith(gatherStart, rangeEnd, gatherer);
+        editor.getFilteredDocumentMarkupModel().processRangeHighlightersOverlappingWith(queryStart, queryEnd, gatherer);
+        editor.getMarkupModel().processRangeHighlightersOverlappingWith(queryStart, queryEnd, gatherer);
         merger.finishGathering();
 
-        HighlighterIterator it = editor.getHighlighter().createIterator(rangeStart);
-        while (!it.atEnd() && it.getStart() < rangeEnd) {
-            int s = align(Math.max(it.getStart(), rangeStart));
-            int e = align(Math.min(it.getEnd(), rangeEnd));
+        int left = visibleStart, right = visibleEnd;
+        for (long step = 1; ; step *= 2) {
+            mergeWindow(editor, queryStart, queryEnd, spanStart, spanEnd, left, right, out);
+            int last = out.count - 1;
+            left = out.start[0];
+            right = out.end[last];
+            // Only an edge run touching the clip needs more lexer context to locate its gradient endpoint.
+            boolean extendLeft = left > spanStart && out.end[0] > visibleStart;
+            boolean extendRight = right < spanEnd && out.start[last] < visibleEnd;
+            if (!extendLeft && !extendRight) return;
+            if (extendLeft) left = (int) Math.max(spanStart, left - step);
+            if (extendRight) right = (int) Math.min(spanEnd, right + step);
+        }
+    }
+
+    private void mergeWindow(EditorEx editor, int queryStart, int queryEnd, int spanStart, int spanEnd,
+                             int left, int right, RunMerger.Runs out) {
+        out.clear();
+        merger.resetLexemes();
+        int start = left, end = right;
+        HighlighterIterator it = editor.getHighlighter().createIterator(left);
+        if (it.atEnd()) { start = spanStart; end = spanEnd; }
+        while (!it.atEnd() && it.getStart() < right) {
+            int s = align(Math.max(it.getStart(), spanStart));
+            int e = align(Math.min(it.getEnd(), spanEnd));
+            start = Math.min(start, s);
+            end = Math.max(end, e);
             TextAttributes attributes = it.getTextAttributes();
             merger.addLexeme(s, e,
                     attributes == null ? null : attributes.getForegroundColor(),
                     attributes == null ? Font.PLAIN : attributes.getFontType());
             it.advance();
         }
-    }
-
-    /** 生成 [applyStart, applyEnd) 的颜色段；作用域必须按偏移递增调用 */
-    void collect(int queryStart, int queryEnd, int applyStart, int applyEnd, RunMerger.Runs out) {
-        out.clear();
-        merger.merge(queryStart, queryEnd, applyStart, applyEnd, defaultForeground, defaultFont, out);
+        merger.merge(queryStart, queryEnd, start, end, defaultForeground, defaultFont, out);
     }
 
     /** 释放对编辑器对象的引用（帧结束后调用） */
@@ -105,7 +119,8 @@ final class TokenRunCollector {
         merger.addHighlighter(highlighter.getStartOffset(), highlighter.getEndOffset(),
                 align(affectedStart), align(affectedEnd), affectedEnd - affectedStart,
                 highlighter.getLayer(), fg, fontType,
-                !erase && attributes.getBackgroundColor() != null, erase);
+                !erase && attributes.getBackgroundColor() != null, erase,
+                highlighter.getCustomRenderer() instanceof GradientRenderer && fontType == Font.BOLD);
     }
 
     private int align(int offset) {
