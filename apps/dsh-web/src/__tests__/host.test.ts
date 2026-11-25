@@ -7,6 +7,7 @@ jest.mock('fs', () => {
     readFileSync: jest.fn(actual.readFileSync),
     writeFileSync: jest.fn(actual.writeFileSync),
     unlinkSync: jest.fn(actual.unlinkSync),
+    rmdirSync: jest.fn(actual.rmdirSync),
   };
 });
 
@@ -291,6 +292,104 @@ describe('HostBackgroundStore regressions', () => {
     },
     15000
   );
+
+  it.each([4, 30])('recovers %i indexed originals after index loss', async (count) => {
+    const store = new HostBackgroundStore(tempDir);
+    const originals = Array.from({ length: count }, (_, i) =>
+      store.save(String(i), validPngBytes(i))
+    );
+    const checkOriginals = () =>
+      originals.forEach(({ id }, i) =>
+        expect(fs.readFileSync(path.join(tempDir, id + '.png'))).toEqual(
+          Buffer.from(validPngBytes(i))
+        )
+      );
+    checkOriginals();
+    fs.unlinkSync(path.join(tempDir, 'index.json'));
+    const response = await handleBackgroundsRequest(
+      store,
+      new Request('http://test/?action=upload', {
+        method: 'POST',
+        body: new Blob([validPngBytes(count).slice().buffer]),
+      })
+    );
+    expect(response.status).toBe(count === 30 ? 409 : 200);
+    checkOriginals();
+    const total = Math.min(count + 1, 30);
+    expect(
+      JSON.parse(fs.readFileSync(path.join(tempDir, 'index.json'), 'utf8')).entries
+    ).toHaveLength(total);
+    expect(fs.readdirSync(tempDir).filter((f) => f.endsWith('.png'))).toHaveLength(total);
+  });
+
+  it('leaves every original intact if one cannot be recovered', () => {
+    const store = new HostBackgroundStore(tempDir);
+    const { id } = store.save('old', validPngBytes());
+    fs.unlinkSync(path.join(tempDir, 'index.json'));
+    const damaged = path.join(tempDir, 'aaaaaaaaaaaaaaaa.png');
+    fs.writeFileSync(damaged, 'damaged');
+    expect(() => store.save('new', validPngBytes(2))).toThrow(/恢复/);
+    expect(fs.readFileSync(damaged, 'utf8')).toBe('damaged');
+    expect(fs.readFileSync(path.join(tempDir, id + '.png'))).toEqual(Buffer.from(validPngBytes()));
+    expect(fs.existsSync(path.join(tempDir, 'index.json'))).toBe(false);
+  });
+
+  it('reconciles the complete indexed filename including its extension', () => {
+    const store = new HostBackgroundStore(tempDir);
+    for (let i = 0; i < 29; i++) store.save(String(i), validPngBytes(i));
+    const { id } = store.list()[0];
+    fs.copyFileSync(path.join(tempDir, id + '.png'), path.join(tempDir, id + '.webp'));
+    store.save('30', validPngBytes(30));
+    expect(store.list()).toHaveLength(30);
+    expect(fs.readdirSync(tempDir).sort()).toEqual(
+      ['index.json', ...store.list().map((e) => e.id + '.png')].sort()
+    );
+  });
+
+  it.each([false, true])('respects a legacy writer and its generation (alive=%s)', (alive) => {
+    const store = new HostBackgroundStore(tempDir);
+    const original = store.save('old', validPngBytes());
+    const pid = alive ? process.pid : 2147483647;
+    const time = Date.now() - 60_000;
+    const lock = path.join(tempDir, 'index.lock');
+    const gate = lock + '.d';
+    const token = pid + '_' + time + '_legacy';
+    const plant = () => {
+      fs.mkdirSync(path.join(gate, token), { recursive: true });
+      fs.writeFileSync(lock, [pid, time, token].join(' '));
+      fs.utimesSync(lock, new Date(time), new Date(time));
+    };
+    plant();
+    if (alive) {
+      expect(() => store.save('new', validPngBytes(1))).toThrow(/占用/);
+      expect(fs.readFileSync(lock, 'utf8')).toBe([pid, time, token].join(' '));
+      expect(fs.readdirSync(gate)).toEqual([token]);
+    } else {
+      store.save('new', validPngBytes(1));
+      expect(fs.existsSync(lock) || fs.existsSync(gate)).toBe(false);
+      plant();
+      expect(store.remove(original.id)).toBe(true);
+      expect(fs.existsSync(lock) || fs.existsSync(gate)).toBe(false);
+    }
+  });
+
+  it('preserves a persistent OS denial on the same stale generation', () => {
+    const owner = path.join(tempDir, 'index.lock', '0_1_dead');
+    fs.mkdirSync(owner, { recursive: true });
+    const denied = Object.assign(new Error('generation permission denied'), { code: 'EPERM' });
+    const remove = jest.mocked(fs.rmdirSync);
+    const actual = jest.requireActual<typeof import('fs')>('fs').rmdirSync;
+    remove.mockImplementation((file, options) => {
+      if (file === owner) throw denied;
+      actual(file, options);
+    });
+    try {
+      expect(() => new HostBackgroundStore(tempDir).save('new', validPngBytes())).toThrow(denied);
+      expect(fs.existsSync(owner)).toBe(true);
+    } finally {
+      remove.mockImplementation(actual);
+    }
+  });
 
   it('aborts save on index EIO or corrupt JSON and preserves the original bytes', () => {
     const store = new HostBackgroundStore(tempDir);

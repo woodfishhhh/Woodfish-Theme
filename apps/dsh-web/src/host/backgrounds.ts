@@ -11,6 +11,7 @@ import { DshBackgroundEntry } from '../protocol';
 const INDEX_FILE = 'index.json';
 const LOCK_DIR = 'index.lock';
 const VALID_ID = /^[a-f0-9]{16}$/;
+const MANAGED_IMAGE = /^([a-f0-9]{16})\.(?:jpg|png|webp)$/;
 const NAME_LIMIT = 80;
 const LOCK_STALE_MS = 30_000;
 const LOCK_ATTEMPTS = 100;
@@ -57,6 +58,10 @@ function sanitizeName(raw: string | null): string {
 
 function fileNameFor(entry: Pick<DshBackgroundEntry, 'id' | 'type'>): string {
   return `${entry.id}.${backgroundImageExtension(entry.type)}`;
+}
+
+function contentId(bytes: Uint8Array): string {
+  return crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 16);
 }
 
 function hasCode(error: unknown, ...codes: string[]): boolean {
@@ -109,7 +114,7 @@ export class HostBackgroundStore {
     return path.join(this.directory, LOCK_DIR);
   }
 
-  private readRawIndexForWrite(): DshBackgroundEntry[] {
+  private readIndex(): DshBackgroundEntry[] | undefined {
     try {
       const text = fs.readFileSync(this.indexPath(), 'utf8');
       const parsed = JSON.parse(text) as Partial<BackgroundIndex>;
@@ -134,7 +139,7 @@ export class HostBackgroundStore {
         throw new Error('背景索引条目无效');
       return parsed.entries;
     } catch (error) {
-      if (hasCode(error, 'ENOENT')) return [];
+      if (hasCode(error, 'ENOENT')) return undefined;
       throw error;
     }
   }
@@ -157,20 +162,38 @@ export class HostBackgroundStore {
     }
   }
 
-  private reapDeadWriter(gate: string, staging: string): void {
+  /** Only the generation we observed can be retired; another writer may already own the gate. */
+  private clearStaleLock(gate: string, finalAttempt: boolean): boolean {
+    const stat = fs.lstatSync(gate, { throwIfNoEntry: false });
+    if (!stat) return true;
+    let ownerPath = gate;
     try {
-      const [owner] = fs.readdirSync(gate);
-      if (owner) {
-        const [pid, time] = owner.split('_').map(Number);
-        if (!staleOwner(pid, time)) return;
-        // A late contender can move only the generation it observed.
-        const retired = path.join(staging, 'retired');
-        fs.renameSync(path.join(gate, owner), retired);
-        fs.rmdirSync(retired);
+      if (stat.isFile()) {
+        const [pid, time] = fs.readFileSync(gate, 'utf8').trim().split(/\s+/).map(Number);
+        if (!staleOwner(pid, time || stat.mtimeMs)) return false;
+        // unlink cannot move or remove a replacement directory generation.
+        fs.unlinkSync(gate);
+      } else if (stat.isDirectory()) {
+        const [owner] = fs.readdirSync(gate);
+        if (owner) {
+          ownerPath = path.join(gate, owner);
+          const [pid, time] = owner.split('_').map(Number);
+          if (!staleOwner(pid, time || stat.mtimeMs)) return false;
+          fs.rmdirSync(ownerPath);
+        }
+        removeEmptyLock(gate);
+      } else {
+        throw new Error('背景索引锁类型无效：' + gate);
       }
-      removeEmptyLock(gate);
+      return !fs.lstatSync(gate, { throwIfNoEntry: false });
     } catch (error) {
-      if (!hasCode(error, 'ENOENT')) throw error;
+      if (hasCode(error, 'ENOENT')) return false;
+      if (!hasCode(error, 'EPERM', 'EACCES', 'EBUSY', 'EISDIR', 'ENOTDIR')) throw error;
+      const current = fs.lstatSync(gate, { throwIfNoEntry: false });
+      if (!current || current.ino !== stat.ino || current.isFile() !== stat.isFile()) return false;
+      if (ownerPath !== gate && !fs.lstatSync(ownerPath, { throwIfNoEntry: false })) return false;
+      if (finalAttempt) throw error;
+      return false;
     }
   }
 
@@ -184,19 +207,27 @@ export class HostBackgroundStore {
     try {
       fs.mkdirSync(path.join(staging, owner));
       for (let attempt = 0; attempt < LOCK_ATTEMPTS; attempt++) {
-        try {
-          // Publish a fully initialized nonempty directory in one operation.
-          fs.renameSync(staging, lock);
-          held = true;
-          break;
-        } catch (error) {
-          if (!hasCode(error, 'ENOTEMPTY', 'EEXIST', 'EPERM', 'EACCES', 'ENOTDIR')) throw error;
-          this.reapDeadWriter(lock, staging);
-          waitForLock(Math.min(20, 2 + attempt));
+        const finalAttempt = attempt === LOCK_ATTEMPTS - 1;
+        if (this.clearStaleLock(lock, finalAttempt)) {
+          try {
+            // Publish a fully initialized nonempty directory in one operation.
+            fs.renameSync(staging, lock);
+            held = true;
+            break;
+          } catch (error) {
+            if (!hasCode(error, 'ENOTEMPTY', 'EEXIST', 'EPERM', 'EACCES', 'EBUSY', 'ENOTDIR'))
+              throw error;
+            if (finalAttempt && !fs.existsSync(lock)) throw error;
+          }
         }
+        waitForLock(Math.min(20, 2 + attempt));
       }
       if (!held) throw new Error('背景索引暂时被其他进程占用，请稍后重试');
-      return operation();
+      for (let attempt = 0; attempt < LOCK_ATTEMPTS; attempt++) {
+        if (this.clearStaleLock(lock + '.d', attempt === LOCK_ATTEMPTS - 1)) return operation();
+        waitForLock(Math.min(20, 2 + attempt));
+      }
+      throw new Error('背景索引暂时被其他进程占用，请稍后重试');
     } finally {
       if (held) {
         fs.rmdirSync(path.join(lock, owner));
@@ -205,6 +236,31 @@ export class HostBackgroundStore {
         fs.rmSync(staging, { recursive: true, force: true });
       }
     }
+  }
+
+  private recoverIndex(): DshBackgroundEntry[] {
+    const entries: DshBackgroundEntry[] = [];
+    for (const file of fs.readdirSync(this.directory)) {
+      const match = MANAGED_IMAGE.exec(file);
+      if (!match) continue;
+      try {
+        const target = path.join(this.directory, file);
+        const stat = fs.lstatSync(target);
+        if (!stat.isFile() || stat.size > BACKGROUND_IMAGE_LIMITS.maxStoredBytes)
+          throw new Error('无效的图片文件');
+        const bytes = fs.readFileSync(target);
+        const info = readBackgroundImageInfo(bytes);
+        const id = match[1];
+        if (!info || fileNameFor({ id, type: info.type }) !== file || contentId(bytes) !== id) {
+          throw new Error('文件名与图片内容不符');
+        }
+        entries.push({ id, name: file, ...info, bytes: bytes.length, addedAt: stat.mtimeMs });
+      } catch (error) {
+        throw new Error('无法从原图恢复背景索引：' + file + '：' + String(error));
+      }
+    }
+    if (entries.length) this.writeIndex(entries.sort((a, b) => b.addedAt - a.addedAt));
+    return entries;
   }
 
   private reconcileEntries(entries: readonly DshBackgroundEntry[]): DshBackgroundEntry[] {
@@ -220,11 +276,10 @@ export class HostBackgroundStore {
     if (present.length !== entries.length) {
       this.writeIndex(present);
     }
-    const indexedIds = new Set(present.map((entry) => entry.id));
+    const indexedFiles = new Set(present.map(fileNameFor));
     for (const file of fs.readdirSync(this.directory, { withFileTypes: true })) {
       if (!file.isFile()) continue;
-      const match = /^(?<id>[a-f0-9]{16})\.(?:jpg|png|webp)$/.exec(file.name);
-      if (!match || indexedIds.has(match.groups?.id ?? '')) continue;
+      if (!MANAGED_IMAGE.test(file.name) || indexedFiles.has(file.name)) continue;
       try {
         fs.unlinkSync(path.join(this.directory, file.name));
       } catch (error) {
@@ -235,7 +290,7 @@ export class HostBackgroundStore {
   }
 
   list(): DshBackgroundEntry[] {
-    return this.readRawIndexForWrite().filter((entry) =>
+    return (this.readIndex() ?? []).filter((entry) =>
       fs.existsSync(path.join(this.directory, fileNameFor(entry)))
     );
   }
@@ -244,7 +299,7 @@ export class HostBackgroundStore {
     if (!VALID_ID.test(id)) {
       return null;
     }
-    const entry = this.readRawIndexForWrite().find((item) => item.id === id);
+    const entry = this.readIndex()?.find((item) => item.id === id);
     if (!entry) {
       return null;
     }
@@ -267,7 +322,7 @@ export class HostBackgroundStore {
     if (!info) {
       throw new Error('只支持有效的 JPG、PNG 或 WebP 图片');
     }
-    const id = crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 16);
+    const id = contentId(bytes);
     const entry: DshBackgroundEntry = {
       id,
       name: sanitizeName(name),
@@ -279,7 +334,8 @@ export class HostBackgroundStore {
     };
 
     return this.withIndexLock(() => {
-      const existing = this.reconcileEntries(this.readRawIndexForWrite());
+      const index = this.readIndex();
+      const existing = index ? this.reconcileEntries(index) : this.recoverIndex();
       const replacing = existing.some((item) => item.id === id);
       if (!replacing && existing.length >= BACKGROUND_IMAGE_LIMITS.maxStoredCount) {
         throw new BackgroundCapacityError();
@@ -323,7 +379,7 @@ export class HostBackgroundStore {
       return false;
     }
     return this.withIndexLock(() => {
-      const entries = this.readRawIndexForWrite();
+      const entries = this.readIndex() ?? this.recoverIndex();
       const target = entries.find((item) => item.id === id);
       if (!target) {
         return false;

@@ -85,6 +85,8 @@ Woodfish 以标准 `dsh 0.2.2-rc.5` 官方插件包 `woodfish-dsh-plugin`（构�
 ## 实测结论与坑
 
 - `dsh plugin --profile desktop add` 在 `dsh 0.2.2-rc.5` 上会被 CLI 明确拒绝（`profile "desktop" is managed exclusively by the Electron application`），桌面端由应用内插件管理器直接添加同一个 `woodfish-dsh-plugin` 包；`woodfish dsh install --profile desktop` 会先完成暂存并输出明确的桌面端操作指引。
+- 背景目录丢失 `index.json` 时，下一次写入会按原图的内容哈希、格式、尺寸和修改时间恢复索引。显示名取磁盘文件名，满 30 张返回 409；无法校验的原图会中止恢复并保留。索引有效时，上传只清理完整文件名与索引不符的托管图片。
+- Windows 与 Linux 上，停机升级后会回收超过 30 秒且进程已退出的旧文件锁与代际目录。并发回收按代际重试，存活进程仍持有锁。
 - `ctx.connection.fetch.register` 仅允许 `GET`、`HEAD`、`POST`，背景图上传与删除走 `POST /api/woodfish-backgrounds-write?action=upload|delete`。rc.5 按路径选择请求体模式，GET 保留在 `/api/woodfish-backgrounds`，POST 单独注册为 `streaming`。宿主的 `connection/request` 钩子和 owner 校验保留；上传超过 40 MiB 时，声明长度和分块两种方式都会在请求结束前返回 413。旧版客户端升级后需刷新设置页才能写入。
 - `ctx.theme.overrideTokens` 会把传入的每个键写成 `body` 的行内样式；若直接传入 `--dsw-*` 会压过我们的样式表导致浅色/深色切换错乱。通过只传入无害标记键 `--woodfish-theme-sync` 既可安全触发 `theme/change` 让 xterm 终端与浏览器主题色重新采样，又不会污染任何 `--dsw-*` 变量。
 - `dsh-settings` 表单会对嵌套对象展开额外 schema 校验，宿主端采用 6 个扁平顶层 `.volatile()` 字符串字段（含 `effectsJson`），在保持配置实时下发与落盘的同时兼容任意新增效果参数。

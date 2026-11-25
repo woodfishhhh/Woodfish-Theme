@@ -178,16 +178,12 @@ describe('woodfish dsh native plugin commands', () => {
     expect(io.output.join('\n')).toContain('已声明依赖，但实际包缺失或损坏');
   });
 
-  it.each(['npm', 'pnpm/corepack'])('resolves a standard %s Node shim', (kind) => {
+  it('resolves a direct adjacent Node shim', () => {
     const shim = path.join(sandbox, 'dsh.cmd');
     const entry = path.join(sandbox, 'bin.cjs');
     fs.writeFileSync(entry, '');
-    fs.writeFileSync(
-      shim,
-      kind === 'npm'
-        ? 'endLocal & "%_prog%" "%dp0%\\bin.cjs" %*'
-        : '"%~dp0\\node.exe" "%~dp0\\bin.cjs" %*'
-    );
+    fs.writeFileSync(path.join(sandbox, 'node.exe'), '');
+    fs.writeFileSync(shim, '"%~dp0\\node.exe" "%~dp0\\bin.cjs" %*');
     expect(readDshCmdShim(shim)).toEqual([entry]);
   });
 
@@ -237,12 +233,32 @@ describe('woodfish dsh native plugin commands', () => {
     expect(JSON.parse(result.stdout)).toEqual([process.execPath, ...args]);
   });
 
-  windows.each(['cmd', 'bat'])('rejects an unreachable standard-looking %s shim', (extension) => {
-    const script = path.join(sandbox, 'disabled.' + extension);
+  it.each(['cmd', 'bat'])('only resolves the reachable %s forwarding entry', (extension) => {
+    const script = path.join(sandbox, 'shim.' + extension);
     const entry = path.join(sandbox, 'entry.cjs');
-    fs.writeFileSync(entry, '');
-    fs.writeFileSync(script, '@echo off\r\nexit /b 23\r\n"%~dp0\node.exe" "%~dp0\entry.cjs" %*');
-    expect(() => defaultDshRunner(script, ['test'], env)).toThrow(/DSH_BIN/);
+    const launch = 'node "%~dp0\\entry.cjs" %*';
+    const branch = 'IF EXIST "%~dp0\\node.exe" (';
+    fs.writeFileSync(entry, 'console.log("forwarded")');
+    for (const lines of [
+      ['exit /b'],
+      ['exit /b 23'],
+      ['goto start'],
+      [branch, launch, ') ELSE (', 'exit /b', ')'],
+    ]) {
+      fs.writeFileSync(
+        script,
+        ['@echo off', ...lines, ...(lines[0] === branch ? [] : [launch])].join('\r\n')
+      );
+      expect(readDshCmdShim(script)).toBeNull();
+      if (process.platform === 'win32')
+        expect(() => defaultDshRunner(script, [], env)).toThrow(/DSH_BIN/);
+    }
+    fs.writeFileSync(script, [branch, 'exit /b', ') ELSE (', launch, ')'].join('\r\n'));
+    expect(readDshCmdShim(script)).toEqual([entry]);
+    if (process.platform === 'win32')
+      expect(defaultDshRunner(script, [], env).stdout.trim()).toBe('forwarded');
+    fs.writeFileSync(path.join(sandbox, 'node.exe'), '');
+    expect(readDshCmdShim(script)).toBeNull();
   });
 
   windows('refuses an unknown batch script without invoking a shell', () => {
@@ -274,31 +290,35 @@ describe('woodfish dsh native plugin commands', () => {
     }
   });
 
-  it('reports a missing package root export as broken while preserving enabled state', () => {
-    const profile = resolveDshProfileDir('web', env);
-    const dir = path.join(profile, 'node_modules', DSH_PLUGIN_NAME);
-    const bundled = path.resolve(__dirname, '../../../dsh-web/plugin');
-    fs.mkdirSync(dir, { recursive: true });
-    fs.cpSync(bundled, dir, { recursive: true });
-    fs.writeFileSync(
-      path.join(profile, 'package.json'),
-      JSON.stringify({
-        dependencies: { [DSH_PLUGIN_NAME]: '*' },
-        dsh: { profile: { bundles: [DSH_PLUGIN_NAME] } },
-      })
-    );
-    const packagePath = path.join(dir, 'package.json');
-    const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8')) as {
-      exports: Record<string, string>;
-    };
-    pkg.exports['.'] = './lib/missing.js';
-    fs.writeFileSync(packagePath, JSON.stringify(pkg));
-    expect(readDshProfileStatus('web', env)).toMatchObject({
-      installed: false,
-      broken: true,
-      enabled: true,
-    });
-  });
+  it.each([undefined, '', './lib/missing.js'])(
+    'reports a broken package root export (%s) while preserving enabled state',
+    (target) => {
+      const profile = resolveDshProfileDir('web', env);
+      const dir = path.join(profile, 'node_modules', DSH_PLUGIN_NAME);
+      const bundled = path.resolve(__dirname, '../../../dsh-web/plugin');
+      fs.mkdirSync(dir, { recursive: true });
+      fs.cpSync(bundled, dir, { recursive: true });
+      fs.writeFileSync(
+        path.join(profile, 'package.json'),
+        JSON.stringify({
+          dependencies: { [DSH_PLUGIN_NAME]: '*' },
+          dsh: { profile: { bundles: [DSH_PLUGIN_NAME] } },
+        })
+      );
+      const packagePath = path.join(dir, 'package.json');
+      const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8')) as {
+        exports: Record<string, string>;
+      };
+      if (target === undefined) delete pkg.exports['.'];
+      else pkg.exports['.'] = target;
+      fs.writeFileSync(packagePath, JSON.stringify(pkg));
+      expect(readDshProfileStatus('web', env)).toMatchObject({
+        installed: false,
+        broken: true,
+        enabled: true,
+      });
+    }
+  );
 
   it('reports a renamed referenced background asset as broken while preserving enabled state', () => {
     const profile = resolveDshProfileDir('web', env);

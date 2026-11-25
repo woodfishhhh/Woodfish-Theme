@@ -1,9 +1,8 @@
 name: Terminal palettes
-# Item #119 signoff verification on the merged branch.
 
 on:
   push:
-    paths: ['apps/terminal/**', 'packages/theme-core/**', '.github/workflows/terminal.yml']
+    paths: ['apps/terminal/**', 'packages/theme-core/**']
   pull_request:
     paths: ['apps/terminal/**', 'packages/theme-core/**']
 

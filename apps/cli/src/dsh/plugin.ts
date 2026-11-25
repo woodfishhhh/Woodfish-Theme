@@ -77,48 +77,84 @@ export function resolveDshProfileDir(
   return path.join(resolveDshHome(env), 'profiles', validateDshProfile(profile));
 }
 
+// npm's jump skips the dp0 subroutine. Accept that complete prologue as a unit.
+const NPM_SHIM_PROLOGUE = [
+  'goto start',
+  ':find_dp0',
+  'set dp0=%~dp0',
+  'exit /b',
+  ':start',
+  'setlocal',
+  'call :find_dp0',
+];
+
 export function readDshCmdShim(command: string): string[] | null {
-  const source = fs.readFileSync(command, 'utf8');
-  const launch =
-    /(?:^\s*@?|&\s*)(?:"%_prog%"|"(?:%dp0%|%~dp0)[\\/]*node\.exe"|"[a-z]:\\[^"%\r\n]*\\node\.exe"|"?node(?:\.exe)?"?)\s+((?:--[\w-]+(?:=[\w.-]+)?\s+)*)"((?:(?:%dp0%|%~dp0)[\\/]*|[a-z]:[\\/])[^"%\r\n]+\.[mc]?js)"\s+%\*\s*$/i;
+  const lines = fs
+    .readFileSync(command, 'utf8')
+    .split(/\r?\n/)
+    .map((line) => line.trim().replace(/^@/, ''))
+    .filter((line) => line && !/^(?:rem\s|::)[\w .-]*$/i.test(line));
+  if (lines[0]?.toLowerCase() === 'echo off') lines.shift();
+  const npm = NPM_SHIM_PROLOGUE.every((line, i) => lines[i]?.toLowerCase() === line);
+  if (npm) lines.splice(0, NPM_SHIM_PROLOGUE.length);
+  else if (lines[0]?.toLowerCase() === 'setlocal') lines.shift();
+  const assignsDp0 = /^(?:set dp0=%~dp0|set "dp0=%~dp0")$/i.test(lines[0] ?? '');
+  if (assignsDp0) lines.shift();
+  const directory = path.dirname(command);
+  const localNode = path.join(directory, 'node.exe');
+  let arm: 'then' | 'else' | undefined;
+  let takeThen = false;
+  let progSet = false;
   let result: string[] | null = null;
-  for (const rawLine of source.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || /^::|^@?rem\b/i.test(line) || /^:[a-z0-9_.-]+$/i.test(line)) continue;
-    if (/^@?echo\s+off$/i.test(line) || /^@?exit\s*\/b\s*$/i.test(line)) continue;
-    if (/^@?exit\b/i.test(line)) return null;
-    const match = line.match(launch);
-    if (match) {
-      const [, flags, raw] = match;
-      const entry = raw.replace(/^(?:%dp0%|%~dp0)[\\/]*/i, '').replace(/[\\/]/g, path.sep);
-      const argv = [
-        ...flags.trim().split(/\s+/).filter(Boolean),
-        path.resolve(path.dirname(command), entry),
-      ];
-      if (
-        !fs.statSync(argv[argv.length - 1], { throwIfNoEntry: false })?.isFile() ||
-        (result && (result.length !== argv.length || result.some((arg, i) => arg !== argv[i])))
-      ) {
-        return null;
-      }
-      result = argv;
+  for (let line of lines) {
+    if (!npm && !assignsDp0 && /%dp0%/i.test(line)) return null;
+    if (/^if exist "(?:%dp0%|%~dp0)[\\/]*node\.exe" \($/i.test(line) && !arm) {
+      takeThen = fs.existsSync(localNode);
+      arm = 'then';
+      continue;
+    }
+    if (/^\) else \($/i.test(line) && arm === 'then') {
+      arm = 'else';
+      continue;
+    }
+    if (line === ')' && arm) {
+      arm = undefined;
+      continue;
+    }
+    const active = !arm || (arm === 'then') === takeThen;
+    if (/^exit(?:\s+\/b)?(?:\s+\d+)?$/i.test(line)) {
+      if (active) return null;
       continue;
     }
     if (
-      /^@?setlocal\b/i.test(line) ||
-      /^@?endlocal\b/i.test(line) ||
-      /^@?set\s+/i.test(line) ||
-      /^@?goto\s+(?:start|#_undefined_#)/i.test(line) ||
-      /^@?call\s+:find_dp0$/i.test(line) ||
-      /^@?if\s+exist\s+["']?(?:%dp0%|%~dp0)[\\/]+node\.exe["']?\s*\(?$/i.test(line) ||
-      /^\)?\s*else\s*\($/i.test(line) ||
-      /^\)$/i.test(line)
+      npm &&
+      ((arm === 'then' && /^set "_prog=%dp0%\\node\.exe"$/i.test(line)) ||
+        (arm === 'else' && /^set "_prog=node"$/i.test(line)))
     ) {
+      if (active) progSet = true;
       continue;
     }
-    return null;
+    if (/^set PATHEXT=%PATHEXT:;\.JS;=;%$/i.test(line)) continue;
+    if (npm && progSet)
+      line = line.replace(
+        /^endlocal & (?:goto #_undefined_# 2>NUL \|\| title %COMSPEC% & set PATHEXT=%PATHEXT:;\.JS;=;% & )?"%_prog%"\s+/i,
+        'node '
+      );
+    const match =
+      /^(node(?:\.exe)?|"node(?:\.exe)?"|"(?:%~dp0|%dp0%)[\\/]*node\.exe")\s+((?:--[\w-]+(?:=[\w.-]+)?\s+)*)"((?:(?:%~dp0|%dp0%)[\\/]*|[a-z]:[\\/])[^"%\r\n!]+\.[mc]?js)"\s+%\*$/i.exec(
+        line
+      );
+    if (!match) return null;
+    if (!active) continue;
+    if (result || (match[1].includes('%') && !fs.existsSync(localNode))) return null;
+    const entry = path.resolve(
+      directory,
+      match[3].replace(/^(?:%dp0%|%~dp0)[\\/]*/i, '').replace(/[\\/]/g, path.sep)
+    );
+    if (!fs.statSync(entry, { throwIfNoEntry: false })?.isFile()) return null;
+    result = [...match[2].trim().split(/\s+/).filter(Boolean), entry];
   }
-  return result;
+  return arm ? null : result;
 }
 
 function dshNodeBinary(
@@ -351,12 +387,7 @@ export function readDshProfileStatus(
         const dir = path.dirname(installedManifest);
         const rootExport = pkg.exports?.['.'];
         const clientExport = pkg.exports?.['./client'];
-        const entries = [
-          pkg.main,
-          ...(rootExport === undefined ? [] : [rootExport]),
-          clientExport,
-          pkg.dsh.bundle?.patch,
-        ];
+        const entries = [pkg.main, rootExport, clientExport, pkg.dsh.bundle?.patch];
         const filesExist = entries.every(
           (file) =>
             typeof file === 'string' &&

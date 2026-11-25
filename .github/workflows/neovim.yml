@@ -1,5 +1,4 @@
 name: Neovim colorschemes
-# Item #119 signoff verification on the merged branch.
 
 on:
   push:

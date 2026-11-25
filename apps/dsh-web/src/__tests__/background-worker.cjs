@@ -32,14 +32,13 @@ fs.readdirSync = function (file, ...args) {
   }
   return names;
 };
-const rename = fs.renameSync;
-fs.renameSync = function (from, to) {
-  try {
-    return rename(from, to);
-  } finally {
-    if (index === '2' && path.basename(from) === '0_1_dead')
-      fs.writeFileSync(signal('attempted'), '');
+const rmdir = fs.rmdirSync;
+fs.rmdirSync = function (file, ...args) {
+  if (index === '2' && path.basename(file) === '0_1_dead') {
+    fs.writeFileSync(signal('attempted'), '');
+    throw Object.assign(new Error('generation already replaced'), { code: 'EPERM' });
   }
+  return rmdir.call(this, file, ...args);
 };
 const { HostBackgroundStore, BackgroundCapacityError } = require(bundle);
 try {
