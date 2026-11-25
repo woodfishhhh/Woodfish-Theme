@@ -515,6 +515,18 @@ export function createWoodfishSettingsSection(
             },
             saveText
           ),
+          snap.saveState === 'error'
+            ? h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'wf-btn',
+                  'data-woodfish-retry-save': 'true',
+                  onClick: () => runtime.retryPersist(),
+                },
+                '重试保存'
+              )
+            : null,
           h(
             'button',
             {

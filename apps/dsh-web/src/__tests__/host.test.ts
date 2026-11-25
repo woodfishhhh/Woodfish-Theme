@@ -133,6 +133,24 @@ describe('HostBackgroundStore and HTTP handler', () => {
     }
   });
 
+  it('consumes JSON delete bodies before responding to repeated fetch requests', async () => {
+    const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
+    for (let index = 0; index < 3; index += 1) {
+      const saved = store.save('delete-' + index, validPngBytes(20 + index));
+      const response = await handleBackgroundsRequest(
+        store,
+        new Request('http://127.0.0.1/api/woodfish-backgrounds-write?action=delete', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: saved.id }),
+        })
+      );
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({ ok: true, removed: true });
+    }
+    expect(store.list()).toEqual([]);
+  });
+
   it('rejects non-image payloads and invalid ids safely', () => {
     const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
     expect(() => store.save('bad.png', new Uint8Array([1, 2, 3, 4]))).toThrow(/只支持/);
@@ -223,8 +241,10 @@ describe('HostBackgroundStore regressions', () => {
       fs.mkdirSync(directory);
       for (let i = 0; i < count; i++) store.save(String(i), validPngBytes(i));
       const oldIds = store.list().map((entry) => entry.id);
-      fs.writeFileSync(path.join(directory, 'index.lock'), '0 1');
-      fs.mkdirSync(path.join(directory, 'index.lock.d', '0_1_dead'), { recursive: true });
+      if (count === 29) {
+        fs.writeFileSync(path.join(directory, 'aaaaaaaaaaaaaaaa.png'), validPngBytes(250));
+      }
+      fs.mkdirSync(path.join(directory, 'index.lock', '0_1_dead'), { recursive: true });
       const bundle = path.join(tempDir, 'backgrounds.cjs');
       buildSync({
         entryPoints: [path.resolve(__dirname, '../host/backgrounds.ts')],
@@ -327,6 +347,29 @@ describe('HostBackgroundStore regressions', () => {
     expect(store.remove(store.list()[0].id)).toBe(true);
     expect(() => store.save('after-delete', validPngBytes(202))).not.toThrow();
     expect(store.list()).toHaveLength(BACKGROUND_IMAGE_LIMITS.maxStoredCount);
+  });
+
+  it('reclaims a missing disk image before accepting a replacement upload', async () => {
+    const directory = path.join(tempDir, 'backgrounds');
+    const store = new HostBackgroundStore(directory);
+    for (let index = 1; index <= BACKGROUND_IMAGE_LIMITS.maxStoredCount; index += 1) {
+      store.save('image-' + index, validPngBytes(300 + index));
+    }
+    const missing = store.list()[0];
+    fs.unlinkSync(path.join(directory, missing.id + '.png'));
+    const response = await handleBackgroundsRequest(
+      store,
+      new Request('http://127.0.0.1/api/woodfish-backgrounds-write?action=upload', {
+        method: 'POST',
+        headers: { 'content-type': 'application/octet-stream' },
+        body: new Blob([validPngBytes(400).slice().buffer]),
+      })
+    );
+    expect(response.status).toBe(200);
+    expect(store.list()).toHaveLength(BACKGROUND_IMAGE_LIMITS.maxStoredCount);
+    expect(fs.readdirSync(directory).filter((name) => name.endsWith('.png'))).toHaveLength(
+      BACKGROUND_IMAGE_LIMITS.maxStoredCount
+    );
   });
 
   it.each(['EBUSY', 'EPERM'])(

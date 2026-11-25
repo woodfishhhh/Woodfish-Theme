@@ -79,22 +79,44 @@ export function resolveDshProfileDir(
 
 export function readDshCmdShim(command: string): string[] | null {
   const source = fs.readFileSync(command, 'utf8');
-  // Only interpret a Node argv handoff. Batch expansion, pipes and other commands never run.
   const launch =
-    /(?:^\s*@?|&\s*)(?:"%_prog%"|"(?:%dp0%|%~dp0)[\\/]*node\.exe"|"[a-z]:\\[^"%\r\n]*\\node\.exe"|"?node(?:\.exe)?"?)\s+((?:--[\w-]+(?:=[\w.-]+)?\s+)*)"((?:(?:%dp0%|%~dp0)[\\/]*|[a-z]:[\\/])[^"%\r\n]+\.[mc]?js)"\s+%\*\s*$/gim;
+    /(?:^\s*@?|&\s*)(?:"%_prog%"|"(?:%dp0%|%~dp0)[\\/]*node\.exe"|"[a-z]:\\[^"%\r\n]*\\node\.exe"|"?node(?:\.exe)?"?)\s+((?:--[\w-]+(?:=[\w.-]+)?\s+)*)"((?:(?:%dp0%|%~dp0)[\\/]*|[a-z]:[\\/])[^"%\r\n]+\.[mc]?js)"\s+%\*\s*$/i;
   let result: string[] | null = null;
-  for (const [, flags, raw] of source.matchAll(launch)) {
-    const entry = raw.replace(/^(?:%dp0%|%~dp0)[\\/]*/i, '').replace(/[\\/]/g, path.sep);
-    const argv = [
-      ...flags.trim().split(/\s+/).filter(Boolean),
-      path.resolve(path.dirname(command), entry),
-    ];
+  for (const rawLine of source.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || /^::|^@?rem\b/i.test(line) || /^:[a-z0-9_.-]+$/i.test(line)) continue;
+    if (/^@?echo\s+off$/i.test(line) || /^@?exit\s*\/b\s*$/i.test(line)) continue;
+    if (/^@?exit\b/i.test(line)) return null;
+    const match = line.match(launch);
+    if (match) {
+      const [, flags, raw] = match;
+      const entry = raw.replace(/^(?:%dp0%|%~dp0)[\\/]*/i, '').replace(/[\\/]/g, path.sep);
+      const argv = [
+        ...flags.trim().split(/\s+/).filter(Boolean),
+        path.resolve(path.dirname(command), entry),
+      ];
+      if (
+        !fs.statSync(argv[argv.length - 1], { throwIfNoEntry: false })?.isFile() ||
+        (result && (result.length !== argv.length || result.some((arg, i) => arg !== argv[i])))
+      ) {
+        return null;
+      }
+      result = argv;
+      continue;
+    }
     if (
-      !fs.statSync(argv[argv.length - 1], { throwIfNoEntry: false })?.isFile() ||
-      (result && (result.length !== argv.length || result.some((arg, i) => arg !== argv[i])))
-    )
-      return null;
-    result = argv;
+      /^@?setlocal\b/i.test(line) ||
+      /^@?endlocal\b/i.test(line) ||
+      /^@?set\s+/i.test(line) ||
+      /^@?goto\s+(?:start|#_undefined_#)/i.test(line) ||
+      /^@?call\s+:find_dp0$/i.test(line) ||
+      /^@?if\s+exist\s+["']?(?:%dp0%|%~dp0)[\\/]+node\.exe["']?\s*\(?$/i.test(line) ||
+      /^\)?\s*else\s*\($/i.test(line) ||
+      /^\)$/i.test(line)
+    ) {
+      continue;
+    }
+    return null;
   }
   return result;
 }
@@ -317,7 +339,7 @@ export function readDshProfileStatus(
         name?: unknown;
         version?: unknown;
         main?: unknown;
-        exports?: { './client'?: unknown };
+        exports?: Record<string, unknown>;
         dsh?: { client?: { platform?: unknown }; bundle?: { patch?: unknown } };
       };
       if (
@@ -327,18 +349,35 @@ export function readDshProfileStatus(
         pkg.dsh?.client?.platform === 'web'
       ) {
         const dir = path.dirname(installedManifest);
-        const entries = [pkg.main, pkg.exports?.['./client'], pkg.dsh.bundle?.patch];
-        packagePresent =
-          entries.every(
-            (file) =>
-              typeof file === 'string' &&
-              !path.isAbsolute(file) &&
-              path.resolve(dir, file).startsWith(dir + path.sep) &&
-              fs.statSync(path.join(dir, file), { throwIfNoEntry: false })?.isFile()
-          ) &&
-          fs
-            .readdirSync(path.join(dir, 'lib/assets'), { withFileTypes: true })
-            .some((asset) => asset.isFile() && /^caiyun-[0-9a-f]{12}\.webp$/.test(asset.name));
+        const rootExport = pkg.exports?.['.'];
+        const clientExport = pkg.exports?.['./client'];
+        const entries = [
+          pkg.main,
+          ...(rootExport === undefined ? [] : [rootExport]),
+          clientExport,
+          pkg.dsh.bundle?.patch,
+        ];
+        const filesExist = entries.every(
+          (file) =>
+            typeof file === 'string' &&
+            !path.isAbsolute(file) &&
+            path.resolve(dir, file).startsWith(dir + path.sep) &&
+            fs.statSync(path.join(dir, file), { throwIfNoEntry: false })?.isFile()
+        );
+        const clientCode =
+          typeof clientExport === 'string' && filesExist
+            ? fs.readFileSync(path.join(dir, clientExport), 'utf8')
+            : '';
+        const escapedPluginName = DSH_PLUGIN_NAME.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
+        const assetMatch = clientCode.match(
+          new RegExp('plugins/' + escapedPluginName + '/assets/([^"\\/]+)')
+        );
+        const assetPath = assetMatch?.[1] ? path.join(dir, 'lib', 'assets', assetMatch[1]) : '';
+        packagePresent = Boolean(
+          filesExist &&
+          Boolean(assetPath) &&
+          fs.statSync(assetPath, { throwIfNoEntry: false })?.isFile()
+        );
         if (packagePresent) version = pkg.version;
       }
     } catch {

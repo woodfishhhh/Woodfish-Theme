@@ -318,6 +318,20 @@ describe('WoodfishClientRuntime', () => {
     }
   );
 
+  it('retries the preserved draft after a failed save', async () => {
+    const { runtime, behavior, saved } = setup();
+    behavior.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    runtime.setUserCss('/* draft */', true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(runtime.getSnapshot().saveState).toBe('error');
+    runtime.retryPersist();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(behavior).toHaveBeenCalledTimes(2);
+    expect(saved().userCss).toBe('/* draft */');
+    expect(runtime.getSnapshot().saveState).toBe('saved');
+    runtime.dispose();
+  });
+
   it('persists a same-tick edit following an immediate no-op', async () => {
     const { runtime, behavior, saved } = setup();
     runtime.setUserCss('', true);

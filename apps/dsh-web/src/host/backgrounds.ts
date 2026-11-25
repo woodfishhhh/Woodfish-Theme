@@ -9,7 +9,7 @@ import {
 import { DshBackgroundEntry } from '../protocol';
 
 const INDEX_FILE = 'index.json';
-const LOCK_FILE = 'index.lock';
+const LOCK_DIR = 'index.lock';
 const VALID_ID = /^[a-f0-9]{16}$/;
 const NAME_LIMIT = 80;
 const LOCK_STALE_MS = 30_000;
@@ -106,7 +106,7 @@ export class HostBackgroundStore {
   }
 
   private lockPath(): string {
-    return path.join(this.directory, LOCK_FILE);
+    return path.join(this.directory, LOCK_DIR);
   }
 
   private readRawIndexForWrite(): DshBackgroundEntry[] {
@@ -174,53 +174,11 @@ export class HostBackgroundStore {
     }
   }
 
-  private withLegacyLock<T>(owner: string, operation: () => T): T {
-    const lock = this.lockPath();
-    // The generation gate serializes takeover of older versions' regular lock files.
-    for (let attempt = 0; attempt < LOCK_ATTEMPTS; attempt++) {
-      let fd: number;
-      try {
-        fd = fs.openSync(lock, 'wx');
-      } catch (error) {
-        if (!hasCode(error, 'EEXIST')) throw error;
-        try {
-          const [pid, time] = fs.readFileSync(lock, 'utf8').trim().split(/\s+/).map(Number);
-          if (staleOwner(pid, time || fs.statSync(lock).mtimeMs)) {
-            const retired = lock + '.reclaiming.' + owner;
-            fs.renameSync(lock, retired);
-            fs.unlinkSync(retired);
-          }
-        } catch (changed) {
-          if (!hasCode(changed, 'ENOENT')) throw changed;
-        }
-        waitForLock(Math.min(20, 2 + attempt));
-        continue;
-      }
-      const token = [process.pid, Date.now(), owner].join(' ');
-      try {
-        try {
-          fs.writeFileSync(fd, token);
-        } finally {
-          fs.closeSync(fd);
-        }
-      } catch (error) {
-        fs.unlinkSync(lock);
-        throw error;
-      }
-      try {
-        return operation();
-      } finally {
-        if (fs.readFileSync(lock, 'utf8') === token) fs.unlinkSync(lock);
-      }
-    }
-    throw new Error('背景索引暂时被其他进程占用，请稍后重试');
-  }
-
   private withIndexLock<T>(operation: () => T): T {
     fs.mkdirSync(this.directory, { recursive: true });
-    const lock = this.lockPath() + '.d';
+    const lock = this.lockPath();
     const owner = [process.pid, Date.now(), crypto.randomUUID()].join('_');
-    const staging = lock + '.' + owner;
+    const staging = lock + '.staging.' + owner;
     fs.mkdirSync(staging);
     let held = false;
     try {
@@ -238,7 +196,7 @@ export class HostBackgroundStore {
         }
       }
       if (!held) throw new Error('背景索引暂时被其他进程占用，请稍后重试');
-      return this.withLegacyLock(owner, operation);
+      return operation();
     } finally {
       if (held) {
         fs.rmdirSync(path.join(lock, owner));
@@ -247,6 +205,33 @@ export class HostBackgroundStore {
         fs.rmSync(staging, { recursive: true, force: true });
       }
     }
+  }
+
+  private reconcileEntries(entries: readonly DshBackgroundEntry[]): DshBackgroundEntry[] {
+    const present = entries.filter((entry) => {
+      try {
+        fs.statSync(path.join(this.directory, fileNameFor(entry)));
+        return true;
+      } catch (error) {
+        if (hasCode(error, 'ENOENT')) return false;
+        throw error;
+      }
+    });
+    if (present.length !== entries.length) {
+      this.writeIndex(present);
+    }
+    const indexedIds = new Set(present.map((entry) => entry.id));
+    for (const file of fs.readdirSync(this.directory, { withFileTypes: true })) {
+      if (!file.isFile()) continue;
+      const match = /^(?<id>[a-f0-9]{16})\.(?:jpg|png|webp)$/.exec(file.name);
+      if (!match || indexedIds.has(match.groups?.id ?? '')) continue;
+      try {
+        fs.unlinkSync(path.join(this.directory, file.name));
+      } catch (error) {
+        if (!hasCode(error, 'ENOENT')) throw error;
+      }
+    }
+    return present;
   }
 
   list(): DshBackgroundEntry[] {
@@ -294,7 +279,7 @@ export class HostBackgroundStore {
     };
 
     return this.withIndexLock(() => {
-      const existing = this.readRawIndexForWrite();
+      const existing = this.reconcileEntries(this.readRawIndexForWrite());
       const replacing = existing.some((item) => item.id === id);
       if (!replacing && existing.length >= BACKGROUND_IMAGE_LIMITS.maxStoredCount) {
         throw new BackgroundCapacityError();
@@ -430,20 +415,19 @@ export async function handleBackgroundsRequest(
     const action = url.searchParams.get('action') ?? 'upload';
     if (action === 'delete') {
       let id = url.searchParams.get('id') ?? '';
-      if (!id) {
-        try {
-          const payload = JSON.parse(new TextDecoder().decode(await readLimitedBody(request))) as {
-            id?: unknown;
-          };
-          if (typeof payload.id === 'string') {
+      try {
+        const body = await readLimitedBody(request);
+        if (body.byteLength > 0) {
+          const payload = JSON.parse(new TextDecoder().decode(body)) as { id?: unknown };
+          if (!id && typeof payload.id === 'string') {
             id = payload.id;
           }
-        } catch (error) {
-          if (error instanceof BackgroundRequestTooLargeError) {
-            return jsonResponse({ ok: false, error: error.message }, error.status);
-          }
-          return jsonResponse({ ok: false, error: '无效的删除请求' }, 400);
         }
+      } catch (error) {
+        if (error instanceof BackgroundRequestTooLargeError) {
+          return jsonResponse({ ok: false, error: error.message }, error.status);
+        }
+        return jsonResponse({ ok: false, error: '无效的删除请求' }, 400);
       }
       const removed = store.remove(id);
       return jsonResponse({ ok: true, removed, id });

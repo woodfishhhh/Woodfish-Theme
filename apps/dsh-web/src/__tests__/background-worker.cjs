@@ -24,7 +24,7 @@ fs.readFileSync = function (file, ...args) {
 const list = fs.readdirSync;
 fs.readdirSync = function (file, ...args) {
   const names = list.call(this, file, ...args);
-  if (path.basename(file) === 'index.lock.d' && !sawStale) {
+  if (path.basename(file) === 'index.lock' && !sawStale) {
     sawStale = true;
     fs.writeFileSync(signal('seen' + index), '');
     wait('seen' + (index === '1' ? '2' : '1'));

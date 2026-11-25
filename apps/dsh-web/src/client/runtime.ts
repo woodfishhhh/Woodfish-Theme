@@ -316,6 +316,14 @@ export class WoodfishClientRuntime {
     }, DEBOUNCE_MS);
   }
 
+  retryPersist(): void {
+    if (this.disposed || this.saveState !== 'error') return;
+    this.saveState = 'saving';
+    this.saveError = null;
+    this.publish();
+    void this.flushPersist();
+  }
+
   private async flushPersist(): Promise<void> {
     if (this.disposed || this.flushing) return;
     this.flushing = true;

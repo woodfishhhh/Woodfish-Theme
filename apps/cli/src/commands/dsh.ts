@@ -55,6 +55,9 @@ export function dshInstallCommand(
   }
   const dshBinary = requireDshBinary(env);
   const spec = options.packageSpec?.trim() || stageBundledDshPlugin(context.paths);
+  context.io.out(
+    '如果 Web 与 Desktop 共用同一 DSH_HOME，升级插件前请先停止正在运行的 dsh 宿主进程，再安装升级并重启宿主。'
+  );
 
   const result = runDsh(dshBinary, ['plugin', '--profile', profile, 'add', spec], env);
   if (result.error || result.status !== 0) {

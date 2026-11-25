@@ -12,11 +12,11 @@ Woodfish 不修改 Codex 的安装文件。MSIX 安装目录是只读的，并�
 
 三种方式运行的是同一个 `woodfish.js`，版本号和 VS Code 扩展一致（8.0.0 起），功能、效果、设置文件完全一样，选一种即可。
 
-| 方式 | 怎么用 | 需要 |
-| --- | --- | --- |
-| **VS Code 扩展** | 装好 Woodfish Theme 扩展（8.0.0 起），命令面板运行 **Woodfish Theme: 为 Codex 启用 Woodfish**；撤下用 **为 Codex 停用 Woodfish**，全部撤销用 **从 Codex 卸载 Woodfish** | 不用另装 Node.js，借编辑器自带的运行时 |
-| **单文件 exe** | 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) 下载 `woodfish.exe` 双击；或 `curl.exe -L -o woodfish.exe https://github.com/woodfishhhh/Woodfish-Theme/releases/latest/download/woodfish.exe` 后运行 `.\woodfish.exe codex launch` | 什么都不用装 |
-| **woodfish.js** | 同一个 Release 里的 `woodfish.js`，`node woodfish.js codex launch`（npm 包 `woodfish` 即将上线） | Node.js 22 或更高 |
+| 方式             | 怎么用                                                                                                                                                                                                                                                                 | 需要                                   |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| **VS Code 扩展** | 装好 Woodfish Theme 扩展（8.0.0 起），命令面板运行 **Woodfish Theme: 为 Codex 启用 Woodfish**；撤下用 **为 Codex 停用 Woodfish**，全部撤销用 **从 Codex 卸载 Woodfish**                                                                                                | 不用另装 Node.js，借编辑器自带的运行时 |
+| **单文件 exe**   | 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/latest) 下载 `woodfish.exe` 双击；或 `curl.exe -L -o woodfish.exe https://github.com/woodfishhhh/Woodfish-Theme/releases/latest/download/woodfish.exe` 后运行 `.\woodfish.exe codex launch` | 什么都不用装                           |
+| **woodfish.js**  | 同一个 Release 里的 `woodfish.js`，`node woodfish.js codex launch`（npm 包 `woodfish` 即将上线）                                                                                                                                                                       | Node.js 22 或更高                      |
 
 - **VS Code 扩展**：第一次启用会在对话框里说明调试端口的风险，同意后以带效果的方式重启 Codex，并开启“登录后自动恢复”（相当于 `launch` 加 `autostart on`）。启用成功的提示里可以顺手在开始菜单加一个“Woodfish Codex”。后台进程跑在编辑器自带的运行时上，VS Code 更新时会被结束，重新打开 VS Code 后扩展会把它拉起来。Cursor、Windsurf 等自带的 Node.js 低于 22 时，请改用 exe 或 npm。
 - **单文件 exe**：是 Node.js 单文件程序（约 85 MB，内含 Node.js 22）。没有代码签名，第一次运行 Windows 可能提示“Windows 已保护你的电脑”，点“更多信息 → 仍要运行”。双击后说明风险、确认、以带效果的方式启动 Codex，再问是否登录后自动恢复；`woodfish.exe help` 列出全部命令，用法和下面的 `woodfish` 完全相同。第三方许可见 Release 里的 `THIRD_PARTY_NOTICES-woodfish.md`。
@@ -33,11 +33,11 @@ Woodfish 不修改 Codex 的安装文件。MSIX 安装目录是只读的，并�
 
 ## 三种用法
 
-| 方式 | 能做什么 | 是否开调试端口 | 何时生效 |
-| --- | --- | --- | --- |
-| **原生配色** `theme apply` | 把 Woodfish 配色写进 Codex 官方的主题设置（强调色、文字、背景、对比度、diff 颜色），Codex 会据此重新生成整套界面色阶。深色（Dark / Dracula / Black / Neon）和浅色（Light）可以同时设置，也能切换 Codex 的外观模式 | 否 | 重启 Codex 后几秒内 |
-| **注入效果** `launch` | 代码块 OKLCH 渐变与发光、菜单与浮层毛玻璃、强调色光晕、彩色光标，可选正文渐变，也能临时覆盖配色 | 是，仅本机 | 立即生效，设置改动约 1 秒内同步 |
-| **Codex++ 用户脚本** `install-userscript` | 与注入效果相同，由 Codex++ 加载 | 由 Codex++ 决定 | 在 Codex++ 中重新加载脚本后 |
+| 方式                                      | 能做什么                                                                                                                                                                                                          | 是否开调试端口  | 何时生效                        |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------- |
+| **原生配色** `theme apply`                | 把 Woodfish 配色写进 Codex 官方的主题设置（强调色、文字、背景、对比度、diff 颜色），Codex 会据此重新生成整套界面色阶。深色（Dark / Dracula / Black / Neon）和浅色（Light）可以同时设置，也能切换 Codex 的外观模式 | 否              | 重启 Codex 后几秒内             |
+| **注入效果** `launch`                     | 代码块 OKLCH 渐变与发光、菜单与浮层毛玻璃、强调色光晕、彩色光标，可选正文渐变，也能临时覆盖配色                                                                                                                   | 是，仅本机      | 立即生效，设置改动约 1 秒内同步 |
+| **Codex++ 用户脚本** `install-userscript` | 与注入效果相同，由 Codex++ 加载                                                                                                                                                                                   | 由 Codex++ 决定 | 在 Codex++ 中重新加载脚本后     |
 
 原生配色和注入效果可以同时使用。
 
@@ -45,14 +45,14 @@ Woodfish 不修改 Codex 的安装文件。MSIX 安装目录是只读的，并�
 
 VS Code 扩展里的 15 套主题都能用在 Codex 上（命令行里用括号中的名字）：
 
-| 主题 | 外观 | 来源 |
-| --- | --- | --- |
-| Woodfish Dark（`dark`） | 深色 | Bearded Theme Arc（GPL-3.0） |
-| Woodfish Dracula（`dracula`） | 深色 | Dracula 官方主题（MIT） |
-| Woodfish Black（`black`）、Neon（`neon`） | 深色 | Woodfish 原创 |
-| Woodfish Light（`light`） | 浅色 | Woodfish 原创 |
-| One Dark Pro（`onedark`）、Tokyo Night（`tokyonight`）、Catppuccin Mocha（`catppuccin-mocha`）、Nord（`nord`）、GitHub Dark（`github-dark`）、Night Owl（`nightowl`）、Ayu Mirage（`ayu-mirage`）、Gruvbox Dark（`gruvbox-dark`） | 深色 | 各自的官方主题（MIT） |
-| Catppuccin Latte（`catppuccin-latte`）、GitHub Light（`github-light`） | 浅色 | 各自的官方主题（MIT） |
+| 主题                                                                                                                                                                                                                              | 外观 | 来源                         |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------- |
+| Woodfish Dark（`dark`）                                                                                                                                                                                                           | 深色 | Bearded Theme Arc（GPL-3.0） |
+| Woodfish Dracula（`dracula`）                                                                                                                                                                                                     | 深色 | Dracula 官方主题（MIT）      |
+| Woodfish Black（`black`）、Neon（`neon`）                                                                                                                                                                                         | 深色 | Woodfish 原创                |
+| Woodfish Light（`light`）                                                                                                                                                                                                         | 浅色 | Woodfish 原创                |
+| One Dark Pro（`onedark`）、Tokyo Night（`tokyonight`）、Catppuccin Mocha（`catppuccin-mocha`）、Nord（`nord`）、GitHub Dark（`github-dark`）、Night Owl（`nightowl`）、Ayu Mirage（`ayu-mirage`）、Gruvbox Dark（`gruvbox-dark`） | 深色 | 各自的官方主题（MIT）        |
+| Catppuccin Latte（`catppuccin-latte`）、GitHub Light（`github-light`）                                                                                                                                                            | 浅色 | 各自的官方主题（MIT）        |
 
 除原创的三套外，配色都由 `apps/vscode-extension/scripts/port-palettes.js` 直接从扩展附带的主题文件读出，和 VS Code 里看到的一致。Woodfish 自己的 5 套用特调渐变，其余按同样的规律从各自配色推导；回复正文的彩虹、侧栏会话的流光边框、标签页下划线和光标颜色也都取自当前主题。
 
@@ -60,12 +60,12 @@ VS Code 扩展里的 15 套主题都能用在 Codex 上（命令行里用括号�
 
 Codex 里 Woodfish 画的每个效果都是一个**插件文件夹**，放在 `%APPDATA%\Woodfish\effects\<名字>\`（VS Code 扩展共用同一个文件夹）：
 
-| 文件 | 内容 |
-| --- | --- |
-| `effect.json` | 名字、说明、参数定义（默认值、范围），设置页按它自动生成开关和滑块 |
-| `params.json` | 现在用的值。设置页、AI、`woodfish codex settings --set` 改的都是它 |
-| `effect.js` | 实现：`module.exports = function (ctx) { … }`，只通过 `ctx` 拿事件、画布和样式 |
-| `README.md` | 这个效果是什么、参数各管什么、改哪里会怎样 |
+| 文件          | 内容                                                                           |
+| ------------- | ------------------------------------------------------------------------------ |
+| `effect.json` | 名字、说明、参数定义（默认值、范围），设置页按它自动生成开关和滑块             |
+| `params.json` | 现在用的值。设置页、AI、`woodfish codex settings --set` 改的都是它             |
+| `effect.js`   | 实现：`module.exports = function (ctx) { … }`，只通过 `ctx` 拿事件、画布和样式 |
+| `README.md`   | 这个效果是什么、参数各管什么、改哪里会怎样                                     |
 
 自带 11 个：输入框光标 `caret`、光标拖尾 `caret-trail`、打字粒子 `typing-particles`、吐字光标 `stream-cursor`、新字淡入 `text-reveal`、流光边框 `thread-ring`（Bifrost「创建 Key」按钮）、回复正文彩虹 `rainbow-text`、强调色点缀 `accent`、浮层毛玻璃 `glass`、窗口背景 `background`、代码渐变 `code-gradient`（后两个是核心效果：引擎在 Woodfish 里，文件夹管开关和参数）。
 
@@ -151,28 +151,28 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 
 可调设置（`--set 键=值`）：
 
-| 设置 | 存在 | 说明 |
-| --- | --- | --- |
-| `palette.dark` / `palette.light` | `codex.json` | 深色 / 浅色主题（见上表）；`null` 表示保留 Codex 自己的颜色 |
-| `backgroundImage` | `codex.json` | 窗口背景用哪张图：`caiyun` / `gradient` / 图片编号（也可写 `background.image`） |
-| `customCss` | `codex.json` | 追加的 CSS，会经过安全过滤 |
-| `<效果名>.<参数>` | 效果的 `params.json` | 例如 `caret-trail.length=20`、`typing-particles.colors=rainbow`、`thread-ring.followTheme=true`，`enabled` 是开关；驼峰写法也行（`caretTrail.length`）。参数和范围见各效果的 `effect.json` |
+| 设置                             | 存在                 | 说明                                                                                                                                                                                       |
+| -------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `palette.dark` / `palette.light` | `codex.json`         | 深色 / 浅色主题（见上表）；`null` 表示保留 Codex 自己的颜色                                                                                                                                |
+| `backgroundImage`                | `codex.json`         | 窗口背景用哪张图：`caiyun` / `gradient` / 图片编号（也可写 `background.image`）                                                                                                            |
+| `customCss`                      | `codex.json`         | 追加的 CSS，会经过安全过滤                                                                                                                                                                 |
+| `<效果名>.<参数>`                | 效果的 `params.json` | 例如 `caret-trail.length=20`、`typing-particles.colors=rainbow`、`thread-ring.followTheme=true`，`enabled` 是开关；驼峰写法也行（`caretTrail.length`）。参数和范围见各效果的 `effect.json` |
 
 旧键名照样能用：`glass.*`、`caret.enabled`、`accent.enabled`、`background.*` 对应同名效果，`bodyText.*` 对应 `rainbow-text`，`codeGradient.*` 和 `codeGlow.*`（`enabled` → `glow`，`intensity` → `glowIntensity`）对应 `code-gradient`。升级后第一次运行时，旧 `codex.json` 里的效果设置会自动搬进各效果的 `params.json`。
 
 ## 和 VS Code 版的对照
 
-| VS Code 扩展 | Codex 桌面端 |
-| --- | --- |
-| 代码文字渐变、发光（特调表 + 自动推导） | 代码块、diff 视图（Shadow DOM 内）同样的渐变与发光；diff 的 token 颜色换成主题的语法色 |
-| 15 套主题的界面配色 | 覆盖 Codex 的整套主题变量（表面阶梯、强调色、选区、气泡、终端 16 色、语法 8 槽 + highlight.js 细分类名） |
-| 彩色光标（循环变色、圆角、光晕） | 输入框光标循环变色，颜色跟随主题；Codex 用的是原生文本光标，没有圆角和光晕可改 |
-| 毛玻璃浮层（blur / acrylic、淡入动画、跟随指针的柔光） | 菜单、弹出框、对话框同样三项都有 |
-| 活动栏徽章渐变 | Codex 没有计数徽章；未读圆点自动用主题强调色 |
-| 当前标签页顶部渐变边框 | 右侧面板（变更、文件）当前标签页的渐变下划线 |
-| — | Codex 独有：助手回复彩虹渐变字、侧栏会话旋转流光边框（悬停淡现、选中 8 秒一圈、运行中 4 秒一圈）、发光光标、输入框聚焦光晕、发送按钮渐变 |
-| 系统窗口透明（亚克力 / 云母） | Codex 自带 Mica，Woodfish 只给外框叠一层主题底色 |
-| 小地图、行号、括号配对等编辑器区域 | Codex 没有这些区域 |
+| VS Code 扩展                                           | Codex 桌面端                                                                                                                             |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 代码文字渐变、发光（特调表 + 自动推导）                | 代码块、diff 视图（Shadow DOM 内）同样的渐变与发光；diff 的 token 颜色换成主题的语法色                                                   |
+| 15 套主题的界面配色                                    | 覆盖 Codex 的整套主题变量（表面阶梯、强调色、选区、气泡、终端 16 色、语法 8 槽 + highlight.js 细分类名）                                 |
+| 彩色光标（循环变色、圆角、光晕）                       | 输入框光标循环变色，颜色跟随主题；Codex 用的是原生文本光标，没有圆角和光晕可改                                                           |
+| 毛玻璃浮层（blur / acrylic、淡入动画、跟随指针的柔光） | 菜单、弹出框、对话框同样三项都有                                                                                                         |
+| 活动栏徽章渐变                                         | Codex 没有计数徽章；未读圆点自动用主题强调色                                                                                             |
+| 当前标签页顶部渐变边框                                 | 右侧面板（变更、文件）当前标签页的渐变下划线                                                                                             |
+| —                                                      | Codex 独有：助手回复彩虹渐变字、侧栏会话旋转流光边框（悬停淡现、选中 8 秒一圈、运行中 4 秒一圈）、发光光标、输入框聚焦光晕、发送按钮渐变 |
+| 系统窗口透明（亚克力 / 云母）                          | Codex 自带 Mica，Woodfish 只给外框叠一层主题底色                                                                                         |
+| 小地图、行号、括号配对等编辑器区域                     | Codex 没有这些区域                                                                                                                       |
 
 ## 深色模式
 
@@ -218,6 +218,7 @@ woodfish dsh uninstall                                   # 从 dsh 卸载插件�
 dsh plugin --profile web add woodfish-dsh-plugin
 ```
 
+- **共享 DSH_HOME 的升级**：如果 Web 与 Desktop 共用同一 `DSH_HOME`，升级插件前先停止正在运行的 dsh 宿主进程，再安装升级并重启两个宿主。
 - **dsh Desktop（Electron 桌面端）**：`dsh 0.2.2-rc.5` 的命令行将 `desktop` profile 交由桌面应用独占管理。运行 `woodfish dsh install --profile desktop` 会把内置插件暂存到本地并输出路径，在 dsh Desktop 的「插件管理 → 添加插件」中填入该路径或包名即可启用同一个原生插件。
 - **全参数实时调节**：打开 dsh 的 **设置 → Woodfish**（或在插件管理器中点击 Woodfish 的配置按钮）：
   - **主题配色**：15 套深色 / 浅色主题预览卡，切换即时生效并同步终端配色；

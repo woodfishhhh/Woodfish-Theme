@@ -237,6 +237,14 @@ describe('woodfish dsh native plugin commands', () => {
     expect(JSON.parse(result.stdout)).toEqual([process.execPath, ...args]);
   });
 
+  windows.each(['cmd', 'bat'])('rejects an unreachable standard-looking %s shim', (extension) => {
+    const script = path.join(sandbox, 'disabled.' + extension);
+    const entry = path.join(sandbox, 'entry.cjs');
+    fs.writeFileSync(entry, '');
+    fs.writeFileSync(script, '@echo off\r\nexit /b 23\r\n"%~dp0\node.exe" "%~dp0\entry.cjs" %*');
+    expect(() => defaultDshRunner(script, ['test'], env)).toThrow(/DSH_BIN/);
+  });
+
   windows('refuses an unknown batch script without invoking a shell', () => {
     const script = path.join(sandbox, 'custom.bat');
     fs.writeFileSync(script, '@echo off\r\necho %*');
@@ -264,6 +272,59 @@ describe('woodfish dsh native plugin commands', () => {
       fs.rmSync(path.join(dir, file), { recursive: true });
       expect(status()).toMatchObject({ installed: false, broken: true });
     }
+  });
+
+  it('reports a missing package root export as broken while preserving enabled state', () => {
+    const profile = resolveDshProfileDir('web', env);
+    const dir = path.join(profile, 'node_modules', DSH_PLUGIN_NAME);
+    const bundled = path.resolve(__dirname, '../../../dsh-web/plugin');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.cpSync(bundled, dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(profile, 'package.json'),
+      JSON.stringify({
+        dependencies: { [DSH_PLUGIN_NAME]: '*' },
+        dsh: { profile: { bundles: [DSH_PLUGIN_NAME] } },
+      })
+    );
+    const packagePath = path.join(dir, 'package.json');
+    const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8')) as {
+      exports: Record<string, string>;
+    };
+    pkg.exports['.'] = './lib/missing.js';
+    fs.writeFileSync(packagePath, JSON.stringify(pkg));
+    expect(readDshProfileStatus('web', env)).toMatchObject({
+      installed: false,
+      broken: true,
+      enabled: true,
+    });
+  });
+
+  it('reports a renamed referenced background asset as broken while preserving enabled state', () => {
+    const profile = resolveDshProfileDir('web', env);
+    const dir = path.join(profile, 'node_modules', DSH_PLUGIN_NAME);
+    const bundled = path.resolve(__dirname, '../../../dsh-web/plugin');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.cpSync(bundled, dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(profile, 'package.json'),
+      JSON.stringify({
+        dependencies: { [DSH_PLUGIN_NAME]: '*' },
+        dsh: { profile: { bundles: [DSH_PLUGIN_NAME] } },
+      })
+    );
+    const client = fs.readFileSync(path.join(dir, 'lib', 'client.js'), 'utf8');
+    const asset = client.match(/plugins\/woodfish-dsh-plugin\/assets\/([^"\\/]+)/)?.[1];
+    expect(asset).toBeTruthy();
+    fs.renameSync(
+      path.join(dir, 'lib', 'assets', asset as string),
+      path.join(dir, 'lib', 'assets', asset + '.renamed')
+    );
+    expect(readDshProfileStatus('web', env)).toMatchObject({
+      installed: false,
+      broken: true,
+      enabled: true,
+    });
   });
 
   it('rejects the removed dsh userscript subcommand and invalid profile names', async () => {

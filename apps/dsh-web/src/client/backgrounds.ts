@@ -121,10 +121,11 @@ export function createDshBackgroundClient(defaultAssetUrl: string): DshBackgroun
     },
 
     async remove(id: string): Promise<void> {
-      const response = await apiFetch(
-        `${WRITE_RELATIVE}?action=delete&id=${encodeURIComponent(id)}`,
-        { method: 'POST' }
-      );
+      const response = await apiFetch(`${WRITE_RELATIVE}?action=delete`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
       const data = (await response.json()) as DeleteResponse;
       if (!response.ok || !data.ok) {
         throw new Error(data.error || `删除背景图片失败（HTTP ${String(response.status)}）`);
