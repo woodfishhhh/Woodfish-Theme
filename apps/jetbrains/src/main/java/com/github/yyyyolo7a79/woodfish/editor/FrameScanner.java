@@ -22,6 +22,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.text.Bidi;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,11 @@ final class FrameScanner {
     private int lineTop;
     private int windowStart;
     private int windowEnd;
-    private boolean longLine;
+    private int queryEnd;
+
+    private record TokenRange(int start, int end) {}
+    private final Map<TokenRange, Boolean> longTokenPunctuation = new HashMap<>();
+    private long punctuationStamp;
 
     FrameScanner(@NotNull EditorEx editor) {
         this.editor = editor;
@@ -126,6 +131,7 @@ final class FrameScanner {
 
     void dispose() {
         frame.clearAll();
+        longTokenPunctuation.clear();
         collector.release();
         grayscaleSafe.clear();
         lastFrc = null;
@@ -134,6 +140,11 @@ final class FrameScanner {
 
     private void fill(Graphics2D g, Rectangle clip, int padUser, boolean selection) {
         Document document = editor.getDocument();
+        long stamp = document.getModificationStamp();
+        if (stamp != punctuationStamp) {
+            longTokenPunctuation.clear();
+            punctuationStamp = stamp;
+        }
         int length = document.getTextLength();
         frame.lineHeight = editor.getLineHeight();
         frame.ascent = editor.getAscent();
@@ -255,8 +266,8 @@ final class FrameScanner {
         lineTop = top;
         windowStart = lineStart;
         windowEnd = lineEnd;
-        longLine = lineEnd - lineStart > LONG_LINE;
-        if (longLine) {
+        queryEnd = lineEnd;
+        if (lineEnd - lineStart > LONG_LINE) {
             windowStart = Math.max(lineStart, offsetAtX(clip.x - padUser, top) - 1);
             windowEnd = Math.min(lineEnd, offsetAtX(clip.x + clip.width + padUser, top) + 2);
         }
@@ -284,9 +295,10 @@ final class FrameScanner {
         if (start >= stop || frame.charCount == PaintFrame.MAX_CHARS) return;
         int end = frame.appendVisible(editor.getDocument().getImmutableCharSequence(), start, stop);
         if (Bidi.requiresBidi(frame.chars, start - frame.textBase, end - frame.textBase)) return;
-        collector.collect(editor, queryStart, spanStart, spanEnd, start, end, longLine, runs);
+        collector.collect(editor, queryStart, queryEnd, spanStart, spanEnd, start, end, runs);
         collectInlays(runs.start[0], runs.end[runs.count - 1]);
         for (int r = 0; r < runs.count && frame.pieceCount < MAX_PIECES; r++) {
+            if (runs.end[r] <= start || runs.start[r] >= end) continue;
             splitAtInlays(runs.start[r], runs.end[r], runs.foreground[r], runs.font[r]);
         }
     }
@@ -330,7 +342,7 @@ final class FrameScanner {
         FontMetrics metrics = primary.fontMetrics();
         float em = primary.getSize2D();
         float baseline = lineTop + frame.ascent;
-        boolean punctuation = TextClassifier.isPunctuationOnly(document, start, end);
+        boolean punctuation = isPunctuationOnly(document, start, end);
         int token = frame.addToken(color, punctuation,
                 baseline - metrics.getAscent() - 0.08f * em, baseline + metrics.getDescent() + 0.08f * em, em);
 
@@ -358,6 +370,17 @@ final class FrameScanner {
         float x0 = start < from ? xOf(start, true) : frame.pieceX[firstPiece];
         float x1 = end > to ? xOf(end, false) : frame.pieceX[lastPiece] + frame.pieceWidth[lastPiece];
         frame.endToken(token, x0, x1);
+    }
+
+    private boolean isPunctuationOnly(CharSequence text, int start, int end) {
+        if (end - start <= LONG_LINE) return TextClassifier.isPunctuationOnly(text, start, end);
+        var range = new TokenRange(start, end);
+        Boolean cached = longTokenPunctuation.get(range);
+        if (cached != null) return cached;
+        if (longTokenPunctuation.size() >= 64) longTokenPunctuation.clear();
+        boolean punctuation = TextClassifier.isPunctuationOnly(text, start, end);
+        longTokenPunctuation.put(range, punctuation);
+        return punctuation;
     }
 
     private void addWord(int start, int end, int fontType, FontInfo primary) {

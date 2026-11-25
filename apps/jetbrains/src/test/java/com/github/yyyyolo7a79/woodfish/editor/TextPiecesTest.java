@@ -113,7 +113,7 @@ class TextPiecesTest {
         merger.addHighlighter(0, 3, 0, 3, 3, 200, java.awt.Color.RED, Font.ITALIC, false, false, false);
         merger.addHighlighter(0, 3, 0, 3, 3, 0, null, Font.BOLD, false, false, true);
         merger.finishGathering(); var runs = new RunMerger.Runs();
-        merger.merge(0, 3, 0, 3, java.awt.Color.BLACK, Font.PLAIN, false, runs);
+        merger.merge(0, 3, 0, 3, java.awt.Color.BLACK, Font.PLAIN, runs);
         assertEquals(java.awt.Color.RED, runs.foreground[0]); assertEquals(Font.BOLD | Font.ITALIC, runs.font[0]);
     }
 
@@ -149,7 +149,7 @@ class TextPiecesTest {
         merger.addHighlighter(0, 3, 0, 3, 3, 80, null, Font.BOLD, false, false, true);
         merger.finishGathering();
         var runs = new RunMerger.Runs();
-        merger.merge(0, 3, 0, 3, java.awt.Color.BLACK, Font.ITALIC, false, runs);
+        merger.merge(0, 3, 0, 3, java.awt.Color.BLACK, Font.ITALIC, runs);
         assertEquals(java.awt.Color.RED, runs.foreground[0]);
         assertEquals(Font.BOLD | Font.ITALIC, runs.font[0]);
     }
@@ -167,7 +167,7 @@ class TextPiecesTest {
             merger.finishGathering();
             long allocated = bean.getCurrentThreadAllocatedBytes() - before;
             if (n == 4) assertEquals(0, allocated);
-            merger.merge(0, n + 1, 0, n + 1, java.awt.Color.BLACK, Font.PLAIN, false, runs);
+            merger.merge(0, n + 1, 0, n + 1, java.awt.Color.BLACK, Font.PLAIN, runs);
             assertEquals(n + 1, runs.count);
             assertEquals(java.awt.Color.BLACK, runs.foreground[0]);
             for (int i = 1; i <= n; i++) assertEquals((i & 1) == 0 ? java.awt.Color.RED : java.awt.Color.BLUE, runs.foreground[i]);

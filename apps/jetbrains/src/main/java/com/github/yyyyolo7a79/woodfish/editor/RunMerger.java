@@ -54,9 +54,6 @@ final class RunMerger {
     private int[] lexFont = new int[128];
     private Color[] lexForeground = new Color[128];
 
-    /** 作用域按偏移单调递增，lexer 游标只前进不回退 */
-    private int lexCursor;
-
     // ===== 扫描临时数组 =====
     private long[] sorted = new long[64];
     private int[] candidates = new int[64];
@@ -72,10 +69,13 @@ final class RunMerger {
 
     void reset() {
         Arrays.fill(foreground, 0, count, null);
-        Arrays.fill(lexForeground, 0, lexCount, null);
         count = 0;
+        resetLexemes();
+    }
+
+    void resetLexemes() {
+        Arrays.fill(lexForeground, 0, lexCount, null);
         lexCount = 0;
-        lexCursor = 0;
     }
 
     /**
@@ -143,10 +143,9 @@ final class RunMerger {
      * 新建 IterationState 时的取舍一致。
      */
     void merge(int scopeQueryStart, int scopeQueryEnd, int applyStart, int applyEnd,
-               Color defaultForeground, int defaultFont, boolean separateLexemes, Runs out) {
+               Color defaultForeground, int defaultFont, Runs out) {
         int candidateCount = selectCandidates(scopeQueryStart, scopeQueryEnd, applyStart, applyEnd);
-        while (lexCursor < lexCount && lexEnd[lexCursor] <= applyStart) lexCursor++;
-        int lexeme = lexCursor;
+        int lexeme = 0;
         int activeCount = 0;
         int nextCandidate = 0;
         int pos = applyStart;
@@ -185,11 +184,9 @@ final class RunMerger {
 
             int syntax = lexeme < lexCount && lexStart[lexeme] <= pos ? lexeme : -1;
             resolve(activeCount, syntax, defaultForeground, defaultFont);
-            out.append(pos, next, resolvedForeground, resolvedFont,
-                    separateLexemes && syntax >= 0 && pos == lexStart[syntax]);
+            out.append(pos, next, resolvedForeground, resolvedFont);
             pos = next;
         }
-        lexCursor = lexeme;
     }
 
     private int selectCandidates(int scopeQueryStart, int scopeQueryEnd, int applyStart, int applyEnd) {
@@ -309,8 +306,8 @@ final class RunMerger {
             count = 0;
         }
 
-        void append(int s, int e, Color fg, int fontType, boolean tokenBoundary) {
-            if (!tokenBoundary && count > 0) {
+        void append(int s, int e, Color fg, int fontType) {
+            if (count > 0) {
                 int last = count - 1;
                 if (end[last] == s && font[last] == fontType
                         && foreground[last].getRGB() == fg.getRGB()) {
