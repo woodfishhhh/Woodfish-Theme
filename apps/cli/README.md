@@ -201,6 +201,8 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 
 实测细节见 [docs/hosts/chatgpt-app.md](../../docs/hosts/chatgpt-app.md)。
 
+Codex 外观和 dsh 用户脚本菜单都提供「苹果圆角（Squircle corners）」，默认开启。将效果目录 `squircle-corners/params.json` 中的 `enabled` 设为 `false` 可恢复原来的圆角；dsh 重新生成用户脚本后会带上这个值。
+
 ## DeepSeek Harness（dsh）Web 版
 
 dsh 的 Web 版（`dsh web`）是本机服务打开的网页，Woodfish 以油猴用户脚本的形式提供，效果和 Codex 桌面端是同一套插件：Woodfish 配色（深色、浅色各选一套）、6px 彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、回复正文彩虹、侧栏当前会话的流光边框、输入框光晕与渐变发送按钮、《彩云》窗口背景和毛玻璃侧栏、毛玻璃菜单、OKLCH 代码渐变。不修改 dsh 的任何文件和配置。

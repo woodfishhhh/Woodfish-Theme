@@ -6,6 +6,7 @@ export const FEATURE_SETTING_KEYS = {
   glow: 'glow.enabled',
   cursor: 'cursor.enabled',
   glass: 'glass.enabled',
+  squircleCorners: 'squircleCorners.enabled',
 } as const;
 
 export const OVERLAY_SETTING_KEYS = {

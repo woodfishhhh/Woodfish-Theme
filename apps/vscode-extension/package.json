@@ -305,6 +305,13 @@
             "scope": "application",
             "markdownDescription": "菜单、悬浮提示、补全列表、命令面板、通知等弹出层使用毛玻璃，底色跟随当前颜色主题。",
             "order": 4
+          },
+          "woodfishTheme.squircleCorners.enabled": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "order": 5,
+            "markdownDescription": "**苹果圆角（Squircle corners）**：让工作台的按钮、输入框、菜单和卡片使用平滑圆角。圆形、胶囊和小于 5px 的圆角保留原来的大小。"
           }
         }
       },

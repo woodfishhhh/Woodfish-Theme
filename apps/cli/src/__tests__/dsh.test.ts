@@ -92,6 +92,7 @@ describe('woodfish dsh', () => {
     expect(fs.existsSync(path.join(paths.effectsDir, 'caret', 'effect.json'))).toBe(true);
     expect(written).toMatch(/^globalThis\["__woodfishDshUserScriptEffects"\] = \[$/m);
     expect(written).toContain('id: "thread-ring"');
+    expect(written).toContain('id: "squircle-corners"');
     expect(written).toMatch(/^globalThis\["__woodfishDshUserScriptUserCss"\] = "/m);
 
     expect(await run(['dsh', 'userscript'], { io, context: { paths } })).toBe(0);

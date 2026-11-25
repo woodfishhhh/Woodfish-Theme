@@ -60,7 +60,7 @@ export async function run(): Promise<void> {
   const bootstrapPath = path.join(path.dirname(workbenchPath), BOOTSTRAP_FILE_NAME);
   const workbenchConfig = vscode.workspace.getConfiguration('workbench');
   const config = vscode.workspace.getConfiguration('woodfishTheme');
-  const touchedKeys = ['glass.enabled', 'glass.nativeWindow.enabled'];
+  const touchedKeys = ['squircleCorners.enabled', 'glass.enabled', 'glass.nativeWindow.enabled'];
   const originalValues = touchedKeys.map((key) => config.inspect(key)?.globalValue);
   const activeThemeBeforeEnable = workbenchConfig.get<string>('colorTheme', '');
 
@@ -101,6 +101,18 @@ export async function run(): Promise<void> {
       activeThemeBeforeEnable,
       'Enable command replaced the active color theme'
     );
+    assertChecksumMatches(appRoot, relativePath, workbenchPath);
+
+    const smoothWorkbench = patched;
+    assert.ok(smoothWorkbench.includes('@supports (corner-shape: squircle)'));
+    await config.update('squircleCorners.enabled', false, vscode.ConfigurationTarget.Global);
+    await settle();
+    const roundWorkbench = read(workbenchPath);
+    assert.ok(!roundWorkbench.includes('corner-shape:'));
+    assertChecksumMatches(appRoot, relativePath, workbenchPath);
+    await config.update('squircleCorners.enabled', true, vscode.ConfigurationTarget.Global);
+    await settle();
+    assert.strictEqual(read(workbenchPath), smoothWorkbench);
     assertChecksumMatches(appRoot, relativePath, workbenchPath);
 
     await config.update('glass.enabled', true, vscode.ConfigurationTarget.Global);

@@ -16,6 +16,7 @@ import {
   readNumberVariable,
   readStringVariable,
   runSteps,
+  startNativeCorners,
   startReveal,
   startTextGradientEngine,
 } from '@woodfish/renderer-runtime';
@@ -154,6 +155,7 @@ function start(): void {
     return;
   }
 
+  if (readNumberVariable('--squircle-k', 1) > 1) disposers.add(startNativeCorners());
   const { refresh } = runSteps(
     [startTokens, startAcrylicFilter, startRevealHighlight, startEffectPlugins],
     (failure) => console.warn('[Woodfish] overlay step failed', failure.error)

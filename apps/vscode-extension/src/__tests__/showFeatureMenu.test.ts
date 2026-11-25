@@ -52,6 +52,7 @@ describe('showFeatureMenu command', () => {
     featureState: {
       current: () => ({
         syntaxGradient: true,
+        squircleCorners: false,
         glow: false,
         cursor: true,
         glass: false,

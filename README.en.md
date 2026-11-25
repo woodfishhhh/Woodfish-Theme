@@ -211,6 +211,8 @@ All settings live under `woodfishTheme.`. In the Settings UI they are grouped in
 }
 ```
 
+**Squircle corners** are on by default. To restore the original corners, turn off `woodfishTheme.squircleCorners.enabled` in VS Code, **Squircle corners** in Codex Appearance, or the corresponding switch in the dsh user script menu. Buttons, cards, menus and dialogs use smooth corners. Avatars, pill buttons and corners below 5px keep their original geometry.
+
 ### Effect plugins
 
 A caret trail (drawn like the VS Code Animations extension: a single-color band, length 12) and typing particles (theme-colored sparks like Power Mode, no shake or combo counter) are pluggable effects under `woodfishTheme.caretTrail.*` and `woodfishTheme.typingParticles.*`, off by default. Each effect is a folder in `%APPDATA%\Woodfish\effects` (`~/Library/Application Support/Woodfish/effects` on macOS) whose `effect.js` you, or an AI following the folder's `AGENTS.md`, can edit; new folders become new effects. Changes reload by themselves, or run **刷新效果** (`Ctrl+Alt+R`) — no window reload. The Codex app uses the same folder. To change only colors, sizes or lengths, add a CSS variable to `user.css` in the same folder, e.g. `:root { --woodfish-caret-trail-color: #ff4d4f; }`; it loads last, wins over everything else and survives upgrades. The folder's `README.md` lists every variable.

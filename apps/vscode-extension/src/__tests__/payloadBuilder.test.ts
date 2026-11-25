@@ -80,7 +80,7 @@ describe('runtime payload builder', () => {
     expect(css).toContain('0 0 2px var(--woodfish-overlay-glow-near)');
     expect(css).toContain('0 0 5px var(--woodfish-overlay-glow-mid)');
     expect(css).toContain('animation: 12s linear infinite alternate bp-animation !important;');
-    expect(css).toContain('border-radius: 6px !important;');
+    expect(css).toContain('border-radius: calc(6px * var(--squircle-k, 1)) !important;');
     expect(css).toContain('linear-gradient(180deg, #111111, #222222, #333333)');
     expect(css).not.toContain('box-shadow: 0 0 15px rgba(255, 255, 255, 0.7) !important;');
     expect(css).toContain('.mtk7 { letter-spacing: 0.02em; }');
@@ -144,6 +144,7 @@ describe('runtime payload builder', () => {
   it('ships the bootstrap only while text gradient, glow or effect plugins need it', () => {
     const enabled = buildRuntimePayload(DEFAULT_RUNTIME_SETTINGS, realCursorAssets);
     const cursorOnlySettings = normalizeRuntimeSettings({
+      squircleCorners: { enabled: false },
       syntaxGradient: { enabled: false },
       glow: { enabled: false },
       cursor: { enabled: true },
@@ -151,6 +152,13 @@ describe('runtime payload builder', () => {
     });
 
     expect(enabled.bootstrap).toContain('MAX_TOKENS_PER_FRAME=600');
+    for (const exception of [
+      '.monaco-switch-thumb',
+      '.accounts-avatar',
+      '.monaco-count-badge',
+      '.chat-submit-button',
+    ])
+      expect(enabled.css).toContain(exception);
     expect(buildRuntimeBootstrap(cursorOnlySettings, realCursorAssets)).toBe('');
     expect(buildRuntimePayload(cursorOnlySettings, realCursorAssets).css).toContain('div.cursor');
   });

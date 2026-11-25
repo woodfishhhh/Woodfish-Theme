@@ -116,6 +116,12 @@ export function readRuntimeSettings(): ThemeRuntimeSettings {
         DEFAULT_RUNTIME_SETTINGS.cursor.customRules
       ),
     },
+    squircleCorners: {
+      enabled: readSetting(
+        FEATURE_SETTING_KEYS.squircleCorners,
+        DEFAULT_RUNTIME_SETTINGS.squircleCorners.enabled
+      ),
+    },
     glass: {
       enabled: readSetting(FEATURE_SETTING_KEYS.glass, DEFAULT_RUNTIME_SETTINGS.glass.enabled),
       mode: readSetting(GLASS_SETTING_KEYS.mode, DEFAULT_RUNTIME_SETTINGS.glass.mode),

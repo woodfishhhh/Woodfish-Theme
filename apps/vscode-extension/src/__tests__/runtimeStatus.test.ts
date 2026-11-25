@@ -8,6 +8,7 @@ describe('runtime status detection', () => {
       overlayEnabled: true,
       features: {
         syntaxGradient: true,
+        squircleCorners: false,
         glow: true,
         cursor: true,
         glass: false,
@@ -26,6 +27,7 @@ describe('runtime status detection', () => {
       overlayEnabled: true,
       features: {
         syntaxGradient: true,
+        squircleCorners: false,
         glow: true,
         cursor: true,
         glass: false,
@@ -44,6 +46,7 @@ describe('runtime status detection', () => {
       overlayEnabled: true,
       features: {
         syntaxGradient: true,
+        squircleCorners: false,
         glow: false,
         cursor: true,
         glass: false,
@@ -62,6 +65,7 @@ describe('runtime status detection', () => {
       overlayEnabled: true,
       features: {
         syntaxGradient: true,
+        squircleCorners: false,
         glow: true,
         cursor: true,
         glass: false,
@@ -80,6 +84,7 @@ describe('runtime status detection', () => {
       overlayEnabled: true,
       features: {
         syntaxGradient: false,
+        squircleCorners: false,
         glow: false,
         cursor: false,
         glass: false,
@@ -96,6 +101,7 @@ describe('runtime status detection', () => {
       overlayEnabled: false,
       features: {
         syntaxGradient: true,
+        squircleCorners: false,
         glow: true,
         cursor: true,
         glass: false,

@@ -161,6 +161,7 @@ export function nextDshPalette(mode: DshMode, current: string | null): string | 
  * values of their effect folders (`null`: the effect is off or missing).
  */
 export interface DshCoreView {
+  squircleCorners: boolean;
   palette: DshSettings['palette'];
   codeGradient: { enabled: boolean } & TextGradientParams;
   codeGlow: { enabled: boolean } & GlowParams;
@@ -170,11 +171,16 @@ export interface DshCoreView {
 
 export function composeDshCoreView(
   settings: DshSettings,
-  core: { 'code-gradient'?: EffectValues | null; background?: EffectValues | null }
+  core: {
+    'squircle-corners'?: EffectValues | null;
+    'code-gradient'?: EffectValues | null;
+    background?: EffectValues | null;
+  }
 ): DshCoreView {
   const code = core['code-gradient'] ?? null;
   const background = core.background ?? null;
   return {
+    squircleCorners: core['squircle-corners'] != null,
     palette: settings.palette,
     codeGradient: {
       enabled: code !== null,

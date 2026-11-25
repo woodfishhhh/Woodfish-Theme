@@ -32,6 +32,7 @@ export type FeatureFlags = {
   glow: boolean;
   cursor: boolean;
   glass: boolean;
+  squircleCorners: boolean;
 };
 
 export type RuntimeStatus = 'on' | 'paused' | 'off';
@@ -161,6 +162,7 @@ export type ThemeRuntimeSettings = {
   glow: GlowSettings;
   cursor: CursorSettings;
   glass: GlassSettings;
+  squircleCorners: { enabled: boolean };
   background: BackgroundSettings;
   effects: EffectsSettings;
   runtime: RuntimeOptions;
@@ -172,6 +174,7 @@ export type PartialRuntimeSettings = {
   syntaxGradient?: Partial<SyntaxGradientSettings>;
   glow?: Partial<GlowSettings>;
   cursor?: Partial<CursorSettings>;
+  squircleCorners?: { enabled?: boolean };
   glass?: Partial<Omit<GlassSettings, 'nativeWindow'>> & {
     nativeWindow?: Partial<NativeWindowSettings>;
   };
@@ -184,6 +187,7 @@ export type PartialRuntimeSettings = {
 export const RUNTIME_SETTING_LIMITS = EFFECT_INPUT_LIMITS;
 
 export const DEFAULT_RUNTIME_SETTINGS: ThemeRuntimeSettings = {
+  squircleCorners: { enabled: true },
   overlay: {
     enabled: true,
     style: 'modern',
@@ -289,6 +293,12 @@ export function normalizeRuntimeSettings(
       customRules: sanitizeCustomCssRules(partial.cursor?.customRules),
     },
     glass: normalizeGlassSettings(partial.glass),
+    squircleCorners: {
+      enabled: sanitizeBoolean(
+        partial.squircleCorners?.enabled,
+        DEFAULT_RUNTIME_SETTINGS.squircleCorners.enabled
+      ),
+    },
     background: {
       enabled: sanitizeBoolean(
         partial.background?.enabled,
@@ -331,5 +341,6 @@ export function featureFlagsFromSettings(settings: ThemeRuntimeSettings): Featur
     glow: settings.glow.enabled,
     cursor: settings.cursor.enabled,
     glass: settings.glass.enabled,
+    squircleCorners: settings.squircleCorners.enabled,
   };
 }
