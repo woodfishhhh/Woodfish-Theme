@@ -7,35 +7,60 @@ import {
   TextGradientParams,
   WOODFISH_PALETTES,
   WoodfishPalette,
+  defaultEffectValues,
+  isEffectId,
   normalizeBackground,
   normalizeGlow,
   normalizeTextGradient,
   patchEffectValues,
   sanitizeCustomCssRules,
 } from '@woodfish/theme-core';
+import { SQUIRCLE_K, SQUIRCLE_SHAPES, SquircleShape } from '@woodfish/renderer-runtime';
+import { DshPersistedConfig } from './protocol';
 
 export type DshMode = PaletteTone;
 
-/**
- * What `woodfish dsh userscript` bakes into the user script besides the effects. Every
- * visual effect (caret, trails, glass, the window background, the code gradient…) is an
- * effect plugin from the shared effects folder (`%APPDATA%\Woodfish\effects`), as in Codex.
- */
+/** Bundled default window picture 《彩云》. */
+export const DSH_DEFAULT_BACKGROUND_ID = 'caiyun';
+/** Smooth CSS gradient fill built from 《彩云》's palette. */
+export const DSH_GRADIENT_BACKGROUND_ID = 'gradient';
+
+export type DshBackgroundId = string;
+
+const CUSTOM_BACKGROUND_ID = /^[a-f0-9]{16}$/;
+
+/** Per-effect overrides stored by the native plugin (`enabled` plus any effect parameter). */
+export type DshEffectOverrides = Record<string, Record<string, number | boolean | string>>;
+
+/** Complete Woodfish settings owned by the native dsh plugin. */
 export interface DshSettings {
   /**
    * Woodfish palette slug per dsh appearance mode; `null` keeps dsh's own colors. Any
-   * palette in theme-core's `WOODFISH_PALETTES` made for that mode is accepted, so new
-   * themes show up without changes here.
+   * palette in theme-core's `WOODFISH_PALETTES` made for that mode is accepted.
    */
   palette: { dark: string | null; light: string | null };
-  /** Extra CSS appended last, sanitized like the VS Code custom rules. */
+  /** Background source: `'caiyun'`, `'gradient'`, or an uploaded 16-hex image id. */
+  backgroundImage: DshBackgroundId;
+  /** Extra CSS appended after core styles, sanitized like the VS Code custom rules. */
   customCss: string[];
+  /** Highest-priority `user.css` text mounted in `<body>` to override CSS variables and rules. */
+  userCss: string;
+  /** Per-effect parameter overrides persisted via `@deepseek-ai/dsh-settings`. */
+  effects: DshEffectOverrides;
+}
+
+/** Parameterized squircle corners view derived from the `squircle-corners` core effect. */
+export interface DshSquircleView {
+  enabled: boolean;
+  scale: number;
+  shape: SquircleShape;
+  scanHardcoded: boolean;
 }
 
 type Loose = Record<string, unknown>;
 
 function isObject(value: unknown): value is Loose {
-  return value !== null && typeof value === 'object';
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function section(input: unknown, key: string): Loose {
@@ -58,111 +83,151 @@ export function defaultDshPalette(mode: DshMode): string | null {
   return dshPalettes(mode)[0]?.slug ?? null;
 }
 
-/**
- * `null` keeps dsh's colors; a slug of a palette made for `mode` is kept; anything else
- * (missing, unknown, removed from theme-core, made for the other mode) falls back to
- * `fallback`.
- */
 function paletteFor(mode: DshMode, value: unknown, fallback: string | null): string | null {
-  if (value === null) {
+  if (value === null || value === '') {
     return null;
   }
   return typeof value === 'string' && findDshPalette(value)?.type === mode ? value : fallback;
 }
 
-/**
- * Turns untrusted settings (file, CLI flags, user script storage) into complete settings.
- * Keys of the older format (`codeGradient`, `glass`, `caret`…) are dropped: those are
- * effect plugins now.
- */
+export function normalizeBackgroundId(value: unknown): DshBackgroundId {
+  if (value === DSH_DEFAULT_BACKGROUND_ID || value === DSH_GRADIENT_BACKGROUND_ID) {
+    return value;
+  }
+  if (typeof value === 'string' && CUSTOM_BACKGROUND_ID.test(value)) {
+    return value;
+  }
+  return DSH_DEFAULT_BACKGROUND_ID;
+}
+
+function normalizeEffectOverrides(input: unknown): DshEffectOverrides {
+  if (!isObject(input)) {
+    return {};
+  }
+  const result: DshEffectOverrides = {};
+  for (const [id, rawValues] of Object.entries(input)) {
+    if (!isEffectId(id) || !isObject(rawValues)) {
+      continue;
+    }
+    const clean: Record<string, number | boolean | string> = {};
+    for (const [key, value] of Object.entries(rawValues)) {
+      if (
+        typeof value === 'boolean' ||
+        typeof value === 'string' ||
+        (typeof value === 'number' && Number.isFinite(value))
+      ) {
+        clean[key] = value;
+      }
+    }
+    if (Object.keys(clean).length > 0) {
+      result[id] = clean;
+    }
+  }
+  return result;
+}
+
+/** Turns untrusted settings input into complete, safe Woodfish dsh settings. */
 export function normalizeDshSettings(input: unknown = {}): DshSettings {
   const palette = section(input, 'palette');
+  const rawCustom = isObject(input) ? input.customCss : undefined;
+  const customList =
+    typeof rawCustom === 'string'
+      ? rawCustom.trim()
+        ? [rawCustom]
+        : []
+      : Array.isArray(rawCustom)
+        ? rawCustom
+        : undefined;
+  const rawUserCss = isObject(input) ? input.userCss : undefined;
   return {
     palette: {
       dark: paletteFor('dark', palette.dark, defaultDshPalette('dark')),
       light: paletteFor('light', palette.light, defaultDshPalette('light')),
     },
-    customCss: sanitizeCustomCssRules(isObject(input) ? input.customCss : undefined),
+    backgroundImage: normalizeBackgroundId(isObject(input) ? input.backgroundImage : undefined),
+    customCss: sanitizeCustomCssRules(customList),
+    userCss: typeof rawUserCss === 'string' ? rawUserCss.slice(0, 64 * 1024) : '',
+    effects: normalizeEffectOverrides(isObject(input) ? input.effects : undefined),
   };
 }
 
 export const DEFAULT_DSH_SETTINGS: Readonly<DshSettings> = Object.freeze(normalizeDshSettings());
 
-/** What the user script menu may change: the themes and each effect's switch. */
-export interface DshSettingsPatch {
-  palette?: { dark?: string | null; light?: string | null };
-  effects?: Record<string, { enabled: boolean }>;
-}
+/** Default flat persisted configuration matching the Host Cordis Config schema defaults. */
+export const DEFAULT_DSH_PERSISTED_CONFIG: Readonly<DshPersistedConfig> = Object.freeze(
+  toPersistedConfig(DEFAULT_DSH_SETTINGS)
+);
 
-/**
- * Applies the theme part of an untrusted patch kept by the page (the user script menu).
- * Custom CSS always comes from the settings baked in by `woodfish dsh userscript`, so
- * nothing in the page can inject CSS this way.
- */
-export function applyDshSettingsPatch(settings: DshSettings, patch: unknown): DshSettings {
-  const next = normalizeDshSettings(settings);
-  const palette = section(patch, 'palette');
-  for (const mode of ['dark', 'light'] as const) {
-    if (palette[mode] !== undefined) {
-      next.palette[mode] = paletteFor(mode, palette[mode], next.palette[mode]);
+/** Converts flat Host settings (`@deepseek-ai/dsh-settings`) into rich `DshSettings`. */
+export function fromPersistedConfig(raw: unknown): DshSettings {
+  if (!isObject(raw)) {
+    return normalizeDshSettings();
+  }
+  let parsedEffects: unknown = {};
+  if (typeof raw.effectsJson === 'string' && raw.effectsJson.trim() !== '') {
+    try {
+      parsedEffects = JSON.parse(raw.effectsJson) as unknown;
+    } catch {
+      parsedEffects = {};
     }
   }
-  return next;
-}
-
-/** An effect as the user script carries it; only what the menu needs is typed here. */
-interface StoredEffect {
-  id: string;
-  manifest: EffectManifest;
-  values: EffectValues;
-}
-
-function isStoredEffect(value: unknown): value is StoredEffect {
-  return (
-    isObject(value) &&
-    typeof value.id === 'string' &&
-    isObject(value.manifest) &&
-    isObject(value.values)
-  );
-}
-
-/**
- * The baked-in effects with the menu's switches applied (untrusted page storage: only
- * `enabled` of known effects can change). Anything that is not an effect list is returned
- * as it is.
- */
-export function applyStoredEffects(effects: unknown, patch: unknown): unknown {
-  if (!Array.isArray(effects)) {
-    return effects;
-  }
-  const switches = section(patch, 'effects');
-  return effects.map((entry: unknown) => {
-    if (!isStoredEffect(entry)) {
-      return entry;
-    }
-    const enabled = section(switches, entry.id).enabled;
-    return typeof enabled === 'boolean'
-      ? { ...entry, values: patchEffectValues(entry.manifest, entry.values, { enabled }) }
-      : entry;
+  return normalizeDshSettings({
+    palette: {
+      dark: raw.paletteDark === '' ? null : raw.paletteDark,
+      light: raw.paletteLight === '' ? null : raw.paletteLight,
+    },
+    backgroundImage: raw.backgroundImage,
+    customCss: typeof raw.customCss === 'string' ? raw.customCss : '',
+    userCss: typeof raw.userCss === 'string' ? raw.userCss : '',
+    effects: parsedEffects,
   });
 }
 
-/**
- * The palette that follows `current` in the menu's cycle for `mode`: every Woodfish
- * palette for the mode, then `null` (dsh's own colors), then around again.
- */
-export function nextDshPalette(mode: DshMode, current: string | null): string | null {
-  const cycle: Array<string | null> = [...dshPalettes(mode).map((palette) => palette.slug), null];
-  return cycle[(cycle.indexOf(current) + 1) % cycle.length];
+/** Converts rich `DshSettings` into flat Host settings persisted by `@deepseek-ai/dsh-settings`. */
+export function toPersistedConfig(settings: DshSettings): DshPersistedConfig {
+  const clean = normalizeDshSettings(settings);
+  return {
+    paletteDark: clean.palette.dark ?? '',
+    paletteLight: clean.palette.light ?? '',
+    backgroundImage: clean.backgroundImage,
+    customCss: clean.customCss.join('\n'),
+    userCss: clean.userCss,
+    effectsJson: JSON.stringify(clean.effects),
+  };
+}
+
+/** Applies persisted per-effect parameter overrides onto a list of bundled effect sources. */
+export function applyDshEffectOverrides<
+  T extends { id: string; manifest: EffectManifest; values: EffectValues },
+>(sources: readonly T[], overrides: DshEffectOverrides): T[] {
+  return sources.map((source) => {
+    const base = defaultEffectValues(source.manifest);
+    const patch = overrides[source.id];
+    const values = patch ? patchEffectValues(source.manifest, base, patch) : base;
+    return { ...source, values };
+  });
+}
+
+function normalizeSquircleShape(value: unknown): SquircleShape {
+  return typeof value === 'string' && (SQUIRCLE_SHAPES as readonly string[]).includes(value)
+    ? (value as SquircleShape)
+    : 'squircle';
+}
+
+function normalizeSquircleScale(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.min(2.4, Math.max(1, value))
+    : SQUIRCLE_K;
 }
 
 /**
- * What the core engines (code gradient, window background) need: the settings plus the
- * values of their effect folders (`null`: the effect is off or missing).
+ * What the core engines (squircle corners, code & diff gradient, window background) need:
+ * the settings plus the normalized values of their core effect definitions (`null`: off).
  */
 export interface DshCoreView {
-  squircleCorners: boolean;
+  squircleCorners: DshSquircleView;
   palette: DshSettings['palette'];
+  backgroundImage: DshBackgroundId;
   codeGradient: { enabled: boolean } & TextGradientParams;
   codeGlow: { enabled: boolean } & GlowParams;
   background: { enabled: boolean } & BackgroundParams;
@@ -177,11 +242,18 @@ export function composeDshCoreView(
     background?: EffectValues | null;
   }
 ): DshCoreView {
+  const squircle = core['squircle-corners'] ?? null;
   const code = core['code-gradient'] ?? null;
   const background = core.background ?? null;
   return {
-    squircleCorners: core['squircle-corners'] != null,
+    squircleCorners: {
+      enabled: squircle !== null,
+      scale: normalizeSquircleScale(squircle?.scale),
+      shape: normalizeSquircleShape(squircle?.shape),
+      scanHardcoded: squircle?.scanHardcoded !== false,
+    },
     palette: settings.palette,
+    backgroundImage: settings.backgroundImage,
     codeGradient: {
       enabled: code !== null,
       ...normalizeTextGradient({

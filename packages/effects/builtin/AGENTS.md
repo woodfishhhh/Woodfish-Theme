@@ -39,6 +39,7 @@
 | 回复正文的彩虹字 | `rainbow-text` |
 | 输入框光晕、发送按钮渐变、标签下划线 | `accent` |
 | 菜单、弹窗的毛玻璃，弹出动画 | `glass` |
+| 面板与浮层的平滑苹果圆角（倍率、曲率、硬编码圆角扫描） | `squircle-corners`（核心效果） |
 | 窗口背景图、侧栏和输入框的毛玻璃 | `background`（核心效果） |
 | 代码块里的渐变色、代码发光 | `code-gradient`（核心效果） |
 
@@ -118,7 +119,7 @@ module.exports = function (ctx) {
 
 ## 6. 验证
 
-1. **刷新**：保存文件后，Codex 和 VS Code 会在一两秒内自动重新加载效果（dsh 的油猴脚本要重新运行 `woodfish dsh userscript` 并导入）。也可以手动：
+1. **刷新**：保存文件后，Codex 和 VS Code 会在一两秒内自动重新加载效果（dsh 原生插件直接在 dsh 设置 → Woodfish 页签内实时调节所有参数与自定义 CSS）。也可以手动：
    - 命令行：`woodfish reload`（Codex 和 VS Code 一起刷新，并列出每个效果的状态）；
    - Codex 里按 `Ctrl+Alt+R`，或设置 → 外观 → Woodfish 的「刷新效果」；
    - VS Code 里运行命令「Woodfish: 刷新效果」（`Ctrl+Alt+R`）。

@@ -16,13 +16,18 @@ function rule(selector: string, declarations: string[]): string {
 }
 
 function scoped(scope: string, inner: string): string {
-  return inner
+  const scopes = scope
     .split(',')
-    .map((part) => `${scope} ${part.trim()}`)
-    .join(',\n');
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const targets = inner
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return scopes.flatMap((s) => targets.map((t) => `${s} ${t}`)).join(',\n');
 }
 
-/** Gradient and glow on painted code tokens (the `code-gradient` effect). */
+/** Gradient and optional glow on painted code and diff tokens (the `code-gradient` effect). */
 export function buildCodeCss(settings: DshCoreView): string {
   const parts: string[] = [];
   const tokens = scoped(CODE_ROOT_SELECTOR, PAINTED_TOKEN_SELECTOR);

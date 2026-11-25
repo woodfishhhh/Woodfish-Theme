@@ -7,7 +7,6 @@ interface Asset {
   output: string;
   entry: string;
   banner: string;
-  header?: string;
   /** Shared packages the bundle is built from; the last one is the adapter. */
   packages: string[];
   buildDefine: string;
@@ -32,19 +31,13 @@ describe('committed renderer bundles', () => {
   it.each(build.ASSETS)('$output is self-contained browser code', (asset) => {
     const code = fs.readFileSync(path.join(APP_ROOT, asset.output), 'utf-8');
     const adapter = asset.packages[asset.packages.length - 1];
-    const workspaceRoot = adapter === 'chatgpt-app' || adapter === 'dsh-web' ? 'apps' : 'packages';
-    const sourceRoot =
-      workspaceRoot === 'apps' ? '../' + adapter : '../../' + workspaceRoot + '/' + adapter;
+    const sourceRoot = '../' + adapter;
     expect(code).not.toMatch(/\brequire\(|^\s*import\s|^\s*export\s/m);
     expect(code).not.toContain('@woodfish/');
     expect(code).toContain(sourceRoot + '/src/renderer/overlay.ts');
   });
 
-  it('starts the dsh user script with its metadata block', () => {
-    const asset = build.ASSETS.find((candidate) => candidate.output.endsWith('.user.js'));
-    const code = fs.readFileSync(path.join(APP_ROOT, asset?.output ?? ''), 'utf-8');
-    expect(asset?.header).toBeDefined();
-    expect(code.startsWith(`${asset?.header ?? ''}\n`)).toBe(true);
-    expect(code).toMatch(/^\/\/ @noframes$/m);
+  it('does not ship any legacy dsh Tampermonkey user script asset', () => {
+    expect(fs.existsSync(path.join(APP_ROOT, 'assets', 'woodfish-dsh.user.js'))).toBe(false);
   });
 });

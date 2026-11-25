@@ -1,9 +1,10 @@
 import {
   buildBackgroundCopyDeclarations,
+  buildBackgroundFillImage,
   buildBackgroundLayerCss,
 } from '@woodfish/renderer-runtime';
 import { LIGHT_BODY, selectorOf } from '../selectors';
-import { DshCoreView } from '../settings';
+import { DSH_GRADIENT_BACKGROUND_ID, DshCoreView } from '../settings';
 
 /** dsh's base and sidebar colors, read on `<body>` before they are cleared further down. */
 const SURFACE = '--woodfish-dsh-surface';
@@ -14,16 +15,21 @@ function rule(selector: string, declarations: string[]): string {
 }
 
 /*
- * Wrappers of the main area. `[data-slot]` elements are `display: contents`, so the painted
- * box is the slot's child (the conversation root) or its parents (the center column).
+ * Wrappers of the main area, conversation pane, right panel and code preview. `[data-slot]`
+ * elements are `display: contents`, so the painted box is the slot's child or its parent
+ * column. Clearing them lets the fixed window background show cleanly without touching
+ * `--dsw-alias-bg-base` (which dialogs, popovers and tooltips still need opaque).
  */
 const MAIN_AREA = [
   ':has(> * > [data-slot="main"])',
   ':has(> [data-slot="main"])',
   '[data-slot^="main."] > *',
-  // The right panel: its tabs and its empty state.
+  '[data-conversation-scroll]',
+  '[data-chat-flow]',
+  '[data-sidebar-right-panel]',
   '[data-sidebar-right-panel] [data-dockkit-pane]',
   '[data-dockkit-empty]',
+  '[data-code-preview]',
 ].join(',\n');
 
 /** Sticky strips that hide content scrolling under them: code block banners, open steps. */
@@ -33,11 +39,10 @@ const STICKY_BANDS = [
 ].join(',\n');
 
 /**
- * The window background in dsh, as in Codex: one layer under the whole page, the frame and
- * the conversation cleared so it shows through, the sidebar and the composer frosted, and
- * the strips content scrolls under (the composer's bottom bar, sticky banners) drawn as
- * copies of the layer. All static images pinned to the window, no live backdrop-filter, so
- * streaming and scrolling cost nothing extra.
+ * Full-window background in dsh: one fixed layer under the whole page (`body::before`),
+ * main frames and panels punched transparent so it shows through, sidebar and composer
+ * frosted with a static pre-blurred copy (never a live `backdrop-filter` over streaming
+ * areas), and sticky strips painted with aligned copies so scrolling content hides cleanly.
  */
 export function buildBackgroundCss(view: DshCoreView): string {
   const background = view.background;
@@ -45,6 +50,10 @@ export function buildBackgroundCss(view: DshCoreView): string {
     return '';
   }
   const surface = `var(${SURFACE})`;
+  const image =
+    view.backgroundImage === DSH_GRADIENT_BACKGROUND_ID
+      ? buildBackgroundFillImage(background.fill)
+      : undefined;
   const css = [
     rule(':root:root body', [
       `  ${SURFACE}: var(--dsw-alias-bg-base);`,
@@ -54,9 +63,10 @@ export function buildBackgroundCss(view: DshCoreView): string {
       layerSelector: 'body::before',
       base: surface,
       lightScope: LIGHT_BODY,
+      ...(image ? { image } : {}),
     }),
     rule(`${selectorOf('frame')},\n${MAIN_AREA}`, ['  background: transparent !important;']),
-    // The column and the sidebar's own fades see a clear sidebar; the panel is frosted.
+    // The column and the sidebar's own fades see a clear sidebar; the panel itself is frosted.
     rule(selectorOf('sidebarColumn'), [
       '  --dsw-specific-sidebar-fill: transparent;',
       '  background: transparent !important;',
@@ -65,11 +75,14 @@ export function buildBackgroundCss(view: DshCoreView): string {
       selectorOf('sidebar'),
       buildBackgroundCopyDeclarations(background, {
         base: surface,
-        soft: true,
+        ...(image ? { image } : { soft: true }),
         tint: `var(${SIDEBAR})`,
       })
     ),
-    rule(STICKY_BANDS, buildBackgroundCopyDeclarations(background, { base: surface })),
+    rule(
+      STICKY_BANDS,
+      buildBackgroundCopyDeclarations(background, { base: surface, ...(image ? { image } : {}) })
+    ),
     // dsh fades the bar under the composer in over 36px; the copy fades in the same way.
     rule(selectorOf('composerSeat'), ['  background: none !important;']),
     rule(`${selectorOf('composerSeat')}::before`, [
@@ -78,14 +91,17 @@ export function buildBackgroundCss(view: DshCoreView): string {
       '  inset: 0;',
       '  z-index: -1;',
       '  pointer-events: none;',
-      ...buildBackgroundCopyDeclarations(background, { base: surface }),
+      ...buildBackgroundCopyDeclarations(background, {
+        base: surface,
+        ...(image ? { image } : {}),
+      }),
       '  mask-image: linear-gradient(to bottom, transparent, #000 36px);',
     ]),
     rule(
       selectorOf('composer'),
       buildBackgroundCopyDeclarations(background, {
         base: surface,
-        soft: true,
+        ...(image ? { image } : { soft: true }),
         tint: 'var(--dsw-specific-input-major)',
       })
     ),

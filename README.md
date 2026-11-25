@@ -354,7 +354,7 @@ code --install-extension woodfish-theme-8.2.3.vsix
 
 | 设置 | 范围 | 默认 | 作用 |
 |---|---|---|---|
-| `squircleCorners.enabled` | `true` / `false` | `true` | 工作台和桌面应用的按钮、卡片及浮层使用平滑圆角。小于 5px 的半径、头像和胶囊保持原样。Codex 在「外观」里切换，dsh 在用户脚本菜单切换。 |
+| `squircleCorners.enabled` | `true` / `false` | `true` | 工作台和桌面应用的按钮、卡片及浮层使用平滑圆角。小于 5px 的半径、头像和胶囊保持原样。Codex 在「外观」里切换，dsh 在原生「设置 → Woodfish」里切换并调节圆角倍率与曲率形状。 |
 | `overlay.hueShift` | `0 - 180` 度 | `32` | 渐变从原色沿色环转到终点的角度 |
 | `overlay.lightnessDelta` | `0 - 0.5` | `0.12` | 渐变终点最多变亮或变暗多少 |
 | `overlay.neutralChroma` | `0 - 0.4` | `0.075` | 普通文字上那条彩虹的浓淡 |
@@ -450,9 +450,9 @@ AI 打不开 GitHub 的话，把地址换成 `https://cdn.jsdelivr.net/gh/woodfi
 
 只换配色、不开调试端口的原生配色，Codex++ 用户脚本，全部命令和效果插件的细节，见 [Woodfish 桌面工具](./apps/cli/README.md)。
 
-## DeepSeek Harness（dsh）Web 版
+## DeepSeek Harness（dsh）原生插件
 
-dsh 的 Web 版（`dsh web`，本机 `127.0.0.1:3080`）可以通过油猴用户脚本换上 15 套主题和 Codex 同款的全部效果：彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、回复正文彩虹、侧栏流光边框、《彩云》窗口背景与毛玻璃、毛玻璃菜单、代码渐变。`woodfish dsh userscript` 输出脚本路径，装进 Tampermonkey / Violentmonkey 即可；效果参数和 Codex 共用效果文件夹。详见 [dsh 适配说明](./docs/hosts/dsh-web.md)。
+DeepSeek Harness（`dsh 0.2.2+`，支持 `dsh web` 与 `dsh desktop`）以官方双端原生插件 `woodfish-dsh-plugin` 接入，无需浏览器扩展：内置 15 套深/浅色主题、自定义背景图上传、全局侵入式苹果圆角，以及全部 12 项效果（彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、回复正文彩虹、侧栏流光边框、《彩云》窗口背景与毛玻璃、浮层毛玻璃、代码与 Diff 渐变等）。安装后直接在 dsh 的 **设置 → Woodfish** 中实时调节每一项效果的全部参数与 `user.css`，并通过 dsh 原生配置持久化。运行 `woodfish dsh install` 或 `dsh plugin --profile web add woodfish-dsh-plugin` 安装；详见 [dsh 适配说明](./docs/hosts/dsh-web.md)。
 
 ## 本地开发
 
@@ -473,7 +473,7 @@ pnpm package
 
 - `apps/vscode-extension/`：VS Code 扩展。
 - `apps/chatgpt-app/`：ChatGPT/Codex 桌面端适配。
-- `apps/dsh-web/`：DeepSeek Harness Web 版适配。
+- `apps/dsh-web/`：DeepSeek Harness 官方双端原生插件（`woodfish-dsh-plugin`）。
 - `apps/cli/`：`woodfish` 命令行、渲染脚本构建和发布产物。
 - `packages/theme-core/`、`packages/renderer-runtime/`、`packages/effects/`：与具体宿主无关的共享代码。
 - 新宿主放在 `apps/<宿主>/`，适配器与宿主入口保持在同一个目录。

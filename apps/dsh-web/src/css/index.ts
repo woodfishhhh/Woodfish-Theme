@@ -22,7 +22,12 @@ export const DSH_STYLE_NAMES: readonly DshStyleName[] = Object.freeze([
 export function buildDshCss(view: DshCoreView): Record<DshStyleName, string> {
   return {
     palette: buildPaletteCss(view.palette),
-    corners: view.squircleCorners ? buildCornerCss() : '',
+    corners: view.squircleCorners.enabled
+      ? buildCornerCss({
+          scale: view.squircleCorners.scale,
+          shape: view.squircleCorners.shape,
+        })
+      : '',
     background: buildBackgroundCss(view),
     code: buildCodeCss(view),
     custom: view.customCss.join('\n'),

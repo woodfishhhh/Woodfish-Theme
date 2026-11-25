@@ -35,6 +35,7 @@ jobs:
           pnpm themes:check
           pnpm runtime:check
           pnpm codex:check
+          pnpm dsh:check
 
       - name: Check formatting
         run: pnpm format:check
@@ -93,9 +94,12 @@ jobs:
           pnpm --filter @woodfish/theme-core run compile
           pnpm --filter @woodfish/renderer-runtime run compile
           pnpm --filter @woodfish/chatgpt-app run compile
+          pnpm --filter @woodfish/dsh-web run compile
           pnpm --filter @woodfish/cli run compile
           pnpm codex:check
+          pnpm dsh:check
           pnpm --filter @woodfish/chatgpt-app run test --runInBand
+          pnpm --filter @woodfish/dsh-web run test --runInBand
           pnpm --filter @woodfish/cli run test --runInBand
 
       - name: Smoke-test the bundled CLI

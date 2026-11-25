@@ -5,12 +5,12 @@ import {
   GradientContext,
   PageController,
   TextGradientEngine,
-  base64ToBlob,
   blurBackgroundImage,
   clearTextGradientMarks,
   createBackgroundLayer,
   createStyleManager,
   installController,
+  startNativeCorners,
   startTextGradientEngine,
   uninstallController,
 } from '@woodfish/renderer-runtime';
@@ -29,6 +29,7 @@ import {
   DshSelectorGroup,
 } from '../selectors';
 import {
+  DSH_GRADIENT_BACKGROUND_ID,
   DshCoreView,
   DshSettings,
   composeDshCoreView,
@@ -37,11 +38,15 @@ import {
 } from '../settings';
 import { DshEffects, startDshEffects } from './effects';
 
-/** The bundled 《彩云》 (base64 WebP), inlined into the user script by the build. */
-declare const __WOODFISH_DSH_DEFAULT_BACKGROUND__: string | undefined;
-
 /** How many elements each selector group matches right now. */
 export type SelectorReport = Record<DshSelectorGroup, number>;
+
+export interface DshOverlayOptions {
+  /** Loads a background picture Blob by id (`'caiyun'` or a 16-hex uploaded image id). */
+  loadBackground?: (id: string) => Promise<Blob>;
+  /** Invoked whenever palette settings change so the host ThemeRuntime can sync xterm & meta. */
+  onPaletteChange?: (palette: DshSettings['palette']) => void;
+}
 
 export interface DshOverlayController extends PageController {
   /** Bundle identity; see DSH_BUILD_ID. */
@@ -51,6 +56,10 @@ export interface DshOverlayController extends PageController {
    * untrusted input; it is normalized first.
    */
   update: (settings: unknown, effects?: unknown, userCss?: unknown) => void;
+  /** Applies an immediate live preview patch to one effect without rebuilding the full list. */
+  previewEffect: (id: string, patch: Record<string, unknown>) => EffectValues | null;
+  /** Updates `user.css` live in place and re-evaluates CSS variable overrides. */
+  setUserCss: (css: string) => void;
   /** A copy of the settings in effect. */
   settings: () => DshSettings;
   /** Every effect with its state, values and error. */
@@ -68,6 +77,7 @@ const ACCENT_VARIABLES = [
   '--dsw-alias-brand-primary-new-colorprimary-new-color',
 ];
 const DEGRADED_CHECK_DELAY_MS = 4000;
+const RESIZE_DEBOUNCE_MS = 200;
 
 function probeSelectors(): SelectorReport {
   const report = {} as SelectorReport;
@@ -103,7 +113,7 @@ function themeSignature(helpers: { tokenPaletteSignature: () => string }): strin
   ].join('|');
 }
 
-/** Normalizes the baked-in effects list (untrusted page data) into sources. */
+/** Normalizes an effect list into EffectSource entries. */
 function readEffects(input: unknown): EffectSource[] | null {
   if (!Array.isArray(input)) {
     return null;
@@ -126,7 +136,8 @@ function readEffects(input: unknown): EffectSource[] | null {
 export function startDshOverlay(
   input: unknown,
   effectsInput?: unknown,
-  userCssInput?: unknown
+  userCssInput?: unknown,
+  options: DshOverlayOptions = {}
 ): DshOverlayController {
   let settings = normalizeDshSettings(input);
   const styles = createStyleManager({
@@ -134,10 +145,6 @@ export function startDshOverlay(
     container: () => document.head ?? document.documentElement,
   });
   const backgroundLayer = createBackgroundLayer(styles);
-  const picture =
-    typeof __WOODFISH_DSH_DEFAULT_BACKGROUND__ === 'string'
-      ? __WOODFISH_DSH_DEFAULT_BACKGROUND__
-      : null;
   /** Values of the core effects (null: off or missing), filled by the effect host. */
   const core: Record<'code-gradient' | 'background' | 'squircle-corners', EffectValues | null> = {
     'squircle-corners': null,
@@ -146,10 +153,12 @@ export function startDshOverlay(
   };
   let view: DshCoreView = composeDshCoreView(settings, core);
   let codeEngine: TextGradientEngine | null = null;
+  let stopNativeCorners: (() => void) | null = null;
   let applyingEffects = false;
   let degradedTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
+  let resizeTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
+  let lastPaletteKey = '';
   let disposed = false;
-  // Assigned right below; it only calls back after the controller exists.
   let effects: DshEffects | null = null;
 
   /** The Woodfish palette of the appearance mode dsh is in, if one is selected. */
@@ -158,10 +167,6 @@ export function startDshOverlay(
     return slug === null ? null : (findDshPalette(slug) ?? null);
   }
 
-  /**
-   * A Woodfish palette brings its hand-tuned gradients; with dsh's own colors every
-   * gradient is derived, readable against the code block background dsh draws.
-   */
   function gradientContext(): GradientContext {
     const palette = activePalette();
     if (palette) {
@@ -179,20 +184,20 @@ export function startDshOverlay(
     };
   }
 
-  /** 《彩云》 on the layer while the background effect is on, with its blurred copy. */
   function applyBackgroundImage(): void {
     const background = view.background;
-    if (!background.enabled || picture === null) {
+    const loader = options.loadBackground;
+    if (!background.enabled || view.backgroundImage === DSH_GRADIENT_BACKGROUND_ID || !loader) {
       const none = (): Promise<Blob> => Promise.reject(new Error('none'));
       backgroundLayer.show(null, none, none).catch(() => undefined);
       return;
     }
-    // shortcut: the blurred copy is sized for the window at the time it is made; a later
-    // resize keeps it slightly off until the blur or size changes.
+    const id = view.backgroundImage;
+    const key = `${id}|${background.blur}|${background.saturate}|${background.size}|${window.innerWidth}x${window.innerHeight}`;
     backgroundLayer
       .show(
-        `caiyun|${background.blur}|${background.saturate}|${background.size}`,
-        () => Promise.resolve(base64ToBlob(picture, 'image/webp')),
+        key,
+        () => loader(id),
         (blob) =>
           blurBackgroundImage(blob, background, {
             width: window.innerWidth,
@@ -200,6 +205,16 @@ export function startDshOverlay(
           })
       )
       .catch(() => undefined);
+  }
+
+  function applyNativeCorners(): void {
+    const want = view.squircleCorners.enabled && view.squircleCorners.scanHardcoded;
+    if (want && !stopNativeCorners) {
+      stopNativeCorners = startNativeCorners();
+    } else if (!want && stopNativeCorners) {
+      stopNativeCorners();
+      stopNativeCorners = null;
+    }
   }
 
   function applyEngine(): void {
@@ -229,17 +244,26 @@ export function startDshOverlay(
     }
   }
 
-  /** Recomputes everything the core draws (palette, code gradient, background). */
+  function notifyPaletteChange(): void {
+    const key = `${settings.palette.dark ?? ''}|${settings.palette.light ?? ''}`;
+    if (key !== lastPaletteKey) {
+      lastPaletteKey = key;
+      options.onPaletteChange?.({ ...settings.palette });
+    }
+  }
+
+  /** Recomputes everything the core draws (palette, corners, code/diff gradient, background). */
   function applyCore(): void {
     view = composeDshCoreView(settings, core);
     const css = buildDshCss(view);
     for (const name of DSH_STYLE_NAMES) {
       styles.upsert(name, css[name]);
     }
+    applyNativeCorners();
     applyBackgroundImage();
     applyEngine();
-    // The engine re-reads the palette only when the theme signature changes.
     codeEngine?.refresh();
+    notifyPaletteChange();
   }
 
   function applyEffects(list: EffectSource[]): void {
@@ -255,6 +279,21 @@ export function startDshOverlay(
     if (typeof css === 'string') {
       effects?.host.setUserCss(css);
     }
+  }
+
+  function onResize(): void {
+    if (!view.background.enabled || view.backgroundImage === DSH_GRADIENT_BACKGROUND_ID) {
+      return;
+    }
+    if (resizeTimer !== null) {
+      globalThis.clearTimeout(resizeTimer);
+    }
+    resizeTimer = globalThis.setTimeout(() => {
+      resizeTimer = null;
+      if (!disposed) {
+        applyBackgroundImage();
+      }
+    }, RESIZE_DEBOUNCE_MS);
   }
 
   function markDegraded(): void {
@@ -275,13 +314,26 @@ export function startDshOverlay(
         return;
       }
       settings = normalizeDshSettings(next);
-      applyUserCss(userCss);
+      applyUserCss(userCss ?? settings.userCss);
       const list = readEffects(nextEffects);
       if (list) {
         applyEffects(list);
       }
       applyCore();
       effects?.host.themeChanged();
+    },
+    previewEffect: (id: string, patch: Record<string, unknown>): EffectValues | null => {
+      if (disposed || !effects) {
+        return null;
+      }
+      return effects.host.preview(id, patch);
+    },
+    setUserCss: (css: string): void => {
+      if (disposed) {
+        return;
+      }
+      settings = { ...settings, userCss: css };
+      applyUserCss(css);
     },
     settings: () => normalizeDshSettings(settings),
     effects: () => effects?.host.status() ?? [],
@@ -292,13 +344,17 @@ export function startDshOverlay(
         return;
       }
       disposed = true;
-      // Each step runs even if an earlier one throws: the page must end up clean.
       const steps: Array<() => void> = [
         (): void => {
           if (degradedTimer !== null) {
             globalThis.clearTimeout(degradedTimer);
           }
+          if (resizeTimer !== null) {
+            globalThis.clearTimeout(resizeTimer);
+          }
+          window.removeEventListener('resize', onResize);
         },
+        (): void => stopNativeCorners?.(),
         (): void => effects?.dispose(),
         (): void => backgroundLayer.dispose(),
         (): void => codeEngine?.dispose(),
@@ -316,6 +372,7 @@ export function startDshOverlay(
           // Best effort; continue cleaning up.
         }
       }
+      stopNativeCorners = null;
       codeEngine = null;
       effects = null;
       uninstallController(DSH_CONTROLLER_KEY, controller);
@@ -335,7 +392,8 @@ export function startDshOverlay(
     },
     onError: (): void => undefined,
   });
-  applyUserCss(userCssInput);
+  window.addEventListener('resize', onResize, { passive: true });
+  applyUserCss(userCssInput ?? settings.userCss);
   applyEffects(readEffects(effectsInput) ?? []);
   applyCore();
   document.documentElement.dataset[DSH_DATASET.active] = DSH_ADAPTER_VERSION;

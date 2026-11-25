@@ -1,3 +1,11 @@
 export { startDshOverlay } from './overlay';
-export type { DshOverlayController, SelectorReport } from './overlay';
-export { bootDshOverlay, bootFromUserScript, isDshPage } from './entries';
+export type { DshOverlayController, DshOverlayOptions, SelectorReport } from './overlay';
+export {
+  DSH_EFFECT_LIB,
+  DSH_EFFECT_SELECTORS,
+  dshEffectTheme,
+  findStreamingReply,
+  startDshEffects,
+  trackStreaming,
+} from './effects';
+export type { DshEffects, DshEffectsOptions } from './effects';

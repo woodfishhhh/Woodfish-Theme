@@ -1,0 +1,58 @@
+{
+  "name": "woodfish-dsh-plugin",
+  "version": "8.2.3",
+  "description": "Woodfish Theme for DeepSeek Harness (dsh): 15 dark/light palettes, full-window background, parameterized squircle corners, code & diff gradients, streaming effects, and full native settings.",
+  "license": "MIT",
+  "type": "module",
+  "icon": "./icon.svg",
+  "homepage": "https://github.com/woodfishhhh/Woodfish-Theme/blob/main/docs/hosts/dsh-web.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/woodfishhhh/Woodfish-Theme.git",
+    "directory": "apps/dsh-web/plugin"
+  },
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./assets/*": "./lib/assets/*",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "icon.svg",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "lib/index.js",
+    "lib/client.js",
+    "lib/assets"
+  ],
+  "engines": {
+    "dsh": ">=0.2.0-0 <1.0.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0",
+    "@deepseek-ai/schemastery": "~3.19.0"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-theme",
+        "@deepseek-ai/dsh-api-remotes"
+      ],
+      "immediately": true
+    }
+  }
+}

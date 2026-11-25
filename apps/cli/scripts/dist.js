@@ -48,7 +48,7 @@ function buildNpmPackage(version) {
     name: 'woodfish',
     version,
     description: pkg.description,
-    keywords: ['codex', 'openai-codex', 'theme', 'woodfish', 'deepseek', 'userscript', 'cdp'],
+    keywords: ['codex', 'openai-codex', 'theme', 'woodfish', 'deepseek', 'dsh', 'plugin', 'cdp'],
     homepage: `${REPOSITORY}/tree/main/apps/cli#readme`,
     bugs: `${REPOSITORY}/issues`,
     repository: { type: 'git', url: `git+${REPOSITORY}.git`, directory: 'apps/cli' },

@@ -1,10 +1,38 @@
 {
   "name": "苹果圆角（Squircle corners）",
-  "description": "面板、卡片和浮层使用平滑圆角，胶囊按钮保持圆弧。",
-  "version": 1,
+  "description": "面板、卡片和浮层使用平滑连续圆角，并接管内置组件写死的像素圆角；正圆、胶囊按钮与 1–4px 细角保持原样。",
+  "version": 2,
   "hosts": ["codex", "dsh"],
   "enabled": true,
   "order": 65,
-  "params": {},
-  "core": "squircle-corners"
+  "core": "squircle-corners",
+  "params": {
+    "scale": {
+      "type": "number",
+      "default": 1.78,
+      "min": 1,
+      "max": 2.4,
+      "step": 0.02,
+      "label": "圆角倍率",
+      "description": "连续圆角相对普通圆角的视觉补偿倍率（默认 1.78，1 为不放大）"
+    },
+    "shape": {
+      "type": "select",
+      "default": "squircle",
+      "options": [
+        { "value": "squircle", "label": "标准苹果（squircle）" },
+        { "value": "soft", "label": "柔和（superellipse 1.6）" },
+        { "value": "strong", "label": "强平滑（superellipse 2.4）" },
+        { "value": "extreme", "label": "超平滑（superellipse 3.0）" }
+      ],
+      "label": "曲率形状",
+      "description": "控制直边向圆角过渡的连续曲率"
+    },
+    "scanHardcoded": {
+      "type": "boolean",
+      "default": true,
+      "label": "接管硬编码圆角",
+      "description": "扫描宿主与内置插件样式表中写死的像素圆角（保持正圆、胶囊与 1–4px 细边不变）"
+    }
+  }
 }

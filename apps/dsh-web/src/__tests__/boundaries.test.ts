@@ -9,7 +9,7 @@ function listSources(directory: string): string[] {
     if (entry.isDirectory()) {
       return entry.name === '__tests__' ? [] : listSources(fullPath);
     }
-    return entry.name.endsWith('.ts') ? [fullPath] : [];
+    return entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts') ? [fullPath] : [];
   });
 }
 
@@ -27,19 +27,37 @@ describe('dsh-web boundaries', () => {
     code: fs.readFileSync(file, 'utf-8'),
   }));
 
-  it('depends only on Woodfish packages and its own modules', () => {
+  const isPure = (file: string): boolean =>
+    !file.startsWith('renderer/') && !file.startsWith('client/') && !file.startsWith('host/');
+
+  it('keeps external imports constrained per runtime boundary', () => {
+    const allowedByLayer = (file: string): ReadonlySet<string> => {
+      if (file.startsWith('host/')) {
+        return new Set(['crypto', 'fs', 'os', 'path', '@deepseek-ai/schemastery']);
+      }
+      if (file.startsWith('client/')) {
+        return new Set(['react']);
+      }
+      return new Set();
+    };
     for (const { file, code } of sources) {
-      const external = [...code.matchAll(/(?:from|import)\s*['"]([^'"]+)['"]/g)]
+      const allowed = allowedByLayer(file);
+      const unexpected = [...code.matchAll(/(?:from|import)\s*['"]([^'"]+)['"]/g)]
         .map((match) => match[1])
-        .filter((specifier) => !specifier.startsWith('.') && !specifier.startsWith('@woodfish/'));
-      expect({ file, external }).toEqual({ file, external: [] });
+        .filter(
+          (specifier) =>
+            !specifier.startsWith('.') &&
+            !specifier.startsWith('@woodfish/') &&
+            !allowed.has(specifier)
+        );
+      expect({ file, unexpected }).toEqual({ file, unexpected: [] });
     }
   });
 
-  it('keeps the pure entry free of DOM access', () => {
+  it('keeps the pure entry free of DOM and Node globals', () => {
     const forbidden =
       /\b(?:document|window|location|getComputedStyle|requestAnimationFrame|MutationObserver|HTMLElement|process|Buffer)\b/;
-    for (const { file, code } of sources.filter((source) => !source.file.startsWith('renderer/'))) {
+    for (const { file, code } of sources.filter((source) => isPure(source.file))) {
       expect({ file, match: forbidden.exec(strip(code))?.[0] ?? null }).toEqual({
         file,
         match: null,
@@ -47,9 +65,12 @@ describe('dsh-web boundaries', () => {
     }
   });
 
-  it('never imports the renderer from the pure entry', () => {
-    for (const { file, code } of sources.filter((source) => !source.file.startsWith('renderer/'))) {
-      expect({ file, imports: /from\s+['"]\.\.?\/renderer/.test(code) }).toEqual({
+  it('never imports renderer, client or host from the pure entry', () => {
+    for (const { file, code } of sources.filter((source) => isPure(source.file))) {
+      expect({
+        file,
+        imports: /from\s+['"]\.\.?\/(?:renderer|client|host)/.test(code),
+      }).toEqual({
         file,
         imports: false,
       });

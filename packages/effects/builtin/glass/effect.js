@@ -15,9 +15,10 @@ module.exports = function glass(ctx) {
     return `${selector} {\n${lines.map((line) => `  ${line}`).join('\n')}\n}`;
   }
 
-  /* dsh: tint, noise and blur of every floating surface, set where dsh declares them. */
+  /* dsh: tint, noise, blur, optional radius and animations across floating surfaces. */
   function dshGlass(filter) {
     const p = ctx.params;
+    const targets = ctx.selectors.floatingLayer;
     // :root:root lifts the rule above dsh's own blocks on <body> (up to 0,2,2).
     const scope = ':root:root body';
     const tint = `color-mix(in oklab, var(--dsw-alias-bg-layer-2) ${Math.round(p.opacity * 100)}%, transparent)`;
@@ -27,7 +28,7 @@ module.exports = function glass(ctx) {
       '--dsw-menu-backdrop-filter: none;',
       '--dsw-specific-menu: var(--dsw-alias-bg-layer-2);',
     ];
-    return [
+    const parts = [
       rule(scope, [
         `--dsw-menu-surface-fill: ${tint};`,
         `--dsw-specific-menu: ${surface};`,
@@ -35,6 +36,28 @@ module.exports = function glass(ctx) {
       ]),
       `@media (prefers-reduced-transparency: reduce) {\n${rule(scope, opaque)}\n}`,
     ];
+    if (p.borderRadius > 0) {
+      parts.push(
+        rule(':is([data-menu-material], [role="menu"], [role="listbox"])', [
+          `border-radius: calc(${p.borderRadius}px * var(--squircle-k, 1)) !important;`,
+          'corner-shape: var(--squircle-shape, round) !important;',
+        ])
+      );
+    }
+    if (p.animations) {
+      const curve = 'cubic-bezier(0.22, 1, 0.36, 1)';
+      parts.push(
+        '@keyframes woodfish-dsh-glass-pop { from { opacity: 0; transform: translateY(-4px) scale(0.985); } }',
+        rule(`:where(${targets}):is([data-menu-material], [role="menu"], [role="listbox"])`, [
+          `animation: woodfish-dsh-glass-pop 180ms ${curve} backwards;`,
+        ]),
+        `:root[data-reduced-motion="true"] :where(${targets}) { animation: none !important; }`,
+        `@media (prefers-reduced-motion: reduce) { :where(${targets}) { animation: none !important; } }`
+      );
+    } else {
+      parts.push(rule(`:where(${targets})`, ['animation: none !important;']));
+    }
+    return parts;
   }
 
   function revealCss() {

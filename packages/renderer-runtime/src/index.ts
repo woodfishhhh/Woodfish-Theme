@@ -14,7 +14,15 @@ export type {
 } from './textGradientEngine';
 export { RUN_VARIABLES, linkGradientRuns } from './gradientRuns';
 export { startNativeCorners } from './nativeCorners';
-export { SQUIRCLE_K, buildHostCornerCss, buildSquircleCss, prepareCornerRadii } from './squircle';
+export {
+  SQUIRCLE_K,
+  SQUIRCLE_SHAPES,
+  buildHostCornerCss,
+  buildSquircleCss,
+  prepareCornerRadii,
+  squircleShapeValue,
+} from './squircle';
+export type { SquircleCssOptions, SquircleShape } from './squircle';
 export { createStyleManager } from './styleManager';
 export type { StyleManager, StyleManagerOptions } from './styleManager';
 export { createDisposerRegistry } from './disposers';

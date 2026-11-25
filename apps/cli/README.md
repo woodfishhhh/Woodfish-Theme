@@ -1,6 +1,6 @@
-# Woodfish 桌面工具（Codex 桌面端、dsh Web 版）
+# Woodfish 桌面工具（Codex 桌面端、DeepSeek Harness）
 
-`woodfish` 命令行工具负责把 Woodfish 的配色和效果带到 OpenAI Codex 桌面端，并为 DeepSeek Harness（dsh）的 Web 版生成油猴脚本（见文末）。
+`woodfish` 命令行工具负责把 Woodfish 的配色和效果带到 OpenAI Codex 桌面端，并为 DeepSeek Harness（dsh）安装与管理官方原生插件 `woodfish-dsh-plugin`（见文末）。
 
 Codex 效果支持 Windows 10 / 11 上的官方 **ChatGPT（含 Codex）**。通过 [Microsoft Store](https://apps.microsoft.com/detail/9PLM9XGG6VKS)、OpenAI 官网的 Windows 安装器、`winget install 9PLM9XGG6VKS -s msstore` 或 [官方离线 MSIX](https://learn.chatgpt.com/codex/enterprise/windows-deployment) 安装均可；离线部署后，应用须已在当前 Windows 用户下注册。ChatGPT Classic、浏览器/PWA、Codex CLI、未注册的解包版以及 macOS 不支持。
 
@@ -201,27 +201,29 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 
 实测细节见 [docs/hosts/chatgpt-app.md](../../docs/hosts/chatgpt-app.md)。
 
-Codex 外观和 dsh 用户脚本菜单都提供「苹果圆角（Squircle corners）」，默认开启。将效果目录 `squircle-corners/params.json` 中的 `enabled` 设为 `false` 可恢复原来的圆角；dsh 重新生成用户脚本后会带上这个值。
+Codex 外观和 dsh 原生设置面板（设置 → Woodfish）都提供「苹果圆角（Squircle corners）」，默认开启。Codex 可在外观设置或 `squircle-corners/params.json` 中切换，dsh 可在原生设置里直接开关并调节圆角倍率、曲率形状和硬编码圆角扫描。
 
-## DeepSeek Harness（dsh）Web 版
+## DeepSeek Harness（dsh）原生插件
 
-dsh 的 Web 版（`dsh web`）是本机服务打开的网页，Woodfish 以油猴用户脚本的形式提供，效果和 Codex 桌面端是同一套插件：Woodfish 配色（深色、浅色各选一套）、6px 彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、回复正文彩虹、侧栏当前会话的流光边框、输入框光晕与渐变发送按钮、《彩云》窗口背景和毛玻璃侧栏、毛玻璃菜单、OKLCH 代码渐变。不修改 dsh 的任何文件和配置。
+Woodfish 为 DeepSeek Harness（`dsh 0.2.2+`，支持 `dsh web` 与 `dsh desktop`）提供符合官方 `dsh.bundle` + `dsh.client` 规范的原生双端插件 `woodfish-dsh-plugin`，不依赖任何浏览器扩展。安装后直接集成在 dsh 原生设置窗口的 **Woodfish** 页签中，包含全部 15 套深/浅色主题、自定义背景图上传、全局侵入式苹果圆角、以及全部 12 项效果的每一个可调参数（滑块、选项、取色器、单项与全部重置、实时 `user.css` 编辑），改动即时生效并通过 dsh 原生配置持久化。
 
 ```bash
-woodfish dsh userscript                                  # 生成 %APPDATA%\Woodfish\woodfish-dsh.user.js
-woodfish dsh userscript --set palette.dark=neon
-woodfish dsh userscript --set palette.light=null         # 浅色保留 dsh 自带配色
-woodfish dsh userscript --out D:\woodfish-dsh.user.js    # 写到别处（文件名需以 .user.js 结尾）
-woodfish dsh userscript --reset                          # 恢复默认设置
-woodfish dsh uninstall                                   # 删除生成的脚本和设置
+# 使用 woodfish CLI 一键安装 / 查看状态 / 卸载（默认 profile 为 web）
+woodfish dsh install                                     # 暂存内置原生插件并执行 dsh plugin --profile web add
+woodfish dsh install --package ./apps/dsh-web/plugin     # 或指定本地插件目录 / .tgz / npm 包名
+woodfish dsh status                                      # 查看当前安装与启用状态（支持 --json）
+woodfish dsh uninstall                                   # 从 dsh 卸载插件并清理暂存目录
+
+# 也可直接使用 dsh 官方命令安装
+dsh plugin --profile web add woodfish-dsh-plugin
 ```
 
-安装：在浏览器里装好 Tampermonkey 或 Violentmonkey，在它的管理面板中导入生成的文件，然后刷新 dsh 页面。脚本匹配本机任意端口，但只在 dsh 页面里启动；dsh 放在反向代理后面时，需要在油猴里给脚本加上对应网址。
+- **dsh Desktop（Electron 桌面端）**：`dsh 0.2.2-rc.5` 的命令行将 `desktop` profile 交由桌面应用独占管理。运行 `woodfish dsh install --profile desktop` 会把内置插件暂存到本地并输出路径，在 dsh Desktop 的「插件管理 → 添加插件」中填入该路径或包名即可启用同一个原生插件。
+- **全参数实时调节**：打开 dsh 的 **设置 → Woodfish**（或在插件管理器中点击 Woodfish 的配置按钮）：
+  - **主题配色**：15 套深色 / 浅色主题预览卡，切换即时生效并同步终端配色；
+  - **窗口背景**：内置《彩云》、彩云渐变，支持上传本地 JPG / PNG / WebP 背景图（保存在 `$DSH_HOME/woodfish/backgrounds/`，跨刷新和重启保留）与 7 项透明度/模糊/遮罩滑块；
+  - **全部 12 项效果**：输入框光标、光标拖尾、打字粒子、吐字光标、新字淡入、回复正文彩虹、侧栏流光边框、强调色点缀、浮层毛玻璃、窗口背景、代码与 Diff 渐变、苹果圆角，每一项都有独立开关、全部参数控件和恢复默认按钮；
+  - **自定义 CSS**：面板底部可直接编辑 `user.css`（支持 `--woodfish-<效果>-<参数>` 变量覆盖），立即生效并持久化。
+- **卸载**：运行 `woodfish dsh uninstall` 或在 dsh 插件管理器中停用/移除 `woodfish-dsh-plugin`，所有样式、圆角镜像与效果即刻撤下。
 
-- **切换**：油猴扩展菜单里有“深色主题 / 浅色主题”（点一下换下一套，最后一项是 dsh 自带配色）和每个效果的开关，立即生效，改动由油猴保存，只影响 dsh。
-- **主题**：默认深色用 Woodfish Dark、浅色用 Woodfish Light。所有 Woodfish 主题都能选，theme-core 新增的主题重新构建后自动出现。`--set` 只管 `palette.dark`、`palette.light`（设为 `null` 保留 dsh 自带的颜色）和 `customCss`。
-- **效果参数**：和 Codex 共用效果文件夹（`%APPDATA%\Woodfish\effects`）：改 `params.json` 或 `user.css`（见下文「效果插件」），再运行一次 `woodfish dsh userscript` 并重新导入。命令每次都会先同步效果文件夹，把所有能在 dsh 里运行的效果连同 `user.css` 写进脚本。
-- **卸载**：在油猴管理面板删除“Woodfish for DeepSeek Harness”并刷新页面，效果全部撤下；`woodfish dsh uninstall` 再删掉本机生成的文件。
-- 仓库里提交了一份默认设置的脚本 `apps/cli/assets/woodfish-dsh.user.js`，带着出厂效果和《彩云》，也可以直接导入。
-
-实测细节与限制见 [docs/hosts/dsh-web.md](../../docs/hosts/dsh-web.md)。
+实测细节与架构说明见 [docs/hosts/dsh-web.md](../../docs/hosts/dsh-web.md)。

@@ -211,7 +211,7 @@ All settings live under `woodfishTheme.`. In the Settings UI they are grouped in
 }
 ```
 
-**Squircle corners** are on by default. To restore the original corners, turn off `woodfishTheme.squircleCorners.enabled` in VS Code, **Squircle corners** in Codex Appearance, or the corresponding switch in the dsh user script menu. Buttons, cards, menus and dialogs use smooth corners. Avatars, pill buttons and corners below 5px keep their original geometry.
+**Squircle corners** are on by default. To restore the original corners, turn off `woodfishTheme.squircleCorners.enabled` in VS Code, **Squircle corners** in Codex Appearance, or toggle and tune scale/shape under **Settings → Woodfish** in DeepSeek Harness (dsh). Buttons, cards, menus and dialogs use smooth corners. Avatars, pill buttons and corners below 5px keep their original geometry.
 
 ### Effect plugins
 
@@ -268,7 +268,7 @@ If the AI cannot open GitHub, use `https://cdn.jsdelivr.net/gh/woodfishhhh/Woodf
 
 The native palette that opens no debugging port, the Codex++ user script, every command and the effect plugins in detail: [apps/cli/README.md](apps/cli/README.md) (Chinese).
 
-The DeepSeek Harness (dsh) Web UI gets the 15 themes and every Codex effect (rainbow caret and trail, typing particles, streaming cursor and fade-in, rainbow reply text, the session ring, the 《彩云》 window background with frosted panels, frosted menus, code gradients) through a Tampermonkey / Violentmonkey user script: `woodfish dsh userscript`. Effect parameters live in the effects folder shared with Codex. See [docs/hosts/dsh-web.md](docs/hosts/dsh-web.md) (Chinese).
+DeepSeek Harness (`dsh 0.2.2+`, supporting both `dsh web` and `dsh desktop`) ships as an official native dual-face plugin (`woodfish-dsh-plugin`), with no browser extension required: all 15 dark/light themes, custom background uploads, intrusive squircle corners, and all 12 effects (rainbow caret and trail, typing particles, streaming cursor and fade-in, rainbow reply text, selected-session ring, 《彩云》 window background with frosted panels, frosted menus, code and diff gradients), with every parameter and `user.css` editable live inside dsh's native **Settings → Woodfish** tab and persisted through dsh's native settings. Install with `woodfish dsh install` or `dsh plugin --profile web add woodfish-dsh-plugin`. See [docs/hosts/dsh-web.md](docs/hosts/dsh-web.md) (Chinese).
 
 ## Bundled popular themes
 
@@ -312,7 +312,7 @@ The repository is a pnpm workspace monorepo; run the commands above from the roo
 
 - `apps/vscode-extension/`: the VS Code extension.
 - `apps/chatgpt-app/`: the ChatGPT/Codex desktop adapter.
-- `apps/dsh-web/`: the DeepSeek Harness Web adapter.
+- `apps/dsh-web/`: the DeepSeek Harness official native dual-face plugin (`woodfish-dsh-plugin`).
 - `apps/cli/`: the `woodfish` CLI, renderer builds, and release artifacts.
 - `packages/theme-core/`, `packages/renderer-runtime/`, `packages/effects/`: host-agnostic shared code.
 - New hosts belong in `apps/<host>/`, with the adapter and host entry kept together.

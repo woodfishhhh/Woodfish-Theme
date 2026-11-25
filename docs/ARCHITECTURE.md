@@ -12,11 +12,11 @@ Woodfish-Theme/
 │  │  ├─ scripts/            # 主题生成、渲染端构建、打包、发布
 │  │  └─ docs/               # 随 VSIX 发布的 walkthrough 与故障排查
 │  ├─ chatgpt-app/           # @woodfish/chatgpt-app：Codex 选择器、CSS 生成、原生主题映射、页面内 overlay
-│  ├─ dsh-web/               # @woodfish/dsh-web：dsh Web 版选择器、CSS 生成、页面内 overlay（油猴脚本）
-│  └─ cli/                   # @woodfish/cli：`woodfish` 命令行、渲染脚本构建与发布产物
+│  ├─ dsh-web/               # @woodfish/dsh-web：dsh 官方双端原生插件（Host/Client/Renderer，构建产物在 plugin/）
+│  └─ cli/                   # @woodfish/cli：`woodfish` 命令行、Codex 渲染脚本构建与 dsh 原生插件安装管理
 │     ├─ src/                # 命令、CDP 客户端、监视进程、config.toml 按键修改、Windows 平台层、dsh/
-│     ├─ assets/             # Codex 渲染端脚本与 dsh 油猴脚本（构建产物，提交入库）
-│     └─ scripts/build.js    # 构建渲染端脚本与单文件 CLI
+│     ├─ assets/             # Codex 渲染端脚本（构建产物，提交入库）
+│     └─ scripts/build.js    # 构建 Codex 渲染端脚本与单文件 CLI（内嵌 dsh 原生插件产物）
 ├─ packages/
 │  ├─ theme-core/            # @woodfish/theme-core：与宿主无关的颜色与效果核心
 │  ├─ renderer-runtime/      # @woodfish/renderer-runtime：任意 Chromium 页面里运行的效果引擎
@@ -83,14 +83,16 @@ VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建�
 
 ### `@woodfish/dsh-web`
 
-结构与 chatgpt-app 相同：入口 `.` 只有纯逻辑，`./renderer` 是页面内的 overlay。dsh 的界面几乎完全由 CSS 变量驱动，所以配色和毛玻璃都是变量覆盖，元素选择器只用于代码 token、输入框和当前会话。
+入口 `.` 只有纯逻辑，不访问 DOM；`./renderer` 是页面内的侵入式效果与圆角运行时；`./host` 与 `./client` 构成标准的 `dsh 0.2.2+` 双端原生插件（由 `apps/dsh-web/scripts/build.js` 打包到独立、零外部依赖的 `apps/dsh-web/plugin/`，包名 `woodfish-dsh-plugin`）。
 
 | 模块 | 内容 |
 | --- | --- |
-| `selectors` | dsh 界面定位点，只用 `data-*`、ARIA role 和库的类名（`pre.shiki`），不用带哈希的 CSS module 类名；深浅色作用域 `modeScope` |
-| `settings` | 设置的类型与归一化。主题按 `WOODFISH_PALETTES` 通用遍历，theme-core 新增主题无需改动 |
-| `css/` | `--dsw-alias-*` / `--dsw-specific-*` 配色覆盖、`--shiki-token-*` 语法色、代码渐变与发光、浮层毛玻璃（变量）、强调色、彩色光标、正文渐变 |
-| `renderer/` | `startDshOverlay`，以及油猴脚本入口：只在 dsh 页面启动，菜单切换主题与开关（`GM_*`，没有时退回 localStorage） |
+| `selectors` | dsh 界面定位点，只用 `data-*`、ARIA role 和稳定库类名（`pre.shiki`、`.line`），不硬编码带哈希的 CSS module 类名；深浅色作用域 `modeScope` |
+| `settings` | 设置、效果覆写与持久化配置的类型及归一化。主题按 `WOODFISH_PALETTES` 通用遍历，theme-core 新增主题无需改动 |
+| `css/` | `--dsw-alias-*` / `--dsw-specific-*` 全量配色覆盖与表面侵入式样式、`--shiki-token-*` 语法色、代码与 Diff 渐变/发光、参数化苹果圆角、窗口背景与静态模糊副本 |
+| `host/` | Cordis 宿主插件：扁平 `.volatile()` 配置 schema、`webserver/index-inject` 首屏注入、`/api/woodfish-backgrounds` 自定义背景图校验与 `$DSH_HOME/woodfish/backgrounds/` 持久化 |
+| `client/` | React 客户端插件：注册原生 `settings.section`（「Woodfish」专属设置页签）与 `plugins.bundle.config` 入口，动态渲染全部 12 项效果的 73 个可调参数控件、15 套主题预览卡、背景图上传与 `user.css` 编辑器，并同步 `ctx.theme` |
+| `renderer/` | `startDshOverlay`：接入 `renderer-runtime` 效果宿主与 `startNativeCorners()`（动态镜像 dsh 与内置插件样式表的硬编码圆角），支持实时参数预览与无残留释放 |
 
 ### `@woodfish/effects` 与效果插件
 
@@ -114,20 +116,20 @@ VS Code 的渲染端脚本改为调用这个包后，与冻结的 7.0.0 构建�
 2. **渲染与安装**：渲染端脚本只负责应用、更新和清理效果；宿主识别、文件写入、恢复与版本检查由安装入口负责。
 3. **页面毛玻璃与系统窗口透明**：系统窗口透明需要宿主主进程能力，各应用单独声明是否支持。
 
-| 职责 | VS Code 扩展 | Codex 桌面端 | dsh Web 版 |
+| 职责 | VS Code 扩展 | Codex 桌面端 | DeepSeek Harness（dsh） |
 | --- | --- | --- | --- |
-| 注入方式 | 修改 `workbench.html`（`workbenchPatcher.ts`） | 不修改安装文件；以本机调试端口启动，由后台监视进程通过 CDP 注入（`cli/src/inject/`） | 油猴用户脚本（Tampermonkey / Violentmonkey），不碰 dsh 的文件和配置 |
-| 渲染端脚本 | `browser/overlay-bootstrap.ts` → `themes/shared/overlay-bootstrap.js` | `chatgpt-app/src/renderer/` → `cli/assets/*.js` | `dsh-web/src/renderer/` → `cli/assets/woodfish-dsh.user.js` |
-| 原生配色 | 内置的 VS Code 颜色主题 | 按键修改 `~/.codex/config.toml` 的 chrome theme（`cli/src/codex/`） | 无；配色由脚本覆盖 dsh 的设计令牌 |
-| 系统窗口透明 | `nativeWindow.ts`（自行注入主进程） | Codex 自带 Mica（`opaqueWindows = false`），Woodfish 不改主进程 | 不适用（浏览器页面） |
-| 恢复与卸载 | `cleanup.ts`、`uninstall.ts` | `stop-inject`、`theme restore`、`autostart off`、`uninstall` | 在油猴中删除脚本；`woodfish dsh uninstall` 删除本机生成的文件 |
+| 注入方式 | 修改 `workbench.html`（`workbenchPatcher.ts`） | 不修改安装文件；以本机调试端口启动，由后台监视进程通过 CDP 注入（`cli/src/inject/`） | 官方双端原生插件 `woodfish-dsh-plugin`（`dsh.bundle` + `dsh.client`），支持 `dsh web` 与 `dsh desktop` |
+| 渲染端产物 | `browser/overlay-bootstrap.ts` → `themes/shared/overlay-bootstrap.js` | `chatgpt-app/src/renderer/` → `cli/assets/*.js` | `dsh-web/src/{host,client,renderer}/` → `apps/dsh-web/plugin/`（同时内嵌进 `woodfish.js`） |
+| 原生配色与设置 | 内置的 VS Code 颜色主题与扩展设置 | 按键修改 `~/.codex/config.toml` 的 chrome theme（`cli/src/codex/`） | 原生 `设置 → Woodfish` 全参数设置页签 + `@deepseek-ai/dsh-settings` 持久化 + `ctx.theme` 同步 |
+| 系统窗口透明 | `nativeWindow.ts`（自行注入主进程） | Codex 自带 Mica（`opaqueWindows = false`），Woodfish 不改主进程 | 不适用（宿主页面内自绘背景与毛玻璃） |
+| 恢复与卸载 | `cleanup.ts`、`uninstall.ts` | `stop-inject`、`theme restore`、`autostart off`、`uninstall` | `woodfish dsh uninstall` 或在 dsh 插件管理器停用/卸载 `woodfish-dsh-plugin` |
 
 ## 构建方式
 
 - `pnpm compile`：通过 TypeScript project references 依次构建共享包（输出到各自的 `out/`），检查各应用的类型，并生成 `apps/cli/out/woodfish.js`。
-- 打包工具通过 `source` 导出条件直接引用共享包的 TypeScript 源码，把它们打进产物。VSIX 和 `woodfish.js` 都不需要 `node_modules`，也不依赖本仓库。
+- 打包工具通过 `source` 导出条件直接引用共享包的 TypeScript 源码，把它们打进产物。VSIX、`woodfish.js` 和 `apps/dsh-web/plugin` 都不需要本仓库的 `node_modules`。
 - 同一个 `woodfish.js` 有三种发法，版本号和扩展一致：npm 包 `woodfish`（`pnpm cli:dist` 生成 `apps/cli/out/npm`，尚未发布）、GitHub Release 上的单文件 `woodfish.exe`（Node 单文件程序，`out/release`）、VSIX 里的 `out/woodfish.js`（`scripts/bundle.js` 放进去，扩展用编辑器自带的 Electron 以 `ELECTRON_RUN_AS_NODE=1` 运行它）。
-- 渲染端脚本（VS Code 的 `overlay-bootstrap.js`、Codex 和 dsh 的 `assets/*.js`）提交入库，因为运行时直接读取，测试也要检查它们。`runtime:check`、`codex:check`（与 `dsh:check` 是同一个检查，覆盖 `cli/assets/` 下全部脚本）和对应的测试会在共享包变化、产物没有重新生成时报错。每个脚本的构建标识只取自它用到的共享包，改 dsh-web 不会让 Codex 脚本过期。`compile` 不会改写这些已提交的文件。
+- 提交入库的渲染端与插件构建产物：VS Code 的 `overlay-bootstrap.js`（`runtime:check`）、Codex 的 `cli/assets/*.js`（`codex:check`）、dsh 原生插件包 `apps/dsh-web/plugin/`（`dsh:check`）。对应检查和测试会在共享包或源码变化但产物未重新生成时报错，`compile` 不会自动改写已提交产物。
 - 原创主题 JSON 由 `apps/vscode-extension/scripts/generate-themes.js` 根据核心里的调色板生成，`themes:check` 检查是否过期。
 - Jest 通过 `moduleNameMapper` 直接加载共享包源码，跑测试前不需要先构建。
 
@@ -140,10 +142,11 @@ pnpm compile
 pnpm themes:check
 pnpm runtime:check
 pnpm codex:check
+pnpm dsh:check
 pnpm test
 ```
 
-检查失败时，运行 `pnpm themes:generate`、`pnpm runtime:build` 或 `pnpm codex:build`（`pnpm dsh:build` 相同），并把生成的文件一起提交。
+检查失败时，运行 `pnpm themes:generate`、`pnpm runtime:build`、`pnpm codex:build` 或 `pnpm dsh:build`，并把生成的文件一起提交。
 
 ## 新增宿主应用
 

@@ -10,7 +10,7 @@ const { BUILTIN_ROOT, readBuiltinEffectFiles } = require('./files.js');
 const README = path.join(BUILTIN_ROOT, 'README.md');
 const START = '<!-- 参数变量清单：scripts/css-variables.js 按各效果的 effect.json 生成，别手改 -->';
 const END = '<!-- 参数变量清单结束 -->';
-const HOSTS = { codex: 'Codex', vscode: 'VS Code' };
+const HOSTS = { codex: 'Codex', vscode: 'VS Code', dsh: 'dsh' };
 
 const kebab = (key) => key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 const cell = (text) => String(text).replace(/\|/g, '\\|').replace(/\n/g, ' ');

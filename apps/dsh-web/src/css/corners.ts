@@ -1,38 +1,54 @@
-import { buildSquircleCss } from '@woodfish/renderer-runtime';
+import {
+  SQUIRCLE_K,
+  SquircleCssOptions,
+  buildSquircleCss,
+  squircleShapeValue,
+} from '@woodfish/renderer-runtime';
 export { SQUIRCLE_K } from '@woodfish/renderer-runtime';
 
 /** dsh declares these on :root. Its 4px xs token keeps its original size. */
 const RADIUS_TOKENS = ['sm', 'md', 'lg', 'xl', 'panel'] as const;
 
+const ROUND_EXEMPT_SELECTORS = [
+  '[role="switch"]',
+  '[role="switch"] *',
+  ...['0px', '1px', '2px', '3px', '4px', '50%', '100%', '999px', '9999px', '10000px'].flatMap(
+    (radius) => [`[style*="border-radius:${radius}"]`, `[style*="border-radius: ${radius}"]`]
+  ),
+].join(', ');
+
 /**
- * Continuous ("Apple") corners for dsh, the same system as Obituary's windows. dsh already
- * draws every corner with `corner-shape: var(--dsw-corner-shape)` (a gentle superellipse) and
- * sizes most of them with `--dsw-radius-*`, so two variable changes switch the whole UI:
- * the shape becomes `squircle` and every radius token grows by the shared scale. Pills keep
- * the `corner-shape: round` dsh gives them. Effects that draw their own rounded boxes read
- * `--squircle-k` and `--squircle-shape` (Obituary's names; without them, circular corners).
- * Engines without `corner-shape: squircle` skip the block and keep dsh's own corners.
- *
- * The tokens are read on `<body>` (inherited from `:root`) and replaced one level further down,
- * because a custom property cannot refer to itself on the element that sets it.
+ * Continuous ("Apple") corners for dsh, parameterized by scale and curvature shape.
+ * Scales dsh's `--dsw-radius-*` tokens and sets `--dsw-corner-shape`, while keeping pills,
+ * circles and 1–4px hairlines round. Paired at runtime with `startNativeCorners()` so
+ * hardcoded `border-radius` values inside hashed CSS-module stylesheets follow `--squircle-k`
+ * and `--squircle-shape` too.
  */
-export function buildCornerCss(): string {
+export function buildCornerCss(options: SquircleCssOptions = {}): string {
+  const shape = squircleShapeValue(options.shape);
   const read = RADIUS_TOKENS.map(
     (name) => `    --woodfish-dsh-radius-${name}: var(--dsw-radius-${name});`
   );
   const scaled = RADIUS_TOKENS.map(
     (name) =>
-      `    --dsw-radius-${name}: calc(var(--woodfish-dsh-radius-${name}) * var(--squircle-k));`
+      `    --dsw-radius-${name}: calc(var(--woodfish-dsh-radius-${name}) * var(--squircle-k, ${SQUIRCLE_K}));`
   );
   return buildSquircleCss(
     [
       '  body {',
-      '    --dsw-corner-shape: squircle;',
+      `    --dsw-corner-shape: ${shape};`,
       ...read,
       '  }',
       '  body > * {',
       ...scaled,
       '  }',
-    ].join('\n')
+      `  ${ROUND_EXEMPT_SELECTORS} {`,
+      '    --woodfish-native-shape: round;',
+      '    --squircle-shape: round;',
+      '    --squircle-k: 1;',
+      '    corner-shape: round;',
+      '  }',
+    ].join('\n'),
+    options
   );
 }

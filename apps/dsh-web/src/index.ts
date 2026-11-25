@@ -11,17 +11,28 @@ export {
 } from './selectors';
 export type { DshSelectorGroup, SelectorGroup } from './selectors';
 export {
+  DEFAULT_DSH_PERSISTED_CONFIG,
   DEFAULT_DSH_SETTINGS,
-  applyDshSettingsPatch,
-  applyStoredEffects,
+  DSH_DEFAULT_BACKGROUND_ID,
+  DSH_GRADIENT_BACKGROUND_ID,
+  applyDshEffectOverrides,
   composeDshCoreView,
   defaultDshPalette,
   dshPalettes,
   findDshPalette,
-  nextDshPalette,
+  fromPersistedConfig,
+  normalizeBackgroundId,
   normalizeDshSettings,
+  toPersistedConfig,
 } from './settings';
-export type { DshCoreView, DshMode, DshSettings, DshSettingsPatch } from './settings';
+export type {
+  DshBackgroundId,
+  DshCoreView,
+  DshEffectOverrides,
+  DshMode,
+  DshSettings,
+  DshSquircleView,
+} from './settings';
 export {
   DSH_STYLE_NAMES,
   SQUIRCLE_K,

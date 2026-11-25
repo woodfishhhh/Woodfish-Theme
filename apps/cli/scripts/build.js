@@ -1,18 +1,12 @@
 #!/usr/bin/env node
 /*
- * Builds the renderer bundles (Codex overlay, Codex++ user script, dsh user script) and
- * the single-file CLI.
+ * Builds the Codex renderer bundles (Codex overlay, Codex++ user script) and the single-file CLI.
+ * The native dsh plugin (`woodfish-dsh-plugin`) is built in memory from `apps/dsh-web/scripts/build.js`
+ * and embedded into `out/woodfish.js` (reusing the bundled 《彩云》 picture so it is stored once).
  *
  *   node scripts/build.js           out/woodfish.js (renderer bundles built in memory)
- *   node scripts/build.js --assets  write assets/*.js (the committed renderer bundles)
- *   node scripts/build.js --check   fail if the committed assets are stale
- *
- * The default build never rewrites committed files, so `--check` after a compile still
- * catches renderer changes that were not regenerated.
- *
- * The assets are committed (like the VS Code bootstrap) so changes to the shared packages
- * show up in review. Their build id is a hash of the renderer sources each bundle is
- * made from, so identical sources always produce identical files.
+ *   node scripts/build.js --assets  write assets/*.js (the committed Codex renderer bundles)
+ *   node scripts/build.js --check   fail if the committed Codex assets are stale
  */
 const crypto = require('crypto');
 const fs = require('fs');
@@ -22,107 +16,24 @@ const esbuild = require('esbuild');
 const APP_ROOT = path.resolve(__dirname, '..');
 const REPO_ROOT = path.resolve(APP_ROOT, '..', '..');
 const CODEX_PACKAGES = ['theme-core', 'renderer-runtime', 'chatgpt-app'];
-const DSH_PACKAGES = ['theme-core', 'renderer-runtime', 'dsh-web'];
 // Chromium 155 ships in the tested Codex build; target an older baseline for safety.
 const BROWSER_TARGET = 'chrome120';
 
 /*
  * The default background 《彩云》, committed once in renderer-runtime. The CLI serves it to
- * the CDP overlay on request; the Codex++ and dsh user scripts have no watcher, so they
- * carry the picture themselves. The CDP overlay never inlines it, so re-injecting on a
- * settings change stays small.
+ * the CDP overlay on request, puts it back into the Codex++ user script, and writes it into
+ * the staged native dsh plugin directory.
  */
 const DEFAULT_BACKGROUND_BASE64 = fs
   .readFileSync(path.join(REPO_ROOT, 'packages', 'renderer-runtime', 'assets', 'caiyun.webp'))
   .toString('base64');
 
-/*
- * The shipped effect plugins (packages/effects/builtin), copied into the user's effects
- * folder by the CLI. They run in the page from that folder, so they are not part of the
- * overlay bundle or its build id.
- */
 const { readBuiltinEffectFiles } = require(
   path.join(REPO_ROOT, 'packages', 'effects', 'scripts', 'files.js')
 );
-
-/** Globals the dsh user script reads its effects and `user.css` from (dsh-web protocol.ts). */
-const DSH_EFFECTS_KEY = '__woodfishDshUserScriptEffects';
-const DSH_USER_CSS_KEY = '__woodfishDshUserScriptUserCss';
-
-/**
- * The shipped effects with default values, for the committed dsh user script, so importing
- * it directly still brings every effect. `??=`: `woodfish dsh userscript` assigns the user's
- * own effects folder before these lines, and those win. Built from the effects package's own
- * loader (sources, through esbuild), with the shipped files read with LF line endings so the
- * output is the same on every OS.
- */
-async function defaultDshEffectsScript() {
-  const result = await esbuild.build({
-    stdin: {
-      contents: [
-        "import { buildEffectsList, builtinEffects } from '@woodfish/effects';",
-        "module.exports = buildEffectsList(builtinEffects(), 'dsh');",
-      ].join('\n'),
-      loader: 'ts',
-      resolveDir: APP_ROOT,
-      sourcefile: 'dsh-effects.ts',
-    },
-    absWorkingDir: APP_ROOT,
-    bundle: true,
-    write: false,
-    format: 'cjs',
-    platform: 'node',
-    target: 'node22',
-    conditions: ['source'],
-    define: { __WOODFISH_BUILTIN_EFFECTS__: JSON.stringify(readBuiltinEffectFiles()) },
-    logLevel: 'warning',
-  });
-  const module = { exports: '' };
-  new Function('module', 'exports', 'require', result.outputFiles[0].text)(
-    module,
-    module.exports,
-    require
-  );
-  return [
-    `globalThis[${JSON.stringify(DSH_EFFECTS_KEY)}] ??= ${module.exports};`,
-    `globalThis[${JSON.stringify(DSH_USER_CSS_KEY)}] ??= "";`,
-  ].join('\n');
-}
-
-const DSH_VERSION = JSON.parse(
-  fs.readFileSync(path.join(REPO_ROOT, 'apps', 'dsh-web', 'package.json'), 'utf8')
-).version;
-
-/*
- * Header of the dsh user script. dsh serves its Web UI on loopback (port 3080 by default,
- * any port with --port); a match pattern without a port matches every port, the @include
- * globs cover managers that still compare ports. The bundle itself only starts on pages
- * that carry dsh's theme bootstrap marker.
- */
-const DSH_USERSCRIPT_HEADER = [
-  '// ==UserScript==',
-  '// @name         Woodfish for DeepSeek Harness',
-  '// @namespace    https://github.com/woodfishhhh/Woodfish-Theme',
-  `// @version      ${DSH_VERSION}`,
-  '// @description  为 DeepSeek Harness（dsh）Web 版换上 Woodfish 配色和 Codex 同款效果：彩虹光标与拖尾、吐字光标、流光边框、窗口背景、毛玻璃、代码渐变',
-  '// @author       Woodfish',
-  '// @homepageURL  https://github.com/woodfishhhh/Woodfish-Theme',
-  '// @license      MIT',
-  '// @match        http://127.0.0.1/*',
-  '// @match        http://localhost/*',
-  '// @match        http://[::1]/*',
-  '// @match        https://127.0.0.1/*',
-  '// @match        https://localhost/*',
-  '// @include      http://127.0.0.1:*/*',
-  '// @include      http://localhost:*/*',
-  '// @run-at       document-end',
-  '// @noframes',
-  '// @grant        GM_registerMenuCommand',
-  '// @grant        GM_unregisterMenuCommand',
-  '// @grant        GM_getValue',
-  '// @grant        GM_setValue',
-  '// ==/UserScript==',
-].join('\n');
+const { buildPluginFiles } = require(
+  path.join(REPO_ROOT, 'apps', 'dsh-web', 'scripts', 'build.js')
+);
 
 const ASSETS = [
   {
@@ -145,21 +56,6 @@ const ASSETS = [
     buildDefine: '__WOODFISH_CODEX_BUILD__',
     define: { __WOODFISH_CODEX_DEFAULT_BACKGROUND__: JSON.stringify(DEFAULT_BACKGROUND_BASE64) },
   },
-  {
-    output: 'assets/woodfish-dsh.user.js',
-    entry: [
-      "import { bootFromUserScript } from '@woodfish/dsh-web/renderer';",
-      'const host = globalThis as Record<string, unknown>;',
-      `bootFromUserScript(host.__woodfishDshUserScriptConfig, host.${DSH_EFFECTS_KEY}, host.${DSH_USER_CSS_KEY});`,
-      '',
-    ].join('\n'),
-    banner: 'Woodfish for DeepSeek Harness (user script)',
-    header: DSH_USERSCRIPT_HEADER,
-    prelude: defaultDshEffectsScript,
-    packages: DSH_PACKAGES,
-    buildDefine: '__WOODFISH_DSH_BUILD__',
-    define: { __WOODFISH_DSH_DEFAULT_BACKGROUND__: JSON.stringify(DEFAULT_BACKGROUND_BASE64) },
-  },
 ];
 
 function listFiles(directory) {
@@ -176,7 +72,7 @@ function listFiles(directory) {
 function computeBuildId(packages = CODEX_PACKAGES) {
   const hash = crypto.createHash('sha256');
   for (const name of packages) {
-    const workspaceRoot = name === 'chatgpt-app' || name === 'dsh-web' ? 'apps' : 'packages';
+    const workspaceRoot = name === 'chatgpt-app' ? 'apps' : 'packages';
     const root = path.join(REPO_ROOT, workspaceRoot, name, 'src');
     for (const file of listFiles(root).sort()) {
       hash.update(path.relative(REPO_ROOT, file).split(path.sep).join('/'));
@@ -187,7 +83,6 @@ function computeBuildId(packages = CODEX_PACKAGES) {
 }
 
 async function buildAsset(asset, buildId) {
-  const prelude = asset.prelude ? await asset.prelude() : null;
   const result = await esbuild.build({
     stdin: { contents: asset.entry, loader: 'ts', resolveDir: APP_ROOT, sourcefile: 'entry.ts' },
     absWorkingDir: APP_ROOT,
@@ -199,12 +94,7 @@ async function buildAsset(asset, buildId) {
     conditions: ['source'],
     define: { ...asset.define, [asset.buildDefine]: JSON.stringify(buildId) },
     banner: {
-      js: [
-        // A user script manager reads its metadata block only at the very top.
-        ...(asset.header ? [asset.header] : []),
-        `/* ${asset.banner}. Generated by apps/cli/scripts/build.js (build ${buildId}). Do not edit. */`,
-        ...(prelude ? [prelude] : []),
-      ].join('\n'),
+      js: `/* ${asset.banner}. Generated by apps/cli/scripts/build.js (build ${buildId}). Do not edit. */`,
     },
     charset: 'utf8',
     legalComments: 'none',
@@ -224,7 +114,7 @@ async function buildAssets({ check, write }) {
       const current = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
       if (current !== text) {
         stale = true;
-        console.error(`✗ ${asset.output} is out of date; run pnpm codex:build (or pnpm dsh:build)`);
+        console.error(`✗ ${asset.output} is out of date; run pnpm codex:build`);
       }
       continue;
     }
@@ -238,9 +128,8 @@ async function buildAssets({ check, write }) {
 }
 
 /**
- * The user scripts carry 《彩云》 as well. The CLI ships the picture once and puts it back
- * when it writes a user script (inject/payload.ts, dsh/userScript.ts), which keeps a third
- * of each file.
+ * The Codex++ user script carries 《彩云》 as well. The CLI ships the picture once and puts it
+ * back when it writes the user script (inject/payload.ts), which saves a third of the file.
  */
 const BACKGROUND_TOKEN = '__WOODFISH_DEFAULT_BACKGROUND_BASE64__';
 
@@ -251,20 +140,26 @@ function withoutBackground(userscript) {
   return userscript.replace(DEFAULT_BACKGROUND_BASE64, BACKGROUND_TOKEN);
 }
 
-/**
- * The CLI always writes the user's own effects into the dsh user script, so its copy of the
- * bundle leaves the shipped defaults out (it carries the shipped files anyway).
- */
-async function withoutDefaultEffects(userscript) {
-  const defaults = await defaultDshEffectsScript();
-  if (userscript.split(defaults).length !== 2) {
-    throw new Error('the dsh user script should carry the default effects exactly once');
+/** Extracts text files of the native dsh plugin; binary 《彩云》 reuses `__WOODFISH_DEFAULT_BACKGROUND__`. */
+async function buildEmbeddedDshPlugin() {
+  const { caiyunFileName, files } = await buildPluginFiles();
+  const caiyunPath = `lib/assets/${caiyunFileName}`;
+  const textFiles = {};
+  for (const [rel, content] of Object.entries(files)) {
+    if (rel === caiyunPath) {
+      continue;
+    }
+    if (Buffer.isBuffer(content)) {
+      throw new Error(`unexpected binary file in dsh plugin: ${rel}`);
+    }
+    textFiles[rel] = content;
   }
-  return userscript.replace(`${defaults}\n`, '');
+  return { textFiles, caiyunPath };
 }
 
 async function buildCli(contents) {
   const pkg = JSON.parse(fs.readFileSync(path.join(APP_ROOT, 'package.json'), 'utf8'));
+  const dshPlugin = await buildEmbeddedDshPlugin();
   await esbuild.build({
     entryPoints: [path.join(APP_ROOT, 'src', 'cli.ts')],
     absWorkingDir: APP_ROOT,
@@ -280,9 +175,8 @@ async function buildCli(contents) {
         withoutBackground(contents['assets/codex-userscript.js'])
       ),
       __WOODFISH_BACKGROUND_TOKEN__: JSON.stringify(BACKGROUND_TOKEN),
-      __WOODFISH_DSH_USERSCRIPT__: JSON.stringify(
-        withoutBackground(await withoutDefaultEffects(contents['assets/woodfish-dsh.user.js']))
-      ),
+      __WOODFISH_DSH_PLUGIN_FILES__: JSON.stringify(dshPlugin.textFiles),
+      __WOODFISH_DSH_PLUGIN_CAIYUN_PATH__: JSON.stringify(dshPlugin.caiyunPath),
       __WOODFISH_CLI_VERSION__: JSON.stringify(pkg.version),
       __WOODFISH_DEFAULT_BACKGROUND__: JSON.stringify(DEFAULT_BACKGROUND_BASE64),
       __WOODFISH_BUILTIN_EFFECTS__: JSON.stringify(readBuiltinEffectFiles()),

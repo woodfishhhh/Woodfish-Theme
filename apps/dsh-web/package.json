@@ -1,8 +1,8 @@
 {
   "name": "@woodfish/dsh-web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
-  "description": "Woodfish adapter for the DeepSeek Harness (dsh) Web UI: selectors, CSS builders and the in-page overlay delivered as a user script.",
+  "description": "Woodfish native plugin for DeepSeek Harness (dsh web & dsh desktop): Host settings/background service, intrusive CSS & effects takeover, and full-parameter native Settings UI.",
   "license": "MIT",
   "main": "./out/index.js",
   "types": "./out/index.d.ts",
@@ -21,6 +21,7 @@
   },
   "files": [
     "out",
+    "plugin",
     "src",
     "!**/__tests__"
   ],
@@ -31,12 +32,14 @@
   },
   "scripts": {
     "compile": "tsc -b && tsc -p tsconfig.test.json",
+    "dsh:build": "node scripts/build.js",
+    "dsh:check": "node scripts/build.js --check",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "lint": "eslint src",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "verify": "pnpm compile && pnpm format:check && pnpm lint && pnpm test"
+    "verify": "pnpm compile && pnpm dsh:check && pnpm format:check && pnpm lint && pnpm test"
   }
 }

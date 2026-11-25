@@ -5,7 +5,7 @@ import { Io, confirm, createConsoleIo } from './cli/io';
 import { autostartCommand, daemonCommand } from './commands/autostart';
 import { backgroundCommand } from './commands/background';
 import { CommandContext, CommandError, EXIT } from './commands/context';
-import { dshUninstallCommand, dshUserScriptCommand } from './commands/dsh';
+import { dshInstallCommand, dshStatusCommand, dshUninstallCommand } from './commands/dsh';
 import { effectsCommand, reloadCommand } from './commands/effects';
 import {
   launchCommand,
@@ -40,6 +40,8 @@ const VALUE_FLAGS = new Set([
   'port',
   'set',
   'out',
+  'profile',
+  'package',
 ]);
 
 function themesFor(mode: 'dark' | 'light'): string {
@@ -114,12 +116,14 @@ Codex++
   uninstall [--keep-settings]
                          撤销 Woodfish 对 Codex 的全部修改
 
-DeepSeek Harness（dsh）Web 版：油猴用户脚本
-  dsh userscript [--out <文件.user.js>] [--set 键=值]… [--reset]
-                         生成带当前主题和效果文件夹的用户脚本（默认写到 Woodfish
-                         数据目录），在 Tampermonkey / Violentmonkey 中导入即可，例如：
-                           --set palette.dark=neon --set palette.light=null
-  dsh uninstall          删除 woodfish dsh 生成的脚本与设置
+DeepSeek Harness（dsh）官方原生插件（同时支持 dsh web 与 dsh desktop）
+  dsh install [--profile <web|desktop>] [--package <包名或路径>]
+                         安装并启用 Woodfish 原生 dsh 插件（默认 profile 为 web），
+                         安装后在 dsh「设置 → Woodfish」中实时切换主题并调节全部效果参数
+  dsh status [--profile <web|desktop>] [--json]
+                         查看目标 profile 中 Woodfish 插件的安装与启用状态
+  dsh uninstall [--profile <web|desktop>]
+                         从目标 profile 卸载 Woodfish 原生插件
 
 选项
   --yes                  需要重启 Codex 时不再询问
@@ -177,13 +181,20 @@ export async function run(argv: readonly string[], options: RunOptions = {}): Pr
   try {
     if (scope === 'dsh') {
       switch (command) {
-        case 'userscript':
-          return dshUserScriptCommand(context, args.sets, {
-            reset: booleanFlag(args, 'reset'),
-            out: stringFlag(args, 'out'),
+        case 'install':
+          return dshInstallCommand(context, {
+            profile: stringFlag(args, 'profile'),
+            packageSpec: stringFlag(args, 'package'),
+          });
+        case 'status':
+          return dshStatusCommand(context, {
+            profile: stringFlag(args, 'profile'),
+            json,
           });
         case 'uninstall':
-          return dshUninstallCommand(context);
+          return dshUninstallCommand(context, {
+            profile: stringFlag(args, 'profile'),
+          });
         default:
           throw new CommandError(`未知命令：dsh ${command}\n\n${HELP}`, EXIT.usage);
       }

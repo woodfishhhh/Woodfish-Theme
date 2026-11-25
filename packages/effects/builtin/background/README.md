@@ -4,7 +4,7 @@
 
 这是一个**核心效果**（`effect.json` 里有 `"core": "background"`）：取图、上传、按窗口大小预先模糊出毛玻璃用的副本，这些都在 Woodfish 核心里（`apps/chatgpt-app/src/renderer/background.ts`、`packages/renderer-runtime/src/background.ts`），因为要经过监视进程读写图片、还要避开实时 `backdrop-filter`（流式输出时会让帧时间翻倍）。这个文件夹里管的是开关和参数；想改长相可以加一个 `effect.css`，它会在背景打开时追加在最后。
 
-用哪张图不在这里：在 Codex 设置 → 外观 → Woodfish 的背景区挑或上传，或运行 `woodfish codex background use <编号>`，记在 `%APPDATA%\Woodfish\codex.json` 的 `backgroundImage`。dsh 的油猴脚本自带《彩云》，dsh 里固定用它（`apps/dsh-web/src/css/background.ts`）。
+用哪张图不在这里：在 Codex 设置 → 外观 → Woodfish 的背景区挑或上传，或运行 `woodfish codex background use <编号>`，记在 `%APPDATA%\Woodfish\codex.json` 的 `backgroundImage`；dsh 原生插件则在 dsh 设置 → Woodfish 的背景区挑选预设或上传自定义背景图，图片持久保存在 `$DSH_HOME/woodfish/backgrounds`。
 
 ## 参数
 

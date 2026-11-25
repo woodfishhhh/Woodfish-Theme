@@ -1,6 +1,28 @@
 // Obituary's fit for a continuous corner with Figma's 60% smoothing.
 export const SQUIRCLE_K = 1.78;
 
+export const SQUIRCLE_SHAPES = ['squircle', 'soft', 'strong', 'extreme'] as const;
+export type SquircleShape = (typeof SQUIRCLE_SHAPES)[number];
+
+export interface SquircleCssOptions {
+  scale?: number;
+  shape?: string;
+}
+
+/** Maps a squircle shape preset to its CSS `corner-shape` value. */
+export function squircleShapeValue(shape?: string): string {
+  switch (shape) {
+    case 'soft':
+      return 'superellipse(1.6)';
+    case 'strong':
+      return 'superellipse(2.4)';
+    case 'extreme':
+      return 'superellipse(3)';
+    default:
+      return 'squircle';
+  }
+}
+
 /** Only Woodfish's own single-radius declarations pass through this builder. */
 export function prepareCornerRadii(css: string): string {
   return css.replace(
@@ -20,9 +42,14 @@ export function prepareCornerRadii(css: string): string {
 }
 
 /** The radius multiplier is only active on engines that also support the shape. */
-export function buildSquircleCss(nativeCorners = ''): string {
+export function buildSquircleCss(nativeCorners = '', options: SquircleCssOptions = {}): string {
+  const scale =
+    typeof options.scale === 'number' && Number.isFinite(options.scale)
+      ? Math.min(2.4, Math.max(1, options.scale))
+      : SQUIRCLE_K;
+  const shape = squircleShapeValue(options.shape);
   return `@supports (corner-shape: squircle) {
-  :root { --squircle-shape: squircle; --squircle-k: ${SQUIRCLE_K}; }
+  :root { --squircle-shape: ${shape}; --squircle-k: ${scale}; }
 ${nativeCorners}
 }`;
 }

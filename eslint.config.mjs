@@ -57,20 +57,21 @@ export default [
     },
   },
   {
-    // The desktop CLI is a Node.js 22 program.
-    files: ['apps/cli/src/**/*.ts'],
+    // The desktop CLI and the dsh Host plugin run in Node.js 22+.
+    files: ['apps/cli/src/**/*.ts', 'apps/dsh-web/src/host/**/*.ts'],
     ignores: TEST_FILES,
     languageOptions: {
       globals: globals.node,
     },
   },
   {
-    // Renderer code runs in host pages (VS Code workbench, Codex app).
+    // Renderer and client UI code runs in host pages (VS Code workbench, Codex app, dsh).
     files: [
       'apps/*/browser/**/*.ts',
       'packages/renderer-runtime/src/**/*.ts',
       'apps/chatgpt-app/src/renderer/**/*.ts',
       'apps/dsh-web/src/renderer/**/*.ts',
+      'apps/dsh-web/src/client/**/*.ts',
     ],
     languageOptions: {
       globals: globals.browser,
@@ -84,7 +85,7 @@ export default [
       'apps/chatgpt-app/src/**/*.ts',
       'apps/dsh-web/src/**/*.ts',
     ],
-    ignores: TEST_FILES,
+    ignores: [...TEST_FILES, 'apps/dsh-web/src/host/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -93,6 +94,6 @@ export default [
     },
   },
   {
-    ignores: ['**/out/', '**/node_modules/', '**/*.js', ...TEST_FILES],
+    ignores: ['**/out/', '**/plugin/', '**/node_modules/', '**/*.js', ...TEST_FILES],
   },
 ];

@@ -5,9 +5,13 @@ import {
   StreamEndEvent,
 } from '@woodfish/renderer-runtime';
 import { EffectValues, normalizeEffectManifest } from '@woodfish/theme-core';
-import { DSH_CONTROLLER_KEY, DSH_STORAGE_KEY } from '../protocol';
-import { DshOverlayController, bootFromUserScript, startDshOverlay } from '../renderer';
+import { DSH_CONTROLLER_KEY, DshPersistedConfig } from '../protocol';
+import { DEFAULT_DSH_PERSISTED_CONFIG } from '../settings';
+import { DshOverlayController, startDshOverlay } from '../renderer';
 import { DSH_EFFECT_SELECTORS, findStreamingReply, trackStreaming } from '../renderer/effects';
+import { DshBackgroundClient } from '../client/backgrounds';
+import { ConfigFormSnapshot, DshClientContext, SettingsPathOp } from '../client/dshClientTypes';
+import { WoodfishClientRuntime } from '../client/runtime';
 
 type Host = Record<string, unknown>;
 const host = globalThis as unknown as Host;
@@ -16,12 +20,38 @@ function controller(): DshOverlayController | undefined {
   return host[DSH_CONTROLLER_KEY] as DshOverlayController | undefined;
 }
 
-function core(id: 'code-gradient' | 'background', enabled: boolean): EffectSource {
+function core(
+  id: 'code-gradient' | 'background' | 'squircle-corners',
+  enabled: boolean,
+  params: Record<string, unknown> = {}
+): EffectSource {
+  const manifest = normalizeEffectManifest({
+    name: id,
+    hosts: ['dsh'],
+    core: id,
+    order: 100,
+    ...(id === 'squircle-corners'
+      ? {
+          params: {
+            scale: { type: 'number', default: 1.78, min: 1, max: 2.4, step: 0.02 },
+            shape: {
+              type: 'select',
+              default: 'squircle',
+              options: [
+                { value: 'squircle', label: 'squircle' },
+                { value: 'strong', label: 'strong' },
+              ],
+            },
+            scanHardcoded: { type: 'boolean', default: true },
+          },
+        }
+      : {}),
+  });
   return {
     id,
     hash: id,
-    manifest: normalizeEffectManifest({ name: id, hosts: ['dsh'], core: id, order: 100 }),
-    values: { enabled } as EffectValues,
+    manifest,
+    values: { enabled, ...params } as EffectValues,
   };
 }
 
@@ -30,15 +60,29 @@ function plugin(name: string, order: number): EffectSource {
   return {
     id: name,
     hash: name,
-    manifest: normalizeEffectManifest({ name, hosts: ['dsh'], order }),
-    values: { enabled: true } as EffectValues,
+    manifest: normalizeEffectManifest({
+      name,
+      hosts: ['dsh'],
+      order,
+      params: {
+        width: { type: 'number', default: 6, min: 1, max: 16, step: 0.5 },
+      },
+    }),
+    values: { enabled: true, width: 6 } as EffectValues,
     factory: (module) => {
       module.exports = (ctx: {
         host: string;
+        params: EffectValues;
         style: (css: string) => void;
         selectors: Record<string, string>;
       }) => {
-        ctx.style(`${ctx.selectors.activeTab}::after { content: "${ctx.host}"; }`);
+        const render = (): void => {
+          ctx.style(
+            `${ctx.selectors.activeTab}::after { content: "${ctx.host}"; width: ${String(ctx.params.width)}px; }`
+          );
+        };
+        render();
+        return { update: render };
       };
     },
   };
@@ -65,23 +109,16 @@ function styles(): string[] {
 
 afterEach(() => {
   controller()?.dispose();
-  localStorage.clear();
   document.body.innerHTML = '';
-  for (const key of [
-    'GM_registerMenuCommand',
-    'GM_unregisterMenuCommand',
-    'GM_getValue',
-    'GM_setValue',
-  ]) {
-    delete host[key];
-  }
+  document.head.innerHTML = '';
 });
 
 describe('dsh overlay', () => {
-  it('runs dsh effects, mounts the core features they turn on, and cleans up', () => {
+  it('runs dsh effects, mounts core features with live preview, and cleans up completely', () => {
     page();
     const overlay = startDshOverlay({}, [
       plugin('accent', 80),
+      core('squircle-corners', true, { scale: 1.78, shape: 'squircle', scanHardcoded: true }),
       core('background', true),
       core('code-gradient', true),
     ]);
@@ -89,21 +126,36 @@ describe('dsh overlay', () => {
       ['accent', 'running'],
       ['background', 'core'],
       ['code-gradient', 'core'],
+      ['squircle-corners', 'core'],
     ]);
-    const css = [...document.querySelectorAll('style')]
-      .map((style) => style.textContent)
-      .join('\n');
-    // A selector list reaches the effect as one selector, so `::after` applies to every entry.
-    expect(css).toContain(`${DSH_EFFECT_SELECTORS.activeTab}::after { content: "dsh"; }`);
-    expect(DSH_EFFECT_SELECTORS.activeTab.startsWith(':is(')).toBe(true);
     expect(styles()).toEqual(
       expect.arrayContaining([
         'woodfish-dsh-palette',
+        'woodfish-dsh-corners',
         'woodfish-dsh-background',
         'woodfish-dsh-code',
       ])
     );
-    expect(document.documentElement.dataset.woodfishDsh).toBe('0.2.0');
+    expect(document.documentElement.dataset.woodfishDsh).toBe('1.0.0');
+
+    // Instant live preview updates both CSS and plugin parameters without full reload.
+    overlay.previewEffect('squircle-corners', { scale: 2.1, shape: 'strong' });
+    expect(document.getElementById('woodfish-dsh-corners')?.textContent).toContain(
+      '--squircle-k: 2.1;'
+    );
+    expect(document.getElementById('woodfish-dsh-corners')?.textContent).toContain(
+      'superellipse(2.4)'
+    );
+
+    overlay.previewEffect('accent', { width: 12 });
+    expect(document.getElementById('woodfish-dsh-fx-accent-js')?.textContent).toContain(
+      'width: 12px;'
+    );
+
+    overlay.setUserCss(':root { --woodfish-accent-width: 9px; }');
+    expect(document.querySelector('style[data-woodfish-user-css]')?.textContent).toContain(
+      '--woodfish-accent-width: 9px'
+    );
 
     overlay.update({}, [plugin('accent', 80), core('background', false)]);
     expect(document.getElementById('woodfish-dsh-background')).toBeNull();
@@ -112,6 +164,10 @@ describe('dsh overlay', () => {
     expect(styles()).toEqual([]);
     expect(document.documentElement.dataset.woodfishDsh).toBeUndefined();
     expect(controller()).toBeUndefined();
+  });
+
+  it('uses wrapped :is() selectors for multi-entry groups', () => {
+    expect(DSH_EFFECT_SELECTORS.activeTab.startsWith(':is(')).toBe(true);
   });
 });
 
@@ -136,49 +192,114 @@ describe('dsh streaming', () => {
     reply.setAttribute('data-streaming', 'true');
     expect(findStreamingReply()).toBe(reply);
 
-    const host = sink();
-    const stop = trackStreaming(host);
+    const effectSink = sink();
+    const stop = trackStreaming(effectSink);
     reply.removeAttribute('data-streaming');
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(host.ends).toEqual([{ source: 'ai' }]);
-    expect(host.carets.at(-1)?.visible).toBe(false);
+    expect(effectSink.ends).toEqual([{ source: 'ai' }]);
+    expect(effectSink.carets.at(-1)?.visible).toBe(false);
     stop();
   });
 });
 
-describe('dsh user script menu', () => {
-  it('lists the themes and every baked-in effect in order, and keeps switches in storage', () => {
+describe('WoodfishClientRuntime', () => {
+  it('applies changes live, syncs ThemeRuntime overrides, and persists through ConfigForm', async () => {
     page();
-    const menu: Array<{ label: string; run: () => void; live: boolean }> = [];
-    const stored: Record<string, unknown> = {};
-    host.GM_registerMenuCommand = (label: string, run: () => void) =>
-      menu.push({ label, run, live: true }) - 1;
-    host.GM_unregisterMenuCommand = (id: number) => {
-      menu[id].live = false;
-    };
-    host.GM_getValue = (key: string, fallback: unknown) => (key in stored ? stored[key] : fallback);
-    host.GM_setValue = (key: string, value: unknown) => {
-      stored[key] = value;
-    };
-    bootFromUserScript({}, [plugin('thread-ring', 60), plugin('caret', 5)], '');
-    const labels = (): string[] => menu.filter((entry) => entry.live).map((entry) => entry.label);
-    expect(labels().slice(2)).toEqual(['caret：开', 'thread-ring：开', '恢复默认设置']);
+    let persisted: DshPersistedConfig = { ...DEFAULT_DSH_PERSISTED_CONFIG };
+    const formListeners = new Set<() => void>();
+    const mutations: SettingsPathOp[][] = [];
+    const themeOverrides: Array<Record<string, { light: string; dark: string }>> = [];
+    let appearance: 'light' | 'dark' | 'system' = 'dark';
 
-    menu.find((entry) => entry.live && entry.label.startsWith('thread-ring'))?.run();
-    expect(stored[DSH_STORAGE_KEY]).toEqual({
-      palette: {},
-      effects: { 'thread-ring': { enabled: false } },
+    const ctx: DshClientContext = {
+      slots: {
+        inject: () => undefined,
+        register: () => () => undefined,
+      },
+      configForms: {
+        get: <T>() => ({
+          getSnapshot: () =>
+            ({
+              status: 'ready',
+              value: persisted as unknown as T,
+              revision: 1,
+              writable: true,
+            }) as ConfigFormSnapshot<T>,
+          subscribe: (listener) => {
+            formListeners.add(listener);
+            return () => formListeners.delete(listener);
+          },
+          set: async (field, value) => {
+            persisted = { ...persisted, [field]: value as string };
+            return true;
+          },
+          mutate: async (ops) => {
+            mutations.push([...ops]);
+            const next = { ...persisted } as Record<string, string>;
+            for (const op of ops) {
+              if (op.op === 'set' && op.path.length === 1) {
+                next[op.path[0]] = String(op.value ?? '');
+              }
+            }
+            persisted = next as unknown as DshPersistedConfig;
+            return true;
+          },
+        }),
+      },
+      theme: {
+        getTheme: () => ({
+          preference: appearance,
+          active: {
+            id: appearance === 'light' ? 'light' : 'dark',
+            colorScheme: appearance === 'light' ? 'light' : 'dark',
+          },
+          revision: 1,
+        }),
+        setTheme: (id) => {
+          appearance = id as 'light' | 'dark' | 'system';
+        },
+        overrideTokens: (_source, tokens) => {
+          themeOverrides.push(tokens);
+          return () => undefined;
+        },
+      },
+      effect: () => undefined,
+      on: () => () => undefined,
+    };
+
+    const backgrounds: DshBackgroundClient = {
+      load: () => Promise.reject(new Error('unused')),
+      list: async () => [],
+      upload: () => Promise.reject(new Error('unused')),
+      remove: async () => undefined,
+    };
+
+    const runtime = new WoodfishClientRuntime(
+      ctx,
+      [
+        plugin('accent', 80),
+        core('squircle-corners', true, { scale: 1.78, shape: 'squircle', scanHardcoded: true }),
+      ],
+      backgrounds
+    );
+
+    runtime.setPalette('dark', 'dracula');
+    runtime.setEffectParam('squircle-corners', { scale: 2.05, shape: 'strong' }, true);
+    runtime.setUserCss(':root { --woodfish-accent-width: 11px; }', true);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(persisted.paletteDark).toBe('dracula');
+    expect(JSON.parse(persisted.effectsJson)).toEqual({
+      'squircle-corners': { scale: 2.05, shape: 'strong' },
     });
-    expect(labels()).toContain('thread-ring：关');
-    expect(
-      controller()
-        ?.effects()
-        .find((effect) => effect.id === 'thread-ring')?.state
-    ).toBe('off');
+    expect(persisted.userCss).toBe(':root { --woodfish-accent-width: 11px; }');
+    expect(themeOverrides.at(-1)?.['--woodfish-theme-sync']?.dark).toBe('dracula');
+    expect(mutations.length).toBeGreaterThanOrEqual(3);
 
-    menu.find((entry) => entry.live && entry.label === '恢复默认设置')?.run();
-    expect(stored[DSH_STORAGE_KEY]).toBeNull();
-    expect(labels()).toContain('thread-ring：开');
-    expect(localStorage.length).toBe(0);
+    runtime.resetEffect('squircle-corners');
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(JSON.parse(persisted.effectsJson)).toEqual({});
+
+    runtime.dispose();
   });
 });

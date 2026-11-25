@@ -1,0 +1,5 @@
+# Woodfish Theme native dsh plugin: registers the Host settings/background service
+# and its matching browser/desktop client bundle.
+- insert:
+    - id: woodfish-theme
+      name: 'woodfish-dsh-plugin'

@@ -1,7 +1,7 @@
 {
   "name": "窗口背景",
-  "description": "一张图铺在整个窗口底下（默认《彩云》），侧栏和输入框是叠在上面的毛玻璃。Codex 里图片在设置页的背景区挑或上传，dsh 里用《彩云》。",
-  "version": 4,
+  "description": "一张图铺在整个窗口底下（默认《彩云》），侧栏和输入框是叠在上面的毛玻璃。Codex 与 dsh 均可在设置页的背景区挑选预设或上传自定义图片。",
+  "version": 5,
   "hosts": ["codex", "dsh"],
   "enabled": true,
   "order": 100,

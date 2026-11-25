@@ -1,9 +1,9 @@
 /*
- * dsh Web UI hooks, verified against the releases in TESTED_DSH_VERSIONS (see
+ * dsh UI hooks, verified against the releases in TESTED_DSH_VERSIONS (see
  * docs/hosts/dsh-web.md). dsh styles its components with hashed CSS-module classes
- * (`uV2eYG_card`, `_block_7gxqk_4`); none are used here. Only data-* attributes, ARIA
- * roles and the class names of libraries (`pre.shiki`) appear. Colors and the frosted
- * menus are themed through dsh's own CSS variables, which need no selectors at all.
+ * (`uV2eYG_card`, `_block_7gxqk_4`); none are hardcoded here. Only data-* attributes,
+ * ARIA roles and the class names of libraries (`pre.shiki`) appear. Hardcoded CSS-module
+ * radii are captured dynamically at runtime by `startNativeCorners()`.
  */
 
 export interface SelectorGroup {
@@ -125,24 +125,33 @@ export const DSH_SELECTORS = {
     alwaysPresent: false,
     description: '代码块',
   },
-  // Shiki with its `css-variables` theme: one span per token inside `span.line`.
+  // Shiki with its `css-variables` theme in Markdown code blocks, previews and file diffs.
   codeToken: {
-    selectors: ['[data-code-block-content] pre.shiki .line > span'],
+    selectors: ['[data-code-block-content] pre.shiki .line > span', '[data-diff-code] > span'],
     alwaysPresent: false,
-    description: '代码 token',
+    description: '代码与 Diff token',
   },
-  // Edit previews of tool calls: plain lines colored by dsh's diff variables.
+  // File diff views and tool edit previews.
   toolDiff: {
-    selectors: ['[data-diff]'],
+    selectors: ['[data-diff]', '[data-diff-code]'],
     alwaysPresent: false,
-    description: 'diff 预览',
+    description: 'Diff 视图',
   },
-  // Menus, popovers and dialogs. dsh draws their surface from `--dsw-specific-menu` and
-  // `--dsw-menu-backdrop-filter`, so the glass itself needs no selector.
+  codePreview: {
+    selectors: ['[data-code-preview]'],
+    alwaysPresent: false,
+    description: '侧栏代码预览',
+  },
+  // Menus, popovers and dialogs.
   floatingLayer: {
     selectors: ['[data-menu-material]', '[role="menu"]', '[role="listbox"]', '[role="dialog"]'],
     alwaysPresent: false,
     description: '浮层',
+  },
+  settingsModal: {
+    selectors: ['[data-shortcut-modal="settings"]'],
+    alwaysPresent: false,
+    description: '设置弹窗',
   },
   menuItem: {
     selectors: [
@@ -163,10 +172,13 @@ export function selectorOf(group: DshSelectorGroup): string {
   return DSH_SELECTORS[group].selectors.join(', ');
 }
 
-/** Tokens painted by the code gradient engine. */
+/** Tokens painted by the code & diff gradient engine. */
 export const CODE_TOKEN_SELECTOR = selectorOf('codeToken');
-/** Roots observed by the code gradient engine. */
-export const CODE_ROOT_SELECTOR = selectorOf('codeBlock');
+/** Roots observed by the code & diff gradient engine. */
+export const CODE_ROOT_SELECTOR = [
+  ...DSH_SELECTORS.codeBlock.selectors,
+  ...DSH_SELECTORS.toolDiff.selectors,
+].join(', ');
 /**
  * Reply text the rainbow effect paints, while it streams and after. Tool calls are steps of
  * their own kind, so nothing outside the reply's Markdown matches.
