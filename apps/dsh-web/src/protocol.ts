@@ -6,6 +6,7 @@ export const DSH_SETTINGS_NAMESPACE = 'woodfish-theme';
 
 /** Authenticated Host fetch route for listing, reading, uploading and deleting background images. */
 export const DSH_BACKGROUNDS_API_PATH = '/api/woodfish-backgrounds';
+export const DSH_BACKGROUNDS_WRITE_PATH = '/api/woodfish-backgrounds-write';
 
 /** Pre-paint boot payload injected by the Host via `webserver/index-inject`. */
 export const DSH_BOOT_GLOBAL = '__WOODFISH_DSH_BOOT__';

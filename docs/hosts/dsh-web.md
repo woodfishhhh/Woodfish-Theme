@@ -18,7 +18,7 @@ Woodfish 以标准 `dsh 0.2.2-rc.5` 官方插件包 `woodfish-dsh-plugin`（构�
 | 部分 | 文件与机制 | 说明 |
 | --- | --- | --- |
 | 插件清单与 Cordis patch | `apps/dsh-web/plugin/package.json`、`cordis.patch.yml` | 声明 `dsh.manifestVersion: 1`、`dsh.bundle.patch`、`dsh.client.platform: "web"`、`engines.dsh: ">=0.2.0-0 <1.0.0"`、`exports`（`.`、`./client`、`./assets/*`），零外部运行时依赖（`@deepseek-ai/cordis` 与 `@deepseek-ai/schemastery` 走宿主提供的 `peerDependencies`） |
-| 宿主端（Node / Cordis） | `apps/dsh-web/src/host/index.ts` → `plugin/lib/index.js` | 导出 `name = 'woodfish-theme'` 与 6 个扁平 `.volatile()` 字符串配置字段（`paletteDark`、`paletteLight`、`backgroundImage`、`customCss`、`userCss`、`effectsJson`），关闭自动表单（`settings.configure({ auto: false })`），通过 `webserver/index-inject` 向页面注入 `window.__WOODFISH_DSH_BOOT__` 防止首帧闪烁，并经 `ctx.connection.fetch.register` 注册 `/api/woodfish-backgrounds` 接口（`GET` 列表/读图、`POST ?action=upload|delete`；dsh 的 `ConnectionFetchMethod` 只开放 `GET`/`HEAD`/`POST`） |
+| 宿主端（Node / Cordis） | `apps/dsh-web/src/host/index.ts` → `plugin/lib/index.js` | 导出 `name = 'woodfish-theme'` 与 6 个扁平 `.volatile()` 字符串配置字段（`paletteDark`、`paletteLight`、`backgroundImage`、`customCss`、`userCss`、`effectsJson`），关闭自动表单（`settings.configure({ auto: false })`），通过 `webserver/index-inject` 向页面注入 `window.__WOODFISH_DSH_BOOT__` 防止首帧闪烁，并经 `ctx.connection.fetch.register` 注册背景接口（`GET /api/woodfish-backgrounds` 列表/读图、`POST /api/woodfish-backgrounds-write?action=upload|delete`；dsh 的 `ConnectionFetchMethod` 只开放 `GET`/`HEAD`/`POST`） |
 | 自定义背景图存储 | `apps/dsh-web/src/host/backgrounds.ts` | 按文件头校验 JPG/PNG/WebP 与尺寸（上限 6 MB、2560px、最多 30 张），按内容哈希去重，持久化落在 `$DSH_HOME/woodfish/backgrounds/`，整页刷新和重启 `dsh web` 后保持不丢 |
 | 客户端插件入口 | `apps/dsh-web/src/client/index.ts` → `plugin/lib/client.js` | 注入 `slots`、`locale`、`remote`、`configForms`、`theme`；把全量「Woodfish」设置面板挂入原生设置窗口 `settings.section`（`id: 'woodfish'`, `order: 12`）、`settings.section.icon` 与插件管理器配置入口 `plugins.bundle.config`；通过 `ctx.theme.overrideTokens('woodfish-theme', { '--woodfish-theme-sync': ... })` 触发 `theme/change` 让 xterm 终端与 `<meta name="theme-color">` 同步，同时不向 `body` 写入行内 `--dsw-*` 样式 |
 | 侵入式渲染运行时 | `apps/dsh-web/src/renderer/` + `src/css/` | 直接运行在页面 / Electron 渲染进程内，管理 15 套深浅色主题、全屏背景与静态模糊副本、12 个内置效果插件、原生 CSS Modules 苹果圆角镜像（`startNativeCorners`）与自定义 `user.css` |
@@ -84,7 +84,7 @@ Woodfish 以标准 `dsh 0.2.2-rc.5` 官方插件包 `woodfish-dsh-plugin`（构�
 ## 实测结论与坑
 
 - `dsh plugin --profile desktop add` 在 `dsh 0.2.2-rc.5` 上会被 CLI 明确拒绝（`profile "desktop" is managed exclusively by the Electron application`），桌面端由应用内插件管理器直接添加同一个 `woodfish-dsh-plugin` 包；`woodfish dsh install --profile desktop` 会先完成暂存并输出明确的桌面端操作指引。
-- `ctx.connection.fetch.register` 仅允许 `GET`、`HEAD`、`POST`，背景图上传与删除因此统一走 `POST /api/woodfish-backgrounds?action=upload|delete`。
+- `ctx.connection.fetch.register` 仅允许 `GET`、`HEAD`、`POST`，背景图上传与删除走 `POST /api/woodfish-backgrounds-write?action=upload|delete`。rc.5 按路径选择请求体模式，GET 保留在 `/api/woodfish-backgrounds`，POST 单独注册为 `streaming`。宿主的 `connection/request` 钩子和 owner 校验保留；上传超过 40 MiB 时，声明长度和分块两种方式都会在请求结束前返回 413。旧版客户端升级后需刷新设置页才能写入。
 - `ctx.theme.overrideTokens` 会把传入的每个键写成 `body` 的行内样式；若直接传入 `--dsw-*` 会压过我们的样式表导致浅色/深色切换错乱。通过只传入无害标记键 `--woodfish-theme-sync` 既可安全触发 `theme/change` 让 xterm 终端与浏览器主题色重新采样，又不会污染任何 `--dsw-*` 变量。
 - `dsh-settings` 表单会对嵌套对象展开额外 schema 校验，宿主端采用 6 个扁平顶层 `.volatile()` 字符串字段（含 `effectsJson`），在保持配置实时下发与落盘的同时兼容任意新增效果参数。
 

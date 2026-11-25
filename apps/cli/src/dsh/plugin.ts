@@ -1,3 +1,4 @@
+import { isSea } from 'node:sea';
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -76,55 +77,83 @@ export function resolveDshProfileDir(
   return path.join(resolveDshHome(env), 'profiles', validateDshProfile(profile));
 }
 
-export function resolveDshCmdShimEntry(
-  command: string,
-  exists: (candidate: string) => boolean = fs.existsSync
-): string | null {
-  let source: string;
-  try {
-    source = fs.readFileSync(command, 'utf8');
-  } catch {
-    return null;
+export function readDshCmdShim(command: string): string[] | null {
+  const source = fs.readFileSync(command, 'utf8');
+  // Only interpret a Node argv handoff. Batch expansion, pipes and other commands never run.
+  const launch =
+    /(?:^\s*@?|&\s*)(?:"%_prog%"|"(?:%dp0%|%~dp0)[\\/]*node\.exe"|"[a-z]:\\[^"%\r\n]*\\node\.exe"|"?node(?:\.exe)?"?)\s+((?:--[\w-]+(?:=[\w.-]+)?\s+)*)"((?:(?:%dp0%|%~dp0)[\\/]*|[a-z]:[\\/])[^"%\r\n]+\.[mc]?js)"\s+%\*\s*$/gim;
+  let result: string[] | null = null;
+  for (const [, flags, raw] of source.matchAll(launch)) {
+    const entry = raw.replace(/^(?:%dp0%|%~dp0)[\\/]*/i, '').replace(/[\\/]/g, path.sep);
+    const argv = [
+      ...flags.trim().split(/\s+/).filter(Boolean),
+      path.resolve(path.dirname(command), entry),
+    ];
+    if (
+      !fs.statSync(argv[argv.length - 1], { throwIfNoEntry: false })?.isFile() ||
+      (result && (result.length !== argv.length || result.some((arg, i) => arg !== argv[i])))
+    )
+      return null;
+    result = argv;
   }
-  const match = source.match(/["']%dp0%[\\/]+([^"']+\.(?:m?js))["']/i);
-  if (!match) {
-    return null;
-  }
-  const entry = path.resolve(path.dirname(command), match[1].replace(/[\\/]/g, path.sep));
-  return exists(entry) ? entry : null;
+  return result;
 }
 
-function quoteCmdToken(value: string): string {
-  return '"' + value.replace(/(["^&|<>])/g, '^$1').replace(/%/g, '%%') + '"';
+function dshNodeBinary(
+  command: string,
+  env: NodeJS.ProcessEnv,
+  runtime: { execPath: string; sea: boolean }
+): string {
+  const executable = process.platform === 'win32' ? 'node.exe' : 'node';
+  const dirs = (env.PATH ?? env.Path ?? '').split(path.delimiter).filter(Boolean);
+  const candidates = [
+    path.join(path.dirname(command), executable),
+    env.WOODFISH_NODE_BIN,
+    ...dirs.map((dir) => path.join(dir.replace(/^"|"$/g, ''), executable)),
+    !runtime.sea && path.basename(runtime.execPath).toLowerCase() === executable
+      ? runtime.execPath
+      : undefined,
+  ];
+  const binary = candidates.find(
+    (file) =>
+      file &&
+      fs.statSync(file, { throwIfNoEntry: false })?.isFile() &&
+      !(
+        runtime.sea &&
+        fs.realpathSync(file).toLowerCase() === fs.realpathSync(runtime.execPath).toLowerCase()
+      )
+  );
+  if (!binary)
+    throw new Error('找不到运行 dsh 的 Node，请配置 WOODFISH_NODE_BIN 指向 Node 可执行文件');
+  return binary;
 }
 
 export function defaultDshRunner(
   command: string,
   args: readonly string[],
-  env: NodeJS.ProcessEnv
+  env: NodeJS.ProcessEnv,
+  runtime = { execPath: process.execPath, sea: isSea() }
 ): DshCommandRunnerResult {
-  const isWindowsShim = process.platform === 'win32' && /\.(?:cmd|bat)$/i.test(command);
-  const shimEntry = isWindowsShim ? resolveDshCmdShimEntry(command) : null;
-  const invocation = shimEntry
-    ? { command: process.execPath, args: [shimEntry, ...args], options: { shell: false } }
-    : isWindowsShim
-      ? {
-          command: env.ComSpec ?? process.env.ComSpec ?? 'cmd.exe',
-          args: [
-            '/d',
-            '/s',
-            '/c',
-            '"' + [quoteCmdToken(command), ...args.map(quoteCmdToken)].join(' ') + '"',
-          ],
-          options: { shell: false, windowsVerbatimArguments: true },
-        }
-      : { command, args: [...args], options: { shell: false } };
-  const result = spawnSync(invocation.command, invocation.args, {
-    env,
-    encoding: 'utf8',
-    windowsHide: true,
-    ...invocation.options,
-  });
+  let shimArgs: string[] | null = null;
+  if (process.platform === 'win32' && /\.(?:cmd|bat)$/i.test(command)) {
+    shimArgs = readDshCmdShim(command);
+    if (!shimArgs)
+      throw new Error(
+        '无法安全识别 dsh 的 Node 启动脚本，请配置 DSH_BIN 指向 dsh 可执行文件或 Node 入口'
+      );
+  } else if (/\.[mc]?js$/i.test(command)) {
+    shimArgs = [command];
+  }
+  const result = spawnSync(
+    shimArgs ? dshNodeBinary(command, env, runtime) : command,
+    shimArgs ? [...shimArgs, ...args] : [...args],
+    {
+      env,
+      encoding: 'utf8',
+      windowsHide: true,
+      shell: false,
+    }
+  );
   return {
     status: result.status,
     stdout: result.stdout ?? '',
@@ -287,10 +316,30 @@ export function readDshProfileStatus(
       const pkg = JSON.parse(fs.readFileSync(installedManifest, 'utf8')) as {
         name?: unknown;
         version?: unknown;
+        main?: unknown;
+        exports?: { './client'?: unknown };
+        dsh?: { client?: { platform?: unknown }; bundle?: { patch?: unknown } };
       };
-      if (pkg.name === DSH_PLUGIN_NAME && typeof pkg.version === 'string') {
-        version = pkg.version;
-        packagePresent = true;
+      if (
+        pkg.name === DSH_PLUGIN_NAME &&
+        typeof pkg.version === 'string' &&
+        pkg.version.trim() &&
+        pkg.dsh?.client?.platform === 'web'
+      ) {
+        const dir = path.dirname(installedManifest);
+        const entries = [pkg.main, pkg.exports?.['./client'], pkg.dsh.bundle?.patch];
+        packagePresent =
+          entries.every(
+            (file) =>
+              typeof file === 'string' &&
+              !path.isAbsolute(file) &&
+              path.resolve(dir, file).startsWith(dir + path.sep) &&
+              fs.statSync(path.join(dir, file), { throwIfNoEntry: false })?.isFile()
+          ) &&
+          fs
+            .readdirSync(path.join(dir, 'lib/assets'), { withFileTypes: true })
+            .some((asset) => asset.isFile() && /^caiyun-[0-9a-f]{12}\.webp$/.test(asset.name));
+        if (packagePresent) version = pkg.version;
       }
     } catch {
       // Ignore unreadable package metadata.

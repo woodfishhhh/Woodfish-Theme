@@ -59,6 +59,29 @@ function fileNameFor(entry: Pick<DshBackgroundEntry, 'id' | 'type'>): string {
   return `${entry.id}.${backgroundImageExtension(entry.type)}`;
 }
 
+function hasCode(error: unknown, ...codes: string[]): boolean {
+  return codes.includes((error as NodeJS.ErrnoException).code ?? '');
+}
+
+function staleOwner(pid: number, timestamp: number): boolean {
+  if (Date.now() - timestamp <= LOCK_STALE_MS) return false;
+  if (!Number.isSafeInteger(pid) || pid <= 0) return true;
+  try {
+    process.kill(pid, 0);
+    return false;
+  } catch (error) {
+    return hasCode(error, 'ESRCH');
+  }
+}
+
+function removeEmptyLock(lock: string): void {
+  try {
+    fs.rmdirSync(lock);
+  } catch (error) {
+    if (!hasCode(error, 'ENOENT', 'ENOTEMPTY', 'EEXIST')) throw error;
+  }
+}
+
 function waitForLock(milliseconds: number): void {
   if (milliseconds <= 0) {
     return;
@@ -86,29 +109,33 @@ export class HostBackgroundStore {
     return path.join(this.directory, LOCK_FILE);
   }
 
-  private readIndex(): DshBackgroundEntry[] {
+  private readRawIndexForWrite(): DshBackgroundEntry[] {
     try {
       const text = fs.readFileSync(this.indexPath(), 'utf8');
       const parsed = JSON.parse(text) as Partial<BackgroundIndex>;
       if (!Array.isArray(parsed.entries)) {
-        return [];
+        throw new Error('背景索引格式无效');
       }
-      return parsed.entries.filter(
-        (entry): entry is DshBackgroundEntry =>
-          entry !== null &&
-          typeof entry === 'object' &&
-          typeof entry.id === 'string' &&
-          VALID_ID.test(entry.id) &&
-          typeof entry.name === 'string' &&
-          (entry.type === 'image/jpeg' ||
-            entry.type === 'image/png' ||
-            entry.type === 'image/webp') &&
-          typeof entry.width === 'number' &&
-          typeof entry.height === 'number' &&
-          fs.existsSync(path.join(this.directory, fileNameFor(entry)))
-      );
-    } catch {
-      return [];
+      if (
+        !parsed.entries.every(
+          (entry): entry is DshBackgroundEntry =>
+            entry !== null &&
+            typeof entry === 'object' &&
+            typeof entry.id === 'string' &&
+            VALID_ID.test(entry.id) &&
+            typeof entry.name === 'string' &&
+            (entry.type === 'image/jpeg' ||
+              entry.type === 'image/png' ||
+              entry.type === 'image/webp') &&
+            typeof entry.width === 'number' &&
+            typeof entry.height === 'number'
+        )
+      )
+        throw new Error('背景索引条目无效');
+      return parsed.entries;
+    } catch (error) {
+      if (hasCode(error, 'ENOENT')) return [];
+      throw error;
     }
   }
 
@@ -130,92 +157,109 @@ export class HostBackgroundStore {
     }
   }
 
-  private lockIsStale(): boolean {
+  private reapDeadWriter(gate: string, staging: string): void {
     try {
-      const parts = fs.readFileSync(this.lockPath(), 'utf8').trim().split(/\s+/);
-      const timestamp = Number(parts[1]);
-      if (Number.isFinite(timestamp)) {
-        return Date.now() - timestamp > LOCK_STALE_MS;
+      const [owner] = fs.readdirSync(gate);
+      if (owner) {
+        const [pid, time] = owner.split('_').map(Number);
+        if (!staleOwner(pid, time)) return;
+        // A late contender can move only the generation it observed.
+        const retired = path.join(staging, 'retired');
+        fs.renameSync(path.join(gate, owner), retired);
+        fs.rmdirSync(retired);
       }
-      return Date.now() - fs.statSync(this.lockPath()).mtimeMs > LOCK_STALE_MS;
+      removeEmptyLock(gate);
     } catch (error) {
-      return (error as NodeJS.ErrnoException).code === 'ENOENT';
+      if (!hasCode(error, 'ENOENT')) throw error;
     }
   }
 
-  private reapStaleLock(): void {
-    const stalePath = this.lockPath() + '.' + process.pid + '.' + Date.now() + '.stale';
-    try {
-      fs.renameSync(this.lockPath(), stalePath);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+  private withLegacyLock<T>(owner: string, operation: () => T): T {
+    const lock = this.lockPath();
+    // The generation gate serializes takeover of older versions' regular lock files.
+    for (let attempt = 0; attempt < LOCK_ATTEMPTS; attempt++) {
+      let fd: number;
+      try {
+        fd = fs.openSync(lock, 'wx');
+      } catch (error) {
+        if (!hasCode(error, 'EEXIST')) throw error;
+        try {
+          const [pid, time] = fs.readFileSync(lock, 'utf8').trim().split(/\s+/).map(Number);
+          if (staleOwner(pid, time || fs.statSync(lock).mtimeMs)) {
+            const retired = lock + '.reclaiming.' + owner;
+            fs.renameSync(lock, retired);
+            fs.unlinkSync(retired);
+          }
+        } catch (changed) {
+          if (!hasCode(changed, 'ENOENT')) throw changed;
+        }
+        waitForLock(Math.min(20, 2 + attempt));
+        continue;
+      }
+      const token = [process.pid, Date.now(), owner].join(' ');
+      try {
+        try {
+          fs.writeFileSync(fd, token);
+        } finally {
+          fs.closeSync(fd);
+        }
+      } catch (error) {
+        fs.unlinkSync(lock);
         throw error;
       }
-      return;
-    }
-    try {
-      fs.unlinkSync(stalePath);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw error;
+      try {
+        return operation();
+      } finally {
+        if (fs.readFileSync(lock, 'utf8') === token) fs.unlinkSync(lock);
       }
     }
+    throw new Error('背景索引暂时被其他进程占用，请稍后重试');
   }
 
   private withIndexLock<T>(operation: () => T): T {
     fs.mkdirSync(this.directory, { recursive: true });
-    let descriptor: number | null = null;
-    for (let attempt = 0; attempt < LOCK_ATTEMPTS; attempt += 1) {
-      try {
-        descriptor = fs.openSync(this.lockPath(), 'wx');
-        fs.writeFileSync(descriptor, String(process.pid) + ' ' + String(Date.now()) + '\n', 'utf8');
-        break;
-      } catch (error) {
-        if (descriptor !== null) {
-          try {
-            fs.closeSync(descriptor);
-          } finally {
-            descriptor = null;
-          }
-        }
-        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-          throw error;
-        }
-        if (this.lockIsStale()) {
-          this.reapStaleLock();
-        }
-        waitForLock(Math.min(20, 2 + attempt));
-      }
-    }
-    if (descriptor === null) {
-      throw new Error('背景索引暂时被其他进程占用，请稍后重试');
-    }
+    const lock = this.lockPath() + '.d';
+    const owner = [process.pid, Date.now(), crypto.randomUUID()].join('_');
+    const staging = lock + '.' + owner;
+    fs.mkdirSync(staging);
+    let held = false;
     try {
-      return operation();
-    } finally {
-      try {
-        fs.closeSync(descriptor);
-      } finally {
+      fs.mkdirSync(path.join(staging, owner));
+      for (let attempt = 0; attempt < LOCK_ATTEMPTS; attempt++) {
         try {
-          fs.unlinkSync(this.lockPath());
+          // Publish a fully initialized nonempty directory in one operation.
+          fs.renameSync(staging, lock);
+          held = true;
+          break;
         } catch (error) {
-          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-            // Leave a stale lock for the next writer to reclaim.
-          }
+          if (!hasCode(error, 'ENOTEMPTY', 'EEXIST', 'EPERM', 'EACCES', 'ENOTDIR')) throw error;
+          this.reapDeadWriter(lock, staging);
+          waitForLock(Math.min(20, 2 + attempt));
         }
+      }
+      if (!held) throw new Error('背景索引暂时被其他进程占用，请稍后重试');
+      return this.withLegacyLock(owner, operation);
+    } finally {
+      if (held) {
+        fs.rmdirSync(path.join(lock, owner));
+        removeEmptyLock(lock);
+      } else {
+        fs.rmSync(staging, { recursive: true, force: true });
       }
     }
   }
 
   list(): DshBackgroundEntry[] {
-    return this.readIndex();
+    return this.readRawIndexForWrite().filter((entry) =>
+      fs.existsSync(path.join(this.directory, fileNameFor(entry)))
+    );
   }
 
   read(id: string): { entry: DshBackgroundEntry; bytes: Uint8Array } | null {
     if (!VALID_ID.test(id)) {
       return null;
     }
-    const entry = this.readIndex().find((item) => item.id === id);
+    const entry = this.readRawIndexForWrite().find((item) => item.id === id);
     if (!entry) {
       return null;
     }
@@ -250,7 +294,7 @@ export class HostBackgroundStore {
     };
 
     return this.withIndexLock(() => {
-      const existing = this.readIndex();
+      const existing = this.readRawIndexForWrite();
       const replacing = existing.some((item) => item.id === id);
       if (!replacing && existing.length >= BACKGROUND_IMAGE_LIMITS.maxStoredCount) {
         throw new BackgroundCapacityError();
@@ -294,7 +338,7 @@ export class HostBackgroundStore {
       return false;
     }
     return this.withIndexLock(() => {
-      const entries = this.readIndex();
+      const entries = this.readRawIndexForWrite();
       const target = entries.find((item) => item.id === id);
       if (!target) {
         return false;
@@ -335,7 +379,7 @@ async function readLimitedBody(request: Request): Promise<Uint8Array> {
       const chunk = result.value;
       total += chunk.byteLength;
       if (total > BACKGROUND_IMAGE_LIMITS.maxInputBytes) {
-        await reader.cancel();
+        // The dsh bridge closes an unread upload after flushing the 413 response.
         throw new BackgroundRequestTooLargeError();
       }
       chunks.push(chunk);

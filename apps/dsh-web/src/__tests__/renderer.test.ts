@@ -203,12 +203,12 @@ describe('dsh streaming', () => {
 });
 
 describe('WoodfishClientRuntime', () => {
-  it('applies changes live, syncs ThemeRuntime overrides, and persists through ConfigForm', async () => {
+  function setup() {
     page();
     let persisted: DshPersistedConfig = { ...DEFAULT_DSH_PERSISTED_CONFIG };
     const formListeners = new Set<() => void>();
     const mutations: SettingsPathOp[][] = [];
-    let mutationBlock: Promise<void> | null = null;
+    const behavior = jest.fn<Promise<boolean>, []>().mockResolvedValue(true);
     const themeOverrides: Array<Record<string, { light: string; dark: string }>> = [];
     let appearance: 'light' | 'dark' | 'system' = 'dark';
 
@@ -236,11 +236,7 @@ describe('WoodfishClientRuntime', () => {
           },
           mutate: async (ops) => {
             mutations.push([...ops]);
-            if (mutationBlock !== null) {
-              const blocked = mutationBlock;
-              mutationBlock = null;
-              await blocked;
-            }
+            if (!(await behavior())) return false;
             const next = { ...persisted } as Record<string, string>;
             for (const op of ops) {
               if (op.op === 'set' && op.path.length === 1) {
@@ -289,27 +285,75 @@ describe('WoodfishClientRuntime', () => {
       backgrounds
     );
 
+    return {
+      runtime,
+      mutations,
+      themeOverrides,
+      behavior,
+      saved: () => persisted,
+      notify: () => formListeners.forEach((listener) => listener()),
+    };
+  }
+
+  it.each(['false', 'exception'])(
+    'retains the draft and stops after one failed mutation (%s)',
+    async (failure) => {
+      const { runtime, behavior, saved, notify } = setup();
+      if (failure === 'false') behavior.mockResolvedValueOnce(false);
+      else behavior.mockRejectedValueOnce(new Error('保存失败'));
+      runtime.setUserCss('/* draft */', true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      notify();
+      expect(behavior).toHaveBeenCalledTimes(1);
+      expect(runtime.getSnapshot()).toMatchObject({
+        saveState: 'error',
+        settings: { userCss: '/* draft */' },
+      });
+      runtime.setUserCss('/* next */', true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(behavior).toHaveBeenCalledTimes(2);
+      expect(saved().userCss).toBe('/* next */');
+      expect(runtime.getSnapshot().saveState).toBe('saved');
+      runtime.dispose();
+    }
+  );
+
+  it('persists a same-tick edit following an immediate no-op', async () => {
+    const { runtime, behavior, saved } = setup();
+    runtime.setUserCss('', true);
+    runtime.setUserCss('/* next */', true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(behavior).toHaveBeenCalledTimes(1);
+    expect(saved().userCss).toBe('/* next */');
+    runtime.dispose();
+  });
+
+  it('applies changes live, syncs ThemeRuntime overrides, and persists through ConfigForm', async () => {
+    const { runtime, mutations, themeOverrides, behavior, saved } = setup();
     runtime.setPalette('dark', 'dracula');
     runtime.setEffectParam('squircle-corners', { scale: 2.05, shape: 'strong' }, true);
     runtime.setUserCss(':root { --woodfish-accent-width: 11px; }', true);
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    expect(persisted.paletteDark).toBe('dracula');
-    expect(JSON.parse(persisted.effectsJson)).toEqual({
+    expect(saved().paletteDark).toBe('dracula');
+    expect(JSON.parse(saved().effectsJson)).toEqual({
       'squircle-corners': { scale: 2.05, shape: 'strong' },
     });
-    expect(persisted.userCss).toBe(':root { --woodfish-accent-width: 11px; }');
+    expect(saved().userCss).toBe(':root { --woodfish-accent-width: 11px; }');
     expect(themeOverrides.at(-1)?.['--woodfish-theme-sync']?.dark).toBe('dracula');
     expect(mutations.length).toBeGreaterThanOrEqual(2);
 
     runtime.resetEffect('squircle-corners');
     await new Promise((resolve) => setTimeout(resolve, 10));
-    expect(JSON.parse(persisted.effectsJson)).toEqual({});
+    expect(JSON.parse(saved().effectsJson)).toEqual({});
 
     let releaseMutation: () => void = () => undefined;
-    mutationBlock = new Promise<void>((resolve) => {
-      releaseMutation = resolve;
-    });
+    behavior.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          releaseMutation = () => resolve(true);
+        })
+    );
     runtime.setUserCss('/* change */', true);
     await new Promise((resolve) => setTimeout(resolve, 0));
     runtime.setUserCss('', true);
@@ -317,9 +361,9 @@ describe('WoodfishClientRuntime', () => {
     runtime.setPalette('dark', 'nord');
     releaseMutation();
     await new Promise((resolve) => setTimeout(resolve, 20));
-    expect(persisted.userCss).toBe('');
-    expect(persisted.paletteDark).toBe('nord');
-    expect(JSON.parse(persisted.effectsJson)).toEqual({});
+    expect(saved().userCss).toBe('');
+    expect(saved().paletteDark).toBe('nord');
+    expect(JSON.parse(saved().effectsJson)).toEqual({});
 
     runtime.dispose();
   });

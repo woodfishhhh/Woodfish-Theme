@@ -1,5 +1,9 @@
 import { resizeBackgroundImage } from '@woodfish/renderer-runtime';
-import { DSH_BACKGROUNDS_API_PATH, DshBackgroundEntry } from '../protocol';
+import {
+  DSH_BACKGROUNDS_WRITE_PATH,
+  DSH_BACKGROUNDS_API_PATH,
+  DshBackgroundEntry,
+} from '../protocol';
 import { DSH_DEFAULT_BACKGROUND_ID } from '../settings';
 import { DshBrowserGlobals } from './dshClientTypes';
 
@@ -10,6 +14,7 @@ const NAME_LIMIT = 80;
  * proxies under subpaths, and Electron custom transports).
  */
 const API_RELATIVE = DSH_BACKGROUNDS_API_PATH.replace(/^\/+/, '');
+const WRITE_RELATIVE = DSH_BACKGROUNDS_WRITE_PATH.slice(1);
 
 function apiFetch(pathWithQuery: string, init: RequestInit = {}): Promise<Response> {
   const transport = (globalThis as unknown as DshBrowserGlobals).__DSH_TRANSPORT__;
@@ -100,7 +105,7 @@ export function createDshBackgroundClient(defaultAssetUrl: string): DshBackgroun
       const name = (file.name || '背景图片').slice(0, NAME_LIMIT);
       const bytes = await compressed.arrayBuffer();
       const response = await apiFetch(
-        `${API_RELATIVE}?action=upload&name=${encodeURIComponent(name)}`,
+        `${WRITE_RELATIVE}?action=upload&name=${encodeURIComponent(name)}`,
         {
           method: 'POST',
           headers: { 'content-type': 'application/octet-stream' },
@@ -117,7 +122,7 @@ export function createDshBackgroundClient(defaultAssetUrl: string): DshBackgroun
 
     async remove(id: string): Promise<void> {
       const response = await apiFetch(
-        `${API_RELATIVE}?action=delete&id=${encodeURIComponent(id)}`,
+        `${WRITE_RELATIVE}?action=delete&id=${encodeURIComponent(id)}`,
         { method: 'POST' }
       );
       const data = (await response.json()) as DeleteResponse;

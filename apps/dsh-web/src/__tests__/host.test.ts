@@ -2,10 +2,24 @@
 
 jest.mock('fs', () => {
   const actual = jest.requireActual<typeof import('fs')>('fs');
-  return { ...actual, unlinkSync: jest.fn(actual.unlinkSync) };
+  return {
+    ...actual,
+    readFileSync: jest.fn(actual.readFileSync),
+    writeFileSync: jest.fn(actual.writeFileSync),
+    unlinkSync: jest.fn(actual.unlinkSync),
+  };
 });
 
+jest.mock(
+  '@deepseek-ai/schemastery',
+  () => ({ object: () => ({}), string: () => ({ default: () => ({ volatile: () => ({}) }) }) }),
+  { virtual: true }
+);
+
+import { apply } from '../host';
+import { DSH_BACKGROUNDS_API_PATH, DSH_BACKGROUNDS_WRITE_PATH } from '../protocol';
 import { spawn } from 'child_process';
+import { buildSync } from 'esbuild';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -128,6 +142,37 @@ describe('HostBackgroundStore and HTTP handler', () => {
 });
 
 describe('HostBackgroundStore regressions', () => {
+  it('registers buffered reads and streaming writes under the authenticated connection registry', async () => {
+    type Context = Parameters<typeof apply>[0];
+    type Route = Parameters<NonNullable<Context['connection']>['fetch']['register']>[0];
+    const routes: Route[] = [];
+    const ctx: Context = {
+      get: () => ({ home: tempDir }),
+      inject: (_, mount) => mount(ctx),
+      on: () => {},
+      effect: () => {},
+      connection: {
+        fetch: {
+          register: (route) => {
+            routes.push(route);
+            return async () => {};
+          },
+        },
+      },
+    };
+    apply(ctx);
+    expect(routes.map(({ path, methods, requestBody }) => [path, methods, requestBody])).toEqual([
+      [DSH_BACKGROUNDS_API_PATH, ['GET'], 'buffered'],
+      [DSH_BACKGROUNDS_WRITE_PATH, ['POST'], 'streaming'],
+    ]);
+    expect((await routes[0].fetch(new Request('http://test' + routes[0].path))).status).toBe(200);
+    const request = new Request('http://test' + routes[1].path, {
+      method: 'POST',
+      headers: { 'content-length': String(BACKGROUND_IMAGE_LIMITS.maxInputBytes + 1) },
+    });
+    expect((await routes[1].fetch(request)).status).toBe(413);
+  });
+
   it('rejects a request whose declared content length exceeds the input limit', async () => {
     const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
     const request = new Request('http://127.0.0.1/api/woodfish-backgrounds?action=upload', {
@@ -170,35 +215,97 @@ describe('HostBackgroundStore regressions', () => {
     expect(pulls).toBeLessThanOrEqual(3);
   });
 
-  it('merges concurrent saves from independent processes without orphan files', async () => {
-    const directory = path.join(tempDir, 'backgrounds');
-    const modulePath = path.resolve(__dirname, '../../out/host/backgrounds.js');
-    const worker = [
-      'const { HostBackgroundStore } = require(process.env.WOODFISH_BACKGROUND_MODULE);',
-      'const bytes = Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,4,0,0,0,3,8,2,0,0,0,Number(process.argv[1])]);',
-      "new HostBackgroundStore(process.env.WOODFISH_BACKGROUND_DIR).save('worker-' + process.argv[1], bytes);",
-    ].join(' ');
-    const runWorker = (value: number) =>
-      new Promise<number>((resolve, reject) => {
-        const child = spawn(process.execPath, ['-e', worker, String(value)], {
-          env: {
-            ...process.env,
-            WOODFISH_BACKGROUND_MODULE: modulePath,
-            WOODFISH_BACKGROUND_DIR: directory,
-          },
-          stdio: 'ignore',
-        });
-        child.on('error', reject);
-        child.on('close', (code) => resolve(code ?? -1));
+  it.each([0, 29])(
+    'reclaims one stale lock across two processes with %i existing images',
+    async (count) => {
+      const directory = path.join(tempDir, 'backgrounds');
+      const store = new HostBackgroundStore(directory);
+      fs.mkdirSync(directory);
+      for (let i = 0; i < count; i++) store.save(String(i), validPngBytes(i));
+      const oldIds = store.list().map((entry) => entry.id);
+      fs.writeFileSync(path.join(directory, 'index.lock'), '0 1');
+      fs.mkdirSync(path.join(directory, 'index.lock.d', '0_1_dead'), { recursive: true });
+      const bundle = path.join(tempDir, 'backgrounds.cjs');
+      buildSync({
+        entryPoints: [path.resolve(__dirname, '../host/backgrounds.ts')],
+        outfile: bundle,
+        platform: 'node',
+        bundle: true,
+        conditions: ['source'],
       });
-    expect(await Promise.all([runWorker(1), runWorker(2)])).toEqual([0, 0]);
-    expect(new HostBackgroundStore(directory).list()).toHaveLength(2);
-    expect(
-      fs.readdirSync(directory).filter((file) => /\.(?:png|jpe?g|webp)$/i.test(file))
-    ).toHaveLength(2);
-    expect(
-      fs.readdirSync(directory).some((file) => file.endsWith('.tmp') || file === 'index.lock')
-    ).toBe(false);
+      const run = (index: number) =>
+        new Promise<number>((resolve, reject) => {
+          const png = path.resolve(
+            __dirname,
+            '../../../../docs/hosts/dsh-screenshots/squircle-' +
+              (index === 1 ? 'on' : 'off') +
+              '.png'
+          );
+          const child = spawn(
+            process.execPath,
+            [path.join(__dirname, 'background-worker.cjs'), bundle, directory, png, String(index)],
+            { stdio: ['ignore', 'ignore', 'pipe'] }
+          );
+          let stderr = '';
+          child.stderr.on('data', (data) => {
+            stderr += String(data);
+          });
+          child.once('error', reject);
+          child.once('close', (code) =>
+            code === 0 || code === 9
+              ? resolve(code)
+              : reject(new Error('background worker ' + code + ': ' + stderr))
+          );
+        });
+      expect((await Promise.all([run(1), run(2)])).sort()).toEqual(count ? [0, 9] : [0, 0]);
+      const ids = store.list().map((entry) => entry.id);
+      expect(ids).toEqual(expect.arrayContaining(oldIds));
+      expect(ids).toHaveLength(count ? 30 : 2);
+      expect(
+        fs
+          .readdirSync(directory)
+          .filter((name) => name.endsWith('.png'))
+          .sort()
+      ).toEqual(ids.map((id) => id + '.png').sort());
+      expect(fs.readdirSync(directory).filter((name) => name.startsWith('index.lock'))).toEqual([]);
+    },
+    15000
+  );
+
+  it('aborts save on index EIO or corrupt JSON and preserves the original bytes', () => {
+    const store = new HostBackgroundStore(tempDir);
+    store.save('old', validPngBytes());
+    const index = path.join(tempDir, 'index.json');
+    const before = fs.readFileSync(index, 'utf8');
+    jest.mocked(fs.readFileSync).mockImplementationOnce((file) => {
+      expect(file).toBe(index);
+      throw Object.assign(new Error('read failure'), { code: 'EIO' });
+    });
+    expect(() => store.save('next', validPngBytes(2))).toThrow('read failure');
+    expect(fs.readFileSync(index, 'utf8')).toBe(before);
+    fs.writeFileSync(index, '{');
+    expect(() => store.save('next', validPngBytes(2))).toThrow(SyntaxError);
+    expect(fs.readFileSync(index, 'utf8')).toBe('{');
+  });
+
+  it('cleans the new lock when owner initialization fails with ENOSPC', () => {
+    jest.mocked(fs.writeFileSync).mockImplementationOnce(() => {
+      throw Object.assign(new Error('disk full'), { code: 'ENOSPC' });
+    });
+    expect(() => new HostBackgroundStore(tempDir).save('image', validPngBytes())).toThrow(
+      'disk full'
+    );
+    expect(fs.readdirSync(tempDir)).toEqual([]);
+  });
+
+  it('removes the raw index row when the image is already missing', () => {
+    const store = new HostBackgroundStore(tempDir);
+    const { id } = store.save('gone', validPngBytes());
+    fs.unlinkSync(path.join(tempDir, id + '.png'));
+    expect(store.remove(id)).toBe(true);
+    expect(JSON.parse(fs.readFileSync(path.join(tempDir, 'index.json'), 'utf8')).entries).toEqual(
+      []
+    );
   });
 
   it('enforces the host-side stored image count and allows replacement after deletion', async () => {
@@ -222,26 +329,29 @@ describe('HostBackgroundStore regressions', () => {
     expect(store.list()).toHaveLength(BACKGROUND_IMAGE_LIMITS.maxStoredCount);
   });
 
-  it('keeps the index entry when deleting the image fails with a file lock error', () => {
-    const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
-    const saved = store.save('locked', validPngBytes(203));
-    const unlink = fs.unlinkSync as jest.MockedFunction<typeof fs.unlinkSync>;
-    const originalUnlink = jest.requireActual<typeof import('fs')>('fs').unlinkSync;
-    unlink.mockImplementation((file) => {
-      if (String(file).endsWith('.png')) {
-        const error = new Error('locked') as NodeJS.ErrnoException;
-        error.code = 'EBUSY';
-        throw error;
+  it.each(['EBUSY', 'EPERM'])(
+    'keeps the index entry when deleting the image fails with %s',
+    (code) => {
+      const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
+      const saved = store.save('locked', validPngBytes(203));
+      const unlink = fs.unlinkSync as jest.MockedFunction<typeof fs.unlinkSync>;
+      const originalUnlink = jest.requireActual<typeof import('fs')>('fs').unlinkSync;
+      unlink.mockImplementation((file) => {
+        if (String(file).endsWith('.png')) {
+          const error = new Error('locked') as NodeJS.ErrnoException;
+          error.code = code;
+          throw error;
+        }
+        return originalUnlink(file);
+      });
+      try {
+        expect(() => store.remove(saved.id)).toThrow('locked');
+      } finally {
+        unlink.mockImplementation(originalUnlink);
       }
-      return originalUnlink(file);
-    });
-    try {
-      expect(() => store.remove(saved.id)).toThrow('locked');
-    } finally {
-      unlink.mockImplementation(originalUnlink);
+      expect(store.list().map((entry) => entry.id)).toEqual([saved.id]);
     }
-    expect(store.list().map((entry) => entry.id)).toEqual([saved.id]);
-  });
+  );
 });
 
 describe('committed native dsh plugin package', () => {

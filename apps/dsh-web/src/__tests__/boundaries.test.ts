@@ -33,15 +33,7 @@ describe('dsh-web boundaries', () => {
   it('keeps external imports constrained per runtime boundary', () => {
     const allowedByLayer = (file: string): ReadonlySet<string> => {
       if (file.startsWith('host/')) {
-        return new Set([
-          'crypto',
-          'fs',
-          'os',
-          'path',
-          'node:http',
-          'node:stream',
-          '@deepseek-ai/schemastery',
-        ]);
+        return new Set(['crypto', 'fs', 'os', 'path', '@deepseek-ai/schemastery']);
       }
       if (file.startsWith('client/')) {
         return new Set(['react']);

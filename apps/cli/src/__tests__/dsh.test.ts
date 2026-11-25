@@ -9,7 +9,7 @@ import { dshInstallCommand, dshStatusCommand, dshUninstallCommand } from '../com
 import {
   DshCommandRunner,
   defaultDshRunner,
-  resolveDshCmdShimEntry,
+  readDshCmdShim,
   readDshProfileStatus,
   resolveDshProfileDir,
   stagedDshPluginDir,
@@ -80,10 +80,9 @@ describe('woodfish dsh native plugin commands', () => {
             dsh: { profile: { bundles: [DSH_PLUGIN_NAME] } },
           })
         );
-        fs.writeFileSync(
-          path.join(profileDir, 'node_modules', DSH_PLUGIN_NAME, 'package.json'),
-          JSON.stringify({ name: DSH_PLUGIN_NAME, version: '8.2.3' })
-        );
+        fs.cpSync(args[4], path.join(profileDir, 'node_modules', DSH_PLUGIN_NAME), {
+          recursive: true,
+        });
       } else if (action === 'remove') {
         fs.writeFileSync(
           path.join(profileDir, 'package.json'),
@@ -179,30 +178,92 @@ describe('woodfish dsh native plugin commands', () => {
     expect(io.output.join('\n')).toContain('已声明依赖，但实际包缺失或损坏');
   });
 
-  it('resolves a standard npm cmd shim to its JavaScript entry', () => {
+  it.each(['npm', 'pnpm/corepack'])('resolves a standard %s Node shim', (kind) => {
     const shim = path.join(sandbox, 'dsh.cmd');
-    const entry = path.join(sandbox, 'node_modules', 'dsh', 'bin.js');
-    fs.mkdirSync(path.dirname(entry), { recursive: true });
+    const entry = path.join(sandbox, 'bin.cjs');
     fs.writeFileSync(entry, '');
-    fs.writeFileSync(shim, '"%dp0%\\node_modules\\dsh\\bin.js" %*');
-    expect(resolveDshCmdShimEntry(shim)).toBe(entry);
+    fs.writeFileSync(
+      shim,
+      kind === 'npm'
+        ? 'endLocal & "%_prog%" "%dp0%\\bin.cjs" %*'
+        : '"%~dp0\\node.exe" "%~dp0\\bin.cjs" %*'
+    );
+    expect(readDshCmdShim(shim)).toEqual([entry]);
   });
 
-  it('preserves a spaced package path through a real Windows cmd script', () => {
-    if (process.platform !== 'win32') {
-      return;
-    }
-    const script = path.join(sandbox, 'record-args.cmd');
-    const packagePath = path.join(sandbox, 'Woodfish Data', 'dsh-plugin');
-    fs.mkdirSync(packagePath, { recursive: true });
+  const windows = process.platform === 'win32' ? it : it.skip;
+  windows.each([false, true])('preserves literal Windows argv through npm shim (SEA=%s)', (sea) => {
+    const script = path.join(sandbox, 'dsh.cmd');
+    const entry = path.join(sandbox, 'record.cjs');
     fs.writeFileSync(
       script,
-      '@echo off\r\n> "%~dp0received.txt" echo %~1\r\n>> "%~dp0received.txt" echo %~2\r\n',
-      'utf8'
+      [
+        '@ECHO OFF',
+        'GOTO start',
+        ':find_dp0',
+        'SET dp0=%~dp0',
+        'EXIT /b',
+        ':start',
+        'SETLOCAL',
+        'CALL :find_dp0',
+        'IF EXIST "%dp0%\\node.exe" (',
+        'SET "_prog=%dp0%\\node.exe"',
+        ') ELSE (',
+        'SET "_prog=node"',
+        ')',
+        'endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & set PATHEXT=%PATHEXT:;.JS;=;% & "%_prog%" "%dp0%\\record.cjs" %*',
+      ].join('\r\n')
     );
-    const result = defaultDshRunner(script, ['--package', packagePath], process.env);
+    fs.writeFileSync(
+      entry,
+      'console.log(JSON.stringify([process.execPath, ...process.argv.slice(2)]))'
+    );
+    const execPath = sea ? path.join(sandbox, 'woodfish.exe') : process.execPath;
+    if (sea) fs.writeFileSync(execPath, 'not a Node runtime');
+    const args = ['space path', 'R&D', 'Study^Set', '%TEMP%', 'a"b'].map((name) =>
+      path.join(sandbox, name)
+    );
+    const result = defaultDshRunner(
+      script,
+      args,
+      {
+        ...env,
+        PATH: path.dirname(process.execPath),
+        WOODFISH_NODE_BIN: sea ? execPath : undefined,
+      },
+      { execPath, sea }
+    );
     expect(result.status).toBe(0);
-    expect(fs.readFileSync(path.join(sandbox, 'received.txt'), 'utf8')).toContain(packagePath);
+    expect(JSON.parse(result.stdout)).toEqual([process.execPath, ...args]);
+  });
+
+  windows('refuses an unknown batch script without invoking a shell', () => {
+    const script = path.join(sandbox, 'custom.bat');
+    fs.writeFileSync(script, '@echo off\r\necho %*');
+    expect(() => defaultDshRunner(script, ['test'], env)).toThrow(/DSH_BIN/);
+  });
+
+  it('reports a manifest-only installation and missing bundle resources as broken', () => {
+    const profile = resolveDshProfileDir('web', env);
+    const dir = path.join(profile, 'node_modules', DSH_PLUGIN_NAME);
+    const bundled = path.resolve(__dirname, '../../../dsh-web/plugin');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(profile, 'package.json'),
+      JSON.stringify({
+        dependencies: { [DSH_PLUGIN_NAME]: '*' },
+        dsh: { profile: { bundles: [DSH_PLUGIN_NAME] } },
+      })
+    );
+    fs.copyFileSync(path.join(bundled, 'package.json'), path.join(dir, 'package.json'));
+    const status = () => readDshProfileStatus('web', env);
+    expect(status()).toMatchObject({ installed: false, broken: true, enabled: true });
+    for (const file of ['lib/index.js', 'lib/client.js', 'cordis.patch.yml', 'lib/assets']) {
+      fs.cpSync(bundled, dir, { recursive: true });
+      expect(status().installed).toBe(true);
+      fs.rmSync(path.join(dir, file), { recursive: true });
+      expect(status()).toMatchObject({ installed: false, broken: true });
+    }
   });
 
   it('rejects the removed dsh userscript subcommand and invalid profile names', async () => {

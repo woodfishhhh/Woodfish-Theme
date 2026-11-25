@@ -383,11 +383,26 @@ describe('dsh glass floating surfaces', () => {
         css = next;
       },
     });
-    for (const role of ['menu', 'listbox', 'dialog']) {
-      expect(css).toContain('[role="' + role + '"]');
+    const sheet = document.createElement('style');
+    sheet.textContent = css;
+    document.head.append(sheet);
+    try {
+      const rules = Array.from(sheet.sheet!.cssRules).filter(
+        (rule): rule is CSSStyleRule => rule.type === CSSRule.STYLE_RULE
+      );
+      for (const role of ['menu', 'listbox', 'dialog']) {
+        const surface = document.createElement('div');
+        surface.setAttribute('role', role);
+        const applied = rules
+          .filter((rule) => surface.matches(rule.selectorText))
+          .map((rule) => rule.style.cssText)
+          .join(' ');
+        expect(applied).toContain('border-radius: calc(12px * var(--squircle-k, 1)) !important;');
+        expect(applied).toContain('animation: woodfish-dsh-glass-pop 180ms');
+      }
+    } finally {
+      sheet.remove();
     }
-    expect(css).toContain('border-radius: calc(12px * var(--squircle-k, 1)) !important;');
-    expect(css).toContain('animation: woodfish-dsh-glass-pop 180ms');
   });
 });
 
