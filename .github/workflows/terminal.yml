@@ -3,7 +3,7 @@ name: Terminal palettes
 
 on:
   push:
-    paths: ['apps/terminal/**', 'packages/theme-core/**']
+    paths: ['apps/terminal/**', 'packages/theme-core/**', '.github/workflows/terminal.yml']
   pull_request:
     paths: ['apps/terminal/**', 'packages/theme-core/**']
 
