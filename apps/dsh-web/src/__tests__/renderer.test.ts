@@ -208,6 +208,7 @@ describe('WoodfishClientRuntime', () => {
     let persisted: DshPersistedConfig = { ...DEFAULT_DSH_PERSISTED_CONFIG };
     const formListeners = new Set<() => void>();
     const mutations: SettingsPathOp[][] = [];
+    let mutationBlock: Promise<void> | null = null;
     const themeOverrides: Array<Record<string, { light: string; dark: string }>> = [];
     let appearance: 'light' | 'dark' | 'system' = 'dark';
 
@@ -235,6 +236,11 @@ describe('WoodfishClientRuntime', () => {
           },
           mutate: async (ops) => {
             mutations.push([...ops]);
+            if (mutationBlock !== null) {
+              const blocked = mutationBlock;
+              mutationBlock = null;
+              await blocked;
+            }
             const next = { ...persisted } as Record<string, string>;
             for (const op of ops) {
               if (op.op === 'set' && op.path.length === 1) {
@@ -294,10 +300,25 @@ describe('WoodfishClientRuntime', () => {
     });
     expect(persisted.userCss).toBe(':root { --woodfish-accent-width: 11px; }');
     expect(themeOverrides.at(-1)?.['--woodfish-theme-sync']?.dark).toBe('dracula');
-    expect(mutations.length).toBeGreaterThanOrEqual(3);
+    expect(mutations.length).toBeGreaterThanOrEqual(2);
 
     runtime.resetEffect('squircle-corners');
     await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(JSON.parse(persisted.effectsJson)).toEqual({});
+
+    let releaseMutation: () => void = () => undefined;
+    mutationBlock = new Promise<void>((resolve) => {
+      releaseMutation = resolve;
+    });
+    runtime.setUserCss('/* change */', true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    runtime.setUserCss('', true);
+    runtime.setPalette('dark', 'dracula');
+    runtime.setPalette('dark', 'nord');
+    releaseMutation();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(persisted.userCss).toBe('');
+    expect(persisted.paletteDark).toBe('nord');
     expect(JSON.parse(persisted.effectsJson)).toEqual({});
 
     runtime.dispose();

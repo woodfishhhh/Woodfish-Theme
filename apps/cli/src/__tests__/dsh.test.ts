@@ -8,6 +8,8 @@ import { CommandContext } from '../commands/context';
 import { dshInstallCommand, dshStatusCommand, dshUninstallCommand } from '../commands/dsh';
 import {
   DshCommandRunner,
+  defaultDshRunner,
+  resolveDshCmdShimEntry,
   readDshProfileStatus,
   resolveDshProfileDir,
   stagedDshPluginDir,
@@ -149,6 +151,58 @@ describe('woodfish dsh native plugin commands', () => {
       'add',
       'woodfish-dsh-plugin@latest',
     ]);
+  });
+
+  it('distinguishes a declared but missing or broken plugin package', () => {
+    const profileDir = resolveDshProfileDir('web', env);
+    fs.mkdirSync(profileDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(profileDir, 'package.json'),
+      JSON.stringify({ dependencies: { [DSH_PLUGIN_NAME]: 'file:plugin' } })
+    );
+    const missing = readDshProfileStatus('web', env);
+    expect(missing.installed).toBe(false);
+    expect(missing.dependencyDeclared).toBe(true);
+    expect(missing.packagePresent).toBe(false);
+    expect(missing.broken).toBe(true);
+
+    const brokenDir = path.join(profileDir, 'node_modules', DSH_PLUGIN_NAME);
+    fs.mkdirSync(brokenDir, { recursive: true });
+    fs.writeFileSync(path.join(brokenDir, 'package.json'), '{broken');
+    const broken = readDshProfileStatus('web', env);
+    expect(broken.installed).toBe(false);
+    expect(broken.packagePresent).toBe(false);
+    expect(broken.broken).toBe(true);
+
+    const io = memoryIo();
+    expect(dshStatusCommand(makeContext(io), { profile: 'web', json: false }, { env })).toBe(0);
+    expect(io.output.join('\n')).toContain('已声明依赖，但实际包缺失或损坏');
+  });
+
+  it('resolves a standard npm cmd shim to its JavaScript entry', () => {
+    const shim = path.join(sandbox, 'dsh.cmd');
+    const entry = path.join(sandbox, 'node_modules', 'dsh', 'bin.js');
+    fs.mkdirSync(path.dirname(entry), { recursive: true });
+    fs.writeFileSync(entry, '');
+    fs.writeFileSync(shim, '"%dp0%\\node_modules\\dsh\\bin.js" %*');
+    expect(resolveDshCmdShimEntry(shim)).toBe(entry);
+  });
+
+  it('preserves a spaced package path through a real Windows cmd script', () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+    const script = path.join(sandbox, 'record-args.cmd');
+    const packagePath = path.join(sandbox, 'Woodfish Data', 'dsh-plugin');
+    fs.mkdirSync(packagePath, { recursive: true });
+    fs.writeFileSync(
+      script,
+      '@echo off\r\n> "%~dp0received.txt" echo %~1\r\n>> "%~dp0received.txt" echo %~2\r\n',
+      'utf8'
+    );
+    const result = defaultDshRunner(script, ['--package', packagePath], process.env);
+    expect(result.status).toBe(0);
+    expect(fs.readFileSync(path.join(sandbox, 'received.txt'), 'utf8')).toContain(packagePath);
   });
 
   it('rejects the removed dsh userscript subcommand and invalid profile names', async () => {

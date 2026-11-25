@@ -357,6 +357,40 @@ describe('Codex floating layer selectors', () => {
   });
 });
 
+describe('dsh glass floating surfaces', () => {
+  it('applies dsh glass radius and entry animation to menu, listbox, and dialog surfaces', () => {
+    const glass = require('../../../../packages/effects/builtin/glass/effect.js') as (
+      ctx: Record<string, unknown>
+    ) => unknown;
+    let css = '';
+    glass({
+      host: 'dsh',
+      params: {
+        mode: 'blur',
+        saturate: 150,
+        blur: 24,
+        opacity: 0.4,
+        borderRadius: 12,
+        animations: true,
+        reveal: false,
+      },
+      selectors: {
+        floatingLayer: '[data-menu-material], [role="menu"], [role="listbox"], [role="dialog"]',
+        composerMenuHeader: '.header',
+      },
+      lib: { acrylicFilterId: 'woodfish-acrylic' },
+      style: (next: string) => {
+        css = next;
+      },
+    });
+    for (const role of ['menu', 'listbox', 'dialog']) {
+      expect(css).toContain('[role="' + role + '"]');
+    }
+    expect(css).toContain('border-radius: calc(12px * var(--squircle-k, 1)) !important;');
+    expect(css).toContain('animation: woodfish-dsh-glass-pop 180ms');
+  });
+});
+
 describe('paletteToChromeTheme', () => {
   it('offers every Woodfish theme the VS Code extension ships', () => {
     expect(CODEX_PALETTE_SLUGS).toEqual(WOODFISH_PALETTES.map((palette) => palette.slug));

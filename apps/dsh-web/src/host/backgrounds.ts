@@ -9,11 +9,32 @@ import {
 import { DshBackgroundEntry } from '../protocol';
 
 const INDEX_FILE = 'index.json';
+const LOCK_FILE = 'index.lock';
 const VALID_ID = /^[a-f0-9]{16}$/;
 const NAME_LIMIT = 80;
+const LOCK_STALE_MS = 30_000;
+const LOCK_ATTEMPTS = 100;
 
 interface BackgroundIndex {
   entries: DshBackgroundEntry[];
+}
+
+export class BackgroundCapacityError extends Error {
+  readonly status = 409;
+
+  constructor() {
+    super('背景图片最多保存 ' + BACKGROUND_IMAGE_LIMITS.maxStoredCount + ' 张');
+    this.name = 'BackgroundCapacityError';
+  }
+}
+
+export class BackgroundRequestTooLargeError extends Error {
+  readonly status = 413;
+
+  constructor() {
+    super('请求体超过 40 MB 限制');
+    this.name = 'BackgroundRequestTooLargeError';
+  }
 }
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -38,10 +59,17 @@ function fileNameFor(entry: Pick<DshBackgroundEntry, 'id' | 'type'>): string {
   return `${entry.id}.${backgroundImageExtension(entry.type)}`;
 }
 
+function waitForLock(milliseconds: number): void {
+  if (milliseconds <= 0) {
+    return;
+  }
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
+
 /**
  * Persistent Host-side storage for custom dsh background pictures.
  * Images are validated by magic bytes (never file extension or MIME header), deduplicated by
- * content hash, and stored under `<DSH_HOME>/woodfish/backgrounds/` with atomic index writes.
+ * content hash, and stored under the dsh home backgrounds directory with atomic index writes.
  */
 export class HostBackgroundStore {
   private readonly directory: string;
@@ -52,6 +80,10 @@ export class HostBackgroundStore {
 
   private indexPath(): string {
     return path.join(this.directory, INDEX_FILE);
+  }
+
+  private lockPath(): string {
+    return path.join(this.directory, LOCK_FILE);
   }
 
   private readIndex(): DshBackgroundEntry[] {
@@ -83,8 +115,96 @@ export class HostBackgroundStore {
   private writeIndex(entries: readonly DshBackgroundEntry[]): void {
     fs.mkdirSync(this.directory, { recursive: true });
     const temp = `${this.indexPath()}.${process.pid}.${Date.now()}.tmp`;
-    fs.writeFileSync(temp, `${JSON.stringify({ entries }, null, 2)}\n`, 'utf8');
-    fs.renameSync(temp, this.indexPath());
+    try {
+      fs.writeFileSync(temp, JSON.stringify({ entries }, null, 2) + '\n', 'utf8');
+      fs.renameSync(temp, this.indexPath());
+    } catch (error) {
+      try {
+        fs.unlinkSync(temp);
+      } catch (cleanupError) {
+        if ((cleanupError as NodeJS.ErrnoException).code !== 'ENOENT') {
+          throw cleanupError;
+        }
+      }
+      throw error;
+    }
+  }
+
+  private lockIsStale(): boolean {
+    try {
+      const parts = fs.readFileSync(this.lockPath(), 'utf8').trim().split(/\s+/);
+      const timestamp = Number(parts[1]);
+      if (Number.isFinite(timestamp)) {
+        return Date.now() - timestamp > LOCK_STALE_MS;
+      }
+      return Date.now() - fs.statSync(this.lockPath()).mtimeMs > LOCK_STALE_MS;
+    } catch (error) {
+      return (error as NodeJS.ErrnoException).code === 'ENOENT';
+    }
+  }
+
+  private reapStaleLock(): void {
+    const stalePath = this.lockPath() + '.' + process.pid + '.' + Date.now() + '.stale';
+    try {
+      fs.renameSync(this.lockPath(), stalePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+      return;
+    }
+    try {
+      fs.unlinkSync(stalePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+    }
+  }
+
+  private withIndexLock<T>(operation: () => T): T {
+    fs.mkdirSync(this.directory, { recursive: true });
+    let descriptor: number | null = null;
+    for (let attempt = 0; attempt < LOCK_ATTEMPTS; attempt += 1) {
+      try {
+        descriptor = fs.openSync(this.lockPath(), 'wx');
+        fs.writeFileSync(descriptor, String(process.pid) + ' ' + String(Date.now()) + '\n', 'utf8');
+        break;
+      } catch (error) {
+        if (descriptor !== null) {
+          try {
+            fs.closeSync(descriptor);
+          } finally {
+            descriptor = null;
+          }
+        }
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+          throw error;
+        }
+        if (this.lockIsStale()) {
+          this.reapStaleLock();
+        }
+        waitForLock(Math.min(20, 2 + attempt));
+      }
+    }
+    if (descriptor === null) {
+      throw new Error('背景索引暂时被其他进程占用，请稍后重试');
+    }
+    try {
+      return operation();
+    } finally {
+      try {
+        fs.closeSync(descriptor);
+      } finally {
+        try {
+          fs.unlinkSync(this.lockPath());
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            // Leave a stale lock for the next writer to reclaim.
+          }
+        }
+      }
+    }
   }
 
   list(): DshBackgroundEntry[] {
@@ -128,40 +248,114 @@ export class HostBackgroundStore {
       bytes: bytes.byteLength,
       addedAt: Date.now(),
     };
-    fs.mkdirSync(this.directory, { recursive: true });
-    const target = path.join(this.directory, fileNameFor(entry));
-    const temp = `${target}.${process.pid}.${Date.now()}.tmp`;
-    fs.writeFileSync(temp, bytes);
-    fs.renameSync(temp, target);
 
-    const existing = this.readIndex().filter((item) => item.id !== id);
-    this.writeIndex([entry, ...existing]);
-    return entry;
+    return this.withIndexLock(() => {
+      const existing = this.readIndex();
+      const replacing = existing.some((item) => item.id === id);
+      if (!replacing && existing.length >= BACKGROUND_IMAGE_LIMITS.maxStoredCount) {
+        throw new BackgroundCapacityError();
+      }
+      const target = path.join(this.directory, fileNameFor(entry));
+      const targetExists = fs.existsSync(target);
+      const temp = `${target}.${process.pid}.${Date.now()}.tmp`;
+      let createdTarget = false;
+      try {
+        if (!targetExists) {
+          fs.writeFileSync(temp, bytes);
+          fs.renameSync(temp, target);
+          createdTarget = true;
+        }
+        this.writeIndex([entry, ...existing.filter((item) => item.id !== id)]);
+        return entry;
+      } catch (error) {
+        try {
+          fs.unlinkSync(temp);
+        } catch (cleanupError) {
+          if ((cleanupError as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw cleanupError;
+          }
+        }
+        if (createdTarget) {
+          try {
+            fs.unlinkSync(target);
+          } catch (cleanupError) {
+            if ((cleanupError as NodeJS.ErrnoException).code !== 'ENOENT') {
+              throw cleanupError;
+            }
+          }
+        }
+        throw error;
+      }
+    });
   }
 
   remove(id: string): boolean {
     if (!VALID_ID.test(id)) {
       return false;
     }
-    const entries = this.readIndex();
-    const target = entries.find((item) => item.id === id);
-    if (!target) {
-      return false;
-    }
-    try {
-      fs.unlinkSync(path.join(this.directory, fileNameFor(target)));
-    } catch {
-      // Ignore already-deleted files while pruning the index.
-    }
-    this.writeIndex(entries.filter((item) => item.id !== id));
-    return true;
+    return this.withIndexLock(() => {
+      const entries = this.readIndex();
+      const target = entries.find((item) => item.id === id);
+      if (!target) {
+        return false;
+      }
+      try {
+        fs.unlinkSync(path.join(this.directory, fileNameFor(target)));
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+          throw error;
+        }
+      }
+      this.writeIndex(entries.filter((item) => item.id !== id));
+      return true;
+    });
   }
 }
 
+async function readLimitedBody(request: Request): Promise<Uint8Array> {
+  const declaredLength = request.headers.get('content-length');
+  if (declaredLength !== null) {
+    const length = Number(declaredLength);
+    if (Number.isFinite(length) && length > BACKGROUND_IMAGE_LIMITS.maxInputBytes) {
+      throw new BackgroundRequestTooLargeError();
+    }
+  }
+  if (request.body === null) {
+    return new Uint8Array();
+  }
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const result = await reader.read();
+      if (result.done) {
+        break;
+      }
+      const chunk = result.value;
+      total += chunk.byteLength;
+      if (total > BACKGROUND_IMAGE_LIMITS.maxInputBytes) {
+        await reader.cancel();
+        throw new BackgroundRequestTooLargeError();
+      }
+      chunks.push(chunk);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
+}
+
 /**
- * Authenticated Fetch handler mounted at `/api/woodfish-backgrounds` via
- * `ctx.connection.fetch.register`. Uses only `GET` and `POST` as required by dsh's
- * `ConnectionFetchMethod` contract.
+ * Authenticated Fetch handler mounted at the background API path through
+ * ctx.connection.fetch.register. It uses only GET and POST as required by dsh's
+ * ConnectionFetchMethod contract.
  */
 export async function handleBackgroundsRequest(
   store: HostBackgroundStore,
@@ -194,11 +388,16 @@ export async function handleBackgroundsRequest(
       let id = url.searchParams.get('id') ?? '';
       if (!id) {
         try {
-          const payload = (await request.json()) as { id?: unknown };
+          const payload = JSON.parse(new TextDecoder().decode(await readLimitedBody(request))) as {
+            id?: unknown;
+          };
           if (typeof payload.id === 'string') {
             id = payload.id;
           }
-        } catch {
+        } catch (error) {
+          if (error instanceof BackgroundRequestTooLargeError) {
+            return jsonResponse({ ok: false, error: error.message }, error.status);
+          }
           return jsonResponse({ ok: false, error: '无效的删除请求' }, 400);
         }
       }
@@ -210,36 +409,46 @@ export async function handleBackgroundsRequest(
       const contentType = (request.headers.get('content-type') ?? '').toLowerCase();
       let name = url.searchParams.get('name') ?? '';
       let bytes: Uint8Array;
-      if (contentType.includes('application/json')) {
-        let payload: { name?: unknown; dataBase64?: unknown };
-        try {
-          payload = (await request.json()) as { name?: unknown; dataBase64?: unknown };
-        } catch {
+      try {
+        const body = await readLimitedBody(request);
+        if (contentType.includes('application/json')) {
+          const payload = JSON.parse(new TextDecoder().decode(body)) as {
+            name?: unknown;
+            dataBase64?: unknown;
+          };
+          if (typeof payload.dataBase64 !== 'string' || payload.dataBase64.length === 0) {
+            return jsonResponse({ ok: false, error: '缺少图片数据' }, 400);
+          }
+          if (typeof payload.name === 'string' && payload.name.trim() !== '') {
+            name = payload.name;
+          }
+          const buffer = Buffer.from(payload.dataBase64, 'base64');
+          bytes = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+        } else {
+          bytes = body;
+        }
+      } catch (error) {
+        if (error instanceof BackgroundRequestTooLargeError) {
+          return jsonResponse({ ok: false, error: error.message }, error.status);
+        }
+        if (contentType.includes('application/json')) {
           return jsonResponse({ ok: false, error: '请求体不是有效的 JSON' }, 400);
         }
-        if (typeof payload.dataBase64 !== 'string' || payload.dataBase64.length === 0) {
-          return jsonResponse({ ok: false, error: '缺少图片数据' }, 400);
-        }
-        if (typeof payload.name === 'string' && payload.name.trim() !== '') {
-          name = payload.name;
-        }
-        const buffer = Buffer.from(payload.dataBase64, 'base64');
-        bytes = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-      } else {
-        bytes = new Uint8Array(await request.arrayBuffer());
+        throw error;
       }
       try {
         const entry = store.save(name, bytes);
         return jsonResponse({ ok: true, entry });
       } catch (error) {
+        const status = error instanceof BackgroundCapacityError ? error.status : 400;
         return jsonResponse(
           { ok: false, error: error instanceof Error ? error.message : String(error) },
-          400
+          status
         );
       }
     }
 
-    return jsonResponse({ ok: false, error: `不支持的操作：${action}` }, 400);
+    return jsonResponse({ ok: false, error: '不支持的操作：' + action }, 400);
   }
 
   return new Response(null, { status: 405, headers: { allow: 'GET, POST' } });

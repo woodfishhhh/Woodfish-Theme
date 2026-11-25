@@ -38,7 +38,7 @@ module.exports = function glass(ctx) {
     ];
     if (p.borderRadius > 0) {
       parts.push(
-        rule(':is([data-menu-material], [role="menu"], [role="listbox"])', [
+        rule(':is([data-menu-material], [role="menu"], [role="listbox"], [role="dialog"])', [
           `border-radius: calc(${p.borderRadius}px * var(--squircle-k, 1)) !important;`,
           'corner-shape: var(--squircle-shape, round) !important;',
         ])
@@ -48,9 +48,10 @@ module.exports = function glass(ctx) {
       const curve = 'cubic-bezier(0.22, 1, 0.36, 1)';
       parts.push(
         '@keyframes woodfish-dsh-glass-pop { from { opacity: 0; transform: translateY(-4px) scale(0.985); } }',
-        rule(`:where(${targets}):is([data-menu-material], [role="menu"], [role="listbox"])`, [
-          `animation: woodfish-dsh-glass-pop 180ms ${curve} backwards;`,
-        ]),
+        rule(
+          `:where(${targets}):is([data-menu-material], [role="menu"], [role="listbox"], [role="dialog"])`,
+          [`animation: woodfish-dsh-glass-pop 180ms ${curve} backwards;`]
+        ),
         `:root[data-reduced-motion="true"] :where(${targets}) { animation: none !important; }`,
         `@media (prefers-reduced-motion: reduce) { :where(${targets}) { animation: none !important; } }`
       );

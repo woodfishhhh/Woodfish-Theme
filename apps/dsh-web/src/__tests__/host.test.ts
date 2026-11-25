@@ -1,6 +1,15 @@
+/** @jest-environment node */
+
+jest.mock('fs', () => {
+  const actual = jest.requireActual<typeof import('fs')>('fs');
+  return { ...actual, unlinkSync: jest.fn(actual.unlinkSync) };
+});
+
+import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { BACKGROUND_IMAGE_LIMITS } from '@woodfish/theme-core';
 import { DSH_PLUGIN_NAME } from '../protocol';
 import { HostBackgroundStore, handleBackgroundsRequest } from '../host/backgrounds';
 
@@ -115,6 +124,123 @@ describe('HostBackgroundStore and HTTP handler', () => {
     expect(() => store.save('bad.png', new Uint8Array([1, 2, 3, 4]))).toThrow(/只支持/);
     expect(store.read('../secret')).toBeNull();
     expect(store.remove('../secret')).toBe(false);
+  });
+});
+
+describe('HostBackgroundStore regressions', () => {
+  it('rejects a request whose declared content length exceeds the input limit', async () => {
+    const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
+    const request = new Request('http://127.0.0.1/api/woodfish-backgrounds?action=upload', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/octet-stream',
+        'content-length': String(BACKGROUND_IMAGE_LIMITS.maxInputBytes + 1),
+      },
+      body: new Blob([validPngBytes().slice().buffer]),
+    });
+    const response = await handleBackgroundsRequest(store, request);
+    expect(response.status).toBe(413);
+    expect(store.list()).toEqual([]);
+  });
+
+  it('stops reading a chunked request as soon as it exceeds the input limit', async () => {
+    const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
+    let pulls = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        const current = pulls++;
+        if (current === 0) {
+          controller.enqueue(new Uint8Array(BACKGROUND_IMAGE_LIMITS.maxInputBytes));
+        } else if (current === 1) {
+          controller.enqueue(Uint8Array.of(1));
+        } else {
+          controller.close();
+        }
+      },
+      cancel() {},
+    });
+    const request = new Request('http://127.0.0.1/api/woodfish-backgrounds?action=upload', {
+      method: 'POST',
+      headers: { 'content-type': 'application/octet-stream' },
+      body,
+      duplex: 'half',
+    } as RequestInit & { duplex: 'half' });
+    const response = await handleBackgroundsRequest(store, request);
+    expect(response.status).toBe(413);
+    expect(pulls).toBeLessThanOrEqual(3);
+  });
+
+  it('merges concurrent saves from independent processes without orphan files', async () => {
+    const directory = path.join(tempDir, 'backgrounds');
+    const modulePath = path.resolve(__dirname, '../../out/host/backgrounds.js');
+    const worker = [
+      'const { HostBackgroundStore } = require(process.env.WOODFISH_BACKGROUND_MODULE);',
+      'const bytes = Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,4,0,0,0,3,8,2,0,0,0,Number(process.argv[1])]);',
+      "new HostBackgroundStore(process.env.WOODFISH_BACKGROUND_DIR).save('worker-' + process.argv[1], bytes);",
+    ].join(' ');
+    const runWorker = (value: number) =>
+      new Promise<number>((resolve, reject) => {
+        const child = spawn(process.execPath, ['-e', worker, String(value)], {
+          env: {
+            ...process.env,
+            WOODFISH_BACKGROUND_MODULE: modulePath,
+            WOODFISH_BACKGROUND_DIR: directory,
+          },
+          stdio: 'ignore',
+        });
+        child.on('error', reject);
+        child.on('close', (code) => resolve(code ?? -1));
+      });
+    expect(await Promise.all([runWorker(1), runWorker(2)])).toEqual([0, 0]);
+    expect(new HostBackgroundStore(directory).list()).toHaveLength(2);
+    expect(
+      fs.readdirSync(directory).filter((file) => /\.(?:png|jpe?g|webp)$/i.test(file))
+    ).toHaveLength(2);
+    expect(
+      fs.readdirSync(directory).some((file) => file.endsWith('.tmp') || file === 'index.lock')
+    ).toBe(false);
+  });
+
+  it('enforces the host-side stored image count and allows replacement after deletion', async () => {
+    const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
+    for (let index = 1; index <= BACKGROUND_IMAGE_LIMITS.maxStoredCount; index += 1) {
+      store.save('image-' + index, validPngBytes(index));
+    }
+    expect(store.list()).toHaveLength(BACKGROUND_IMAGE_LIMITS.maxStoredCount);
+    expect(() => store.save('too-many', validPngBytes(200))).toThrow(/最多保存/);
+    const response = await handleBackgroundsRequest(
+      store,
+      new Request('http://127.0.0.1/api/woodfish-backgrounds?action=upload', {
+        method: 'POST',
+        headers: { 'content-type': 'application/octet-stream' },
+        body: new Blob([validPngBytes(201).slice().buffer]),
+      })
+    );
+    expect(response.status).toBe(409);
+    expect(store.remove(store.list()[0].id)).toBe(true);
+    expect(() => store.save('after-delete', validPngBytes(202))).not.toThrow();
+    expect(store.list()).toHaveLength(BACKGROUND_IMAGE_LIMITS.maxStoredCount);
+  });
+
+  it('keeps the index entry when deleting the image fails with a file lock error', () => {
+    const store = new HostBackgroundStore(path.join(tempDir, 'backgrounds'));
+    const saved = store.save('locked', validPngBytes(203));
+    const unlink = fs.unlinkSync as jest.MockedFunction<typeof fs.unlinkSync>;
+    const originalUnlink = jest.requireActual<typeof import('fs')>('fs').unlinkSync;
+    unlink.mockImplementation((file) => {
+      if (String(file).endsWith('.png')) {
+        const error = new Error('locked') as NodeJS.ErrnoException;
+        error.code = 'EBUSY';
+        throw error;
+      }
+      return originalUnlink(file);
+    });
+    try {
+      expect(() => store.remove(saved.id)).toThrow('locked');
+    } finally {
+      unlink.mockImplementation(originalUnlink);
+    }
+    expect(store.list().map((entry) => entry.id)).toEqual([saved.id]);
   });
 });
 

@@ -15,6 +15,8 @@ export const BACKGROUND_IMAGE_LIMITS = Object.freeze({
   maxInputBytes: 40 * 1024 * 1024,
   /** Largest compressed picture a page may hand over, bytes. */
   maxStoredBytes: 6 * 1024 * 1024,
+  /** Maximum number of custom pictures a host stores. */
+  maxStoredCount: 30,
   /** Largest edge a decoder is asked to handle. */
   maxDecodeEdge: 16384,
 });

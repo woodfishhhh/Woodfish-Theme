@@ -120,13 +120,16 @@ export function dshStatusCommand(
   context.io.out(`dsh 可执行文件：${status.dshBinary ?? '未找到'}`);
   context.io.out(`DSH_HOME：${status.dshHome}`);
   context.io.out(`Profile：${status.profile}（${status.profileDir}）`);
-  context.io.out(
-    `Woodfish 插件（${DSH_PLUGIN_NAME}）：${
-      status.installed
-        ? `已安装${status.version ? ` v${status.version}` : ''}（${status.enabled ? '已启用' : '未启用'}）`
-        : '未安装'
-    }`
-  );
+  const pluginState = status.installed
+    ? `已安装${status.version ? ` v${status.version}` : ''}（${status.enabled ? '已启用' : '未启用'}）`
+    : status.broken
+      ? '已声明依赖，但实际包缺失或损坏'
+      : status.dependencyDeclared
+        ? '已声明依赖，但实际包不可用'
+        : status.packagePresent
+          ? '未声明依赖，但实际包仍存在'
+          : '未安装';
+  context.io.out(`Woodfish 插件（${DSH_PLUGIN_NAME}）：${pluginState}`);
   return EXIT.ok;
 }
 
@@ -150,7 +153,7 @@ export function dshUninstallCommand(
   const status = readDshProfileStatus(profile, env);
   const cleaned = cleanupLegacyDshUserScriptFiles(context.paths);
 
-  if (!status.installed) {
+  if (!status.dependencyDeclared) {
     context.io.out(`dsh（profile: ${profile}）中未安装 ${DSH_PLUGIN_NAME}。`);
     if (cleaned.length > 0) {
       context.io.out(`已清理旧版残留文件：${cleaned.join('、')}`);

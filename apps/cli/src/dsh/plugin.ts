@@ -42,6 +42,9 @@ export interface DshPluginProfileStatus {
   enabled: boolean;
   version: string | null;
   dependencySpec: string | null;
+  dependencyDeclared: boolean;
+  packagePresent: boolean;
+  broken: boolean;
 }
 
 export function validateDshProfile(profile: string): string {
@@ -73,16 +76,54 @@ export function resolveDshProfileDir(
   return path.join(resolveDshHome(env), 'profiles', validateDshProfile(profile));
 }
 
+export function resolveDshCmdShimEntry(
+  command: string,
+  exists: (candidate: string) => boolean = fs.existsSync
+): string | null {
+  let source: string;
+  try {
+    source = fs.readFileSync(command, 'utf8');
+  } catch {
+    return null;
+  }
+  const match = source.match(/["']%dp0%[\\/]+([^"']+\.(?:m?js))["']/i);
+  if (!match) {
+    return null;
+  }
+  const entry = path.resolve(path.dirname(command), match[1].replace(/[\\/]/g, path.sep));
+  return exists(entry) ? entry : null;
+}
+
+function quoteCmdToken(value: string): string {
+  return '"' + value.replace(/(["^&|<>])/g, '^$1').replace(/%/g, '%%') + '"';
+}
+
 export function defaultDshRunner(
   command: string,
   args: readonly string[],
   env: NodeJS.ProcessEnv
 ): DshCommandRunnerResult {
-  const result = spawnSync(command, [...args], {
+  const isWindowsShim = process.platform === 'win32' && /\.(?:cmd|bat)$/i.test(command);
+  const shimEntry = isWindowsShim ? resolveDshCmdShimEntry(command) : null;
+  const invocation = shimEntry
+    ? { command: process.execPath, args: [shimEntry, ...args], options: { shell: false } }
+    : isWindowsShim
+      ? {
+          command: env.ComSpec ?? process.env.ComSpec ?? 'cmd.exe',
+          args: [
+            '/d',
+            '/s',
+            '/c',
+            '"' + [quoteCmdToken(command), ...args.map(quoteCmdToken)].join(' ') + '"',
+          ],
+          options: { shell: false, windowsVerbatimArguments: true },
+        }
+      : { command, args: [...args], options: { shell: false } };
+  const result = spawnSync(invocation.command, invocation.args, {
     env,
     encoding: 'utf8',
-    shell: process.platform === 'win32' && /\.(?:cmd|bat)$/i.test(command),
     windowsHide: true,
+    ...invocation.options,
   });
   return {
     status: result.status,
@@ -224,6 +265,7 @@ export function readDshProfileStatus(
   let dependencySpec: string | null = null;
   let enabled = false;
   let version: string | null = null;
+  let packagePresent = false;
 
   if (fs.existsSync(manifestPath)) {
     try {
@@ -242,12 +284,16 @@ export function readDshProfileStatus(
   const installedManifest = path.join(profileDir, 'node_modules', DSH_PLUGIN_NAME, 'package.json');
   if (fs.existsSync(installedManifest)) {
     try {
-      const pkg = JSON.parse(fs.readFileSync(installedManifest, 'utf8')) as { version?: unknown };
-      if (typeof pkg.version === 'string') {
+      const pkg = JSON.parse(fs.readFileSync(installedManifest, 'utf8')) as {
+        name?: unknown;
+        version?: unknown;
+      };
+      if (pkg.name === DSH_PLUGIN_NAME && typeof pkg.version === 'string') {
         version = pkg.version;
+        packagePresent = true;
       }
     } catch {
-      // Ignore unreadable version.
+      // Ignore unreadable package metadata.
     }
   }
 
@@ -256,10 +302,13 @@ export function readDshProfileStatus(
     profileDir,
     dshHome,
     dshBinary,
-    installed: dependencySpec !== null,
+    installed: dependencySpec !== null && packagePresent,
     enabled,
     version,
     dependencySpec,
+    dependencyDeclared: dependencySpec !== null,
+    packagePresent,
+    broken: dependencySpec !== null && !packagePresent,
   };
 }
 

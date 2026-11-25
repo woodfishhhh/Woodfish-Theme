@@ -92,6 +92,8 @@ export class WoodfishClientRuntime {
   private saveState: SaveState = 'idle';
   private saveError: string | null = null;
   private pendingWrites = 0;
+  private persistRequested = false;
+  private persistPromise: Promise<void> | null = null;
   private flushTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
   private themeOverrideDispose: (() => void) | null = null;
   private revision = 0;
@@ -294,13 +296,14 @@ export class WoodfishClientRuntime {
       globalThis.clearTimeout(this.flushTimer);
       this.flushTimer = null;
     }
+    this.persistRequested = true;
+    this.saveState = 'saving';
+    this.saveError = null;
+    this.publish();
     if (immediate) {
       void this.flushPersist();
       return;
     }
-    this.saveState = 'saving';
-    this.saveError = null;
-    this.publish();
     this.flushTimer = globalThis.setTimeout(() => {
       this.flushTimer = null;
       void this.flushPersist();
@@ -308,42 +311,63 @@ export class WoodfishClientRuntime {
   }
 
   private async flushPersist(): Promise<void> {
-    if (this.disposed) {
+    if (this.disposed || this.persistPromise !== null) {
       return;
     }
-    const nextFlat = toPersistedConfig(this.settings);
-    const ops = diffOps(this.lastPersisted, nextFlat);
-    if (ops.length === 0) {
-      if (this.saveState === 'saving') {
-        this.saveState = 'saved';
-        this.publish();
-      }
-      return;
-    }
-    this.saveState = 'saving';
-    this.saveError = null;
-    this.pendingWrites += 1;
-    this.publish();
+    const promise = this.drainPersist();
+    this.persistPromise = promise;
     try {
-      const ok = await this.form.mutate(ops);
-      if (ok) {
-        this.lastPersisted = nextFlat;
-        this.saveState = 'saved';
-        this.saveError = null;
-      } else {
-        this.saveState = 'error';
-        this.saveError = '设置未能保存到 dsh 宿主，请重试';
-      }
-    } catch (error) {
-      this.saveState = 'error';
-      this.saveError = error instanceof Error ? error.message : String(error);
+      await promise;
     } finally {
-      this.pendingWrites -= 1;
-      if (!this.disposed) {
-        this.publish();
-        if (this.pendingWrites === 0 && this.flushTimer === null) {
-          this.adoptFromHost();
+      if (this.persistPromise === promise) {
+        this.persistPromise = null;
+      }
+    }
+  }
+
+  private async drainPersist(): Promise<void> {
+    while (!this.disposed) {
+      this.persistRequested = false;
+      const submitted = toPersistedConfig(this.settings);
+      const ops = diffOps(this.lastPersisted, submitted);
+      if (ops.length === 0) {
+        if (this.saveState === 'saving') {
+          this.saveState = 'saved';
         }
+        break;
+      }
+      this.pendingWrites += 1;
+      this.publish();
+      let ok = false;
+      try {
+        ok = await this.form.mutate(ops);
+        if (ok) {
+          this.lastPersisted = submitted;
+          this.saveError = null;
+        } else {
+          this.saveError = '设置未能保存到 dsh 宿主，请重试';
+        }
+      } catch (error) {
+        this.saveError = error instanceof Error ? error.message : String(error);
+      } finally {
+        this.pendingWrites -= 1;
+      }
+      const current = toPersistedConfig(this.settings);
+      const hasPendingChanges = diffOps(this.lastPersisted, current).length > 0;
+      if (!ok && !this.persistRequested && !hasPendingChanges) {
+        this.saveState = 'error';
+        break;
+      }
+      if (!this.persistRequested && !hasPendingChanges) {
+        this.saveState = 'saved';
+        break;
+      }
+      this.saveState = 'saving';
+    }
+    if (!this.disposed) {
+      this.publish();
+      if (this.pendingWrites === 0 && this.flushTimer === null) {
+        this.adoptFromHost();
       }
     }
   }

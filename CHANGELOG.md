@@ -13,13 +13,13 @@
 ### 新增
 
 - JetBrains 编辑器与 VS Code 共用渐变色标、浅色光晕、光标色带和七套效果预设。设置页可切换彩虹光标、拖尾、打字粒子、《彩云》或自选编辑器背景，以及与主题配合的苹果圆角。
-- DeepSeek Harness（dsh）网页版用上和 Codex 桌面端同一套效果插件：6px 彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、边写边上色的回复正文彩虹、侧栏当前会话的流光边框（运行中的会话是弱化版）、输入框光晕与渐变发送按钮、「对话 / 轨迹」和右侧面板标签下流动的渐变短条、《彩云》窗口背景和毛玻璃侧栏与输入框、带指针柔光的毛玻璃菜单，以及 OKLCH 代码渐变。效果参数和 `user.css` 与 Codex 共用效果文件夹，`woodfish dsh userscript` 生成脚本时一并写入；油猴菜单里每个效果一个开关，只影响 dsh。仓库里的 `woodfish-dsh.user.js` 自带出厂效果和《彩云》，直接导入也完整。
+- DeepSeek Harness（dsh）网页版接入官方原生插件 `woodfish-dsh-plugin`：安装、状态和卸载统一由 `woodfish dsh install/status/uninstall` 管理，启动 dsh 后可在原生「设置 → Woodfish」面板切换主题、背景和全部效果参数。
 - VS Code、Codex 和 dsh 新增默认开启的「苹果圆角」开关。宿主的按钮、卡片、菜单和弹窗采用平滑圆角，头像、徽标和胶囊保留圆弧，可分别关闭恢复原来的圆角。dsh 网页版的圆角换成连续曲率的“苹果圆角”（`corner-shape: squircle`，半径按 iOS 圆角的观感放大 1.78 倍）：输入框、卡片、代码块、菜单、按钮和侧栏的流光边框都是平滑过渡的曲线，胶囊形的按钮和开关保持正圆；不支持的浏览器保留原来的圆角。
 - 已在 dsh 0.2.2-rc.5 上实测，15 套主题的改前改后截图见仓库里的 `docs/hosts/dsh-web.md`。
 
 ### 变更
 
-- `woodfish dsh userscript --set` 只接受 `palette.dark`、`palette.light` 和 `customCss`；毛玻璃模糊、渐变角度这类效果参数改在效果文件夹的 `params.json` 或 `user.css` 里。旧版 `dsh.json` 里的效果开关不再读取，dsh 的代码发光和 Codex 一样默认关闭。
+- dsh 现在通过官方原生插件 `woodfish-dsh-plugin` 提供 `woodfish dsh install/status/uninstall`，并在原生「设置 → Woodfish」面板中实时保存主题、背景、`user.css` 和全部效果参数。
 
 ### 修复
 
