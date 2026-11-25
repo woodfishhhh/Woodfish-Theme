@@ -15,7 +15,7 @@ function mix(color: string, percent: number, base = 'transparent'): string {
  * translucent ink, like dsh's.
  */
 export function buildPaletteVariables(palette: WoodfishPalette): Record<string, string> {
-  const { ui } = palette;
+  const { tokens, ui } = palette;
   const dark = palette.type === 'dark';
   /** Translucent ink, like dsh's white (dark) or black (light) overlays. */
   const ink = (percent: number): string => mix(ui.fg, percent);
@@ -24,6 +24,8 @@ export function buildPaletteVariables(palette: WoodfishPalette): Record<string, 
   const byMode = (darkValue: string, lightValue: string): string => (dark ? darkValue : lightValue);
   const codeBlock = byMode(raised(3), ui.bgAlt);
   const floating = byMode(raised(14), mix(ui.fg, 88, ui.bg));
+  /** Text on `floating`, which is dark in light mode too. */
+  const onFloating = byMode(ui.fg, ui.bg);
 
   return {
     // Surfaces
@@ -38,6 +40,15 @@ export function buildPaletteVariables(palette: WoodfishPalette): Record<string, 
     '--dsw-alias-bg-module-platform': byMode(raised(10), raised(3)),
     '--dsw-alias-bg-multi-select': byMode(raised(10), raised(3)),
     '--dsw-alias-bg-skeleton': ink(6),
+    '--dsw-alias-bg-mask-drop': mix(ui.bg, 70),
+    // Cards (the changed-files card of a reply, plugin cards).
+    '--dsw-alias-card-fill': byMode(raised(5), raised(2)),
+    '--dsw-alias-card-fill-hover': byMode(raised(8), raised(4)),
+    '--dsw-alias-card-tile-fill': byMode(ink(5), mix(ui.bg, 50)),
+    '--dsw-specific-guide-hero': byMode(raised(14), raised(8)),
+    // The fade over a collapsed thinking block, from the surface it sits on.
+    '--dsw-linear-gradient-think': `linear-gradient(180deg, ${ui.bg} 20.19%, ${mix(ui.bg, 0)} 100%)`,
+    '--dsw-linear-think-select': `linear-gradient(180deg, ${byMode(raised(7), raised(3))} 20.19%, ${mix(byMode(raised(7), raised(3)), 0)} 100%)`,
     '--dsw-specific-sidebar-fill': ui.bgAlt,
     '--dsw-specific-sidebar-nav-item-active': byMode(raised(10), raised(7)),
     '--dsw-specific-sidebar-nav-item-active-accent': mix(ui.accent, dark ? 22 : 14, ui.bgAlt),
@@ -88,6 +99,8 @@ export function buildPaletteVariables(palette: WoodfishPalette): Record<string, 
     '--dsw-alias-label-tertiary': ui.fgSubtle,
     '--dsw-alias-label-caption': ui.fgSubtle,
     '--dsw-alias-label-dimmed': mix(ui.fg, 30, ui.bg),
+    '--dsw-alias-label-on-color': ui.accentFg,
+    '--dsw-alias-label-shimmer': ink(dark ? 45 : 30),
     '--dsw-alias-menu-icon': ui.fgMuted,
     // Borders and scrollbars
     '--dsw-alias-border-l1': ink(6),
@@ -95,6 +108,10 @@ export function buildPaletteVariables(palette: WoodfishPalette): Record<string, 
     '--dsw-alias-border-l2-darkmode-thin': ink(6),
     '--dsw-alias-border-l3': ink(16),
     '--dsw-alias-border-l4': ink(20),
+    '--dsw-alias-border-inverted': byMode(ink(6), 'transparent'),
+    '--dsw-alias-border-inverted2': byMode(ink(8), 'transparent'),
+    '--dsw-alias-border-selected': ui.fgSubtle,
+    '--dsw-alias-switch-thumb': byMode(ui.fgMuted, ui.bg),
     '--dsw-alias-scrollbar-bg-l1': ink(18),
     '--dsw-alias-scrollbar-bg-l2': ink(24),
     '--dsw-alias-scrollbar-hover-l1': ink(28),
@@ -121,8 +138,39 @@ export function buildPaletteVariables(palette: WoodfishPalette): Record<string, 
     '--dsw-alias-state-warn-secondary': ui.warning,
     '--dsw-alias-state-warn-tertiary': mix(ui.warning, 20, ui.bg),
     '--dsw-alias-toast-bg': floating,
-    '--dsw-alias-toast-label': byMode(ui.fg, ui.bg),
+    '--dsw-alias-toast-label': onFloating,
+    '--dsw-alias-toast-action': byMode(ui.info, mix(ui.info, 55, ui.bg)),
     '--dsw-alias-tooltip-bg': floating,
+    '--dsw-alias-tooltip-label': onFloating,
+    // Hover cards are dark in both of dsh's modes, like its tooltips.
+    '--dsw-alias-hovercard-bg': floating,
+    '--dsw-alias-hovercard-label-primary': onFloating,
+    '--dsw-alias-hovercard-label-secondary': byMode(ui.fgMuted, mix(ui.bg, 82, ui.fg)),
+    '--dsw-alias-hovercard-label-tertiary': byMode(ui.fgSubtle, mix(ui.bg, 64, ui.fg)),
+    '--dsw-alias-hovercard-state-done': ui.accent2,
+    '--dsw-alias-hovercard-state-error': ui.error,
+    // Trajectory view, usage charts and the JSON tree of tool results
+    '--dsw-alias-trajectory-accent': ui.accent,
+    '--dsw-alias-chart-messages': ui.info,
+    '--dsw-alias-chart-system': ui.fgSubtle,
+    '--dsw-alias-chart-tools': ui.accent2,
+    '--dsw-alias-json-tree-hover': ink(5),
+    '--dsw-alias-json-tree-icon': ui.fgSubtle,
+    '--dsw-alias-json-tree-keyword': tokens.keyword,
+    '--dsw-alias-json-tree-number': tokens.number,
+    '--dsw-alias-json-tree-property': tokens.property,
+    '--dsw-alias-json-tree-punctuation': tokens.punctuation,
+    '--dsw-alias-json-tree-string': tokens.string,
+    // Empty-state illustrations and onboarding
+    '--dsw-alias-illustration-background': byMode(raised(10), raised(3)),
+    '--dsw-alias-illustration-backing': byMode(raised(20), raised(14)),
+    '--dsw-alias-illustration-detail': byMode(raised(40), raised(14)),
+    '--dsw-alias-illustration-inset': byMode(raised(20), raised(6)),
+    '--dsw-alias-illustration-shadow': byMode(raised(20), raised(6)),
+    '--dsw-alias-illustration-surface': byMode(raised(30), raised(6)),
+    '--dsw-alias-onboarding-accent': ui.accent,
+    '--dsw-alias-onboarding-card-fill': mix(byMode(raised(10), ui.bg), 80),
+    '--dsw-alias-onboarding-secondary-fill': byMode(raised(18), ui.bg),
     // Diffs: line backgrounds stay translucent like dsh's
     '--dsw-alias-code-diff-added': mix(ui.success, dark ? 14 : 12),
     '--dsw-alias-code-diff-deleted': mix(ui.error, dark ? 14 : 12),
@@ -132,8 +180,9 @@ export function buildPaletteVariables(palette: WoodfishPalette): Record<string, 
     '--dsw-alias-file-diff-deleted-bg': mix(ui.error, dark ? 18 : 14, ui.bg),
     '--dsw-alias-file-diff-deleted-gutter': mix(ui.error, 10, ui.bg),
     '--dsw-alias-file-diff-deleted-marker': ui.error,
-    // Woodfish effects
+    // Woodfish effects (the accent plugin reads these)
     '--woodfish-dsh-accent-2': ui.accent2,
+    '--woodfish-dsh-tab-gradient': palette.meta.tabBorderGradient,
   };
 }
 

@@ -1,12 +1,12 @@
 # 强调色点缀 `accent`
 
-Codex 里三处强调色的小点缀，都是纯 CSS：
+Codex 和 dsh 里三处强调色的小点缀，都是纯 CSS：
 
 - 输入框聚焦时外圈一层强调色光晕（`composerGlow`）；
 - 发送按钮用两种强调色的渐变（`sendButton`）；
-- 右侧面板当前标签下面一条慢慢流动的渐变短条，用的是 VS Code 标签栏那条渐变（`tabBar`）。
+- 当前标签下面一条慢慢流动的渐变短条（Codex 的右侧面板；dsh 的「对话 / 轨迹」和右侧面板），用的是 VS Code 标签栏那条渐变（`tabBar`）。
 
-颜色取 Codex 的强调色变量 `--app-color-text-accent`（选了 Woodfish 主题时会换成主题强调色），第二强调色取主题的 `--woodfish-codex-accent-2`，没有就在 OKLCH 里转 60°。
+颜色取宿主的强调色变量（Codex 的 `--app-color-text-accent`，dsh 的 `--dsw-alias-state-business-primary`；选了 Woodfish 主题时会换成主题强调色），第二强调色取主题的 `--woodfish-codex-accent-2` / `--woodfish-dsh-accent-2`，没有就在 OKLCH 里转 60°。
 
 侧栏选中会话的光谱环是另一个效果：`thread-ring`。
 

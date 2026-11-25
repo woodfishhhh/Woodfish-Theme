@@ -5,7 +5,7 @@
 它订阅宿主的统一“光标”事件（`ctx.onCaret`）：
 
 - VS Code：编辑器里的光标。VS Code 已经装了 Animations 插件的话，Woodfish 这一份默认关（`woodfishTheme.caretTrail.enabled`），免得画两条。
-- Codex：输入框里你的光标，以及 AI 流式吐字时回复的末尾（AI 的“光标”）。`sources` 可以只跟其中一个。
+- Codex 和 dsh：输入框里你的光标，以及 AI 流式吐字时回复的末尾（AI 的“光标”）。`sources` 可以只跟其中一个。
 
 AI 吐字换行时，拖尾直接从下一行开头重新开始（不往回扫过整行，免得一大块白色盖住刚出来的字）；你自己的光标换行或按 Home 时照插件原样扫过去。带子只画在光标所在文字露出来的范围里（事件的 `clip`），不会盖到输入框上。
 

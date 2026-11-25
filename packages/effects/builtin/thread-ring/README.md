@@ -1,12 +1,14 @@
 # 流光边框 `thread-ring`
 
-Codex 侧栏选中的会话，照抄 Bifrost 控制台「创建 Key」按钮（`.ui-button--bridge`，经 Bifrost 作者同意照抄）：
+Codex 和 dsh 侧栏选中的会话，照抄 Bifrost 控制台「创建 Key」按钮（`.ui-button--bridge`，经 Bifrost 作者同意照抄）：
 
 - 1.5px 透明边框里用 `border-box` 画七色 `conic-gradient` 光谱环，`@property` 角度 3.2 秒转一圈；
 - `::after` 是里面干净的面（圆角 8.5px），悬停换成更亮一档；
 - `::before` 是同一个光谱环向外扩 5px、`blur(14px)`、0.5 浓度的柔光晕，悬停 0.85 并上浮 1px；
 - 没选中但在运行的会话用弱化版（光晕 0.2、不上浮）；
 - 窗口在后台时停转，“减少动态”时不转。
+
+圆角：宿主定义了 `--squircle-k` 和 `--squircle-shape` 时（dsh）画成连续曲率的“苹果圆角”，半径乘 `--squircle-k`，里面的面同心缩进边框宽度；Codex 没有定义这两个变量，仍是 Bifrost 原样的正圆角。
 
 七色默认用 Bifrost 的两套（深色 `#ff5f4e … #9b7bff`，浅色 `#e5432f … #7a52f0`），里面的面也是 Bifrost 的（深色 `#10142a`，浅色白色）。`followTheme` 打开后改用当前主题的颜色和底色。
 

@@ -1,16 +1,34 @@
 /*
  * 强调色点缀：输入框聚焦光晕、双色渐变的发送按钮、当前标签下的渐变短条。
- * 颜色来自 Codex 的强调色变量（Woodfish 主题会把它换成主题强调色），第二强调色用主题的，
+ * 颜色来自宿主的强调色变量（Woodfish 主题会把它换成主题强调色），第二强调色用主题的，
  * 没有就把强调色在 OKLCH 里转 60°。
  */
 module.exports = function accent(ctx) {
+  /* Where each host keeps its accent, the theme's second accent and the tab gradient. */
+  const HOST = {
+    codex: {
+      scope: ':root',
+      accent: 'var(--app-color-text-accent, #339cff)',
+      accent2: '--woodfish-codex-accent-2',
+      tab: '--woodfish-codex-tab-gradient',
+    },
+    // dsh declares its colors on <body>, so the derived ones are declared there too.
+    dsh: {
+      scope: 'body',
+      accent: 'var(--dsw-alias-state-business-primary, #4176e6)',
+      accent2: '--woodfish-dsh-accent-2',
+      tab: '--woodfish-dsh-tab-gradient',
+    },
+  };
+  const host = HOST[ctx.host] || HOST.codex;
+
   function restyle() {
     const p = ctx.params;
-    const accent = 'var(--app-color-text-accent, #339cff)';
+    const accent = host.accent;
     const parts = [
-      `:root {
+      `${host.scope} {
   --woodfish-accent: ${accent};
-  --woodfish-accent-alt: var(--woodfish-codex-accent-2, oklch(from ${accent} l c calc(h + 60)));
+  --woodfish-accent-alt: var(${host.accent2}, oklch(from ${accent} l c calc(h + 60)));
 }`,
     ];
     if (p.composerGlow) {
@@ -47,7 +65,7 @@ ${ctx.selectors.activeTab}::after {
   height: 2px;
   border-radius: 999px;
   background-image: var(
-    --woodfish-codex-tab-gradient,
+    ${host.tab},
     linear-gradient(to right, var(--woodfish-accent), var(--woodfish-accent-alt))
   );
   background-size: 200% 100%;

@@ -1,9 +1,14 @@
-import { WoodfishPalette, findGradientPreset } from '@woodfish/theme-core';
+import { EffectValues, WoodfishPalette, findGradientPreset } from '@woodfish/theme-core';
 import {
+  EffectSource,
+  EffectStatus,
   GradientContext,
   PageController,
   TextGradientEngine,
+  base64ToBlob,
+  blurBackgroundImage,
   clearTextGradientMarks,
+  createBackgroundLayer,
   createStyleManager,
   installController,
   startTextGradientEngine,
@@ -18,14 +23,22 @@ import {
   DSH_STYLE_ID_PREFIX,
 } from '../protocol';
 import {
-  BODY_ROOT_SELECTOR,
-  BODY_TEXT_SELECTOR,
   CODE_ROOT_SELECTOR,
   CODE_TOKEN_SELECTOR,
   DSH_SELECTORS,
   DshSelectorGroup,
 } from '../selectors';
-import { DshSettings, findDshPalette, normalizeDshSettings } from '../settings';
+import {
+  DshCoreView,
+  DshSettings,
+  composeDshCoreView,
+  findDshPalette,
+  normalizeDshSettings,
+} from '../settings';
+import { DshEffects, startDshEffects } from './effects';
+
+/** The bundled 《彩云》 (base64 WebP), inlined into the user script by the build. */
+declare const __WOODFISH_DSH_DEFAULT_BACKGROUND__: string | undefined;
 
 /** How many elements each selector group matches right now. */
 export type SelectorReport = Record<DshSelectorGroup, number>;
@@ -33,10 +46,15 @@ export type SelectorReport = Record<DshSelectorGroup, number>;
 export interface DshOverlayController extends PageController {
   /** Bundle identity; see DSH_BUILD_ID. */
   build: string;
-  /** Applies new settings in place. Accepts untrusted input; it is normalized first. */
-  update: (settings: unknown) => void;
+  /**
+   * Applies new settings (and effects or `user.css`, when given) in place. Accepts
+   * untrusted input; it is normalized first.
+   */
+  update: (settings: unknown, effects?: unknown, userCss?: unknown) => void;
   /** A copy of the settings in effect. */
   settings: () => DshSettings;
+  /** Every effect with its state, values and error. */
+  effects: () => EffectStatus[];
   /** Selector hit counts, for diagnosing selector drift after a dsh update. */
   probe: () => SelectorReport;
   /** Groups that should always be on screen but are missing (selector drift). */
@@ -85,20 +103,53 @@ function themeSignature(helpers: { tokenPaletteSignature: () => string }): strin
   ].join('|');
 }
 
+/** Normalizes the baked-in effects list (untrusted page data) into sources. */
+function readEffects(input: unknown): EffectSource[] | null {
+  if (!Array.isArray(input)) {
+    return null;
+  }
+  return input.filter(
+    (entry): entry is EffectSource =>
+      entry !== null &&
+      typeof entry === 'object' &&
+      typeof (entry as EffectSource).id === 'string' &&
+      typeof (entry as EffectSource).hash === 'string' &&
+      typeof (entry as EffectSource).manifest === 'object' &&
+      typeof (entry as EffectSource).values === 'object'
+  );
+}
+
 /**
  * Starts the Woodfish overlay in a dsh page and publishes its controller. Must run after
  * `document.body` exists.
  */
-export function startDshOverlay(input: unknown): DshOverlayController {
+export function startDshOverlay(
+  input: unknown,
+  effectsInput?: unknown,
+  userCssInput?: unknown
+): DshOverlayController {
   let settings = normalizeDshSettings(input);
   const styles = createStyleManager({
     idPrefix: DSH_STYLE_ID_PREFIX,
     container: () => document.head ?? document.documentElement,
   });
+  const backgroundLayer = createBackgroundLayer(styles);
+  const picture =
+    typeof __WOODFISH_DSH_DEFAULT_BACKGROUND__ === 'string'
+      ? __WOODFISH_DSH_DEFAULT_BACKGROUND__
+      : null;
+  /** Values of the core effects (null: off or missing), filled by the effect host. */
+  const core: { 'code-gradient': EffectValues | null; background: EffectValues | null } = {
+    'code-gradient': null,
+    background: null,
+  };
+  let view: DshCoreView = composeDshCoreView(settings, core);
   let codeEngine: TextGradientEngine | null = null;
-  let bodyEngine: TextGradientEngine | null = null;
+  let applyingEffects = false;
   let degradedTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
   let disposed = false;
+  // Assigned right below; it only calls back after the controller exists.
+  let effects: DshEffects | null = null;
 
   /** The Woodfish palette of the appearance mode dsh is in, if one is selected. */
   function activePalette(): WoodfishPalette | null {
@@ -127,51 +178,81 @@ export function startDshOverlay(input: unknown): DshOverlayController {
     };
   }
 
-  function startEngine(tokenSelector: string, rootSelector: string): TextGradientEngine {
-    return startTextGradientEngine({
-      tokenSelector,
-      rootSelector,
-      gradientContext,
-      params: {
-        hueShift: settings.codeGradient.hueShift,
-        lightnessDelta: settings.codeGradient.lightnessDelta,
-        neutralChroma: settings.codeGradient.neutralChroma,
-      },
-      accentVariables: ACCENT_VARIABLES,
-      themeAttributes: ['data-ds-dark-theme', 'data-ds-theme-source', 'class'],
-      themeSignature,
-    });
-  }
-
-  function applyStyles(): void {
-    const css = buildDshCss(settings);
-    for (const name of DSH_STYLE_NAMES) {
-      styles.upsert(name, css[name]);
+  /** 《彩云》 on the layer while the background effect is on, with its blurred copy. */
+  function applyBackgroundImage(): void {
+    const background = view.background;
+    if (!background.enabled || picture === null) {
+      const none = (): Promise<Blob> => Promise.reject(new Error('none'));
+      backgroundLayer.show(null, none, none).catch(() => undefined);
+      return;
     }
+    // shortcut: the blurred copy is sized for the window at the time it is made; a later
+    // resize keeps it slightly off until the blur or size changes.
+    backgroundLayer
+      .show(
+        `caiyun|${background.blur}|${background.saturate}|${background.size}`,
+        () => Promise.resolve(base64ToBlob(picture, 'image/webp')),
+        (blob) =>
+          blurBackgroundImage(blob, background, {
+            width: window.innerWidth,
+            height: window.innerHeight,
+          })
+      )
+      .catch(() => undefined);
   }
 
-  function applyEngines(): void {
-    const wantCode = settings.codeGradient.enabled || settings.codeGlow.enabled;
+  function applyEngine(): void {
+    const wantCode = view.codeGradient.enabled || view.codeGlow.enabled;
     if (wantCode && !codeEngine) {
-      codeEngine = startEngine(CODE_TOKEN_SELECTOR, CODE_ROOT_SELECTOR);
+      codeEngine = startTextGradientEngine({
+        tokenSelector: CODE_TOKEN_SELECTOR,
+        rootSelector: CODE_ROOT_SELECTOR,
+        gradientContext,
+        params: {
+          hueShift: view.codeGradient.hueShift,
+          lightnessDelta: view.codeGradient.lightnessDelta,
+          neutralChroma: view.codeGradient.neutralChroma,
+        },
+        accentVariables: ACCENT_VARIABLES,
+        themeAttributes: ['data-ds-dark-theme', 'data-ds-theme-source', 'class'],
+        themeSignature,
+      });
     } else if (wantCode && codeEngine) {
-      codeEngine.update(settings.codeGradient);
+      codeEngine.update(view.codeGradient);
     } else if (!wantCode && codeEngine) {
       codeEngine.dispose();
       codeEngine = null;
     }
-
-    if (settings.bodyText.enabled && !bodyEngine) {
-      bodyEngine = startEngine(BODY_TEXT_SELECTOR, BODY_ROOT_SELECTOR);
-    } else if (settings.bodyText.enabled && bodyEngine) {
-      bodyEngine.update(settings.codeGradient);
-    } else if (!settings.bodyText.enabled && bodyEngine) {
-      bodyEngine.dispose();
-      bodyEngine = null;
-    }
-
-    if (!codeEngine && !bodyEngine) {
+    if (!codeEngine) {
       clearTextGradientMarks();
+    }
+  }
+
+  /** Recomputes everything the core draws (palette, code gradient, background). */
+  function applyCore(): void {
+    view = composeDshCoreView(settings, core);
+    const css = buildDshCss(view);
+    for (const name of DSH_STYLE_NAMES) {
+      styles.upsert(name, css[name]);
+    }
+    applyBackgroundImage();
+    applyEngine();
+    // The engine re-reads the palette only when the theme signature changes.
+    codeEngine?.refresh();
+  }
+
+  function applyEffects(list: EffectSource[]): void {
+    applyingEffects = true;
+    try {
+      effects?.host.apply(list);
+    } finally {
+      applyingEffects = false;
+    }
+  }
+
+  function applyUserCss(css: unknown): void {
+    if (typeof css === 'string') {
+      effects?.host.setUserCss(css);
     }
   }
 
@@ -188,18 +269,21 @@ export function startDshOverlay(input: unknown): DshOverlayController {
   const controller: DshOverlayController = {
     version: DSH_ADAPTER_VERSION,
     build: DSH_BUILD_ID,
-    update: (next: unknown): void => {
+    update: (next: unknown, nextEffects?: unknown, userCss?: unknown): void => {
       if (disposed) {
         return;
       }
       settings = normalizeDshSettings(next);
-      applyStyles();
-      applyEngines();
-      // Engines re-read the palette only when the theme signature changes.
-      codeEngine?.refresh();
-      bodyEngine?.refresh();
+      applyUserCss(userCss);
+      const list = readEffects(nextEffects);
+      if (list) {
+        applyEffects(list);
+      }
+      applyCore();
+      effects?.host.themeChanged();
     },
     settings: () => normalizeDshSettings(settings),
+    effects: () => effects?.host.status() ?? [],
     probe: probeSelectors,
     degraded: missingAlwaysPresentGroups,
     dispose: (): void => {
@@ -214,8 +298,9 @@ export function startDshOverlay(input: unknown): DshOverlayController {
             globalThis.clearTimeout(degradedTimer);
           }
         },
+        (): void => effects?.dispose(),
+        (): void => backgroundLayer.dispose(),
         (): void => codeEngine?.dispose(),
-        (): void => bodyEngine?.dispose(),
         (): void => clearTextGradientMarks(),
         (): void => styles.removeAll(),
         (): void => {
@@ -231,13 +316,27 @@ export function startDshOverlay(input: unknown): DshOverlayController {
         }
       }
       codeEngine = null;
-      bodyEngine = null;
+      effects = null;
       uninstallController(DSH_CONTROLLER_KEY, controller);
     },
   };
 
-  applyStyles();
-  applyEngines();
+  effects = startDshEffects({
+    settings: () => settings,
+    idPrefix: `${DSH_STYLE_ID_PREFIX}fx-`,
+    core: (name: string, values: EffectValues | null): void => {
+      if (name === 'code-gradient' || name === 'background') {
+        core[name] = values;
+        if (!applyingEffects) {
+          applyCore();
+        }
+      }
+    },
+    onError: (): void => undefined,
+  });
+  applyUserCss(userCssInput);
+  applyEffects(readEffects(effectsInput) ?? []);
+  applyCore();
   document.documentElement.dataset[DSH_DATASET.active] = DSH_ADAPTER_VERSION;
   degradedTimer = globalThis.setTimeout(markDegraded, DEGRADED_CHECK_DELAY_MS);
   return installController(DSH_CONTROLLER_KEY, controller);

@@ -40,8 +40,10 @@ export {
   buildBackgroundFillImage,
   buildBackgroundLayerCss,
   buildFrostedPanelDeclarations,
+  createBackgroundLayer,
   resizeBackgroundImage,
 } from './background';
+export type { BackgroundLayer } from './background';
 export type { BackgroundCopyOptions, BackgroundLayerOptions } from './background';
 export { startReveal } from './reveal';
 export type { RevealOptions } from './reveal';
@@ -76,4 +78,5 @@ export type {
   StreamEndEvent,
 } from './effectHost';
 export { cutArea, selectionCaretRect, watchEditableTyping, watchStream } from './textEvents';
+export { placeCaretLayer } from './caretLayer';
 export type { StreamOptions, StreamWatcher, TextEventSink } from './textEvents';

@@ -2,21 +2,25 @@ import { findDshPalette, normalizeDshSettings } from '@woodfish/dsh-web';
 import { mergeSettings, parseSetting } from '../cli/args';
 import {
   defaultUserScriptFile,
+  dshEffectsScript,
   loadDshState,
   loadDshUserScriptBundle,
   removeDshFiles,
   saveDshState,
   writeDshUserScript,
 } from '../dsh/userScript';
-import { CommandContext, EXIT } from './context';
+import { CommandContext, CommandError, EXIT } from './context';
 
 function paletteName(slug: string | null): string {
   return (slug && findDshPalette(slug)?.label) || 'dsh 自带配色';
 }
 
+/** What `--set` may change; effects are set in their folders, shared with Codex. */
+const DSH_SETTING_KEYS = ['palette', 'customCss'];
+
 /**
  * `woodfish dsh userscript`: applies `--set`/`--reset` to the saved settings and writes the
- * user script with them baked in.
+ * user script with them, the effects folder and `user.css` baked in.
  */
 export function dshUserScriptCommand(
   context: CommandContext,
@@ -25,13 +29,22 @@ export function dshUserScriptCommand(
 ): number {
   let input: unknown = options.reset ? {} : loadDshState(context.paths).dsh;
   for (const assignment of sets) {
-    input = mergeSettings(input, parseSetting(assignment));
+    const patch = parseSetting(assignment);
+    const unknown = Object.keys(patch).filter((key) => !DSH_SETTING_KEYS.includes(key));
+    if (unknown.length > 0) {
+      throw new CommandError(
+        `dsh 只能用 --set 改 palette.dark、palette.light 和 customCss；${unknown.join('、')} 是效果参数，在效果文件夹（${context.paths.effectsDir}，和 Codex 共用）的 params.json 或 user.css 里改，改完重新运行本命令`,
+        EXIT.usage
+      );
+    }
+    input = mergeSettings(input, patch);
   }
   const saved = normalizeDshSettings(input);
   const file = writeDshUserScript(
     options.out ?? defaultUserScriptFile(context.paths),
     saved,
-    loadDshUserScriptBundle()
+    loadDshUserScriptBundle(),
+    dshEffectsScript(context.paths)
   );
   saveDshState(context.paths, { version: 1, dsh: saved, userScriptFile: file });
 
@@ -48,7 +61,8 @@ export function dshUserScriptCommand(
       '     Violentmonkey：把文件拖进管理面板），确认安装。',
       '  3. 运行 dsh web，刷新 dsh 页面即可生效。',
       '',
-      '主题和效果开关也可以在油猴的菜单里切换；改了模糊半径等参数后，重新运行本命令并再次导入。',
+      '主题和效果开关也可以在油猴的菜单里切换。效果参数和 user.css 在效果文件夹里改（和 Codex 共用），',
+      `改完重新运行本命令并再次导入：${context.paths.effectsDir}`,
     ].join('\n')
   );
   return EXIT.ok;

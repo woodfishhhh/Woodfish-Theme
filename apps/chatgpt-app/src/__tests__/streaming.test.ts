@@ -1,6 +1,10 @@
-import { CaretEvent, EffectHostApi, StreamEndEvent } from '@woodfish/renderer-runtime';
+import {
+  CaretEvent,
+  EffectHostApi,
+  StreamEndEvent,
+  placeCaretLayer,
+} from '@woodfish/renderer-runtime';
 import { findStreamingReply, trackStreaming } from '../renderer/effects';
-import { placeCaretLayer } from '../renderer/caretLayer';
 
 const ACTIVE = 'data-app-action-sidebar-thread-active';
 

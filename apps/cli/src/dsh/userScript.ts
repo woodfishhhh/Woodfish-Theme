@@ -1,11 +1,22 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { DSH_USERSCRIPT_CONFIG_KEY, DshSettings, normalizeDshSettings } from '@woodfish/dsh-web';
+import {
+  DSH_USERSCRIPT_CONFIG_KEY,
+  DSH_USERSCRIPT_EFFECTS_KEY,
+  DSH_USERSCRIPT_USER_CSS_KEY,
+  DshSettings,
+  normalizeDshSettings,
+} from '@woodfish/dsh-web';
+import { buildEffectsScript, readUserCss, readUserEffects } from '@woodfish/effects';
+import { ensureEffects } from '../codex/effects';
+import { loadDefaultBackground } from '../codex/backgrounds';
 import { readAsset, toScriptLiteral } from '../inject/payload';
 import { WoodfishPaths } from '../paths';
 import { readJson, writeFileAtomic, writeJson } from '../store';
 
 declare const __WOODFISH_DSH_USERSCRIPT__: string | undefined;
+/** Where the release build took 《彩云》 out of the user script (scripts/build.js). */
+declare const __WOODFISH_BACKGROUND_TOKEN__: string | undefined;
 
 /** File name of the committed user script and of the generated copy. */
 export const DSH_USERSCRIPT_FILE = 'woodfish-dsh.user.js';
@@ -44,18 +55,41 @@ export function saveDshState(paths: WoodfishPaths, state: DshState): void {
   writeJson(dshStateFile(paths), { ...state, dsh: normalizeDshSettings(state.dsh) });
 }
 
-/** The committed user script with default settings (inlined in release builds). */
+/**
+ * The committed user script (inlined in release builds, where 《彩云》 is put back here and the
+ * shipped default effects are left out: the CLI always writes the user's own).
+ */
 export function loadDshUserScriptBundle(): string {
-  return typeof __WOODFISH_DSH_USERSCRIPT__ === 'string'
-    ? __WOODFISH_DSH_USERSCRIPT__
-    : readAsset(DSH_USERSCRIPT_FILE);
+  if (
+    typeof __WOODFISH_DSH_USERSCRIPT__ === 'string' &&
+    typeof __WOODFISH_BACKGROUND_TOKEN__ === 'string'
+  ) {
+    const picture = loadDefaultBackground().toString('base64');
+    return __WOODFISH_DSH_USERSCRIPT__.replace(__WOODFISH_BACKGROUND_TOKEN__, () => picture);
+  }
+  return readAsset(DSH_USERSCRIPT_FILE);
 }
 
 /**
- * The user script with `settings` baked in. The settings line goes right after the
- * metadata block, which managers only read at the very top of the file.
+ * The effects folder for the dsh page: every effect made for dsh with its values from
+ * `params.json`, and `user.css`. The folder is seeded and upgraded first, as for Codex.
  */
-export function buildDshUserScript(settings: DshSettings, bundle: string): string {
+export function dshEffectsScript(paths: WoodfishPaths): string {
+  ensureEffects(paths);
+  return [
+    buildEffectsScript(readUserEffects(paths.effectsDir), 'dsh', DSH_USERSCRIPT_EFFECTS_KEY),
+    `globalThis[${toScriptLiteral(DSH_USERSCRIPT_USER_CSS_KEY)}] = ${toScriptLiteral(
+      readUserCss(paths.effectsDir)
+    )};`,
+  ].join('\n');
+}
+
+/**
+ * The user script with `settings` (and the effects, when given) baked in. They go right
+ * after the metadata block, which managers only read at the very top of the file, and
+ * before the bundle's own defaults, which only fill what is not set yet.
+ */
+export function buildDshUserScript(settings: DshSettings, bundle: string, effects = ''): string {
   const end = bundle.indexOf(METADATA_END);
   if (!bundle.startsWith('// ==UserScript==') || end === -1) {
     throw new Error('dsh 用户脚本缺少元数据块，请运行 pnpm dsh:build 重新生成');
@@ -64,16 +98,21 @@ export function buildDshUserScript(settings: DshSettings, bundle: string): strin
   const config = `globalThis[${toScriptLiteral(DSH_USERSCRIPT_CONFIG_KEY)}] = ${toScriptLiteral(
     normalizeDshSettings(settings)
   )};\n`;
-  return `${bundle.slice(0, at)}${config}${bundle.slice(at)}`;
+  return `${bundle.slice(0, at)}${config}${effects ? `${effects}\n` : ''}${bundle.slice(at)}`;
 }
 
 /** Writes the user script to `file` and returns its absolute path. */
-export function writeDshUserScript(file: string, settings: DshSettings, bundle: string): string {
+export function writeDshUserScript(
+  file: string,
+  settings: DshSettings,
+  bundle: string,
+  effects = ''
+): string {
   const target = path.resolve(file);
   if (!target.toLowerCase().endsWith(USERSCRIPT_SUFFIX)) {
     throw new Error(`文件名需以 ${USERSCRIPT_SUFFIX} 结尾，油猴才会把它识别为用户脚本`);
   }
-  writeFileAtomic(target, buildDshUserScript(settings, bundle));
+  writeFileAtomic(target, buildDshUserScript(settings, bundle, effects));
   return target;
 }
 

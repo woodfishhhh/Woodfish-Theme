@@ -8,7 +8,7 @@ import { isValidCssColor } from '../color/validate';
  */
 
 /** The hosts an effect can run in. */
-export const EFFECT_HOSTS = ['codex', 'vscode'] as const;
+export const EFFECT_HOSTS = ['codex', 'vscode', 'dsh'] as const;
 export type EffectHost = (typeof EFFECT_HOSTS)[number];
 
 export type EffectParamType = 'number' | 'boolean' | 'select' | 'color';

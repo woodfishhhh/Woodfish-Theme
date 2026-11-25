@@ -203,11 +203,11 @@ woodfish codex uninstall                   # 撤销 Woodfish 对 Codex 的全部
 
 ## DeepSeek Harness（dsh）Web 版
 
-dsh 的 Web 版（`dsh web`）是本机服务打开的网页，Woodfish 以油猴用户脚本的形式提供：Woodfish 配色（深色、浅色各选一套）、OKLCH 代码渐变与发光、毛玻璃浮层、强调色点缀、彩色光标，可选回复正文渐变。不修改 dsh 的任何文件和配置。
+dsh 的 Web 版（`dsh web`）是本机服务打开的网页，Woodfish 以油猴用户脚本的形式提供，效果和 Codex 桌面端是同一套插件：Woodfish 配色（深色、浅色各选一套）、6px 彩虹输入光标与拖尾、打字粒子、吐字光标与新字淡入、回复正文彩虹、侧栏当前会话的流光边框、输入框光晕与渐变发送按钮、《彩云》窗口背景和毛玻璃侧栏、毛玻璃菜单、OKLCH 代码渐变。不修改 dsh 的任何文件和配置。
 
 ```bash
 woodfish dsh userscript                                  # 生成 %APPDATA%\Woodfish\woodfish-dsh.user.js
-woodfish dsh userscript --set palette.dark=neon --set glass.blur=24
+woodfish dsh userscript --set palette.dark=neon
 woodfish dsh userscript --set palette.light=null         # 浅色保留 dsh 自带配色
 woodfish dsh userscript --out D:\woodfish-dsh.user.js    # 写到别处（文件名需以 .user.js 结尾）
 woodfish dsh userscript --reset                          # 恢复默认设置
@@ -216,9 +216,10 @@ woodfish dsh uninstall                                   # 删除生成的脚本
 
 安装：在浏览器里装好 Tampermonkey 或 Violentmonkey，在它的管理面板中导入生成的文件，然后刷新 dsh 页面。脚本匹配本机任意端口，但只在 dsh 页面里启动；dsh 放在反向代理后面时，需要在油猴里给脚本加上对应网址。
 
-- **切换**：油猴扩展菜单里有“深色主题 / 浅色主题”（点一下换下一套，最后一项是 dsh 自带配色）和各效果开关，立即生效，改动由油猴保存。模糊半径、渐变参数、自定义 CSS 只能通过 `--set` 修改，改完重新导入。
-- **主题**：默认深色用 Woodfish Dark、浅色用 Woodfish Light。所有 Woodfish 主题都能选，theme-core 新增的主题重新构建后自动出现。设置项与 Codex 相同（`codeGradient.*`、`codeGlow.*`、`glass.*`、`accent.enabled`、`caret.*`、`bodyText.enabled`、`customCss`），区别是 `palette.dark` / `palette.light` 默认就是 Woodfish 主题，设为 `null` 才保留 dsh 自带的颜色。
+- **切换**：油猴扩展菜单里有“深色主题 / 浅色主题”（点一下换下一套，最后一项是 dsh 自带配色）和每个效果的开关，立即生效，改动由油猴保存，只影响 dsh。
+- **主题**：默认深色用 Woodfish Dark、浅色用 Woodfish Light。所有 Woodfish 主题都能选，theme-core 新增的主题重新构建后自动出现。`--set` 只管 `palette.dark`、`palette.light`（设为 `null` 保留 dsh 自带的颜色）和 `customCss`。
+- **效果参数**：和 Codex 共用效果文件夹（`%APPDATA%\Woodfish\effects`）：改 `params.json` 或 `user.css`（见下文「效果插件」），再运行一次 `woodfish dsh userscript` 并重新导入。命令每次都会先同步效果文件夹，把所有能在 dsh 里运行的效果连同 `user.css` 写进脚本。
 - **卸载**：在油猴管理面板删除“Woodfish for DeepSeek Harness”并刷新页面，效果全部撤下；`woodfish dsh uninstall` 再删掉本机生成的文件。
-- 仓库里提交了一份默认设置的脚本 `apps/cli/assets/woodfish-dsh.user.js`，也可以直接导入。
+- 仓库里提交了一份默认设置的脚本 `apps/cli/assets/woodfish-dsh.user.js`，带着出厂效果和《彩云》，也可以直接导入。
 
 实测细节与限制见 [docs/hosts/dsh-web.md](../../docs/hosts/dsh-web.md)。

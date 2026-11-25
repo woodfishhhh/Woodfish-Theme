@@ -2,12 +2,11 @@ import { readController } from '@woodfish/renderer-runtime';
 import { DSH_BUILD_ID, DSH_CONTROLLER_KEY, DSH_STORAGE_KEY } from '../protocol';
 import { DSH_SELECTORS } from '../selectors';
 import {
-  DSH_FEATURE_KEYS,
-  DshFeatureKey,
   DshMode,
   DshSettings,
   DshSettingsPatch,
   applyDshSettingsPatch,
+  applyStoredEffects,
   findDshPalette,
   nextDshPalette,
   normalizeDshSettings,
@@ -50,21 +49,27 @@ function whenBodyReady(callback: () => void): void {
  * Starts or updates the overlay. The same build re-running updates in place; a different
  * build (the user script was upgraded) is disposed and restarted with the new code.
  */
-export function bootDshOverlay(settings: unknown): void {
+export function bootDshOverlay(settings: unknown, effects?: unknown, userCss?: unknown): void {
   if (!isDshPage()) {
     return;
   }
   const existing = currentController();
   if (existing?.build === DSH_BUILD_ID && typeof existing.update === 'function') {
-    existing.update(settings);
+    existing.update(settings, effects, userCss);
     return;
   }
   if (existing && typeof existing.dispose === 'function') {
     existing.dispose();
   }
   whenBodyReady(() => {
-    startDshOverlay(settings);
+    startDshOverlay(settings, effects, userCss);
   });
+}
+
+type Loose = Record<string, unknown>;
+
+function asObject(value: unknown): Loose {
+  return value !== null && typeof value === 'object' ? (value as Loose) : {};
 }
 
 /**
@@ -83,7 +88,7 @@ function readStoredPatch(): unknown {
   }
 }
 
-function writeStoredPatch(patch: DshSettingsPatch | null): void {
+function writeStoredPatch(patch: Loose | null): void {
   try {
     if (typeof GM_setValue === 'function') {
       GM_setValue(DSH_STORAGE_KEY, patch);
@@ -97,46 +102,65 @@ function writeStoredPatch(patch: DshSettingsPatch | null): void {
   }
 }
 
-/** Merges `patch` into the stored one, section by section. */
+/** Merges `patch` into the stored one: themes per mode, switches per effect. */
 function rememberPatch(patch: DshSettingsPatch): void {
-  const stored = readStoredPatch();
-  const merged: Record<string, unknown> =
-    stored !== null && typeof stored === 'object' ? { ...stored } : {};
-  for (const [key, value] of Object.entries(patch)) {
-    const previous = merged[key];
-    merged[key] =
-      previous !== null && typeof previous === 'object' ? { ...previous, ...value } : value;
-  }
-  writeStoredPatch(merged);
+  const stored = asObject(readStoredPatch());
+  writeStoredPatch({
+    palette: { ...asObject(stored.palette), ...patch.palette },
+    effects: { ...asObject(stored.effects), ...patch.effects },
+  });
 }
 
 const MODE_LABELS: Readonly<Record<DshMode, string>> = { dark: '深色主题', light: '浅色主题' };
-const FEATURE_LABELS: Readonly<Record<DshFeatureKey, string>> = {
-  codeGradient: '代码渐变',
-  codeGlow: '代码发光',
-  glass: '毛玻璃浮层',
-  accent: '强调色点缀',
-  caret: '彩色光标',
-  bodyText: '回复正文渐变',
-};
 
 function paletteLabel(slug: string | null): string {
   return (slug && findDshPalette(slug)?.label) || 'dsh 自带配色';
 }
 
+interface MenuEffect {
+  id: string;
+  name: string;
+  enabled: boolean;
+  order: number;
+}
+
+/** The effects the user script carries, for the menu's switches, in the effects' own order. */
+function menuEffects(effects: unknown): MenuEffect[] {
+  const list = Array.isArray(effects)
+    ? effects.flatMap((entry: unknown) => {
+        const effect = asObject(entry);
+        const manifest = asObject(effect.manifest);
+        const values = asObject(effect.values);
+        return typeof effect.id === 'string' && typeof manifest.name === 'string'
+          ? [
+              {
+                id: effect.id,
+                name: manifest.name,
+                enabled: values.enabled === true,
+                order: typeof manifest.order === 'number' ? manifest.order : 0,
+              },
+            ]
+          : [];
+      })
+    : [];
+  return list.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+}
+
 /** Menu entries for the current settings: label and the patch a click applies. */
-function menuEntries(settings: DshSettings): Array<[string, DshSettingsPatch | null]> {
+function menuEntries(
+  settings: DshSettings,
+  effects: unknown
+): Array<[string, DshSettingsPatch | null]> {
   const entries: Array<[string, DshSettingsPatch | null]> = (['dark', 'light'] as const).map(
     (mode) => [
       `${MODE_LABELS[mode]}：${paletteLabel(settings.palette[mode])}（点击切换）`,
       { palette: { [mode]: nextDshPalette(mode, settings.palette[mode]) } },
     ]
   );
-  for (const key of DSH_FEATURE_KEYS) {
-    const enabled = settings[key].enabled;
+  for (const effect of menuEffects(effects)) {
     entries.push([
-      `${FEATURE_LABELS[key]}：${enabled ? '开' : '关'}`,
-      { [key]: { enabled: !enabled } },
+      `${effect.name}：${effect.enabled ? '开' : '关'}`,
+      { effects: { [effect.id]: { enabled: !effect.enabled } } },
     ]);
   }
   entries.push(['恢复默认设置', null]);
@@ -144,10 +168,10 @@ function menuEntries(settings: DshSettings): Array<[string, DshSettingsPatch | n
 }
 
 /**
- * Theme and feature switches in the user script manager's menu. Labels show the current
+ * Theme and effect switches in the user script manager's menu. Labels show the current
  * value; managers without `GM_unregisterMenuCommand` refresh them on the next page load.
  */
-function startMenu(baked: DshSettings): void {
+function startMenu(baked: DshSettings, effects: unknown, userCss: unknown): void {
   if (typeof GM_registerMenuCommand !== 'function') {
     return;
   }
@@ -162,15 +186,23 @@ function startMenu(baked: DshSettings): void {
         GM_unregisterMenuCommand(id);
       }
     }
-    const settings = applyDshSettingsPatch(baked, readStoredPatch());
-    ids = menuEntries(settings).map(([label, patch]) =>
+    const stored = readStoredPatch();
+    ids = menuEntries(
+      applyDshSettingsPatch(baked, stored),
+      applyStoredEffects(effects, stored)
+    ).map(([label, patch]) =>
       register(label, () => {
         if (patch === null) {
           writeStoredPatch(null);
         } else {
           rememberPatch(patch);
         }
-        bootDshOverlay(applyDshSettingsPatch(baked, readStoredPatch()));
+        const next = readStoredPatch();
+        bootDshOverlay(
+          applyDshSettingsPatch(baked, next),
+          applyStoredEffects(effects, next),
+          userCss
+        );
         render();
       })
     );
@@ -179,14 +211,19 @@ function startMenu(baked: DshSettings): void {
 }
 
 /**
- * Entry of the user script. `woodfish dsh userscript` bakes the settings in; changes made
- * in the manager's menu since then are layered on top.
+ * Entry of the user script. `woodfish dsh userscript` bakes the settings, the effects and
+ * `user.css` in; changes made in the manager's menu since then are layered on top.
  */
-export function bootFromUserScript(settings: unknown): void {
+export function bootFromUserScript(settings: unknown, effects?: unknown, userCss?: unknown): void {
   if (!isDshPage()) {
     return;
   }
   const baked = normalizeDshSettings(settings);
-  bootDshOverlay(applyDshSettingsPatch(baked, readStoredPatch()));
-  startMenu(baked);
+  const stored = readStoredPatch();
+  bootDshOverlay(
+    applyDshSettingsPatch(baked, stored),
+    applyStoredEffects(effects, stored),
+    userCss
+  );
+  startMenu(baked, effects, userCss);
 }

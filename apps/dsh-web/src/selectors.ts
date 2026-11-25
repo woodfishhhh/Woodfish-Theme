@@ -17,6 +17,9 @@ export interface SelectorGroup {
   readonly description: string;
 }
 
+const SESSION_ROW = '[role="tree"] [role="treeitem"][data-row-key^="session:"]';
+const ASSISTANT_STEP = '[data-chat-flow-kind="assistant-step"]';
+
 export const DSH_SELECTORS = {
   // Set by dsh's theme bootstrap before any plugin loads; it identifies a dsh page.
   page: {
@@ -29,10 +32,59 @@ export const DSH_SELECTORS = {
     alwaysPresent: true,
     description: '主界面',
   },
+  // The window frame under the sidebar and the conversation (`[data-slot]` wrappers are
+  // `display: contents`, so the painted element is the slot's child).
+  frame: {
+    selectors: ['[data-slot="root"] > *'],
+    alwaysPresent: true,
+    description: '窗口框架',
+  },
+  sidebar: {
+    selectors: ['[data-slot="sidebar"] > *'],
+    alwaysPresent: false,
+    description: '侧栏',
+  },
+  // The column holding the sidebar paints the same color under it.
+  sidebarColumn: {
+    selectors: [':has(> [data-slot="sidebar"])'],
+    alwaysPresent: false,
+    description: '侧栏所在的列',
+  },
+  sessionRow: {
+    selectors: [SESSION_ROW],
+    alwaysPresent: false,
+    description: '会话行',
+  },
   activeSession: {
-    selectors: ['[role="tree"] [role="treeitem"][aria-selected="true"]'],
+    selectors: [`${SESSION_ROW}[aria-selected="true"]`],
     alwaysPresent: false,
     description: '当前会话',
+  },
+  // A session that is generating shows a spinner with `data-state="ongoing"`.
+  runningSession: {
+    selectors: [`${SESSION_ROW}:has([data-state="ongoing"])`],
+    alwaysPresent: false,
+    description: '运行中的会话',
+  },
+  // 「对话 / 轨迹」 and the tabs of the right panel.
+  activeTab: {
+    selectors: [
+      '[data-conversation-tabs] [role="tab"][aria-selected="true"]',
+      '[data-dockkit-strip] [role="tab"][aria-selected="true"]',
+    ],
+    alwaysPresent: false,
+    description: '当前标签',
+  },
+  timeline: {
+    selectors: ['[data-chat-flow]'],
+    alwaysPresent: false,
+    description: '对话流',
+  },
+  // The sticky strip at the bottom of a conversation that holds the composer.
+  composerSeat: {
+    selectors: ['[data-composer-seat]'],
+    alwaysPresent: false,
+    description: '输入框底栏',
   },
   composer: {
     selectors: ['[data-composer-card]'],
@@ -51,12 +103,22 @@ export const DSH_SELECTORS = {
     alwaysPresent: false,
     description: '发送按钮',
   },
-  assistantMarkdown: {
-    selectors: [
-      '[data-chat-flow-kind="assistant-step"] [data-text-interaction-source]:not([data-message-bubble])',
-    ],
+  // One assistant step of the conversation flow, while it streams and after.
+  assistantStep: {
+    selectors: [ASSISTANT_STEP],
     alwaysPresent: false,
     description: '助手回复',
+  },
+  // dsh marks the reply it is writing; the attribute goes away when the reply is done.
+  streamingReply: {
+    selectors: [`${ASSISTANT_STEP} [data-streaming="true"]`],
+    alwaysPresent: false,
+    description: '正在输出的回复',
+  },
+  userMessage: {
+    selectors: ['[data-chat-flow-kind="user"] [data-message-bubble]'],
+    alwaysPresent: false,
+    description: '用户消息',
   },
   codeBlock: {
     selectors: ['[data-code-block-content]'],
@@ -75,6 +137,23 @@ export const DSH_SELECTORS = {
     alwaysPresent: false,
     description: 'diff 预览',
   },
+  // Menus, popovers and dialogs. dsh draws their surface from `--dsw-specific-menu` and
+  // `--dsw-menu-backdrop-filter`, so the glass itself needs no selector.
+  floatingLayer: {
+    selectors: ['[data-menu-material]', '[role="menu"]', '[role="listbox"]', '[role="dialog"]'],
+    alwaysPresent: false,
+    description: '浮层',
+  },
+  menuItem: {
+    selectors: [
+      '[role="menu"] [role="menuitem"]',
+      '[role="menu"] [role="menuitemradio"]',
+      '[role="menu"] [role="menuitemcheckbox"]',
+      '[role="listbox"] [role="option"]',
+    ],
+    alwaysPresent: false,
+    description: '菜单项',
+  },
 } as const satisfies Record<string, SelectorGroup>;
 
 export type DshSelectorGroup = keyof typeof DSH_SELECTORS;
@@ -88,12 +167,25 @@ export function selectorOf(group: DshSelectorGroup): string {
 export const CODE_TOKEN_SELECTOR = selectorOf('codeToken');
 /** Roots observed by the code gradient engine. */
 export const CODE_ROOT_SELECTOR = selectorOf('codeBlock');
-/** Assistant text blocks painted when the optional body gradient is on. */
-export const BODY_TEXT_SELECTOR = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote']
-  .map((tag) => `${selectorOf('assistantMarkdown')} ${tag}`)
+/**
+ * Reply text the rainbow effect paints, while it streams and after. Tool calls are steps of
+ * their own kind, so nothing outside the reply's Markdown matches.
+ */
+export const BODY_TEXT_SELECTOR = [
+  'p',
+  'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'blockquote',
+  'td',
+  'th',
+]
+  .map((tag) => `${ASSISTANT_STEP} ${tag}`)
   .join(', ');
-/** Roots observed by the body gradient engine. */
-export const BODY_ROOT_SELECTOR = selectorOf('assistantMarkdown');
 
 /** Body selectors for dsh's two appearance modes; dsh toggles the attribute on `<body>`. */
 export const DARK_BODY = 'body[data-ds-dark-theme]';

@@ -1,44 +1,35 @@
-import { DshSettings } from '../settings';
-import {
-  buildAccentCss,
-  buildBodyTextCss,
-  buildCaretCss,
-  buildCodeCss,
-  buildGlassCss,
-} from './effects';
+import { DshCoreView } from '../settings';
+import { buildBackgroundCss } from './background';
+import { buildCornerCss } from './corners';
+import { buildCodeCss } from './effects';
 import { buildPaletteCss } from './palette';
 
-/** One `<style>` per feature, so features can be updated or removed independently. */
-export type DshStyleName = 'palette' | 'code' | 'glass' | 'accent' | 'caret' | 'body' | 'custom';
+/**
+ * One `<style>` per core feature. Everything else Woodfish draws in dsh is an effect plugin
+ * with its own stylesheet (see @woodfish/effects), the same as in Codex.
+ */
+export type DshStyleName = 'palette' | 'corners' | 'background' | 'code' | 'custom';
 
 export const DSH_STYLE_NAMES: readonly DshStyleName[] = Object.freeze([
   'palette',
+  'corners',
+  'background',
   'code',
-  'glass',
-  'accent',
-  'caret',
-  'body',
   'custom',
 ]);
 
-/** All Woodfish CSS for dsh, keyed by feature; empty strings mean "not mounted". */
-export function buildDshCss(settings: DshSettings): Record<DshStyleName, string> {
+/** The core CSS for dsh, keyed by feature; empty strings mean "not mounted". */
+export function buildDshCss(view: DshCoreView): Record<DshStyleName, string> {
   return {
-    palette: buildPaletteCss(settings.palette),
-    code: buildCodeCss(settings),
-    glass: buildGlassCss(settings),
-    accent: buildAccentCss(settings),
-    caret: buildCaretCss(settings),
-    body: buildBodyTextCss(settings),
-    custom: settings.customCss.join('\n'),
+    palette: buildPaletteCss(view.palette),
+    corners: buildCornerCss(),
+    background: buildBackgroundCss(view),
+    code: buildCodeCss(view),
+    custom: view.customCss.join('\n'),
   };
 }
 
+export { buildBackgroundCss } from './background';
+export { SQUIRCLE_K, buildCornerCss } from './corners';
 export { buildPaletteCss, buildPaletteVariables, buildShikiVariables } from './palette';
-export {
-  buildAccentCss,
-  buildBodyTextCss,
-  buildCaretCss,
-  buildCodeCss,
-  buildGlassCss,
-} from './effects';
+export { buildCodeCss } from './effects';

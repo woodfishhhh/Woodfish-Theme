@@ -116,9 +116,9 @@ Codex++
 
 DeepSeek Harness（dsh）Web 版：油猴用户脚本
   dsh userscript [--out <文件.user.js>] [--set 键=值]… [--reset]
-                         生成带当前设置的用户脚本（默认写到 Woodfish 数据目录），
-                         在 Tampermonkey / Violentmonkey 中导入即可，例如：
-                           --set palette.dark=neon --set glass.blur=24
+                         生成带当前主题和效果文件夹的用户脚本（默认写到 Woodfish
+                         数据目录），在 Tampermonkey / Violentmonkey 中导入即可，例如：
+                           --set palette.dark=neon --set palette.light=null
   dsh uninstall          删除 woodfish dsh 生成的脚本与设置
 
 选项

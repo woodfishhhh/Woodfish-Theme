@@ -1,12 +1,12 @@
 # Woodfish 效果文件夹：用 CSS 自定义
 
-这个文件夹（Windows：`%APPDATA%\Woodfish\effects`）放着 Codex 和 VS Code 里 Woodfish 的所有效果，每个效果一个子文件夹。想改颜色、粗细、速度这类样子，**先用 `user.css`**：写一行 CSS 就行，Woodfish 升级也不会动它。只有换画法、加新效果时才去改效果文件夹里的代码（写法见 `AGENTS.md`）。
+这个文件夹（Windows：`%APPDATA%\Woodfish\effects`）放着 Codex、VS Code 和 dsh 网页版里 Woodfish 的所有效果，每个效果一个子文件夹。想改颜色、粗细、速度这类样子，**先用 `user.css`**：写一行 CSS 就行，Woodfish 升级也不会动它。只有换画法、加新效果时才去改效果文件夹里的代码（写法见 `AGENTS.md`）。
 
 ## user.css
 
 - **在哪**：就在这个文件夹里，`user.css`（Windows：`%APPDATA%\Woodfish\effects\user.css`）。Codex 设置 → 外观 →「Woodfish 外观」里有「打开 user.css」按钮。
 - **优先级最高**：Codex 和 VS Code 里它都排在宿主和 Woodfish 所有样式的后面，同样的写法它说了算。
-- **生效**：保存后一两秒自动生效。也可以手动刷新：`woodfish reload`、Codex 里按 `Ctrl+Alt+R` 或点「刷新效果」、VS Code 里运行「Woodfish: 刷新效果」。
+- **生效**：保存后一两秒自动生效。也可以手动刷新：`woodfish reload`、Codex 里按 `Ctrl+Alt+R` 或点「刷新效果」、VS Code 里运行「Woodfish: 刷新效果」。dsh 的油猴脚本在生成时带上 `user.css`，改完重新运行 `woodfish dsh userscript` 并导入。
 - **升级不覆盖**：Woodfish 只在你从没改过时更新这个模板，改过就不再碰它。删掉也不会再生成；想要回模板就「恢复默认」。
 - **恢复默认**：设置页「user.css」那一行的「恢复默认」，或运行 `woodfish codex effects restore user.css`。你原来的内容会留一份 `user.css.bak`。
 
@@ -25,7 +25,7 @@
 - 值的写法：数字可以带表里的单位（`8px`、`3.2s`；秒和毫秒可以互换），也可以不带；颜色用 `#rrggbb`、颜色名、`rgb()`、`hsl()`；开关写 `1` 或 `0`；选项写选项的值（表里的英文）。数字会被夹在范围内；写错的值直接忽略，继续用原来的。
 - 光标拖尾、打字粒子这些画在画布上的效果也读这些变量，不用改代码。
 - 设置页的滑块和 `user.css` 改了同一个参数时，`user.css` 优先，设置页那一项会标「user.css 覆盖」。
-- 只在深色或浅色时改：Codex 里写 `:root[data-theme="light"] { … }` 或 `:root[data-theme="dark"] { … }`；VS Code 里写 `:root:has(.monaco-workbench.vs) { … }`（浅色）。
+- 只在深色或浅色时改：Codex 里写 `:root[data-theme="light"] { … }` 或 `:root[data-theme="dark"] { … }`；VS Code 里写 `:root:has(.monaco-workbench.vs) { … }`（浅色）；dsh 里写 `:root:has(body:not([data-ds-dark-theme])) { … }`（浅色）。
 - 参数变量必须写在 `:root` 上才对所有效果生效。下面「额外变量」那张表里的变量本来就是 CSS，写在别的选择器上也行（比如只给某一类元素换色）。
 - `user.css` 里也可以写任何别的 CSS，直接改 Codex 或 VS Code 自己的界面。
 
@@ -85,7 +85,7 @@
 
 <!-- 参数变量清单：scripts/css-variables.js 按各效果的 effect.json 生成，别手改 -->
 
-### 输入框光标（`caret`，Codex）
+### 输入框光标（`caret`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -97,7 +97,7 @@
 | `--woodfish-caret-radius` | 圆角：woodfishTheme.cursor.borderRadius（默认 2）。范围 0–8px | `2px` | `--woodfish-caret-radius: 4px;` |
 | `--woodfish-caret-glow` | 发光：光标外的一圈柔光；默认 0（关闭）。范围 0–1 | `0` | `--woodfish-caret-glow: 0.25;` |
 
-### 光标拖尾（`caret-trail`，Codex、VS Code）
+### 光标拖尾（`caret-trail`，Codex、VS Code、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -109,7 +109,7 @@
 | `--woodfish-caret-trail-opacity` | 不透明度：1 是插件原样。范围 0.05–1 | `1` | `--woodfish-caret-trail-opacity: 0.75;` |
 | `--woodfish-caret-trail-sources` | 跟随谁：Codex 里 AI 流式吐字时，末尾也算一个光标。可选 `all` 你的光标和 AI 吐字、`user` 只跟你的光标、`ai` 只跟 AI 吐字 | `all` | `--woodfish-caret-trail-sources: user;` |
 
-### 打字粒子（`typing-particles`，Codex、VS Code）
+### 打字粒子（`typing-particles`，Codex、VS Code、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -124,7 +124,7 @@
 | `--woodfish-typing-particles-sources` | 谁触发：Codex 里 AI 流式输出也算“打字”。可选 `all` 你打字和 AI 吐字、`user` 只在你打字时、`ai` 只在 AI 吐字时 | `all` | `--woodfish-typing-particles-sources: user;` |
 | `--woodfish-typing-particles-shake` | 震动：打字时编辑区轻轻一抖（默认关闭）。1 开，0 关 | `0` | `--woodfish-typing-particles-shake: 1;` |
 
-### 吐字光标（`stream-cursor`，Codex）
+### 吐字光标（`stream-cursor`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -135,7 +135,7 @@
 | `--woodfish-stream-cursor-radius` | 圆角：光标的圆角。范围 0–8px | `2px` | `--woodfish-stream-cursor-radius: 4px;` |
 | `--woodfish-stream-cursor-gap` | 离字的距离：光标和最后一个字之间的空隙。范围 0–8px | `1px` | `--woodfish-stream-cursor-gap: 3px;` |
 
-### 新字淡入（`text-reveal`，Codex）
+### 新字淡入（`text-reveal`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -144,7 +144,7 @@
 | `--woodfish-text-reveal-start` | 起始浓度：淡入时新字一开始有多实（0 是完全透明）。范围 0–0.9 | `0.15` | `--woodfish-text-reveal-start: 0.4;` |
 | `--woodfish-text-reveal-sources` | 谁触发：输入框里你自己打的字默认不做出场。可选 `ai` 只在 AI 吐字时、`all` AI 吐字和你打字 | `ai` | `--woodfish-text-reveal-sources: all;` |
 
-### 流光边框（`thread-ring`，Codex）
+### 流光边框（`thread-ring`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -157,7 +157,7 @@
 | `--woodfish-thread-ring-running-halo` | 运行中光晕：没选中但在运行的会话用同一效果的弱化版，光晕更淡。范围 0–1 | `0.2` | `--woodfish-thread-ring-running-halo: 0.45;` |
 | `--woodfish-thread-ring-lift` | 悬停上浮：鼠标放到选中的会话上时上浮 1px。1 开，0 关 | `1` | `--woodfish-thread-ring-lift: 0;` |
 
-### 回复正文彩虹（`rainbow-text`，Codex）
+### 回复正文彩虹（`rainbow-text`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -165,7 +165,7 @@
 | `--woodfish-rainbow-text-strength` | 鲜艳程度：Woodfish 彩虹（以及没有特调的主题）里颜色占多少，其余是正文色。范围 10–100% | `42%` | `--woodfish-rainbow-text-strength: 64%;` |
 | `--woodfish-rainbow-text-angle` | 渐变角度：Woodfish 彩虹的方向；主题特调的渐变用它自己的角度。范围 0–360deg | `135deg` | `--woodfish-rainbow-text-angle: 225deg;` |
 
-### 强调色点缀（`accent`，Codex）
+### 强调色点缀（`accent`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -174,7 +174,7 @@
 | `--woodfish-accent-tab-bar` | 标签下划线：右侧面板当前标签下面一条慢慢流动的渐变短条（VS Code 标签栏那条渐变）。1 开，0 关 | `1` | `--woodfish-accent-tab-bar: 0;` |
 | `--woodfish-accent-glow` | 光晕强度：输入框光晕和发送按钮阴影的强弱。范围 0–2 | `1` | `--woodfish-accent-glow: 1.5;` |
 
-### 浮层毛玻璃（`glass`，Codex）
+### 浮层毛玻璃（`glass`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -187,7 +187,7 @@
 | `--woodfish-glass-animations` | 弹出动画：菜单轻轻落下、弹窗放大淡入（和 VS Code 里一样的曲线）。1 开，0 关 | `1` | `--woodfish-glass-animations: 0;` |
 | `--woodfish-glass-reveal` | 跟随指针的柔光：列表项和按钮上跟着指针移动的一团柔光（Fluent Reveal）。1 开，0 关 | `1` | `--woodfish-glass-reveal: 0;` |
 
-### 窗口背景（`background`，Codex）
+### 窗口背景（`background`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |
@@ -199,7 +199,7 @@
 | `--woodfish-background-size` | 图片缩放：铺满会裁掉多出来的部分。可选 `cover` 铺满、`contain` 完整显示 | `cover` | `--woodfish-background-size: contain;` |
 | `--woodfish-background-position` | 图片位置：图片对齐的位置。可选 `center` 居中、`top` 靠上、`bottom` 靠下、`left` 靠左、`right` 靠右 | `center` | `--woodfish-background-position: top;` |
 
-### 代码渐变（`code-gradient`，Codex）
+### 代码渐变（`code-gradient`，Codex、）
 
 | 变量 | 作用 | 默认值 | 示例 |
 | --- | --- | --- | --- |

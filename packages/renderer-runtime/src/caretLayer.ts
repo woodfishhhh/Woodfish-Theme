@@ -1,4 +1,4 @@
-import type { CaretEvent } from '@woodfish/renderer-runtime';
+import type { CaretEvent } from './effectHost';
 
 const owners = new WeakMap<HTMLElement, Element>();
 

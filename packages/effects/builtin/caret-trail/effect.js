@@ -70,7 +70,10 @@ module.exports = function caretTrail(ctx) {
   }
 
   function channel(source) {
-    const layer = ctx.host === 'codex' ? document.createElement('div') : null;
+    // Hosts with DOM text (Codex, dsh) place the trail beside the caret's owner; VS Code draws
+    // on the shared canvas.
+    const layer =
+      typeof ctx.lib.placeCaretLayer === 'function' ? document.createElement('div') : null;
     const canvas = layer ? document.createElement('canvas') : undefined;
     if (canvas) {
       layer.dataset.woodfishTrail = source;

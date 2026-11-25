@@ -266,7 +266,7 @@ If the AI cannot open GitHub, use `https://cdn.jsdelivr.net/gh/woodfishhhh/Woodf
 
 The native palette that opens no debugging port, the Codex++ user script, every command and the effect plugins in detail: [apps/cli/README.md](apps/cli/README.md) (Chinese).
 
-The DeepSeek Harness (dsh) Web UI is themed through a Tampermonkey / Violentmonkey user script: `woodfish dsh userscript`. See [docs/hosts/dsh-web.md](docs/hosts/dsh-web.md) (Chinese).
+The DeepSeek Harness (dsh) Web UI gets the 15 themes and every Codex effect (rainbow caret and trail, typing particles, streaming cursor and fade-in, rainbow reply text, the session ring, the 《彩云》 window background with frosted panels, frosted menus, code gradients) through a Tampermonkey / Violentmonkey user script: `woodfish dsh userscript`. Effect parameters live in the effects folder shared with Codex. See [docs/hosts/dsh-web.md](docs/hosts/dsh-web.md) (Chinese).
 
 ## Bundled popular themes
 
