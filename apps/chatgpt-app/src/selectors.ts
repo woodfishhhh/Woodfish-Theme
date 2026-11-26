@@ -54,6 +54,15 @@ export const CODEX_SELECTORS = {
     alwaysPresent: true,
     description: '主界面',
   },
+  backgroundSurface: {
+    selectors: [
+      '[data-app-shell-surface-backing]',
+      '.messaging-root.messaging-embedded',
+      '.messaging-root.messaging-embedded .thread-pane',
+    ],
+    alwaysPresent: false,
+    description: '聊天壳层底板',
+  },
   page: {
     // Pages other than the thread (Settings, plugins) paint the surface on this container.
     selectors: ['[data-codex-history-swipe-page] > .electron\\:bg-surface'],

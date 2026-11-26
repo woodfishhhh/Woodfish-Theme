@@ -67,7 +67,7 @@ VS Code 一侧在 1.144 的测试版里实测：工作台的 CSP 带 `require-tr
 | --- | --- |
 | 图片怎么进页面 | CSP 是 `img-src 'self' app: blob: data: https:`，但 `connect-src` 没有 `data:`，所以页面不能 `fetch` data URL。做法：监视进程把图片 base64 交给页面，页面用 `atob` 解成 `Blob`、`URL.createObjectURL` 得到 `blob:` 地址写进 CSS 变量。注入脚本只带图片编号，改设置不会重传整张图；CDP overlay 产物不内嵌图片（约 190 KB），Codex++ 用户脚本内嵌《彩云》（约 500 KB） |
 | binding 刷新后会丢 | `Runtime.addBinding` 注册的函数在 `location.reload()` 后**不在了**（设置用的 `__woodfishCodexSaveSettings` 也一样，之前没发现）。监视进程现在每次 `Page.loadEventFired` 都重新注册，页面端发请求前最多等 10 秒 binding 出现 |
-| 哪些元素要清掉底色 | `main.bg-surface`、`[data-app-shell-main-surface]`、设置等页面的容器 `[data-codex-history-swipe-page] > .electron\:bg-surface`（Tailwind 变体类）。侧栏 `[data-sidebar-navigation-root]` 原本是 65% 表面色，改成 35% 毛玻璃 |
+| 哪些元素要清掉底色 | 背景开启且未降低透明度时清掉 `body`、`main.bg-surface`、`[data-app-shell-main-surface]`、`[data-app-shell-surface-backing]`、Dot 的 `.messaging-root.messaging-embedded` 与 `.thread-pane`，以及设置等页面的容器 `[data-codex-history-swipe-page] > .electron\:bg-surface`。侧栏 `[data-sidebar-navigation-root]` 原本是 65% 表面色，改成 35% 毛玻璃 |
 | 内容会滚到下面的地方 | 顶部渐隐 `[data-app-shell-main-content-top-fade] > [aria-hidden="true"]`、输入框后方底条 `[data-thread-scroll-footer] > .bg-surface.pointer-events-none` 和它上面的 `.from-surface` 渐隐。半透明底色会在底条右边缘留下一道接缝；改成背景层的副本（同一张图、同样的遮罩，`background-attachment: fixed` 对齐窗口），和底下逐像素一致、没有接缝，又能挡住滚过去的内容；渐隐用 `mask-image` 柔化 |
 | 输入框 | Codex 自己有 `--composer-layout-surface-background` / `--composer-layout-surface-backdrop-filter` 两个变量（变体 `default` / `opaque`）。Woodfish 把两者清空，改画背景的模糊副本加 35% 主题色 |
 | 拖入图片 | 只在设置 → 外观页打开时拦截（捕获阶段，且只拦图片文件），不影响平时把图片拖进输入框当附件 |

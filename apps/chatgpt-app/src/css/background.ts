@@ -48,10 +48,17 @@ export function buildBackgroundCss(settings: CodexCoreView): string {
       lightScope: '[data-theme="light"]',
       image: fill,
     }),
-    // The thread, the window frame and pages like Settings (Tailwind `electron:bg-surface`).
-    rule(`main.bg-surface,\n${selectorOf('appShell')},\n${selectorOf('page')}`, [
-      '  background-color: transparent !important;',
-    ]),
+    // These host surfaces paint above the negative-z picture, including body itself.
+    rule(
+      [
+        'body',
+        'main.bg-surface',
+        selectorOf('appShell'),
+        selectorOf('page'),
+        selectorOf('backgroundSurface'),
+      ].join(',\n'),
+      ['  background-color: transparent !important;']
+    ),
     rule(
       selectorOf('sidebar'),
       buildBackgroundCopyDeclarations(background, {
