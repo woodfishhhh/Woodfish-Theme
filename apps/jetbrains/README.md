@@ -2,7 +2,7 @@
 
 Choose one of 15 coordinated editor and UI themes in **Settings → Appearance & Behavior → Appearance**. Enable or tune editor effects in **Settings → Tools → Woodfish Theme**. The editor preview updates as you adjust a setting. Apply saves the changes for other editors.
 
-## Effects in the development build
+## Effects
 
 | Effect | Controls and behavior |
 |---|---|
@@ -14,7 +14,7 @@ Choose one of 15 coordinated editor and UI themes in **Settings → Appearance &
 | Rounded controls and popups | Apple-style corners are on by default. The switch restores the current look and feel's arc values when turned off. Popup tint and its opacity are separate controls. |
 | Presets | Apply Woodfish default, Soft, Neon, Classic (5.x), Frosted glass, Focus or Performance, or save up to 32 custom looks. |
 
-The release zip listed below provides the version on its tag. Build this branch to try the development effects. See the [host notes](../../docs/hosts/jetbrains.md) and the [color comparison](../../docs/hosts/jetbrains-colors.md).
+See the [host notes](../../docs/hosts/jetbrains.md) and the [color comparison](../../docs/hosts/jetbrains-colors.md).
 
 ## Compatibility
 
@@ -29,8 +29,8 @@ The release zip listed below provides the version on its tag. Build this branch 
 
 **Release zip.**
 
-1. Download `woodfish-theme-jetbrains-8.2.3.zip` from the
-   [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.3).
+1. Download `woodfish-theme-jetbrains-8.3.0.zip` from the
+   [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.3.0).
 2. In the IDE open `Settings | Plugins | ⚙ | Install Plugin from Disk…` and pick the zip.
 
 Either way, restart if the IDE asks, then choose a Woodfish theme in `Settings | Appearance & Behavior | Appearance`.

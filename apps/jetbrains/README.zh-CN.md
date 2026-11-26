@@ -2,7 +2,7 @@
 
 在 **设置 → 外观与行为 → 外观** 选择 15 套界面主题和编辑器配色。在 **设置 → 工具 → Woodfish Theme** 调整效果，顶部的代码预览随参数更新，点击“应用”后作用于其他编辑器。
 
-## 开发版效果
+## 内置效果
 
 | 效果 | 控制项与表现 |
 |---|---|
@@ -14,7 +14,7 @@
 | 苹果圆角与弹层透色 | 苹果圆角默认开启，关闭后恢复当前外观主题的控件圆角。弹层透色有独立开关和透明度。 |
 | 效果预设 | Woodfish 默认、柔和护眼、霓虹全开、怀旧（5.x）、毛玻璃、专注模式、性能优先共七种，可另存最多 32 个自定义组合。 |
 
-下方 Release ZIP 对应其标签版本。本页开发版效果可通过构建当前分支体验。详见[宿主说明](../../docs/hosts/jetbrains.md)和[配色色值对照](../../docs/hosts/jetbrains-colors.md)。
+详见[宿主说明](../../docs/hosts/jetbrains.md)和[配色色值对照](../../docs/hosts/jetbrains-colors.md)。
 
 ## 兼容性
 
@@ -28,7 +28,7 @@
 
 **Release ZIP**
 
-1. 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.2.3) 下载 `woodfish-theme-jetbrains-8.2.3.zip`。
+1. 从 [GitHub Release](https://github.com/woodfishhhh/Woodfish-Theme/releases/tag/v8.3.0) 下载 `woodfish-theme-jetbrains-8.3.0.zip`。
 2. 在 IDE 里打开 设置 → 插件 → 齿轮 → 从磁盘安装插件，选这个 zip。
 
 两种方式装好后，如果 IDE 提示重启就重启，然后在 设置 → 外观与行为 → 外观 里选一套 Woodfish 主题。

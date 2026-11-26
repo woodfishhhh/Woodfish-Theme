@@ -8,24 +8,21 @@
 > 从 4.x 开始，Woodfish Theme 进入 integrated runtime 时代，主路径是内置 workbench 注入。
 > 旧版本 (3.x 及更早) 的记录保留历史事实，其中出现的 Custom CSS / 外部 Loader 相关描述仅代表当时实现。
 
-## [Unreleased]
+## [8.3.0] - 2026-11-26
 
 ### 新增
 
-- JetBrains 编辑器与 VS Code 共用渐变色标、浅色光晕、光标色带和七套效果预设。设置页可切换彩虹光标、拖尾、打字粒子、《彩云》或自选编辑器背景，以及与主题配合的苹果圆角。
-- DeepSeek Harness（dsh）网页版接入官方原生插件 `woodfish-dsh-plugin`：安装、状态和卸载统一由 `woodfish dsh install/status/uninstall` 管理，启动 dsh 后可在原生「设置 → Woodfish」面板切换主题、背景和全部效果参数。
-- VS Code、Codex 和 dsh 新增默认开启的「苹果圆角」开关。宿主的按钮、卡片、菜单和弹窗采用平滑圆角，头像、徽标和胶囊保留圆弧，可分别关闭恢复原来的圆角。dsh 网页版的圆角换成连续曲率的“苹果圆角”（`corner-shape: squircle`，半径按 iOS 圆角的观感放大 1.78 倍）：输入框、卡片、代码块、菜单、按钮和侧栏的流光边框都是平滑过渡的曲线，胶囊形的按钮和开关保持正圆；不支持的浏览器保留原来的圆角。
-- 已在 dsh 0.2.2-rc.5 上实测，15 套主题的改前改后截图见仓库里的 `docs/hosts/dsh-web.md`。
-
-### 变更
-
-- dsh 现在通过官方原生插件 `woodfish-dsh-plugin` 提供 `woodfish dsh install/status/uninstall`，并在原生「设置 → Woodfish」面板中实时保存主题、背景、`user.css` 和全部效果参数。
+- **DeepSeek Harness（dsh）官方原生插件**：以官方双端原生插件 `woodfish-dsh-plugin` 替换原有的浏览器用户脚本，支持 `dsh web` 与 `dsh desktop`（需 `dsh 0.2.2+`）。安装、状态查询与卸载统一由 `woodfish dsh install/status/uninstall` 管理，启动后在原生「设置 → Woodfish」面板中可以切换 15 套深浅色主题、上传自定义背景图、编辑 `user.css`，并实时调节全部 12 项视觉与动效参数（彩虹回复字、吐字光标、光标拖尾、打字粒子、代码与 Diff 渐变、浮层毛玻璃等）。原先未跟随主题的改动文件卡片、悬浮卡片、toast 操作、开关滑块、轨迹视图、用量图表、JSON 树、空状态插图、引导页与思考块渐隐现已全部接入主题配色。
+- **苹果平滑圆角（Squircle）**：VS Code、Codex 与 dsh 统一升级为连续曲率圆角（默认开启，可分别关闭恢复原有圆角）。按钮、卡片、代码块、菜单、弹窗与侧栏流光边框改为更平滑的曲率过渡，小于 5px 的圆角、头像、徽标与胶囊控件保持原有形状；dsh 支持在设置面板中调节圆角倍率与曲率形状，不支持 `corner-shape` 的环境保留原来的圆角。
+- **JetBrains 插件效果与设置对齐 VS Code**：共用 OKLCH 色彩算法与渐变逻辑，五套原创主题采用手调色标和各自角度，其余颜色按 VS Code 算法自动推导，正文彩虹与中日韩字形按编辑器字符位置绘制。在「设置 → 工具 → Woodfish Theme」中新增彩虹光标、光标拖尾、打字粒子、《彩云》与本地编辑器背景、苹果圆角、弹层透色，以及七套内置预设与自定义预设保存，顶部预览随参数实时更新。插件已上架 [JetBrains 插件市场](https://plugins.jetbrains.com/plugin/36347-woodfish-theme)，可直接在 IDE 市场搜索安装。
 
 ### 修复
 
-- dsh 里还是自带颜色的地方换成主题色：回复末尾的改动文件卡片、悬浮卡片、toast 上的操作、开关滑块、轨迹视图和用量图表、工具结果的 JSON 树、空状态插图、引导页和思考块的渐隐；彩色按钮上的文字用主题的前景色，浅色强调色上也看得清。
-- 回复正文彩虹打开时，有序列表的序号不再随正文一起变透明（Codex 和 dsh）。
-- Codex「你的 Dot」的单行输入框里，Woodfish 输入光标不再被裁掉：Codex 给单行输入框的每个直接子元素都加了 `overflow: hidden`，把宽度为 0 的光标层连同里面的光标一起裁没了，而原生光标已设为透明，插入点处就什么都看不见。光标层现在自带 `overflow: visible`，仍由 `clip-path` 限制在输入框露出文字的范围内；吐字光标和拖尾用同一层，一并受益。之前为此在 `effects/user.css` 里加过规则的，更新以后可以删掉。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#42](https://github.com/woodfishhhh/Woodfish-Theme/issues/42) 里定位问题并提供修法。
+- **Codex 与「你的 Dot」窗口背景被遮挡**：开启窗口背景后，普通聊天的 `[data-app-shell-surface-backing]`、`body` 以及 Dot 的 `.messaging-root.messaging-embedded`、`.thread-pane` 底板原先是不透明的，盖住了底层的《彩云》或自选图片。现在背景启用时会让这些底板透出背景图，普通聊天和 Dot 都能正常显示背景。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#44](https://github.com/woodfishhhh/Woodfish-Theme/issues/44) 里细致的排查与定位。
+- **Codex「你的 Dot」用户气泡配色与内联代码不可见**：Dot 的用户消息复用了助手消息标记并使用独立配色变量，导致用户气泡停留在默认蓝色且文字误套了助手彩虹渐变；Dot 里的内联代码自带不透明底色，在开启「回复正文彩虹」时盖住了文字。现在 Dot 用户气泡改为跟随当前 Woodfish 主题的用户消息配色与实色文字，内联代码改用与普通聊天一致的半透明胶囊底色，深浅色模式下都能清晰辨认。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#45](https://github.com/woodfishhhh/Woodfish-Theme/issues/45) 里详细的定位与修法建议。
+- **Codex「你的 Dot」单行输入框光标被裁掉**：Codex 给单行输入框的每个直接子元素加了 `overflow: hidden`，把宽度为 0 的光标层连同光标一起裁掉，而原生光标已设为透明，导致插入点什么都看不见。光标层现在自带 `overflow: visible`，范围继续由 `clip-path` 限制在可见文字区域内，吐字光标和拖尾一并修复。感谢 [@siwangchenfu](https://github.com/siwangchenfu) 在 [#42](https://github.com/woodfishhhh/Woodfish-Theme/issues/42) 里定位问题并提供修法（[#43](https://github.com/woodfishhhh/Woodfish-Theme/pull/43)）。
+- **有序列表序号可见性**：开启「回复正文彩虹」时，Codex 与 dsh 中有序列表的序号不再随正文一起变透明。
+- 此前为上述 Codex / Dot 问题在 `effects/user.css` 中自行添加过兼容规则的用户，更新到 8.3.0 后可将其删除。
 
 ## [8.2.3] - 2026-11-22
 

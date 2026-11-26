@@ -116,7 +116,7 @@ describe('woodfish dsh native plugin commands', () => {
     >;
     expect(parsed.installed).toBe(true);
     expect(parsed.enabled).toBe(true);
-    expect(parsed.version).toBe('8.2.3');
+    expect(parsed.version).toBe('8.3.0');
 
     const uninstallIo = memoryIo();
     expect(dshUninstallCommand(makeContext(uninstallIo), { profile: 'web' }, { env, runDsh })).toBe(

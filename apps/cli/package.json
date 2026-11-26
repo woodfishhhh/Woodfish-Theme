@@ -1,6 +1,6 @@
 {
   "name": "@woodfish/cli",
-  "version": "8.2.3",
+  "version": "8.3.0",
   "private": true,
   "description": "Woodfish 桌面应用工具：为 Codex 桌面端应用原生配色、注入渐变与毛玻璃效果、安装 Codex++ 用户脚本，以及安装与管理 DeepSeek Harness（dsh）官方原生插件。",
   "license": "MIT",

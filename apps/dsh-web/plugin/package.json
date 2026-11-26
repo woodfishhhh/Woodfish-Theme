@@ -1,6 +1,6 @@
 {
   "name": "woodfish-dsh-plugin",
-  "version": "8.2.3",
+  "version": "8.3.0",
   "description": "Woodfish Theme for DeepSeek Harness (dsh): 15 dark/light palettes, full-window background, parameterized squircle corners, code & diff gradients, streaming effects, and full native settings.",
   "license": "MIT",
   "type": "module",
