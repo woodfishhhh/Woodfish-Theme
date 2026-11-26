@@ -68,6 +68,8 @@ function hasCode(error: unknown, ...codes: string[]): boolean {
   return codes.includes((error as NodeJS.ErrnoException).code ?? '');
 }
 
+const LOCK_OBSERVATION_RACE_CODES = ['ENOENT', 'EPERM', 'EACCES', 'EBUSY'];
+
 function staleOwner(pid: number, timestamp: number): boolean {
   if (Date.now() - timestamp <= LOCK_STALE_MS) return false;
   if (!Number.isSafeInteger(pid) || pid <= 0) return true;
@@ -79,11 +81,20 @@ function staleOwner(pid: number, timestamp: number): boolean {
   }
 }
 
-function removeEmptyLock(lock: string): void {
+function removeEmptyLock(lock: string, ignoreWindowsBusy = false): void {
   try {
     fs.rmdirSync(lock);
   } catch (error) {
-    if (!hasCode(error, 'ENOENT', 'ENOTEMPTY', 'EEXIST')) throw error;
+    if (
+      !hasCode(
+        error,
+        'ENOENT',
+        'ENOTEMPTY',
+        'EEXIST',
+        ...(ignoreWindowsBusy && process.platform === 'win32' ? ['EPERM', 'EACCES', 'EBUSY'] : [])
+      )
+    )
+      throw error;
   }
 }
 
@@ -164,7 +175,13 @@ export class HostBackgroundStore {
 
   /** Only the generation we observed can be retired; another writer may already own the gate. */
   private clearStaleLock(gate: string, finalAttempt: boolean): boolean {
-    const stat = fs.lstatSync(gate, { throwIfNoEntry: false });
+    let stat: fs.Stats | undefined;
+    try {
+      stat = fs.lstatSync(gate, { throwIfNoEntry: false });
+    } catch (error) {
+      if (!hasCode(error, ...LOCK_OBSERVATION_RACE_CODES)) throw error;
+      return false;
+    }
     if (!stat) return true;
     let ownerPath = gate;
     try {
@@ -189,9 +206,24 @@ export class HostBackgroundStore {
     } catch (error) {
       if (hasCode(error, 'ENOENT')) return false;
       if (!hasCode(error, 'EPERM', 'EACCES', 'EBUSY', 'EISDIR', 'ENOTDIR')) throw error;
-      const current = fs.lstatSync(gate, { throwIfNoEntry: false });
+      let current: fs.Stats | undefined;
+      try {
+        current = fs.lstatSync(gate, { throwIfNoEntry: false });
+      } catch (observationError) {
+        if (!hasCode(observationError, ...LOCK_OBSERVATION_RACE_CODES)) throw observationError;
+        return false;
+      }
       if (!current || current.ino !== stat.ino || current.isFile() !== stat.isFile()) return false;
-      if (ownerPath !== gate && !fs.lstatSync(ownerPath, { throwIfNoEntry: false })) return false;
+      if (ownerPath !== gate) {
+        let currentOwner: fs.Stats | undefined;
+        try {
+          currentOwner = fs.lstatSync(ownerPath, { throwIfNoEntry: false });
+        } catch (observationError) {
+          if (!hasCode(observationError, ...LOCK_OBSERVATION_RACE_CODES)) throw observationError;
+          return false;
+        }
+        if (!currentOwner) return false;
+      }
       if (finalAttempt) throw error;
       return false;
     }
@@ -231,7 +263,7 @@ export class HostBackgroundStore {
     } finally {
       if (held) {
         fs.rmdirSync(path.join(lock, owner));
-        removeEmptyLock(lock);
+        removeEmptyLock(lock, true);
       } else {
         fs.rmSync(staging, { recursive: true, force: true });
       }

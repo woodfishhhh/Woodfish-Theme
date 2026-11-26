@@ -188,6 +188,40 @@ describe('woodfish dsh native plugin commands', () => {
   });
 
   const windows = process.platform === 'win32' ? it : it.skip;
+  it.each([false, true])(
+    'parses the complete npm cmd-shim template (PATHEXT in ELSE=%s)',
+    (branchPathext) => {
+      const script = path.join(sandbox, 'dsh.cmd');
+      const entry = path.join(sandbox, 'record.cjs');
+      fs.writeFileSync(
+        script,
+        [
+          '@ECHO OFF',
+          'GOTO start',
+          ':find_dp0',
+          'SET dp0=%~dp0',
+          'EXIT /b',
+          ':start',
+          'SETLOCAL',
+          'CALL :find_dp0',
+          'IF EXIST "%dp0%\\node.exe" (',
+          'SET "_prog=%dp0%\\node.exe"',
+          ') ELSE (',
+          'SET "_prog=node"',
+          ...(branchPathext ? ['SET PATHEXT=%PATHEXT:;.JS;=;%'] : []),
+          ')',
+          'endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & ' +
+            (branchPathext ? '' : 'set PATHEXT=%PATHEXT:;.JS;=;% & ') +
+            '"%_prog%" "%dp0%\\record.cjs" %*',
+        ].join('\r\n')
+      );
+      fs.writeFileSync(
+        entry,
+        'console.log(JSON.stringify([process.execPath, ...process.argv.slice(2)]))'
+      );
+      expect(readDshCmdShim(script)).toEqual([entry]);
+    }
+  );
   windows.each([false, true])('preserves literal Windows argv through npm shim (SEA=%s)', (sea) => {
     const script = path.join(sandbox, 'dsh.cmd');
     const entry = path.join(sandbox, 'record.cjs');

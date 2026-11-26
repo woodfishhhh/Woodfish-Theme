@@ -137,7 +137,7 @@ export function readDshCmdShim(command: string): string[] | null {
     if (/^set PATHEXT=%PATHEXT:;\.JS;=;%$/i.test(line)) continue;
     if (npm && progSet)
       line = line.replace(
-        /^endlocal & (?:goto #_undefined_# 2>NUL \|\| title %COMSPEC% & set PATHEXT=%PATHEXT:;\.JS;=;% & )?"%_prog%"\s+/i,
+        /^endlocal & (?:goto #_undefined_# 2>NUL \|\| title %COMSPEC% & (?:set PATHEXT=%PATHEXT:;\.JS;=;% & )?)?"%_prog%"\s+/i,
         'node '
       );
     const match =
