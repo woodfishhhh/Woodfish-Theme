@@ -63,9 +63,6 @@ describe('buildBackgroundCss', () => {
     expect(css.startsWith('@media not (prefers-reduced-transparency: reduce) {')).toBe(true);
     expect(css).toContain('body::before {');
     expect(css).toContain('--woodfish-codex-surface: var(--color-surface);');
-    expect(css).toContain(
-      'main.bg-surface,\n[data-app-shell-main-surface],\n[data-codex-history-swipe-page] > .electron\\:bg-surface {\n  background-color: transparent !important;'
-    );
     // Frosted panels: the pre-blurred copy under the luminosity layer and a 35 % tint.
     const sidebar = css.slice(css.indexOf('[data-sidebar-navigation-root] {'));
     expect(sidebar.slice(0, sidebar.indexOf('}'))).toContain(
@@ -83,6 +80,31 @@ describe('buildBackgroundCss', () => {
     // No live backdrop filter anywhere: it is recomputed every frame while a reply streams.
     expect(css).not.toContain('backdrop-filter: blur');
     expect(css).toContain('var(--woodfish-background-image, none)');
+  });
+
+  it('clears only the window backings when the user allows transparency', () => {
+    const style = document.createElement('style');
+    style.textContent = buildBackgroundCss(view());
+    document.head.appendChild(style);
+    const rules = Array.from(style.sheet!.cssRules);
+    style.remove();
+    expect(rules).toHaveLength(1);
+    const media = rules[0] as CSSMediaRule;
+    expect(media.media.mediaText).toBe('not (prefers-reduced-transparency: reduce)');
+    const cleared = Array.from(media.cssRules as CSSRuleList, (rule) => rule as CSSStyleRule)
+      .filter((rule) => rule.style.getPropertyValue('background-color') === 'transparent')
+      .flatMap((rule) => rule.selectorText.split(',').map((selector) => selector.trim()));
+    expect(cleared.sort()).toEqual(
+      [
+        'body',
+        'main.bg-surface',
+        '[data-app-shell-main-surface]',
+        '[data-codex-history-swipe-page] > .electron\\:bg-surface',
+        '[data-app-shell-surface-backing]',
+        '.messaging-root.messaging-embedded',
+        '.messaging-root.messaging-embedded .thread-pane',
+      ].sort()
+    );
   });
 
   it("paints the composer on the element Codex rounds, so the copy follows Codex's radius", () => {
