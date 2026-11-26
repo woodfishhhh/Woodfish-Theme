@@ -236,6 +236,36 @@ describe('startCodexOverlay', () => {
       expect(style.getAttribute(CODEX_PLUS_NODE_ATTRIBUTE)).toBe('woodfish');
     }
   });
+
+  it('probes Dot bubbles and inline code without matching Dot user bubbles as assistantMarkdown', () => {
+    const dot = document.createElement('div');
+    dot.className = 'messaging-root messaging-embedded';
+    dot.innerHTML = `
+      <article class="message-row self">
+        <div class="message-bubble">
+          <div class="message-text">
+            <div data-markdown-text-style="assistant-message"><p>User</p></div>
+          </div>
+        </div>
+      </article>
+      <article class="message-row" data-dot-message="true">
+        <div class="message-bubble">
+          <div class="message-text">
+            <div data-markdown-text-style="assistant-message">
+              <p>Reply <span class="InlineCode-Cddi3Y" data-markdown-copy="inline-code">x</span></p>
+            </div>
+          </div>
+        </div>
+      </article>`;
+    document.body.append(dot);
+    const overlay = startCodexOverlay({ palette: { dark: 'neon' } }, 'cdp', []);
+    const report = overlay.probe();
+    expect(report.dotUserBubble).toBe(1);
+    expect(report.dotInlineCode).toBe(1);
+    expect(report.dotAssistantInlineCode).toBe(1);
+    // 1 regular chat assistant + 1 Dot reply; the Dot user bubble is excluded.
+    expect(report.assistantMarkdown).toBe(2);
+  });
 });
 
 describe('boot entries', () => {

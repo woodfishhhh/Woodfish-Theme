@@ -309,6 +309,56 @@ describe('the shipped effects', () => {
     expect(css).not.toContain('data-composer-body');
   });
 
+  it('emits Dot inline-code overrides in rainbow-text only when the host supplies dotInlineCode', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const rainbowText = require('../../builtin/rainbow-text/effect.js') as (
+      ctx: unknown
+    ) => unknown;
+    const baseCtx = {
+      params: { colors: 'theme', strength: 42, angle: 135 },
+      rainbow: ['#ff2d95', '#00ffff'],
+      theme: () => ({
+        mode: 'dark',
+        stops: ['#ff2d95', '#00ffff'],
+        foreground: '#fafafa',
+        reply: 'linear-gradient(135deg, #f38ba8, #89b4fa)',
+      }),
+      onTheme: jest.fn(),
+    };
+
+    let codexCss = '';
+    rainbowText({
+      ...baseCtx,
+      selectors: {
+        assistantMarkdown: '.asst',
+        bodyText: '.asst p',
+        dotInlineCode: '[data-woodfish-codex] .dot-code',
+      },
+      style: (value: string) => {
+        codexCss = value;
+      },
+    });
+    expect(codexCss).toContain('[data-woodfish-codex] .dot-code {');
+    expect(codexCss).toContain(
+      'background: color-mix(in srgb, var(--color-background-secondary-ghost-hover) 60%, var(--color-text) 6%);'
+    );
+    expect(codexCss).toContain('-webkit-text-fill-color: inherit;');
+
+    let dshCss = '';
+    rainbowText({
+      ...baseCtx,
+      selectors: {
+        assistantMarkdown: '[data-chat-flow-kind="assistant-step"]',
+        bodyText: '[data-chat-flow-kind="assistant-step"] p',
+      },
+      style: (value: string) => {
+        dshCss = value;
+      },
+    });
+    expect(dshCss).not.toContain('InlineCode');
+    expect(dshCss).not.toContain('--color-background-secondary-ghost-hover');
+  });
+
   it('list every parameter variable in README.md (node scripts/css-variables.js)', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { README, renderReadme } = require('../../scripts/css-variables.js') as {

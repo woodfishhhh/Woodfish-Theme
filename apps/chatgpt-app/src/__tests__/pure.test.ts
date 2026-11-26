@@ -7,6 +7,7 @@ import {
   validatePalette,
 } from '@woodfish/theme-core';
 import {
+  BODY_TEXT_SELECTOR,
   CHROME_THEME_COLOR,
   CODEX_ADAPTER_VERSION,
   CODEX_PALETTE_SLUGS,
@@ -15,6 +16,7 @@ import {
   DEFAULT_CODEX_SETTINGS,
   applyCodexSettingsPatch,
   buildCodexCss,
+  buildDotCss,
   buildPaletteVariables,
   composeCodexCoreView,
   findCodexPalette,
@@ -22,7 +24,9 @@ import {
   normalizeCodexSettings,
   paletteMode,
   paletteToChromeTheme,
+  selectorOf,
 } from '../index';
+import { CODEX_EFFECT_SELECTORS } from '../renderer/effects';
 
 const CODE_ON = { enabled: true, angle: 45, glow: true, glowIntensity: 2 } as EffectValues;
 const BACKGROUND_ON = { enabled: true, opacity: 0.2 } as EffectValues;
@@ -450,6 +454,225 @@ describe('paletteToChromeTheme', () => {
       ui: { ...findCodexPalette('black').ui, bg: '#000' },
     };
     expect(() => paletteToChromeTheme(broken)).toThrow('surface must be #rrggbb');
+  });
+});
+
+describe('Codex Dot user bubbles and inline code (#45)', () => {
+  function mountDotAndChatDom(mode: 'dark' | 'light', active = true): HTMLDivElement {
+    document.documentElement.setAttribute('data-theme', mode);
+    if (active) {
+      document.documentElement.setAttribute('data-woodfish-codex', CODEX_ADAPTER_VERSION);
+    } else {
+      document.documentElement.removeAttribute('data-woodfish-codex');
+    }
+    const host = document.createElement('div');
+    host.innerHTML = `
+      <div id="regular-chat" data-app-action-timeline-scroll>
+        <div id="regular-user-bubble" data-user-message-bubble>Regular user</div>
+        <div id="regular-assistant" data-markdown-text-style="assistant-message">
+          <p id="regular-p">Regular reply <span id="regular-ic" class="InlineCode-Cddi3Y InlineMarkdownIsolate-QWDV4W" data-markdown-copy="inline-code">norm()</span></p>
+          <ul><li id="regular-li">Item</li></ul>
+        </div>
+      </div>
+      <div class="messaging-root messaging-embedded" style="--messaging-outgoing-background: #0285ff; --messaging-outgoing-foreground: #ffffff;">
+        <div class="message-list">
+          <article class="message-row self" data-message-id="u1">
+            <div class="message-meta"><time id="dot-user-time">14:20</time></div>
+            <div class="message-surface message-bubble-surface">
+              <div id="dot-user-bubble" class="message-bubble">
+                <div class="message-text">
+                  <div id="dot-user-md" class="MarkdownRoot-rZKhxa" data-markdown-text-style="assistant-message" data-markdown-text-tone="inherit">
+                    <p id="dot-user-p">User msg <a id="dot-user-link" class="ExternalMarkdownLink-WWBYg9" href="https://example.com">link</a> <span id="dot-user-ic" class="InlineCode-Cddi3Y InlineMarkdownIsolate-QWDV4W" data-markdown-copy="inline-code">userCode</span></p>
+                    <ul><li id="dot-user-li">User item</li></ul>
+                    <blockquote id="dot-user-quote"><p id="dot-user-quote-p">Quote</p></blockquote>
+                    <h3 id="dot-user-h3">Heading</h3>
+                    <table><tr><th id="dot-user-th">H</th><td id="dot-user-td">D</td></tr></table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="message-row self" data-message-id="u2">
+            <div class="message-surface message-bubble-surface">
+              <div id="dot-user-split-outer" class="message-bubble">
+                <div class="message-text">
+                  <div data-orbit-message-parts="true">
+                    <div id="dot-user-split-inner" class="MarkdownRoot-rZKhxa message-bubble" data-orbit-message-text-part="true" data-markdown-text-style="assistant-message" data-markdown-text-tone="inherit">
+                      <p id="dot-user-split-p">Split user text</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="message-row" data-dot-message="true" data-message-id="d1">
+            <div class="message-surface message-bubble-surface">
+              <div id="dot-reply-bubble" class="message-bubble">
+                <div class="message-text">
+                  <div id="dot-reply-md" class="MarkdownRoot-rZKhxa" data-markdown-text-style="assistant-message" data-markdown-text-tone="inherit">
+                    <p id="dot-reply-p">Dot reply <span id="dot-reply-ic" class="InlineCode-Cddi3Y InlineMarkdownIsolate-QWDV4W" data-markdown-copy="inline-code">dotCode()</span> <span id="dot-reply-ic-attr" data-markdown-copy="inline-code">attrCode()</span></p>
+                    <ul><li id="dot-reply-li">Dot item</li></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="message-row assistant" data-message-id="a1">
+            <div class="message-surface message-bubble-surface">
+              <div id="dot-asst-bubble" class="message-bubble assistant-bubble">
+                <div class="message-text">
+                  <div id="dot-asst-md" class="MarkdownRoot-rZKhxa" data-markdown-text-style="assistant-message" data-markdown-text-tone="inherit">
+                    <p id="dot-asst-p">Assistant reply <span id="dot-asst-ic" class="InlineCode-Cddi3Y" data-markdown-copy="inline-code">asstCode()</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>`;
+    document.body.append(host);
+    return host;
+  }
+
+  function matchedRules(css: string, element: Element): string {
+    const sheet = document.createElement('style');
+    sheet.textContent = css;
+    document.head.append(sheet);
+    try {
+      return Array.from(sheet.sheet!.cssRules)
+        .filter(
+          (rule): rule is CSSStyleRule =>
+            rule.type === CSSRule.STYLE_RULE && element.matches((rule as CSSStyleRule).selectorText)
+        )
+        .map((rule) => rule.style.cssText)
+        .join(' ');
+    } finally {
+      sheet.remove();
+    }
+  }
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.removeAttribute('data-woodfish-codex');
+  });
+
+  it.each(['dark', 'light'] as const)(
+    'themes Dot user bubbles and Dot inline code in %s mode while keeping split wrappers and regular chat untouched',
+    (mode) => {
+      mountDotAndChatDom(mode, true);
+      const css = buildCodexCss(
+        composeCodexCoreView(
+          normalizeCodexSettings({ palette: { dark: 'neon', light: 'light' } }),
+          {}
+        )
+      ).palette;
+
+      const userBubble = matchedRules(css, document.getElementById('dot-user-bubble')!);
+      expect(userBubble).toContain('background: var(--color-background-user-message)');
+      expect(userBubble).toContain('color: var(--color-text-user-message)');
+
+      const splitInner = matchedRules(css, document.getElementById('dot-user-split-inner')!);
+      expect(splitInner).toContain('background: var(--color-background-user-message)');
+      expect(splitInner).toContain('color: var(--color-text-user-message)');
+
+      // Outer split-parts wrapper stays transparent as Codex expects.
+      expect(matchedRules(css, document.getElementById('dot-user-split-outer')!)).toBe('');
+      // Dot reply and assistant bubbles are not styled as outgoing user bubbles.
+      expect(matchedRules(css, document.getElementById('dot-reply-bubble')!)).toBe('');
+      expect(matchedRules(css, document.getElementById('dot-asst-bubble')!)).toBe('');
+      // Regular chat user bubble and inline code are unaffected by Dot rules.
+      expect(matchedRules(css, document.getElementById('regular-user-bubble')!)).toBe('');
+      expect(matchedRules(css, document.getElementById('regular-ic')!)).toBe('');
+
+      // Dot inline code (with rainbow-text off) uses regular chat's translucent pill and inherits text color.
+      for (const id of ['dot-reply-ic', 'dot-reply-ic-attr', 'dot-asst-ic', 'dot-user-ic']) {
+        const applied = matchedRules(css, document.getElementById(id)!);
+        expect(applied).toContain(
+          'color-mix(in srgb, var(--color-background-secondary-ghost-hover) 60%, var(--color-text) 6%)'
+        );
+        expect(applied).toContain('color: inherit');
+        expect(applied).toContain('-webkit-text-fill-color: inherit');
+      }
+    }
+  );
+
+  it('scopes Dot palette overrides to Woodfish active state and matching appearance mode', () => {
+    mountDotAndChatDom('dark', false);
+    const darkOnlyCss = buildDotCss('dark');
+    expect(matchedRules(darkOnlyCss, document.getElementById('dot-user-bubble')!)).toBe('');
+    expect(matchedRules(darkOnlyCss, document.getElementById('dot-reply-ic')!)).toBe('');
+
+    document.documentElement.setAttribute('data-woodfish-codex', CODEX_ADAPTER_VERSION);
+    document.documentElement.setAttribute('data-theme', 'light');
+    expect(matchedRules(darkOnlyCss, document.getElementById('dot-user-bubble')!)).toBe('');
+  });
+
+  it('excludes Dot user messages from assistant rainbow-text while keeping Dot replies and regular chat painted', () => {
+    mountDotAndChatDom('dark', true);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const rainbowText = require('../../../../packages/effects/builtin/rainbow-text/effect.js') as (
+      ctx: Record<string, unknown>
+    ) => unknown;
+    let css = '';
+    rainbowText({
+      params: { colors: 'theme', strength: 42, angle: 135 },
+      rainbow: ['#ff2d95', '#00ffff'],
+      theme: () => ({
+        mode: 'dark',
+        stops: ['#ff2d95', '#00ffff'],
+        foreground: '#fafafa',
+        reply: 'linear-gradient(135deg, #f38ba8, #89b4fa)',
+      }),
+      selectors: CODEX_EFFECT_SELECTORS,
+      onTheme: jest.fn(),
+      style: (next: string) => {
+        css = next;
+      },
+    });
+
+    // Dot user message blocks and inline code must not inherit assistant rainbow gradient or transparent fill.
+    for (const id of [
+      'dot-user-p',
+      'dot-user-li',
+      'dot-user-quote',
+      'dot-user-quote-p',
+      'dot-user-h3',
+      'dot-user-th',
+      'dot-user-td',
+      'dot-user-ic',
+      'dot-user-split-p',
+    ]) {
+      const applied = matchedRules(css, document.getElementById(id)!);
+      expect({ id, applied }).toEqual({ id, applied: '' });
+    }
+
+    // Dot assistant / Dot reply text and regular chat assistant text keep the rainbow gradient.
+    for (const id of ['regular-p', 'regular-li', 'dot-reply-p', 'dot-reply-li', 'dot-asst-p']) {
+      const applied = matchedRules(css, document.getElementById(id)!);
+      expect(applied).toContain('background-clip: text');
+      expect(applied).toContain('-webkit-text-fill-color: transparent');
+    }
+
+    // Dot assistant inline code overrides Codex's opaque tone="inherit" pill even when no Woodfish palette is active.
+    for (const id of ['dot-reply-ic', 'dot-reply-ic-attr', 'dot-asst-ic']) {
+      const applied = matchedRules(css, document.getElementById(id)!);
+      expect(applied).toContain(
+        'color-mix(in srgb, var(--color-background-secondary-ghost-hover) 60%, var(--color-text) 6%)'
+      );
+      expect(applied).toContain('-webkit-text-fill-color: inherit');
+    }
+
+    // Regular chat inline code is untouched by Dot inline-code rules.
+    expect(matchedRules(css, document.getElementById('regular-ic')!)).toBe('');
+
+    // assistantMarkdown selector excludes Dot user bubbles while matching regular chat and Dot replies.
+    const matchedRoots = [...document.querySelectorAll(selectorOf('assistantMarkdown'))].map(
+      (node) => node.id
+    );
+    expect(matchedRoots).toEqual(['regular-assistant', 'dot-reply-md', 'dot-asst-md']);
+    expect(BODY_TEXT_SELECTOR).not.toContain('[data-markdown-text-style="assistant-message"] p');
+    expect(BODY_TEXT_SELECTOR).toContain('.messaging-root.messaging-embedded');
   });
 });
 

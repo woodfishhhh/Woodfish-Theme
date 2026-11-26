@@ -16,6 +16,14 @@ module.exports = function rainbowText(ctx) {
   }
 
   function restyle() {
+    const dotInlineCode = ctx.selectors.dotInlineCode
+      ? `
+${ctx.selectors.dotInlineCode} {
+  background: color-mix(in srgb, var(--color-background-secondary-ghost-hover) 60%, var(--color-text) 6%);
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+}`
+      : '';
     ctx.style(`
 ${ctx.selectors.bodyText} {
   background-image: var(--woodfish-rainbow-text-gradient, ${gradient()}) !important;
@@ -29,7 +37,7 @@ ${ctx.selectors.assistantMarkdown} :is(a, code, pre, .katex, [data-code-block]) 
 ${ctx.selectors.assistantMarkdown} li {
   /* A marker outside the item is outside the painted text and would vanish with it. */
   list-style-position: inside;
-}`);
+}${dotInlineCode}`);
   }
 
   ctx.onTheme(restyle);

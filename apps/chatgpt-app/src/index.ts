@@ -35,6 +35,7 @@ export {
   buildBackgroundCss,
   buildCodeCss,
   buildCodexCss,
+  buildDotCss,
   buildHljsRoleCss,
   buildPaletteCss,
   buildPaletteVariables,

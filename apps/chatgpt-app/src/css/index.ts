@@ -62,5 +62,5 @@ export function buildCodexCss(view: CodexCoreView): Record<CodexStyleName, strin
 }
 
 export { buildBackgroundCss } from './background';
-export { buildHljsRoleCss, buildPaletteCss, buildPaletteVariables } from './palette';
+export { buildDotCss, buildHljsRoleCss, buildPaletteCss, buildPaletteVariables } from './palette';
 export { buildCodeCss, buildDiffCss } from './effects';

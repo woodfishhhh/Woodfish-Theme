@@ -25,6 +25,11 @@ export interface SelectorGroup {
  */
 const COMPOSER_ROOT = '[data-codex-composer-root]';
 const NEW_CHAT = '[data-composer-utility-bar-variant="home"]';
+const DOT_ROOT = '.messaging-root.messaging-embedded';
+const DOT_USER_ROW = `${DOT_ROOT} .message-row.self:not(.assistant)`;
+const DOT_INLINE_CODE_NODE =
+  ':is([class^="InlineCode-"][data-markdown-copy], [class*=" InlineCode-"][data-markdown-copy], [data-markdown-copy="inline-code"])';
+const ASSISTANT_MARKDOWN = `[data-markdown-text-style="assistant-message"]:not(${DOT_USER_ROW} *)`;
 const composerSurfaceOf = (variant: string): readonly string[] => [
   `${COMPOSER_ROOT} ${variant}:not(${NEW_CHAT})`,
   `${COMPOSER_ROOT} ${variant}${NEW_CHAT} [data-composer-body]`,
@@ -136,9 +141,28 @@ export const CODEX_SELECTORS = {
     description: '用户消息',
   },
   assistantMarkdown: {
-    selectors: ['[data-markdown-text-style="assistant-message"]'],
+    // Dot user bubbles reuse data-markdown-text-style="assistant-message"; exclude them here.
+    selectors: [ASSISTANT_MARKDOWN],
     alwaysPresent: false,
     description: '助手回复',
+  },
+  dotUserBubble: {
+    // Exclude the split-parts wrapper, which Codex keeps transparent around nested text-part bubbles.
+    selectors: [`${DOT_USER_ROW} .message-bubble:not(:has([data-orbit-message-parts]))`],
+    alwaysPresent: false,
+    description: 'Dot 用户消息气泡',
+  },
+  dotInlineCode: {
+    selectors: [`${DOT_ROOT} .message-text ${DOT_INLINE_CODE_NODE}`],
+    alwaysPresent: false,
+    description: 'Dot 内联代码',
+  },
+  dotAssistantInlineCode: {
+    selectors: [
+      `[data-woodfish-codex] ${DOT_ROOT} .message-row:is(.assistant, :not(.self)) .message-text ${DOT_INLINE_CODE_NODE}`,
+    ],
+    alwaysPresent: false,
+    description: 'Dot 助手内联代码',
   },
   codeBlockSource: {
     selectors: ['[data-code-block-source="true"]'],
@@ -244,7 +268,7 @@ export const BODY_TEXT_SELECTOR = [
   'td',
   'th',
 ]
-  .map((tag) => `[data-markdown-text-style="assistant-message"] ${tag}`)
+  .map((tag) => `${ASSISTANT_MARKDOWN} ${tag}`)
   .join(', ');
 /** Roots observed by the body gradient engine. */
 export const BODY_ROOT_SELECTOR = selectorOf('assistantMarkdown');

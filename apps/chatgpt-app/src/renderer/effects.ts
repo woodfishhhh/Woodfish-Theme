@@ -45,6 +45,7 @@ export const CODEX_EFFECT_SELECTORS: Readonly<Record<string, string>> = Object.f
   assistantMarkdown: joined('assistantMarkdown'),
   userMessage: joined('userMessage'),
   bodyText: BODY_TEXT_SELECTOR,
+  dotInlineCode: joined('dotAssistantInlineCode'),
   activeTab: joined('activeTab'),
   floatingLayer: joined('floatingLayer'),
   revealTarget: joined('revealTarget'),

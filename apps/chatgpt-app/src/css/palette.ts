@@ -1,4 +1,5 @@
 import { PaletteTokenRole, WoodfishPalette } from '@woodfish/theme-core';
+import { selectorOf } from '../selectors';
 import { CodexPaletteSlug, CodexSettings, findCodexPalette } from '../settings';
 
 function mix(color: string, percent: number, base = 'transparent'): string {
@@ -204,6 +205,31 @@ export function buildHljsRoleCss(palette: WoodfishPalette, mode: 'dark' | 'light
   ).join('\n');
 }
 
+/**
+ * Dot (embedded messaging) paints outgoing bubbles with inline `--messaging-outgoing-*`
+ * colors and puts an opaque `var(--color-surface)` background on inline code inside
+ * `[data-markdown-text-tone="inherit"]` roots. While a Woodfish palette is active, follow
+ * the palette's user-message variables and match regular chat's translucent inline-code pill.
+ */
+export function buildDotCss(mode: 'dark' | 'light'): string {
+  const scope = `[data-woodfish-codex][data-theme="${mode}"]`;
+  return [
+    [
+      `${scope} ${selectorOf('dotUserBubble')} {`,
+      '  background: var(--color-background-user-message);',
+      '  color: var(--color-text-user-message);',
+      '}',
+    ].join('\n'),
+    [
+      `${scope} ${selectorOf('dotInlineCode')} {`,
+      '  background: color-mix(in srgb, var(--color-background-secondary-ghost-hover) 60%, var(--color-text) 6%);',
+      '  color: inherit;',
+      '  -webkit-text-fill-color: inherit;',
+      '}',
+    ].join('\n'),
+  ].join('\n\n');
+}
+
 /** Palette overrides for each Codex appearance mode that has a palette selected. */
 export function buildPaletteCss(palette: CodexSettings['palette']): string {
   const modes: Array<['dark' | 'light', CodexPaletteSlug | null]> = [
@@ -218,6 +244,7 @@ export function buildPaletteCss(palette: CodexSettings['palette']): string {
         block(`[data-theme="${mode}"]`, buildPaletteVariables(woodfish)),
         buildChromeCss(woodfish, mode),
         buildHljsRoleCss(woodfish, mode),
+        buildDotCss(mode),
       ].join('\n\n');
     })
     .join('\n\n');
